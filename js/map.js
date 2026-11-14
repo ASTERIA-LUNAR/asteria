@@ -8,6 +8,7 @@ window.AsteriaMap = (function () {
   'use strict';
   var R = 1737400, DEG = Math.PI / 180;
   var TM = window.LUNA_TILES;
+  var dataBounds = null;
   var map = null, layers = {}, markerLayer = null, pickMarker = null, opts = {}, sites = [], selId = null, readout = null;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -57,7 +58,7 @@ window.AsteriaMap = (function () {
   function renderMarkers() {
     if (!map) return;
     markerLayer.clearLayers();
-    var pts = sites.filter(function (s) { return s.lat <= -79; }).map(function (s) { return { s: s, p: map.latLngToLayerPoint([s.lat, s.lon]) }; });
+    var pts = sites.filter(function (s) { return inData(s.lat, s.lon); }).map(function (s) { return { s: s, p: map.latLngToLayerPoint([s.lat, s.lon]) }; });
     var groups = [];
     pts.forEach(function (it) {
       for (var g = 0; g < groups.length; g++) if (groups[g].p.distanceTo(it.p) < 16) { groups[g].items.push(it); return; }
@@ -95,13 +96,17 @@ window.AsteriaMap = (function () {
     if (!window.L || !TM) { el.innerHTML = '<p class="hint" style="padding:16px">Map unavailable (lib/leaflet or data/tiles_meta.js missing).</p>'; return null; }
     var H = TM.halfExtent_m, LY = TM.layers;
     RangedTiles = RangedTiles || makeRangedTiles();
+    // Data coverage = the tile square (+-H in projected metres, ~80 S on the axes, ~76 S in the corners).
+    // Leaflet's maxBounds only ever projects the NE and SW (or NW and SE) corners of the box it is given.
+    // A LatLngBounds made from the square's top-left and bottom-right corners (same latitude, longitudes
+    // -45 and 135) therefore projects exactly onto the square, so panning is limited to the data.
+    var tl = unproject(-H, H), br = unproject(H, -H);
+    dataBounds = L.latLngBounds([tl.lat, tl.lon], [br.lat, br.lon]);
     map = L.map(el, {
       crs: makeCRS(H), minZoom: 0, maxZoom: 9, zoomSnap: 0.5, zoomDelta: 0.5, wheelPxPerZoomLevel: 90,
       attributionControl: true, zoomAnimation: !reduce, fadeAnimation: !reduce, markerZoomAnimation: !reduce,
-      inertia: !reduce
+      inertia: !reduce, maxBounds: dataBounds, maxBoundsViscosity: 1.0
     });
-    // (Leaflet maxBounds is a lat/lon box, meaningless in a polar CRS: the view is kept inside the
-    //  projected square on 'moveend' below instead.)
     var ZMAX = 9;
     layers.hill = L.tileLayer(LY.hill.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.hill.full[1], noWrap: true,
       attribution: 'LOLA DEMs: NASA LRO/LOLA, PDS Geosciences Node' }).addTo(map);
@@ -111,6 +116,10 @@ window.AsteriaMap = (function () {
     layers.slope = L.tileLayer(LY.slope.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.slope.maxNativeZoom, opacity: 0.62, noWrap: true });
     layers.illum = new RangedTiles(LY.illum.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.illum.maxNativeZoom, opacity: 0.85, ranges: LY.illum.ranges,
       attribution: 'Illumination: NASA PGDA product 69 (Mazarico et al. 2011)' });
+    // Mark the edge of data coverage: hatch everything outside the square, outline the square.
+    var big = 3 * H, ring = function (h) { return [[-h, h], [h, h], [h, -h], [-h, -h]].map(function (c) { var q = unproject(c[0], c[1]); return [q.lat, q.lon]; }); };
+    L.polygon([ring(big), ring(H)], { stroke: false, fillColor: '#000', fillOpacity: 0.55, interactive: false, className: 'nodata' }).addTo(map);
+    L.polygon(ring(H), { color: '#ff9f43', weight: 1.5, dashArray: '6 5', fill: false, interactive: false }).bindTooltip('Edge of the map data', { sticky: true }).addTo(map);
     markerLayer = L.layerGroup().addTo(map);
     // tile loading -> loader (only shown if still loading after 250 ms)
     Object.keys(layers).forEach(function (k) {
@@ -119,40 +128,47 @@ window.AsteriaMap = (function () {
       layers[k].on('load', done);
       layers[k].on('remove', done);   // a layer removed while loading never fires 'load'
     });
-    map.on('click', function (e) { opts.onPickPoint(e.latlng.lat, e.latlng.lng); });
+    map.on('click', function (e) {
+      if (!inData(e.latlng.lat, e.latlng.lng)) { if (opts.onOutside) opts.onOutside(); return; }
+      opts.onPickPoint(e.latlng.lat, e.latlng.lng);
+    });
     map.on('zoomend', renderMarkers);
-    map.on('mousemove', function (e) { if (readout) readout.textContent = fmtLL(e.latlng.lat, e.latlng.lng); });
+    map.on('mousemove', function (e) { if (readout) readout.textContent = inData(e.latlng.lat, e.latlng.lng) ? fmtLL(e.latlng.lat, e.latlng.lng) : 'No elevation data here'; });
     map.on('mouseout', function () { if (readout) readout.textContent = 'Click anywhere to pick a point'; });
     // readout box
     var Rd = L.Control.extend({ options: { position: 'bottomleft' }, onAdd: function () { var d = L.DomUtil.create('div', 'mapreadout'); d.textContent = 'Click anywhere to pick a point'; readout = d; return d; } });
     map.addControl(new Rd());
-    // keep the view inside the square
-    map.on('moveend', function () {
-      var c = map.options.crs.project(map.getCenter());
-      var cx = Math.max(-H, Math.min(H, c.x)), cy = Math.max(-H, Math.min(H, c.y));
-      if (cx !== c.x || cy !== c.y) map.panTo(map.options.crs.unproject(L.point(cx, cy)), { animate: !reduce });
-    });
+    fitMinZoom();
+    map.on('resize', fitMinZoom);
     home(false);
     return map;
   }
+  // Smallest zoom = the whole data square fills the shorter side of the map box (no zooming out into emptiness).
+  function fitMinZoom() {
+    var size = map.getSize(), s = Math.min(size.x, size.y) || 400;
+    var z = Math.floor(Math.log(s / 256) / Math.LN2 * 2) / 2;
+    map.setMinZoom(Math.max(0, z));
+  }
+  // Is (lat, lon) inside the map data (the tile square)?
+  function inData(lat, lon) { var p = project(lat, lon), H = TM ? TM.halfExtent_m : 0; return lat < 0 && Math.abs(p.x) <= H && Math.abs(p.y) <= H; }
   function fmtLL(lat, lon) { return lat.toFixed(4) + '°, ' + (((lon + 540) % 360) - 180).toFixed(4) + '°E'; }
   function home(animate) {
     if (!map) return;
     var size = Math.min(map.getSize().x, map.getSize().y) || 400;
     // fit the 80S circle (radius 2R tan(5 deg) ~ 304 km)
     var z = Math.log(size / (256 * 0.97)) / Math.LN2;
-    map.setView([-90, 0], Math.max(0, Math.floor(z * 2) / 2), { animate: !!animate && !reduce });
+    map.setView([-90, 0], Math.max(map.getMinZoom(), Math.floor(z * 2) / 2), { animate: !!animate && !reduce });
   }
   function setSites(list) { sites = list; renderMarkers(); }
   function select(site, fly) {
     selId = site && site.id;
     if (!map) return;
     if (pickMarker) { map.removeLayer(pickMarker); pickMarker = null; }
-    if (site && !site.id && site.lat <= -79) {
+    if (site && !site.id && inData(site.lat, site.lon)) {
       pickMarker = L.marker([site.lat, site.lon], { icon: L.divIcon({ className: 'mkwrap', html: '<span class="mk mk-pick"></span>', iconSize: [18, 18], iconAnchor: [9, 9] }), interactive: false }).addTo(map);
     }
     renderMarkers();
-    if (fly && site && site.lat <= -79) {
+    if (fly && site && inData(site.lat, site.lon)) {
       var z = Math.max(map.getZoom(), 5);
       if (reduce) map.setView([site.lat, site.lon], z, { animate: false });
       else map.flyTo([site.lat, site.lon], z, { duration: 1.1 });
@@ -166,7 +182,7 @@ window.AsteriaMap = (function () {
   function invalidate() { if (map) { map.invalidateSize(); renderMarkers(); } }
   return {
     init: init, setSites: setSites, select: select, setOverlay: setOverlay, setMarkersVisible: setMarkersVisible,
-    invalidate: invalidate, home: home, project: project, unproject: unproject,
+    invalidate: invalidate, home: home, project: project, unproject: unproject, inData: inData,
     leaflet: function () { return map; }
   };
 })();

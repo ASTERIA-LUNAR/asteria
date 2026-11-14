@@ -64,7 +64,23 @@ const path = require('path'), fs = require('fs'), url = require('url');
     const box = await page.locator('#lmap').boundingBox();
     await page.mouse.click(box.x + box.width * 0.5 + 25, box.y + box.height * 0.5 + 35); await ready(page); await page.waitForTimeout(300);
     const pick = await page.evaluate(() => ({ id: AsteriaApp.state.site.id, lat: AsteriaApp.state.site.lat, lon: AsteriaApp.state.site.lon, name: document.getElementById('siteName').textContent, kind: document.getElementById('siteKind').textContent }));
-    expect(`${tag} clicking the map picks a custom point with lat/lon (smooth horizon)`, pick.id === null && pick.lat < -85 && /smooth horizon/.test(pick.kind), JSON.stringify(pick));
+    const pickMsg = await page.evaluate(() => ({ badge: document.getElementById('horizonBadge').textContent, msg: (document.querySelector('.custommsg') || {}).textContent || '', hz: !!AsteriaApp.state.site.hz }));
+    expect(`${tag} clicking inside the map picks a custom point with a terrain horizon from 240 m data (validated), clearly labelled`, pick.id === null && pick.lat < -85 && pickMsg.hz && /terrain from coarser 240 m data \(less precise than curated sites\)/.test(pick.kind) && /240 m data/.test(pickMsg.badge) && /may differ from reality/.test(pickMsg.msg), JSON.stringify(pick) + ' ' + JSON.stringify(pickMsg).slice(0, 200));
+    // clicking outside the data square selects nothing and shows the coverage message
+    const outPx = await page.evaluate(() => { const m = AsteriaMap.leaflet(), H = LUNA_TILES.halfExtent_m, q = AsteriaMap.unproject(H * 1.03, 0), pt = m.latLngToContainerPoint([q.lat, q.lon]); return { x: pt.x, y: pt.y, w: m.getSize().x, h: m.getSize().y }; });
+    if (outPx.x > 2 && outPx.x < outPx.w - 2 && outPx.y > 2 && outPx.y < outPx.h - 2) {
+      await page.mouse.click(box.x + outPx.x, box.y + outPx.y); await page.waitForTimeout(300);
+      const o = await page.evaluate(() => ({ note: document.getElementById('mapNote').hidden ? '' : document.getElementById('mapNote').textContent, lat: AsteriaApp.state.site.lat }));
+      expect(`${tag} click outside the map data: no point selected, coverage message shown`, o.lat === pick.lat && /No elevation data here - this map covers the lunar south pole \(about 80°S to the pole\)\./.test(o.note), JSON.stringify(o));
+    } else console.log(`${tag} (map box shows no area outside the data at this size; outside-click check skipped)`);
+    // panning is limited to the data square
+    const cen = await page.evaluate(() => { const m = AsteriaMap.leaflet(); m.panBy([6000, 6000], { animate: false }); const c = m.getCenter(), p = AsteriaMap.project(c.lat, c.lng), H = LUNA_TILES.halfExtent_m; return { x: p.x / H, y: p.y / H }; });
+    expect(`${tag} panning is limited to the area covered by the map data`, Math.abs(cen.x) <= 1.0001 && Math.abs(cen.y) <= 1.0001, JSON.stringify(cen));
+    await page.evaluate(() => AsteriaMap.home(false));
+    // typed coordinates outside the map stay allowed, with a smooth horizon
+    await page.click('#pickBtn'); await page.fill('#customLat', '-60'); await page.fill('#customLon', '10'); await page.click('#customGo'); await ready(page); await page.waitForTimeout(200);
+    const ty = await page.evaluate(() => ({ kind: document.getElementById('siteKind').textContent, badge: document.getElementById('horizonBadge').textContent, hz: !!AsteriaApp.state.site.hz, msg: (document.querySelector('.custommsg') || {}).textContent || '' }));
+    expect(`${tag} typed point outside the map: smooth horizon, clearly labelled`, !ty.hz && /outside the south-pole map/.test(ty.kind) && /terrain not included/.test(ty.badge) && /smooth Moon without mountains/.test(ty.msg), JSON.stringify(ty).slice(0, 220));
 
     // ---- picker: Artemis features, reference site outside the pole
     const pickSite = async id => { await page.click('#pickBtn'); await page.click(`.siteitem[data-id="${id}"]`); await ready(page); await page.waitForTimeout(250); };
@@ -188,9 +204,10 @@ const path = require('path'), fs = require('fs'), url = require('url');
     await page.goto('about:blank'); await page.goto(base + '#site=apollo11&t=2027-01-01T00:00Z&w=14&me=3&tab=compare'); await page.waitForTimeout(1200);
     const st = await page.evaluate(() => ({ site: AsteriaApp.state.site.id, t: AsteriaApp.state.start.toISOString(), w: AsteriaApp.state.windowDays, me: AsteriaApp.state.minEl, tab: document.querySelector('.tab.active').dataset.page }));
     expect(`${tag} URL hash restores site/date/window/min elevation/tab`, st.site === 'apollo11' && st.t === '2027-01-01T00:00:00.000Z' && st.w === 14 && st.me === 3 && st.tab === 'compare', JSON.stringify(st));
-    await page.goto(base + '#lat=-89.9&lon=45&t=2027-06-01T12:30Z&w=7'); await page.waitForTimeout(1000);
-    const st2 = await page.evaluate(() => ({ lat: AsteriaApp.state.site.lat, lon: AsteriaApp.state.site.lon, id: AsteriaApp.state.site.id, w: AsteriaApp.state.windowDays }));
-    expect(`${tag} URL hash restores custom coordinates`, st2.lat === -89.9 && st2.lon === 45 && st2.id === null && st2.w === 7, JSON.stringify(st2));
+    await page.goto(base + '#lat=-89.9&lon=45&t=2027-06-01T12:30Z&w=7'); await page.waitForTimeout(500);
+    await page.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.site && AsteriaApp.state.site.lat === -89.9 && !AsteriaApp.state.computing, null, { timeout: 30000 }); await ready(page);
+    const st2 = await page.evaluate(() => ({ lat: AsteriaApp.state.site.lat, lon: AsteriaApp.state.site.lon, id: AsteriaApp.state.site.id, w: AsteriaApp.state.windowDays, hz: !!AsteriaApp.state.site.hz }));
+    expect(`${tag} URL hash restores custom coordinates (terrain recomputed from 240 m data)`, st2.lat === -89.9 && st2.lon === 45 && st2.id === null && st2.w === 7 && st2.hz, JSON.stringify(st2));
     // ---- horizontal overflow (phone layout)
     await page.goto(base); await page.waitForTimeout(1200);
     const ov = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

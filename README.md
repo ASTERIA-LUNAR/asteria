@@ -18,7 +18,8 @@ Double-click **`index.html`**. It runs offline in any modern browser, with no se
   * **Slope** in degrees from the DEM, with a legend. Computed on a 37 m grid and shown as 74 m pixels.
   * **Average illumination**: NASA's published PGDA map, with its source and definition. It covers about 85°S-90°S.
   * **Site markers**: markers that overlap on screen are grouped with a count, and a click lists them.
-  * Clicking anywhere selects a custom point and shows its lat/lon. Custom points use a smooth horizon.
+  * Panning and zooming are limited to the area covered by the map data; outside it is hatched and the edge is drawn. A click outside the data selects nothing and shows "No elevation data here - this map covers the lunar south pole (about 80°S to the pole)."
+  * Clicking inside the map selects a custom point. It gets a terrain horizon computed in the browser from a downsampled 240 m DEM, labelled "terrain from coarser 240 m data (less precise than curated sites)". This was shipped only because it passed validation (see below). Typed points outside the map use a smooth horizon (a Moon without mountains), also labelled.
 * **Site Card** with three status tiles. Each has a plain-English line and a countdown:
   * **Sunlight** (amber): Sun up or down, time to the next sunset or sunrise.
   * **Earth link** (blue): Earth in view or hidden, time to the next Earthset or Earthrise.

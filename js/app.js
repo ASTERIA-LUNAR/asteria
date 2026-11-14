@@ -46,12 +46,18 @@
   function fmtDeg(x, n) { return (x >= 0 ? '+' : '') + x.toFixed(n === undefined ? 2 : n) + '°'; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function siteById(id) { for (var i = 0; i < SITES.length; i++) if (SITES[i].id === id) return SITES[i]; return null; }
+  // Terrain horizon: curated sites use the 20 m-based masks (data/horizons); a clicked/typed custom point inside
+  // the map uses a horizon computed from the downsampled 240 m DEM (site.hz), only because that passed validation.
   function maskFor(site, useTerrain) {
-    if (!useTerrain || !site || !site.id || !HZ[site.id]) return null;
-    return HZ[site.id].elevations;
+    if (!useTerrain || !site) return null;
+    if (!site.id) return site.hz ? site.hz.elevations : null;
+    return HZ[site.id] ? HZ[site.id].elevations : null;
   }
-  function hasTerrain(site) { return !!(site && site.id && HZ[site.id]); }
+  function hasTerrain(site) { return !!(site && (site.id ? HZ[site.id] : site.hz)); }
+  function isCoarse(site) { return !!(site && !site.id && site.hz); }
+  function terrainName(site) { return isCoarse(site) ? 'terrain from coarser 240 m data' : 'LOLA terrain'; }
   function isPolar(site) { return site && site.lat <= -79; }
+  function inMap(site) { return !!(site && Map.inData && Map.inData(site.lat, site.lon)); }
   function siteObj() { return { lat: S.site.lat, lon: S.site.lon }; }
   function minElText() { return S.minEl ? 'Earth link = Earth at least ' + S.minEl + '° above the terrain horizon' : 'Earth link = Earth centre above the terrain horizon (minimum elevation 0°)'; }
   function fitCanvas(c, cssH) {
@@ -90,7 +96,7 @@
     return 0;
   }
   function kindText(s) {
-    if (!s.id) return isPolar(s) ? 'Custom point · smooth horizon (terrain is not computed for custom points)' : 'Custom point · smooth horizon, terrain not included';
+    if (!s.id) return s.hz ? 'Custom point · terrain from coarser 240 m data (less precise than curated sites)' : inMap(s) ? 'Custom point · smooth horizon (a Moon without mountains)' : 'Custom point outside the south-pole map · smooth horizon (a Moon without mountains)';
     if (s.artemisRegions && s.landformCentre) return 'Artemis III region: ' + s.artemisRegions.join(' / ') + ' · centre of the named landform; region boundary not plotted';
     if (s.regionPoint) return 'Artemis III region: ' + s.artemisRegions.join(' / ') + ' · published point inside the region (independent study); region boundary not plotted';
     if (/^DERIVED/.test(s.coordKind)) return 'Derived by ASTERIA: best-supported point near Peak near Shackleton (not a published coordinate)';
@@ -182,26 +188,90 @@
         (hasTerrain(s) ? '<br>Terrain: LOLA, site height ' + HZ[s.id].siteHeight_m.toFixed(0) + ' m above the 1737.4 km sphere; observer 2 m above ground; horizon from ' + fmtDeg(minMax(HZ[s.id].elevations)[0], 1) + ' to ' + fmtDeg(minMax(HZ[s.id].elevations)[1], 1) + '; rays to ' + HZ[s.id].minReach_km.toFixed(0) + '-300 km.' : '') + '</div>';
       if (s.landformCentre) m += '<div class="warnline">One point at the centre of a large landform, not a landing site. NASA\'s region boundary is not plotted; conditions elsewhere in the region can be very different.</div>';
     }
+    if (!s.id) {
+      m += '<div class="custommsg">' + customMessage(s) + '</div>';
+      if (s.hz) m += '<div class="x-only">Terrain: downsampled LOLA DEM, ' + COARSE_PX + ' m pixels (area mean of LDEM_85S_20M / 80S_80M / 75S_120M); site height ' + s.hz.siteHeight_m.toFixed(0) + ' m above the 1737.4 km sphere; observer 2 m above ground; horizon from ' + fmtDeg(minMax(s.hz.elevations)[0], 1) + ' to ' + fmtDeg(minMax(s.hz.elevations)[1], 1) + '; rays reach ' + minMax(s.hz.reach_km)[0].toFixed(0) + '-300 km (they stop at the edge of the map data). Method: same as tools/terrain.py; validation on the Validation tab.</div>';
+    }
     $('siteMeta').innerHTML = m;
     renderBadge();
   }
   function renderBadge() {
     var b = $('horizonBadge');
-    if (maskFor(S.site, S.useTerrain)) { b.className = 'badge terrain'; b.textContent = 'Terrain horizon (LOLA)'; b.title = 'LOLA 20-120 m DEM, 360 azimuths, observer 2 m above ground'; }
-    else { b.className = 'badge smooth'; b.textContent = 'Smooth horizon - terrain not included'; b.title = 'A perfectly smooth Moon: real hills can change rise/set times by hours to days'; }
+    if (maskFor(S.site, S.useTerrain) && isCoarse(S.site)) { b.className = 'badge terrain coarse'; b.textContent = 'Terrain horizon (240 m data)'; b.title = 'Terrain from coarser 240 m data (less precise than curated sites), 360 azimuths, observer 2 m above ground'; }
+    else if (maskFor(S.site, S.useTerrain)) { b.className = 'badge terrain'; b.textContent = 'Terrain horizon (LOLA)'; b.title = 'LOLA DEMs (20 m/px near the site, 80-120 m/px further away), 360 azimuths, observer 2 m above ground'; }
+    else { b.className = 'badge smooth'; b.textContent = 'Smooth horizon - terrain not included'; b.title = 'A perfectly smooth Moon without mountains: real hills and crater walls can change when the Sun and Earth rise and set'; }
   }
+  var OUTSIDE_MSG = 'No elevation data here - this map covers the lunar south pole (about 80°S to the pole).';
+  var outsideTimer = null;
   function renderMapNote() {
     var n = $('mapNote');
-    if (S.site && !isPolar(S.site)) {
+    clearTimeout(outsideTimer);
+    if (S.site && !inMap(S.site)) {
       n.hidden = false;
-      n.innerHTML = '<b>' + esc(S.site.name) + '</b> (' + S.site.lat.toFixed(2) + '°, ' + S.site.lon.toFixed(2) + '°E) is outside this south-pole map. It is a reference site: smooth horizon, terrain not included.';
+      n.innerHTML = '<b>' + esc(S.site.name) + '</b> (' + S.site.lat.toFixed(2) + '°, ' + S.site.lon.toFixed(2) + '°E) is outside this south-pole map. ' + (S.site.id ? 'It is a reference site: smooth horizon, terrain not included.' : 'Smooth horizon (a Moon without mountains).');
     } else n.hidden = true;
+  }
+  function showOutside() {          // map click outside the data square: nothing is selected
+    var n = $('mapNote');
+    n.hidden = false; n.textContent = OUTSIDE_MSG;
+    clearTimeout(outsideTimer); outsideTimer = setTimeout(renderMapNote, 6000);
+  }
+
+  // ---------------------------------------------- terrain for clicked points
+  var CV = window.LUNA_COARSE_VALIDATION;
+  var COARSE_OK = !!(CV && CV.pass);      // shipped only because tests/coarse_validation.js passed
+  var COARSE_PX = CV ? CV.dem.pixel_m : 240;
+  var demPromise = null, customToken = 0;
+  // Load data/dem_coarse.js on first use (8-9 MB), inflate it, undo the row differences, hand it to the jobs.
+  function loadDem() {
+    if (demPromise) return demPromise;
+    demPromise = new Promise(function (resolve, reject) {
+      if (window.LUNA_DEM_COARSE) { resolve(); return; }
+      var sc = document.createElement('script'); sc.src = 'data/dem_coarse.js';
+      sc.onload = function () { resolve(); }; sc.onerror = function () { reject(new Error('data/dem_coarse.js could not be loaded')); };
+      document.head.appendChild(sc);
+    }).then(function () {
+      var M = window.LUNA_DEM_COARSE;
+      if (!window.DecompressionStream || !window.Response) throw new Error('this browser cannot decompress the elevation data');
+      var bin = atob(M.b64), u8 = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer().then(function (buf) {
+        var h = new Int16Array(buf), n = M.n;
+        for (var j = 0; j < n; j++) { var o = j * n; for (var k = 1; k < n; k++) h[o + k] = h[o + k] + h[o + k - 1]; }
+        var dem = { n: n, px: M.pixel_m, h: h };
+        Jobs.local().setDem(dem);
+        return Jobs.run('setDem', dem);
+      });
+    });
+    demPromise.then(null, function () { demPromise = null; });
+    return demPromise;
+  }
+  // Plain-language note for custom points; every number is read live from the validation data.
+  function customMessage(s) {
+    var V = window.LUNA_VALIDATION, I = window.LUNA_ILLUMINATION;
+    var eng = 'Sun and Earth positions come from the validated engine' + (V ? ' (elevations within ' + V.angleStats.el.max.toFixed(3) + '° of NASA/JPL Horizons in the tests)' : '') + '; ';
+    if (s.hz) {
+      return '<b>Custom point.</b> ' + eng + 'the horizon is <b>terrain from coarser ' + COARSE_PX + ' m data</b> (less precise than curated sites), so results may differ from reality: at the curated sites, yearly % sunlit from this data differed from the 20 m terrain by ' + CV.part1.meanAbsSun.toFixed(1) + ' percentage points on average (up to ' + CV.part1.maxAbsSun.toFixed(1) + ', at ' + esc(worstCoarseSite()) + '). Terrain features smaller than about ' + COARSE_PX + ' m across, boulders and the lander are not included.';
+    }
+    var maxD = I ? Math.max.apply(null, I.rows.map(function (r) { return Math.abs(r.sunTerrain - r.sunSmooth); })) : null;
+    return '<b>Custom point.</b> ' + eng + 'the horizon is a <b>smooth Moon without mountains</b>, so results may differ from reality a lot' + (maxD !== null ? ': at the curated south-pole sites, real terrain changes the yearly % sunlit by up to ' + maxD.toFixed(0) + ' percentage points' : '') + '.' +
+      (inMap(s) ? (s.hzError ? ' (Terrain could not be computed here: ' + esc(s.hzError) + '.)' : '') : ' This point is outside the south-pole elevation data.');
+  }
+  function worstCoarseSite() {
+    var w = CV.sites.reduce(function (a, b) { return Math.abs(b.sunCoarse - b.sun20) > Math.abs(a.sunCoarse - a.sun20) ? b : a; });
+    var s = siteById(w.id); return s ? s.name : w.id;
   }
   function useCustom(lat, lon) {
     if (lat === undefined) { lat = parseFloat($('customLat').value); lon = parseFloat($('customLon').value); }
     if (!(lat >= -90 && lat <= 90) || !(lon >= -360 && lon <= 360)) { alert('Latitude must be -90..90 and longitude -360..360 (east positive).'); return; }
     $('customLat').value = (+lat).toFixed(4); $('customLon').value = (+lon).toFixed(4);
-    return selectSite({ id: null, name: 'Custom point', lat: +(+lat).toFixed(4), lon: +(+lon).toFixed(4) }, { fly: false });
+    var site = { id: null, name: 'Custom point', lat: +(+lat).toFixed(4), lon: +(+lon).toFixed(4) };
+    if (!(COARSE_OK && inMap(site))) return selectSite(site, { fly: false });
+    var tok = ++customToken;
+    var p = Loader.track(loadDem().then(function () { return Jobs.run('horizon', { lat: site.lat, lon: site.lon, obsH: 2 }); }), 'Computing the terrain horizon…')
+      .then(function (hz) { site.hz = hz; }, function (e) { site.hzError = e && e.message || String(e); });
+    S.ready = p.then(function () { if (tok === customToken) return selectSite(site, { fly: false }); });
+    return S.ready;
   }
 
   // ------------------------------------------------------------- map legend
@@ -342,7 +412,7 @@
     drawBody(ctx, X(cur.sun.az), Y(cur.sun.el), Math.max(4, cur.sun.radius_deg * pxPerDeg), C.sun, 'Sun');
     ctx.restore();
     ctx.strokeStyle = '#2a3a5c'; ctx.strokeRect(L, T, pw, ph);
-    $('skyCaption').textContent = (mask ? 'Brown: LOLA terrain skyline (2 m above ground); dashed: smooth-Moon horizon (0°). '
+    $('skyCaption').textContent = (mask ? 'Brown: ' + terrainName(S.site) + ' skyline (2 m above ground); dashed: smooth-Moon horizon (0°). '
       : 'Smooth Moon horizon - terrain not included. ') + (S.minEl ? 'Blue dotted: minimum usable link elevation. ' : '') +
       'Vertical scale ' + (S.fullSky ? 'full sky' : 'zoomed to the horizon') + '. Dots: computed positions over the window (faint = hidden). Play steps through computed samples only.';
   }
@@ -532,7 +602,7 @@
     line(elA, 0, col, null, 1.8);
     var bc = document.createElement('canvas'); bc.width = c.width; bc.height = c.height; bc.getContext('2d').drawImage(c, 0, 0);
     CH[body] = { L: L, pw: pw, T: T, ph: ph, base: bc };
-    $(body + 'ChartCap').textContent = (body === 'sun' ? 'Amber: Sun centre elevation. ' : 'Blue: Earth centre elevation. ') + 'Brown: ' + (mask ? 'LOLA terrain horizon' : 'smooth horizon (0°)') + ' at the ' + (body === 'sun' ? 'Sun' : 'Earth') + '\'s azimuth' + (thr ? '; dotted: horizon + ' + thr + '° minimum link elevation' : '') + '. Shaded: ' + (body === 'sun' ? 'sunlit' : 'usable link') + '. Computed every ' + s.stepMin + ' min; click to jump.';
+    $(body + 'ChartCap').textContent = (body === 'sun' ? 'Amber: Sun centre elevation. ' : 'Blue: Earth centre elevation. ') + 'Brown: ' + (mask ? terrainName(S.site) + ' horizon' : 'smooth horizon (0°)') + ' at the ' + (body === 'sun' ? 'Sun' : 'Earth') + '\'s azimuth' + (thr ? '; dotted: horizon + ' + thr + '° minimum link elevation' : '') + '. Shaded: ' + (body === 'sun' ? 'sunlit' : 'usable link') + '. Computed every ' + s.stepMin + ' min; click to jump.';
     drawChartCursors();
   }
   function drawChartCursors() {
@@ -593,14 +663,15 @@
         '<label>Site<select data-f="site">' + siteOptions(c.siteId) + '</select></label>' +
         (c.siteId === '__custom' ? '<div class="row"><label>Lat<input data-f="lat" type="number" step="0.0001" value="' + c.lat + '"></label><label>Lon E<input data-f="lon" type="number" step="0.0001" value="' + c.lon + '"></label></div>' : '') +
         '<label>Start (UTC)<input data-f="start" type="datetime-local" step="60" value="' + toInput(c.start) + '"></label>' +
-        '<label class="smallswitch" style="flex-direction:row"><input data-f="terrain" type="checkbox"' + (c.terrain ? ' checked' : '') + (hasTerrain(siteById(c.siteId)) ? '' : ' disabled') + '> use terrain horizon</label></div>';
+        '<label class="smallswitch" style="flex-direction:row"><input data-f="terrain" type="checkbox"' + (c.terrain ? ' checked' : '') + (hasTerrain(siteById(c.siteId)) || c.hz ? '' : ' disabled') + '> use terrain horizon' + (c.hz ? ' (240 m data)' : '') + '</label></div>';
     }).join('');
     $('cmpAdd').disabled = CMP.length >= 4; $('cmpSlip').disabled = CMP.length >= 4;
   }
   function addScenario(siteId, start, lat, lon) {
     if (CMP.length >= 4) return;
     var s = siteById(siteId);
-    CMP.push({ siteId: siteId, start: start, lat: lat === undefined ? (s ? s.lat : -89.5) : lat, lon: lon === undefined ? (s ? s.lon : 0) : lon, terrain: hasTerrain(s) });
+    var hz = (!s && S.site && !S.site.id && S.site.hz && S.site.lat === lat && S.site.lon === lon) ? S.site.hz : null;
+    CMP.push({ siteId: siteId, start: start, lat: lat === undefined ? (s ? s.lat : -89.5) : lat, lon: lon === undefined ? (s ? s.lon : 0) : lon, hz: hz, terrain: hasTerrain(s) || !!hz });
     renderScenarios();
   }
   function scenarioChange(ev) {
@@ -610,11 +681,11 @@
       c.siteId = el.value;
       var s = siteById(c.siteId);
       if (s) { c.lat = s.lat; c.lon = s.lon; }
-      c.terrain = hasTerrain(s);
+      c.hz = null; c.terrain = hasTerrain(s);
       renderScenarios();
     } else if (f === 'start') { var d = fromInput(el.value); if (d) c.start = d; }
-    else if (f === 'lat') c.lat = parseFloat(el.value);
-    else if (f === 'lon') c.lon = parseFloat(el.value);
+    else if (f === 'lat') { c.lat = parseFloat(el.value); if (c.hz) { c.hz = null; c.terrain = false; renderScenarios(); } }
+    else if (f === 'lon') { c.lon = parseFloat(el.value); if (c.hz) { c.hz = null; c.terrain = false; renderScenarios(); } }
     else if (f === 'terrain') c.terrain = el.checked;
   }
   // Window count and mean length from refined events (windows cut by the period edges count their inside part).
@@ -634,6 +705,7 @@
     var days = +$('cmpWindow').value;
     var jobs = CMP.map(function (c) {
       var s = siteById(c.siteId) || { id: null, name: 'Custom (' + c.lat + ', ' + c.lon + ')', lat: c.lat, lon: c.lon };
+      if (!s.id && c.hz) s.hz = c.hz;
       var mask = c.terrain ? maskFor(s, true) : null;
       return Jobs.run('scenario', { site: { lat: c.lat, lon: c.lon }, start: c.start.getTime(), days: days, mask: mask, minEl: S.minEl }).then(function (r) {
         var ser = r.series, st = r.stats;
@@ -652,7 +724,7 @@
       var rows = [
         ['Site', function (r) { return esc(r.s.name); }],
         ['Start (UTC)', function (r) { return fmtUTC(r.c.start); }],
-        ['Horizon model', function (r) { return r.mask ? 'LOLA terrain' : 'Smooth (terrain not included)'; }],
+        ['Horizon model', function (r) { return r.mask ? (r.s.id ? 'LOLA terrain' : 'Terrain from coarser 240 m data') : 'Smooth (terrain not included)'; }],
         ['§sun', 'Sunlight'],
         ['Sunlit', function (r) { return r.st.pctSun; }, 'max', pctF],
         ['Average illumination', function (r) { return 100 * r.st.avgSunFrac; }, 'max', pctF],
@@ -740,7 +812,22 @@
       h += '</tbody></table></div>';
     }
     h += renderXcheck();
+    h += renderCoarse();
     el.innerHTML = h;
+  }
+  function renderCoarse() {
+    var V = window.LUNA_COARSE_VALIDATION;
+    if (!V) return '<h3>Terrain for clicked points</h3><p class="hint">Not validated (run node tests/coarse_validation.js); clicked points use a smooth horizon.</p>';
+    var f1 = function (x) { return x.toFixed(1); }, P1 = V.part1, P2 = V.part2;
+    var h = '<h3>Terrain for clicked points: downsampled ' + V.dem.pixel_m + ' m elevation data</h3>';
+    h += '<div class="bigresult ' + (V.pass ? 'pass' : 'fail') + '">' + (V.pass ? 'PASS - shipped, labelled "terrain from coarser ' + V.dem.pixel_m + ' m data (less precise than curated sites)"' : 'FAIL - not shipped; clicked points use a smooth horizon') + '</div>';
+    h += '<p class="hint">A ' + V.dem.n + ' × ' + V.dem.n + ' grid (' + V.dem.pixel_m + ' m pixels, ' + V.dem.fileMB.toFixed(1) + ' MB) made from the LOLA DEMs by area averaging. The browser computes the horizon with the same method as the curated sites (360 azimuths, rays to 300 km, lunar curvature, observer 2 m above the surface). Pass criteria, set before running: ' + esc(V.criteria.sites) + '; ' + esc(V.criteria.random) + '.</p>';
+    h += '<h4>(1) Curated south-pole sites: ' + V.dem.pixel_m + ' m data vs the 20 m-based horizon (2027, 30-minute steps)</h4><div class="tablewrap"><table><thead><tr><th>Site</th><th class="num">Horizon |Δ| mean / max</th><th class="num">Sunlit % 20 m</th><th class="num">Sunlit % ' + V.dem.pixel_m + ' m</th><th class="num">Earth % 20 m</th><th class="num">Earth % ' + V.dem.pixel_m + ' m</th></tr></thead><tbody>';
+    V.sites.forEach(function (r) { var s = siteById(r.id); h += '<tr><td>' + esc(s ? s.name : r.id) + '</td><td class="num">' + r.hzMeanDiff.toFixed(2) + '° / ' + r.hzMaxDiff.toFixed(2) + '°</td><td class="num">' + f1(r.sun20) + '</td><td class="num">' + f1(r.sunCoarse) + '</td><td class="num">' + f1(r.earth20) + '</td><td class="num">' + f1(r.earthCoarse) + '</td></tr>'; });
+    h += '</tbody></table></div><p>|Δ % sunlit|: mean <b>' + P1.meanAbsSun.toFixed(2) + '</b>, max <b>' + P1.maxAbsSun.toFixed(2) + '</b> points (' + (P1.pass ? 'PASS' : 'FAIL') + '). |Δ % Earth visible|: mean ' + P1.meanAbsEarth.toFixed(2) + ', max ' + P1.maxAbsEarth.toFixed(2) + ' points.</p>';
+    if (P2) h += '<h4>(2) ' + P2.n + ' random points in 85°S-90°S vs NASA\'s published map (18.6 years)</h4><p>Average illumination from the ' + V.dem.pixel_m + ' m horizon (same method as the cross-check above) vs AVGVISIB_85S_060M_201608: |Δ| mean <b>' + P2.meanAbs.toFixed(2) + '</b>, median ' + P2.medianAbs.toFixed(2) + ', max ' + P2.maxAbs.toFixed(2) + ' points; ' + P2.within5 + ' of ' + P2.n + ' within 5 points; ' + P2.bothZero + ' points are in shadow in both (' + (P2.pass ? 'PASS' : 'FAIL') + ').</p>';
+    if (V.impl) h += '<p class="hint">Implementation check: the browser code reproduces tools/terrain.py on the same grid to within ' + Math.max.apply(null, V.impl.map(function (r) { return r.maxAbsDeg; })).toExponential(0) + '°.</p>';
+    return h;
   }
   function renderXcheck() {
     var X = window.LUNA_XCHECK, SRC = window.LUNA_XCHECK_SOURCES || [];
@@ -818,6 +905,7 @@
     if (mode === 'terrain') SITES.forEach(function (s) { if (hasTerrain(s)) add(s, true); });
     else if (mode === 'compare' && CMP.length) CMP.forEach(function (c) {
       var s = siteById(c.siteId) || { id: null, name: 'Custom (' + c.lat + ', ' + c.lon + ')', lat: c.lat, lon: c.lon };
+      if (!s.id && c.hz) s.hz = c.hz;
       add(s, c.terrain);
     });
     else add(S.site, S.useTerrain);
@@ -1031,7 +1119,7 @@
       v.className = 'verdict ' + (Wh >= loadWh ? 'pos' : 'neg');
       v.textContent = (Wh >= loadWh ? 'Energy positive' : 'Energy negative') + ' over the window (estimate): generates ' + kWh(Wh) + ' vs ' + kWh(loadWh) + ' needed; battery for the longest darkness ≈ ' + kWh(battery) + '.' +
         (zeroH > darkH + 1e-9 ? ' Note: with this orientation the panel produces nothing for up to ' + fmtHours(zeroH) + ' (Sun behind the panel), which would need ' + kWh(batteryZero) + '.' : '');
-      $('pwWindowNote').textContent = 'Window: ' + win.label + '. ' + (win.mask ? 'LOLA terrain horizon.' : 'Smooth horizon - terrain not included.') + ' Sampling ' + s.stepMin + ' min.';
+      $('pwWindowNote').textContent = 'Window: ' + win.label + '. ' + (win.mask ? 'Horizon: ' + terrainName(S.site) + '.' : 'Smooth horizon - terrain not included.') + ' Sampling ' + s.stepMin + ' min.';
       renderPowerChart();
     });
   }
@@ -1062,7 +1150,7 @@
     else p.push('lat=' + S.site.lat, 'lon=' + S.site.lon);
     p.push('t=' + toInput(S.start) + 'Z', 'w=' + S.windowDays);
     if (S.minEl) p.push('me=' + S.minEl);
-    if (S.site.id && hasTerrain(S.site) && !S.useTerrain) p.push('terrain=0');
+    if (hasTerrain(S.site) && !S.useTerrain) p.push('terrain=0');
     if (tab.page && tab.page !== 'explorer') p.push('tab=' + tab.page);
     try { history.replaceState(null, '', '#' + p.join('&')); } catch (e) { location.hash = p.join('&'); }
   }
@@ -1076,13 +1164,10 @@
     if (o.t) { var d = new Date(o.t.replace(/Z?$/, ':00Z').replace(/:00:00Z$/, ':00Z')); if (!isNaN(d)) { S.start = d; $('startInput').value = toInput(d); } }
     if (o.w && +o.w >= 1 && +o.w <= 400) { S.windowDays = Math.round(+o.w); ensureWindowOption(S.windowDays); }
     if (o.me !== undefined && +o.me >= 0 && +o.me <= 30) { S.minEl = +o.me; $('minEl').value = S.minEl; }
-    var site = o.site ? siteById(o.site) : null;
-    if (!site && o.lat !== undefined && o.lon !== undefined && isFinite(+o.lat) && isFinite(+o.lon) && Math.abs(+o.lat) <= 90) {
-      site = { id: null, name: 'Custom point', lat: +o.lat, lon: +o.lon };
-      $('customLat').value = o.lat; $('customLon').value = o.lon;
-    }
-    var p = selectSite(site || siteById(DEFAULT_SITE) || SITES[0], { fly: false });
-    if (o.terrain === '0' && S.useTerrain) { S.useTerrain = false; renderBadge(); p = recompute(); }
+    var site = o.site ? siteById(o.site) : null, p;
+    if (!site && o.lat !== undefined && o.lon !== undefined && isFinite(+o.lat) && isFinite(+o.lon) && Math.abs(+o.lat) <= 90) p = useCustom(+o.lat, +o.lon);
+    else p = selectSite(site || siteById(DEFAULT_SITE) || SITES[0], { fly: false });
+    if (o.terrain === '0') p = Promise.resolve(p).then(function () { if (S.useTerrain) { S.useTerrain = false; renderBadge(); return recompute(); } });
     if (o.tab && $('page-' + o.tab)) showPage(o.tab);
     return p;
   }
@@ -1227,6 +1312,7 @@
     Map.init($('lmap'), {
       onSelectSite: function (s) { selectSite(s); },
       onPickPoint: function (lat, lon) { useCustom(lat, lon); },
+      onOutside: showOutside,
       siteById: siteById
     });
     Map.setSites(SITES);
@@ -1304,6 +1390,7 @@
       $('qpop').hidden = true; togglePicker(false);
     });
 
+    $('customHint').textContent = COARSE_OK ? 'Points clicked or typed inside the map get a terrain horizon from coarser ' + COARSE_PX + ' m data (less precise than curated sites). Points outside the map use a smooth Moon without mountains.' : 'Custom points (typed or clicked on the map) use a smooth Moon without mountains: terrain is not computed for them.';
     renderValidation();
     var h = readHash();
     if (h) applyHash(h); else selectSite(siteById(DEFAULT_SITE) || SITES[0], { fly: false });

@@ -341,3 +341,5 @@ body.expert div.metricx.x-only { display: contents !important; }
 .regionnames .sub { font-size: .78rem; color: var(--muted); line-height: 1.45; }
 .regionnames a { color: #9cc9ff; }
 .secsrc { color: #ffb36b; }
+.custommsg { margin-top: 6px; font-size: .82rem; color: var(--text); background: rgba(78, 168, 255, .08); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; line-height: 1.45; }
+.badge.terrain.coarse { opacity: .85; border-style: dashed; }

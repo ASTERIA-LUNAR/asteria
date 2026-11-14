@@ -45,7 +45,8 @@ Status as of 2026-11-14 (third development round: ASTERIA rename, south-pole map
 
 ## 3. Approximations (labelled in the app)
 
-* **Smooth-Moon horizon**: custom points (typed, or clicked on the map) and reference sites outside the south pole use it. The DEMs are too large to ship to the browser, so custom points never get a terrain horizon.
+* **Clicked or typed points inside the map** get a terrain horizon from a **downsampled 240 m DEM** (`data/dem_coarse.js`, 8.8 MB, area mean of the three LOLA DEMs), labelled "terrain from coarser 240 m data (less precise than curated sites)". It was shipped only after it passed validation (`node tests/coarse_validation.js`; VALIDATION_REPORT.md and the Validation tab): at the 8 curated south-pole sites the yearly % sunlit differs from the 20 m-based horizons by 2.0 points on average and 6.9 at most (Mons Malapert landform centre, where averaging lowers the summit); at 50 random points in 85-90°S the 18.6-year average illumination differs from NASA's published map by 1.5 points on average (16.0 at most, one point). Features smaller than about 240 m are not represented. Rays stop at the edge of the map data, so near the map edge the horizon in outward directions is incomplete (Expert view shows the shortest ray reach).
+* **Smooth-Moon horizon**: typed points outside the map and the reference sites outside the south pole use it (a Moon without mountains), clearly labelled.
 * **Terrain masks**:
   * 1° azimuth steps, interpolated linearly.
   * DEM resolution 20 m (within about 85°S), 80 m (to 80°S) and 120 m (beyond); rays out to 300 km.
@@ -65,7 +66,7 @@ Status as of 2026-11-14 (third development round: ASTERIA rename, south-pole map
   * The hillshade uses synthetic lighting (from the upper left at 25° altitude). It is not real illumination at any date.
   * Slope is computed by central differences on a 37 m sample grid and shown as 74 m pixels (coarser zooms are averages). Real slopes over a few metres can be steeper.
   * The published-illumination layer is classed into 10 bins and covers only about 85°S-90°S.
-  * The tile square reaches about 80°S on the axes and about 76°S in the corners.
+  * The tile square reaches about 80°S on the axes and about 76°S in the corners. Panning and zooming are limited to it; the area outside is hatched and its edge drawn as a dashed orange line. A click outside it selects nothing and says "No elevation data here - this map covers the lunar south pole (about 80°S to the pole)." 
 
 ### Launch-slip heatmap
 
