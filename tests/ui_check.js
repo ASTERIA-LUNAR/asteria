@@ -20,6 +20,8 @@ const path = require('path'), fs = require('fs'), url = require('url');
 
   for (const vp of [{ name: 'laptop', width: 1440, height: 900 }, { name: 'phone', width: 390, height: 844, isMobile: true, hasTouch: true }]) {
     const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, isMobile: !!vp.isMobile, hasTouch: !!vp.hasTouch });
+    // the 3D frame-rate probe can rebuild the view at a lower quality; it is tested on its own below
+    await ctx.addInitScript(() => { window.ASTERIA_V3D_NOPROBE = true; });
     const page = await ctx.newPage();
     const tag = `[${vp.name}]`;
     page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`${tag} console.${m.type()}: ${m.text()}`); });
@@ -96,6 +98,25 @@ const path = require('path'), fs = require('fs'), url = require('url');
     const ex3 = await page.evaluate(() => ({ b: document.getElementById('v3dExagBadge').textContent, k: AsteriaView3D.debug().exaggeration }));
     await page.selectOption('#v3dExag', '1'); await page.waitForTimeout(120);
     expect(`${tag} 3D: vertical exaggeration toggle (default 1×) is labelled on screen`, ex3.k === 3 && /Vertical exaggeration 3×/.test(ex3.b) && await page.evaluate(() => AsteriaView3D.debug().exaggeration === 1));
+    // quality levels: automatic choice shown; override rebuilds the view at that level and is remembered
+    const q0 = await page.evaluate(() => ({ d: AsteriaView3D.debug(), sel: document.getElementById('v3dQuality').value, why: document.getElementById('v3dQWhy').textContent }));
+    expect(`${tag} 3D quality: automatic level from device hints is selected and explained (${q0.d.quality}: ${q0.why})`, q0.sel === q0.d.quality && /automatic/.test(q0.why) && (vp.isMobile ? q0.d.quality === 'low' : q0.d.quality !== 'low'), JSON.stringify(q0.d.autoQuality));
+    const qOther = q0.d.quality === 'high' ? 'medium' : 'high';
+    await page.selectOption('#v3dQuality', qOther);
+    await page.waitForFunction(q => AsteriaView3D.debug().quality === q && AsteriaView3D.debug().frames >= 1 && !AsteriaView3D.debug().refining, qOther);
+    const q1 = await page.evaluate(() => ({ Q: AsteriaView3D.QUALITY, d: AsteriaView3D.debug(), ls: localStorage.getItem('asteria.v3dQuality'), why: document.getElementById('v3dQWhy').textContent, idx: AsteriaApp.state.idx }));
+    expect(`${tag} 3D quality: override to ${qOther} rebuilds the view (shadow map ${q1.d.shadowMapSize} px, pixel ratio ≤ ${q1.Q[qOther].pr}), keeps the time and is remembered`, q1.d.shadowMapSize === q1.Q[qOther].shadow && q1.ls === qOther && /your choice/.test(q1.why) && q1.d.instant.idx === q1.idx && q1.d.mode === 'orbit', JSON.stringify({ q: q1.d.quality, sm: q1.d.shadowMapSize, ls: q1.ls }));
+    await page.evaluate(() => { localStorage.removeItem('asteria.v3dQuality'); });
+    await page.evaluate(q => AsteriaView3D.testQuality(q), q0.d.quality);
+    await page.waitForFunction(q => AsteriaView3D.debug().quality === q && !AsteriaView3D.debug().refining, q0.d.quality);
+    // brightness: display only - the light direction and the status tiles do not change
+    const b0 = await page.evaluate(() => ({ d: AsteriaView3D.debug(), t: [document.getElementById('v3dTileSun').className, document.getElementById('v3dTileEarth').className] }));
+    await page.click('#v3dLightUp'); await page.waitForTimeout(150);
+    const b1 = await page.evaluate(() => ({ d: AsteriaView3D.debug(), t: [document.getElementById('v3dTileSun').className, document.getElementById('v3dTileEarth').className], ls: localStorage.getItem('asteria.v3dBrightness'), note: document.getElementById('v3dBrightNote').textContent }));
+    const sameDir = b0.d.sunLightDir.every((x, k) => x === b1.d.sunLightDir[k]) && b0.d.sunLight.el === b1.d.sunLight.el && b0.d.sunIntensity === b1.d.sunIntensity;
+    expect(`${tag} 3D brightness: "Light up" changes only display brightness (exposure ${b0.d.exposure} -> ${b1.d.exposure}, fill ${b0.d.fillIntensity.toFixed(2)} -> ${b1.d.fillIntensity.toFixed(2)}); Sun light direction, Sun intensity and status tiles unchanged; remembered; labelled`,
+      b1.d.exposure > b0.d.exposure && sameDir && JSON.stringify(b0.t) === JSON.stringify(b1.t) && +b1.ls === b1.d.brightness && /Display brightness only \(like camera exposure\)\. Real polar shadows are almost black; this does not change the computed lighting\./.test(b1.note));
+    await page.evaluate(() => AsteriaView3D.testBrightness(1));
     // orbit: keyboard and mouse
     const cam0 = (await v3at()).d.camera;
     await page.evaluate(() => AsteriaView3D.testKey('ArrowLeft', true)); const tf = Date.now(), f0 = (await v3at()).d.frames;
@@ -131,6 +152,15 @@ const path = require('path'), fs = require('fs'), url = require('url');
     expect(`${tag} 3D: leaving 3D (${vp.isMobile ? 'Escape' : 'Close button'}) frees GPU memory (0 geometries, 0 textures) and removes the view`, !cl.d.open && cl.d.lastClosed.afterDispose.geometries === 0 && cl.d.lastClosed.afterDispose.textures === 0 && !cl.el && !cl.cls && cl.canv === 0, JSON.stringify(cl));
     expect(`${tag} 3D: on phones the mesh resolution is reduced automatically`, vp.isMobile ? v3.d.stride === 2 : v3.d.stride === 1, 'stride ' + v3.d.stride + ', ' + v3.d.vertices + ' vertices');
     await page.evaluate(() => AsteriaApp.setIdx(0));
+    // frame-rate probe: a (simulated) low frame rate steps the quality down one level, with a note
+    if (!vp.isMobile) {
+      await page.evaluate(() => { window.ASTERIA_V3D_NOPROBE = false; window.ASTERIA_V3D_FAKE_FPS = 20; localStorage.removeItem('asteria.v3dQuality'); });
+      await page.click('#deployBtn');
+      await page.waitForFunction(() => window.AsteriaView3D && AsteriaView3D.debug().probe, null, { timeout: 15000 });
+      const pr = await page.evaluate(() => ({ d: AsteriaView3D.debug(), note: document.getElementById('v3dQNote').textContent, hidden: document.getElementById('v3dQNote').hidden }));
+      expect(`${tag} 3D quality: frame-rate probe below 30 fps (simulated 20) steps down one level and says so`, pr.d.probe.stepped && pr.d.quality === ['low', 'medium', 'high'][['low', 'medium', 'high'].indexOf(pr.d.probe.from) - 1] && !pr.hidden && /lowered to/.test(pr.note), JSON.stringify(pr.d.probe) + ' ' + pr.note);
+      await page.evaluate(() => { window.ASTERIA_V3D_NOPROBE = true; delete window.ASTERIA_V3D_FAKE_FPS; AsteriaView3D.close(true); });
+    }
     // the Deploy button is hidden for sites without a 3D tile (reference site outside the pole)
     await page.evaluate(() => AsteriaApp.selectSiteById('apollo11')); await ready(page);
     expect(`${tag} 3D: no Deploy button for a site without a terrain tile`, await page.isHidden('#deployBtn'));

@@ -15,6 +15,7 @@
 window.AsteriaView3D = (function () {
   'use strict';
   var M = window.AsteriaView3DMath;
+  var FILL = 0.05, LIGHT_UP = 3;   // fill-light intensity at brightness 1; brightness used by "Light up"
   var RING_M = 60000, SUN_D = 500000, EARTH_D = 450000, STAR_D = 800000, EYE_M = 2;   // eye = horizon-model observer height
   var V = null;           // current view (null when closed)
   var TILE_CACHE = {};    // decoded tiles by site id (re-opening or changing quality does not decode again)
@@ -27,6 +28,35 @@ window.AsteriaView3D = (function () {
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function isPhone() { return (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth < 700; }
+  function lsGet(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { if (v === null) window.localStorage.removeItem(k); else window.localStorage.setItem(k, v); } catch (e) { /* storage blocked */ } }
+
+  // ------------------------------------------------------------ quality levels
+  // Display settings only: none of them changes a computed value (Sun/Earth directions, status tiles, readouts).
+  var QUALITY = {
+    low:    { label: 'Low',    stride: 2, ringA: 2, ringB: false, extShadow: false, shadow: 1024, pr: 1,   aa: false, starMag: 3.5, earthTex: 512,  patch5m: false },
+    medium: { label: 'Medium', stride: 1, ringA: 1, ringB: false, extShadow: true,  shadow: 2048, pr: 1.5, aa: true,  starMag: 4.5, earthTex: 1024, patch5m: false },
+    high:   { label: 'High',   stride: 1, ringA: 1, ringB: true,  extShadow: true,  shadow: 4096, pr: 2,   aa: true,  starMag: 5.0, earthTex: 2048, patch5m: true }
+  };
+  var QORDER = ['low', 'medium', 'high'];
+  // Starting level from device hints: phone-like devices (touch pointer, small screen, little memory or few cores) or a
+  // software renderer -> Low; a recognisable dedicated GPU on a large screen -> High; otherwise Medium.
+  function autoQuality() {
+    var why = [], q = 'medium';
+    var nav = window.navigator || {}, mem = nav.deviceMemory, cores = nav.hardwareConcurrency, gpu = '';
+    try {
+      var c = document.createElement('canvas'), gl = c.getContext('webgl2') || c.getContext('webgl');
+      var ext = gl && gl.getExtension('WEBGL_debug_renderer_info');
+      gpu = gl ? String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)) : '';
+      var lose = gl && gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();
+    } catch (e) { /* no GPU info */ }
+    if (isPhone()) { q = 'low'; why.push('touch screen or small window'); }
+    else if (/swiftshader|llvmpipe|software|basic render/i.test(gpu)) { q = 'low'; why.push('software rendering'); }
+    else if ((mem && mem <= 2) || (cores && cores <= 2)) { q = 'low'; why.push('limited memory or processor cores'); }
+    else if (/nvidia|geforce|rtx|radeon rx|radeon pro|apple m\d (pro|max|ultra)/i.test(gpu) && Math.min(screen.width, screen.height) >= 900) { q = 'high'; why.push('dedicated graphics'); }
+    else why.push(gpu ? 'integrated or unrecognised graphics' : 'no graphics information');
+    return { q: q, why: why.join(', '), gpu: gpu };
+  }
 
   // ------------------------------------------------------------------- DOM
   function buildDom(o) {
@@ -38,6 +68,8 @@ window.AsteriaView3D = (function () {
       '  <div class="v3d-labels" id="v3dLabels"><span class="v3d-lbl sun" id="v3dLblSun">Sun</span><span class="v3d-lbl earth" id="v3dLblEarth">Earth</span><span class="v3d-lbl site" id="v3dLblSite"><i></i>Site</span><span class="v3d-lbl rover" id="v3dLblRover" hidden>Rover <span class="aiwm">AI-generated illustration</span></span></div>' +
       '  <div class="v3d-exag" id="v3dExagBadge">Vertical scale 1× (true scale)</div>' +
       '  <div class="v3d-banner" id="v3dBanner" hidden></div>' +
+      '  <div class="v3d-tip" id="v3dTip" hidden>The site is in shadow, so the ground looks almost black. <button class="btn small" id="v3dTipBtn">Light up</button> <span class="fineprint">(display brightness only)</span></div>' +
+      '  <div class="v3d-qnote" id="v3dQNote" hidden></div>' +
       '  <p class="v3d-shadownote">Near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model.</p>' +
       '  <div class="v3d-pad" id="v3dPad" hidden><button data-k="fwd" aria-label="Forward">&#9650;</button><button data-k="left" aria-label="Turn left">&#9664;</button><button data-k="back" aria-label="Back">&#9660;</button><button data-k="right" aria-label="Turn right">&#9654;</button></div>' +
       '  <button class="btn v3d-close" id="v3dClose" aria-label="Close the 3D view">&#10005; Close 3D</button>' +
@@ -52,6 +84,15 @@ window.AsteriaView3D = (function () {
       '    <div class="tile" id="v3dTileEarth"><div class="tlabel">Earth link at the site marker</div><div class="tstate" id="v3dEarth">-</div><div class="tx x-only mono" id="v3dEarthX"></div></div>' +
       '  </div>' +
       '  <p class="fineprint">Status from the validated horizon model (same as the main view), not from the 3D rendering.</p>' +
+      '  <div class="v3d-ctl v3d-disp">' +
+      '    <label>Quality <select id="v3dQuality"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>' +
+      '    <span class="fineprint" id="v3dQWhy"></span>' +
+      '  </div>' +
+      '  <div class="v3d-bright">' +
+      '    <label for="v3dBright">Brightness <b class="mono" id="v3dBrightVal">1.0×</b></label>' +
+      '    <div class="row"><input id="v3dBright" type="range" min="0.5" max="6" step="0.1" value="1" aria-describedby="v3dBrightNote"><button class="btn small" id="v3dLightUp" aria-pressed="false">Light up</button></div>' +
+      '    <p class="fineprint" id="v3dBrightNote">Display brightness only (like camera exposure). Real polar shadows are almost black; this does not change the computed lighting.</p>' +
+      '  </div>' +
       '  <div class="v3d-ctl">' +
       '    <div class="seg" role="radiogroup" aria-label="Camera mode"><button data-mode="orbit" class="on">Orbit</button><button data-mode="walk">Walk</button><button data-mode="rover">Rover</button></div>' +
       '    <label>Vertical exaggeration <select id="v3dExag"><option value="1" selected>1× (true scale)</option><option value="2">2×</option><option value="3">3×</option><option value="5">5×</option></select></label>' +
@@ -98,8 +139,11 @@ window.AsteriaView3D = (function () {
     // Progressive loading: the first frame uses a coarse mesh (4x the stride); refine() swaps in the final mesh.
     var TM = decimate(T, stride);
     var coarse = T.n > 200 ? stride * 4 : stride;
-    var renderer = new THREE.WebGLRenderer({ antialias: !o.phone, logarithmicDepthBuffer: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, o.phone ? 1.5 : 2));
+    var Q = o.Q;
+    var renderer = new THREE.WebGLRenderer({ antialias: Q.aa, logarithmicDepthBuffer: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.pr));
+    // Brightness = exposure of a linear tone map (exposure 1 = the unchanged picture); see setBrightness()
+    renderer.toneMapping = THREE.LinearToneMapping; renderer.toneMappingExposure = 1;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setClearColor(0x000000, 1);
@@ -114,11 +158,11 @@ window.AsteriaView3D = (function () {
     terrain.castShadow = true; terrain.receiveShadow = true;
     scene.add(terrain);
 
-    var fill = new THREE.AmbientLight(0xffffff, 0.05);
+    var fill = new THREE.AmbientLight(0xffffff, FILL);
     scene.add(fill);
     var sun = new THREE.DirectionalLight(0xffffff, 1.7);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(o.phone ? 1024 : 2048, o.phone ? 1024 : 2048);
+    sun.shadow.mapSize.set(Q.shadow, Q.shadow);
     sun.shadow.bias = -0.0003;
     sun.shadow.normalBias = TM.d * 0.08;
     scene.add(sun); scene.add(sun.target);
@@ -350,6 +394,7 @@ window.AsteriaView3D = (function () {
       b.hidden = false;
       b.textContent = 'At the site marker the Sun is hidden behind terrain (validated horizon model, Sun ' + fmtDeg(r.sun.el, 1) + ' vs horizon ' + fmtDeg(inst.hzSun, 1) + '). This view does not render shadows cast by terrain outside the 6 km tile, so parts of the tile may look lit.';
     } else b.hidden = true;
+    updateTip(v);
     v.dirty = true;
   }
 
@@ -357,7 +402,7 @@ window.AsteriaView3D = (function () {
   function frame(v, ts) {
     if (V !== v) return;
     var dt = Math.min(0.1, v.lastTs ? (ts - v.lastTs) / 1000 : 0); v.lastTs = ts;
-    var moving = anyKey(v.ctl.keys);
+    var moving = anyKey(v.ctl.keys) || v.probing;
     if (moving || v.dirty) {
       stepControls(v, dt);
       var s = v.s, cam = s.camera, r = v.inst && v.inst.r;
@@ -458,6 +503,13 @@ window.AsteriaView3D = (function () {
     v.el.querySelectorAll('.seg button').forEach(function (b) { add(b, 'click', function () { setMode(v, b.dataset.mode); }); });
     add($('v3dExag'), 'change', function () { setExag(v, +this.value); });
     add($('v3dShadows'), 'change', function () { v.s.sun.castShadow = this.checked; v.s.terrain.receiveShadow = this.checked; v.s.terrain.material.needsUpdate = true; v.dirty = true; });
+    add($('v3dQuality'), 'change', function () {
+      var q = this.value; lsSet('asteria.v3dQuality', q);
+      setQuality(v, q, 'Quality set to ' + QUALITY[q].label + ' (your choice, remembered on this device).');
+    });
+    add($('v3dBright'), 'input', function () { setBrightness(v, +this.value); });
+    add($('v3dLightUp'), 'click', function () { setBrightness(v, v.bright >= LIGHT_UP - 0.01 ? 1 : LIGHT_UP); });
+    add($('v3dTipBtn'), 'click', function () { setBrightness(v, LIGHT_UP); });
     add($('v3dRing'), 'change', function () { v.s.ring.visible = this.checked; v.dirty = true; });
     add($('v3dStars'), 'change', function () { v.s.stars.visible = this.checked; v.dirty = true; });
     add($('v3dSlopeMax'), 'change', function () { v.lastRead = 0; v.dirty = true; });
@@ -497,17 +549,86 @@ window.AsteriaView3D = (function () {
     v.dirty = true;
   }
 
+  // ------------------------------------------------- quality and brightness
+  function initDisplay(v) {
+    $('v3dQuality').value = v.quality;
+    $('v3dQWhy').textContent = v.userQuality ? '(your choice)' : '(automatic: ' + v.auto.why + ')';
+    var b = parseFloat(lsGet('asteria.v3dBrightness'));
+    setBrightness(v, isFinite(b) && b >= 0.5 && b <= 6 ? b : 1, true);
+  }
+  // Display brightness only: tone-mapping exposure, and the faint fill light scaled with it. The Sun direction,
+  // the shadows' geometry and every computed value are untouched.
+  function setBrightness(v, b, noSave) {
+    v.bright = b;
+    v.s.renderer.toneMappingExposure = b;
+    v.s.fill.intensity = FILL * b;
+    $('v3dBright').value = b; $('v3dBrightVal').textContent = b.toFixed(1) + '×';
+    var lit = b >= LIGHT_UP - 0.01;
+    $('v3dLightUp').setAttribute('aria-pressed', lit ? 'true' : 'false');
+    $('v3dLightUp').textContent = lit ? 'Normal brightness' : 'Light up';
+    if (!noSave) lsSet('asteria.v3dBrightness', String(b));
+    updateTip(v);
+    v.dirty = true;
+  }
+  function updateTip(v) {
+    var tip = $('v3dTip'); if (!tip) return;
+    tip.hidden = !(v.inst && !v.inst.sunUp) || v.bright >= LIGHT_UP - 0.01;
+  }
+  // Rebuild the view at another quality level (renderer options such as antialiasing need a new context),
+  // keeping the camera, mode, time and toggles.
+  function setQuality(v, q, why) {
+    if (!QUALITY[q] || q === v.quality) return null;
+    var c = v.ctl;
+    var keep = { ctl: JSON.parse(JSON.stringify({ mode: c.mode, target: c.target, dist: c.dist, yaw: c.yaw, pitch: c.pitch, walk: c.walk, rov: c.rov })),
+      exag: v.s.T.k, probed: true, auto: v.auto, note: why || '', toggles: {} };
+    v.el.querySelectorAll('.v3d-panel input[type=checkbox]').forEach(function (x) { keep.toggles[x.id] = x.checked; });
+    var o = Object.assign({}, v.openArgs, { quality: q, keep: keep });
+    close(true, true);
+    return open(o);
+  }
+  function restoreKeep(v, k) {
+    Object.keys(k.toggles || {}).forEach(function (id) { var x = $(id); if (x && x.checked !== k.toggles[id]) { x.checked = k.toggles[id]; x.dispatchEvent(new Event('change')); } });
+    if (k.exag && k.exag !== 1) { $('v3dExag').value = String(k.exag); setExag(v, k.exag); }
+    var c = v.ctl;
+    ['target', 'dist', 'yaw', 'pitch', 'walk', 'rov'].forEach(function (x) { if (k.ctl[x] !== undefined) c[x] = k.ctl[x]; });
+    setMode(v, k.ctl.mode);
+    if (k.note) { var n = $('v3dQNote'); n.hidden = false; n.textContent = k.note; setTimeout(function () { if (V === v) n.hidden = true; }, 8000); }
+  }
+  // Frame-rate probe (about 1.5 s of continuous rendering right after opening). If the average stays below
+  // 30 frames/s, step down one level and say so. Skipped when the user has chosen a level.
+  function probe(v) {
+    if (V !== v) return;
+    v.probing = true; v.dirty = true;
+    var f0 = v.frames, t0 = performance.now();
+    setTimeout(function () {
+      if (V !== v) return;
+      v.probing = false;
+      var fps = (v.frames - f0) / ((performance.now() - t0) / 1000);
+      if (window.ASTERIA_V3D_FAKE_FPS) fps = window.ASTERIA_V3D_FAKE_FPS;   // test hook
+      v.probeResult = { fps: Math.round(fps), stepped: false };
+      var i = QORDER.indexOf(v.quality);
+      if (fps < 30 && i > 0) {
+        var from = v.quality;
+        var nv = setQuality(v, QORDER[i - 1], 'Quality lowered to ' + QUALITY[QORDER[i - 1]].label + ' automatically (' + Math.round(fps) + ' frames/s at ' + QUALITY[from].label + '). You can change it under Quality.');
+        if (nv) nv.probeResult = { fps: Math.round(fps), stepped: true, from: from };
+      }
+    }, 1500);
+  }
+
   // ---------------------------------------------------------- open/close
   // o = { site, tile, mask, app: { instant(), setIdx(i), onInstant(fn) -> unsubscribe, setPlaying(b), playing() } }
   function open(o) {
     if (V) close(true);
     if (!window.THREE || !M) throw new Error('3D libraries not loaded');
-    var phone = isPhone(), stride = phone && o.tile.n > 200 ? 2 : 1;
+    var phone = isPhone();
+    var auto = o.keep && o.keep.auto ? o.keep.auto : autoQuality();
+    var user = lsGet('asteria.v3dQuality'), qName = o.quality || (QUALITY[user] ? user : auto.q);
+    var Q = QUALITY[qName], stride = o.tile.n > 200 ? Q.stride : 1;
     var inst0 = o.app.instant();
     var el = buildDom({ site: o.site, tile: o.tile, stride: stride, earthRadiusDeg: inst0 && inst0.r.earth.radius_deg });
     var v = { el: el, stage: $('v3dStage'), app: o.app, site: o.site, dirty: true, frames: 0, raf: 0 };
-    v.s = buildScene({ tile: o.tile, mask: o.mask, phone: phone, stride: stride });
-    v.stride = stride; v.phone = phone;
+    v.s = buildScene({ tile: o.tile, mask: o.mask, phone: phone, stride: stride, Q: Q });
+    v.stride = stride; v.phone = phone; v.quality = qName; v.Q = Q; v.auto = auto; v.userQuality = QUALITY[user] ? user : null; v.openArgs = o;
     v.stage.insertBefore(v.s.renderer.domElement, v.stage.firstChild);
     v.s.renderer.domElement.setAttribute('aria-label', '3D view of the terrain around ' + o.site.name + ' with the Sun and Earth at their computed positions');
     v.ctl = Controls(v);
@@ -519,14 +640,19 @@ window.AsteriaView3D = (function () {
       setInstant(v, inst0);
       v.ctl.yaw = inst0.r.sun.az + 115;
     }
+    initDisplay(v);
     setMode(v, 'orbit');
+    if (o.keep) restoreKeep(v, o.keep);
     syncPlay(v);
     v.off = o.app.onInstant(function (inst) { if (V === v) { setInstant(v, inst); syncPlay(v); } });
     v.raf = requestAnimationFrame(function (t) { frame(v, t); });
-    if (v.s.refinePending) {
-      var waitFirst = function () { if (V !== v) return; if (v.frames < 1) return setTimeout(waitFirst, 16); refine(v); };
-      setTimeout(waitFirst, 16);
-    }
+    var waitFirst = function () {
+      if (V !== v) return;
+      if (v.frames < 1) return setTimeout(waitFirst, 16);
+      refine(v);
+      if (!v.userQuality && !(o.keep && o.keep.probed) && !window.ASTERIA_V3D_NOPROBE) setTimeout(function () { probe(v); }, 100);
+    };
+    setTimeout(waitFirst, 16);
     // smooth transition in
     if (REDUCE) el.classList.add('on'); else requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('on'); }); });
     setTimeout(function () { var b = $('v3dClose'); if (b && V === v) b.focus({ preventScroll: true }); }, 50);
@@ -551,15 +677,17 @@ window.AsteriaView3D = (function () {
     lastClosed = { afterDispose: mem, frames: v.frames, at: Date.now() };
     v.s = null;
   }
-  function close(immediate) {
+  function close(immediate, internal) {
     var v = V; if (!v) return;
     V = null;
-    document.body.classList.remove('v3d-open');
-    if (v.app.playing()) v.app.setPlaying(false);
+    if (!internal) {
+      document.body.classList.remove('v3d-open');
+      if (v.app.playing()) v.app.setPlaying(false);
+    }
     var done = function () { dispose(v); if (v.onClosed) v.onClosed(); };
     if (immediate || REDUCE) done();
     else { v.el.classList.remove('on'); cancelAnimationFrame(v.raf); setTimeout(done, 320); }
-    if (v.app.onClose) v.app.onClose();
+    if (!internal && v.app.onClose) v.app.onClose();
   }
 
   // For the automated tests: the scene's actual Sun/Earth directions and state.
@@ -570,7 +698,8 @@ window.AsteriaView3D = (function () {
     var cam = s.camera.position, ep = s.earth.position.clone().sub(cam).normalize();
     var DEG = Math.PI / 180;
     return {
-      open: true, frames: v.frames, refining: !!s.refinePending, mode: v.ctl.mode, stride: v.stride, phone: v.phone, exaggeration: s.T.k,
+      open: true, frames: v.frames, refining: !!s.refinePending, quality: v.quality, autoQuality: v.auto, userQuality: v.userQuality, probe: v.probeResult || null, probing: !!v.probing,
+      shadowMapSize: s.sun.shadow.mapSize.x, pixelRatio: s.renderer.getPixelRatio(), brightness: v.bright, fillIntensity: s.fill.intensity, exposure: s.renderer.toneMappingExposure, mode: v.ctl.mode, stride: v.stride, phone: v.phone, exaggeration: s.T.k,
       sunLightDir: [lp.x, lp.y, lp.z], sunLight: M.azElFromDir([lp.x, lp.y, lp.z]), sunDiskRadiusDeg: Math.asin(s.sunDisk.scale.x / SUN_D) / DEG,
       earthDir: [ep.x, ep.y, ep.z], earthAzEl: M.azElFromDir([ep.x, ep.y, ep.z]), earthRadiusDeg: Math.asin(s.earth.scale.x / EARTH_D) / DEG,
       sunIntensity: s.sun.intensity, earthPhase: v.phase, instant: v.inst && { idx: v.inst.idx, t: v.inst.t, sunUp: v.inst.sunUp, earthUp: v.inst.earthUp, sun: { az: v.inst.r.sun.az, el: v.inst.r.sun.el, radius_deg: v.inst.r.sun.radius_deg }, earth: { az: v.inst.r.earth.az, el: v.inst.r.earth.el, radius_deg: v.inst.r.earth.radius_deg } },
@@ -584,5 +713,7 @@ window.AsteriaView3D = (function () {
   function testKey(code, down) { if (V) { if (down) V.ctl.keys[code] = true; else delete V.ctl.keys[code]; V.dirty = true; } }
   function testMode(m) { if (V) setMode(V, m); }
 
-  return { open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
+  function testQuality(q) { if (V) setQuality(V, q, 'Quality set to ' + QUALITY[q].label + '.'); }
+  function testBrightness(b) { if (V) setBrightness(V, b); }
+  return { QUALITY: QUALITY, testQuality: testQuality, testBrightness: testBrightness, open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
 })();
