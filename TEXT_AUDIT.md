@@ -200,3 +200,21 @@ Rows marked **removed** are listed in place, with what (if anything) replaced th
 | Launch slip, "Hours until first sunset": "No sunset within the N-day mission" (replaces "no sunset in mission") | app behaviour | rewritten |
 | Validation page: custom point, one-year check (errors, Horizons' lowest Earth elevation, event agreement) and the maximum-Sun-elevation rule table | computed (data/validation.js, from cached Horizons responses) | new |
 
+
+## Round 3 additions (2026-11-14): 3D view, intro, AI disclosure
+
+| Text | Basis | Status |
+|---|---|---|
+| Site Card: "Deploy: 3D terrain view" and "Real LOLA terrain, 6 km around this site, with the Sun and Earth at their computed positions." | data/terrain3d (tools/terrain3d.py; tile size from its metadata, 6.0-6.08 km) and the validated engine | new |
+| 3D panel tiles "Sunlight at the site marker" / "Earth link at the site marker" and "Status from the validated horizon model (same as the main view), not from the 3D rendering." | computed live (main app series) | new |
+| 3D Expert lines: Sun/Earth elevation, azimuth, terrain horizon, disk diameter, Earth "% lit (phase)" | computed live (engine; phase from the engine's Sun and Earth vectors) | new |
+| "Near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model." | wording required by the specification; describes the renderer | new |
+| Banner when the Sun is above 0° but behind terrain at the site: "At the site marker the Sun is hidden behind terrain (validated horizon model, Sun x° vs horizon y°) ..." | computed live | new |
+| Badge "Vertical scale 1× (true scale)" / "Vertical exaggeration k× - heights stretched, not true scale" | app setting | new |
+| Notes list "What is accurate, what is approximate" (heights within 0.05 m of direct DEM samples; curvature drop at the corners; light direction better than 0.01°; Earth size; skyline ring exact only from the site marker; fill light not physical; stars decorative; rover slope over one DEM cell) | tools/terrain3d.py check, tests/view3d_test.js, tile metadata (read live) | new |
+| Walk help "eye 2 m above the ground, as in the horizon model" | tools/terrain.py OBS_HEIGHT_M = 2 | new |
+| Rover cards: position, terrain elevation, local slope, "Sun over the tile terrain ... near-field estimate"; warning "Slope x° is above your limit of y°." | computed live from the tile (DEM bilinear, gradient over one cell; ray march over the tile only) | new |
+| Intro: "ASTERIA", "Lunar South Pole Landing Site Navigator", "Skip", "AI-generated pixel art" (no loading claim) | name / disclosure | new |
+| Loader: "AI-generated pixel art"; rover label "AI-generated illustration" | AI disclosure (AI_DISCLOSURE.md) | new |
+| About "How this was made" (single team member; Claude Code; validated against JPL Horizons and PGDA maps; no image/audio models; no NASA logos) | AI_DISCLOSURE.md; Validation tab | new |
+| About credits: Three.js r149 (MIT); Python, NumPy, Pillow, Playwright, Claude Code; Mazarico et al. 2011 DOI now a link | lib/README.md; SUBMISSION_LINKS.md | new |

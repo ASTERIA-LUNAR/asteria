@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T11:17:08.577Z by `node tests/validate.js`.
+Generated 2026-11-14T11:59:21.905Z by `node tests/validate.js`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)
 
 ## Overall: **PASS**
 

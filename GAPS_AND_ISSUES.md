@@ -1,4 +1,4 @@
-Status as of 2026-11-14 (round 2C: map fit, search-limit wording, one-year Horizons check of a custom point, Sun-elevation rule; builds on round 2B). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
+Status as of 2026-11-14 (round 3: 3D terrain view "Deploy", rover, AI disclosure and branding check, submission links, first-visit intro; builds on rounds 2B and 2C). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
 
 ## 1. Sites and coordinates
 
@@ -138,3 +138,41 @@ Status as of 2026-11-14 (round 2C: map fit, search-limit wording, one-year Horiz
   * Gazetteer feature data was read from planetarynames.wr.usgs.gov (search results and feature pages, fetched 2026-11-14).
   * The NASA region list was read from the 28 Oct 2024 release (RELEASE 24-136).
   * The PGDA product page states no licence. It asks users to cite Mazarico et al. (2011), which the About page and README do.
+
+## 7. Round 3: 3D terrain view ("Deploy")
+
+**Sites with 3D**: all 8 curated south-pole sites with terrain horizons. 6 tiles use LDEM_85S_20M (20 m grid: both Peak near Shackleton points, Shackleton crater centre, Mons Malapert, Mons Mouton, IM-2); IM-1 and Nobile Rim 2 (DM2) lie outside the 20 m DEM and use LDEM_80S_80M (80 m grid, 6.08 km tile). Each tile uses one DEM product only (no seams). Reference sites outside the pole and clicked or typed custom points have no 3D view (no Deploy button).
+
+**Isolation from the existing app**: index.html loads only the 8-entry list `data/terrain3d/index.js`. Three.js, `js/view3d.js`, `js/view3d_math.js` and the tile are injected only when Deploy is clicked (the UI test checks that `THREE` is undefined before). The only changes to `js/app.js` are the Deploy button, the lazy loader and a listener hook at the end of `renderInstant()`. All earlier tests pass unchanged.
+
+| 3D view | Accurate (tested) | Approximate / not modelled |
+|---|---|---|
+| Terrain heights | Bilinear LOLA samples; within 0.05 m of direct DEM samples at the centre and 3 random nodes per site (`tools/terrain3d.py check`, limit 1 m) | 20 m or 80 m grid; boulders, sub-grid relief and the lander are not represented; 0.1 m storage step |
+| Geometry | Site-centred ENU with exact lunar curvature (corner drop 5.2 m on 20 m tiles); nodes placed by true ground distance, so the polar-stereographic scale factor (1.0000-1.0075 at these sites) is handled | Spherical Moon (1737.4 km), as everywhere in the app |
+| Sun | Light direction = engine az/el (worst 1.7e-6° in `tests/view3d_test.js` against the engine's raw apparent vector; < 0.01° in the browser); disk angular size from the engine | - |
+| Earth | Engine az/el (< 0.01°) and angular size; phase from the engine's Sun and Earth vectors (the lighting direction is the Sun direction from the site, which differs from the direction at Earth by at most about 0.15°) | Plain blue sphere, no surface features; unlit side faintly visible so it can be found |
+| Status at the site marker | Sunlight / Earth link from the validated horizon model (same series as the main view) | - |
+| Shadows | Shadow mapping of the tile's own terrain | Visual approximation (2048 px shadow map on laptops, 1024 on phones); **shadows from terrain outside the tile are not rendered**. A banner appears when the validated model says the Sun is behind terrain at the site |
+| Distant skyline | Exact horizon mask from the site marker (`data/horizons`, rays to 300 km) | Ring 60 km away: exact only from the site marker; the ground between the tile edge and the ring is not drawn (dark wall) |
+| Lighting | - | Faint uniform fill light (not physical); no reflected light from terrain, no Earthshine |
+| Vertical exaggeration | Default 1× (true scale), shown in a badge | At 2-5× heights, shadows and the look of slopes are stretched (the badge says so); the skyline ring is never exaggerated |
+| Rover | Position, DEM elevation, slope over one DEM cell (20 or 80 m) | "Sun over the tile terrain" is a near-field estimate (tile only, Sun centre, 2 m eye height); the rover model, its tilt and speed are illustrative; no rover-scale slopes (< 20 m) |
+| Stars | - | Off by default; decorative random points, not a catalogue |
+
+**Performance (Part D)**: the view renders only when something changes (camera movement, keys held, time change), not every frame. Phones (coarse pointer or < 700 px wide) draw every second node (22,801 instead of 90,601 vertices), use a 1024 px shadow map, no antialiasing and a pixel ratio of at most 1.5. Closing the view disposes every geometry, material, texture and the shadow map, the render lists and the WebGL context (`renderer.info.memory` reports 0 geometries and 0 textures after disposal in the UI test) and removes the DOM. Measured in headless Chromium on the development laptop (GPU via ANGLE/D3D11): opening takes 0.2-0.4 s including loading Three.js (0.6 MB) and the tile (0.24 MB); orbiting renders at 60 frames/s at laptop and phone sizes. **Not measured on a real phone**: the phone test emulates the screen size and touch but runs on the laptop GPU.
+
+**Known limitations of the 3D view**
+* Needs WebGL. Without it, Deploy shows "The 3D view could not be opened (...)" under the button and the rest of the app keeps working.
+* Two-finger pinch/pan and touch drag-to-look are implemented (pointer events) but are not exercised by the automated test (Playwright has no multi-touch); the on-screen arrow buttons and taps are tested.
+* Headless Chromium with software WebGL (SwiftShader) prints "GPU stall due to ReadPixels" driver notices as console warnings. They come from the GL driver, not from page code; the UI test therefore runs WebGL on the GPU (ANGLE/D3D11) on Windows, where none appear.
+* Tested in Chromium only (as the rest of the app).
+* The 3D time slider steps through the same computed samples as the main view (every 10 or 60 minutes); nothing is interpolated.
+* The near field is drawn lit even when the site itself is in the shadow of distant terrain (see the banner and the shadow label); the validated model, not the picture, decides "Sun up".
+
+## 8. Round 3: AI disclosure, branding, submission links, intro
+
+* **AI disclosure** (NASA Space Apps rules): About page and README "How this was made"; AI_DISCLOSURE.md; `<meta name="generator">` and `<meta name="ai-disclosure">` in index.html; every AI-written source file (29 files, checked by `tests/features_test.js`) starts with "Generated with Claude Code (Anthropic) under human direction". Generated data files name their generator script instead.
+* **Graphics**: no image- or audio-generation model was used. Code-drawn graphics written by Claude Code are labelled "AI-generated" where shown (pixel-art rocket, Earth and Moon in the loader and the intro; the 3D rover). The small SVG mark in the page header (also drawn by Claude Code) was **removed**, because it was too small to carry a visible watermark. Map tiles and the 3D terrain are renderings of NASA data, not generated imagery.
+* **Branding check**: no NASA or NASA Space Apps logos, "meatball" or "worm" insignia, agency flags or mission patches are in the project (it contains no logo image files at all). Text references to NASA data and missions remain, as do "Not endorsed by NASA" and "Not affiliated with NASA's ASTERIA CubeSat mission".
+* **SUBMISSION_LINKS.md**: 16 NASA links and 16 other links, each a full https URL that the project cites elsewhere (tested). The PGDA file server is now cited over https. On 2026-11-14 every URL answered HTTP 200 to a plain HTTP client except the NASA NTRS page (no answer within 60 s); NTRS's public API returned the same record. NASA Moon Trek and LROC Quickmap are mentioned in the app only as places to check results, so they are not listed as used.
+* **First-visit intro**: an honest title card (no loading claim), `INTRO_MS = 3000` at the top of `js/intro.js`. Remembered in localStorage (in try/catch: with storage blocked it can show again on the next visit). Skipped automatically with reduced motion, a share link, and in automated browsers unless a test sets `window.ASTERIA_INTRO_TEST`. It never delays computation: in the UI test the first results were ready about 0.5 s after load while the intro was still showing.
