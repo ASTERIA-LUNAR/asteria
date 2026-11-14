@@ -1031,7 +1031,26 @@
     }
     return h;
   }
-  function renderAccuracy3d() { return ''; }
+  // 3D terrain accuracy (tests/accuracy3d.js + tools/accuracy3d.py): heights, slopes and rover positions vs LOLA.
+  function renderAccuracy3d() {
+    var A = window.LUNA_ACCURACY3D;
+    if (!A) return '<h3>3D terrain accuracy</h3><p class="hint">Not run (node tests/accuracy3d.js).</p>';
+    var f = function (x, n) { return x.toFixed(n); }, H = A.heights, SL = A.slope, P = A.positions;
+    var h = '<h3 id="valAcc3d">3D terrain accuracy</h3>';
+    h += '<div class="bigresult ' + (A.pass ? 'pass' : 'fail') + '">' + (A.pass ? 'PASS' : 'FAIL') + ': heights within ' + f(H.worst, 2) + ' m of NASA\'s LOLA data at all ' + H.points.toLocaleString('en-US') + ' grid points</div>';
+    h += '<p>Every height used to draw the 3D terrain was compared with NASA\'s LOLA elevation data, sampled directly by an independent Python program. The rover\'s slope readout was compared with a slope computed in Python from the same data, and the latitude/longitude and elevation the rover shows were checked by projecting them back onto the 2D map.</p>';
+    h += '<details><summary>Heights by site and product (' + H.rows.length + ' rows)</summary><p class="hint">' + esc(H.method) + '</p><div class="tablewrap"><table><thead><tr><th>Site</th><th>Product</th><th>LOLA DEM</th><th class="num">Grid points</th><th class="num">Spacing</th><th class="num">Max |Δ|</th><th class="num">Mean |Δ|</th></tr></thead><tbody>';
+    H.rows.forEach(function (r) { h += '<tr><td>' + esc(r.name) + '</td><td>' + esc(r.product) + '</td><td>' + esc(r.dem) + '</td><td class="num">' + r.points.toLocaleString('en-US') + '</td><td class="num">' + r.spacing_m + ' m</td><td class="num">' + f(r.max, 3) + ' m</td><td class="num">' + f(r.mean, 3) + ' m</td></tr>'; });
+    h += '</tbody></table></div></details>';
+    h += '<h4>Slopes</h4><p class="hint">' + esc(SL.method) + ' ' + esc(SL.bound) + '</p><div class="tablewrap"><table><thead><tr><th>Comparison</th><th class="num">Points</th><th class="num">Max |Δ|</th><th class="num">Mean |Δ|</th><th>Note</th></tr></thead><tbody>';
+    SL.rows.forEach(function (r) { h += '<tr><td>' + esc(r.what) + '</td><td class="num">' + r.n + '</td><td class="num">' + f(r.max, 2) + '°</td><td class="num">' + f(r.mean, 2) + '°</td><td>' + esc(r.note) + '</td></tr>'; });
+    h += '</tbody></table></div><p>' + esc(SL.finding) + '</p>';
+    h += '<h4>Rover position and elevation</h4><p class="hint">' + esc(P.method) + '</p><p>' + P.n + ' positions: largest distance between the displayed latitude/longitude (on the 2D map\'s projection) and the true rover position <b>' + f(P.maxBack_m, 2) + ' m</b> (limit: one DEM cell, 5-80 m); largest elevation difference <b>' + f(P.maxElev_m, 2) + ' m</b> (limit 1 m).</p>';
+    h += '<details><summary>Positions (' + P.n + ')</summary><div class="tablewrap"><table><thead><tr><th>Site</th><th>Grid</th><th>Displayed lat, lon</th><th class="num">Distance on the map</th><th class="num">DEM cell</th><th class="num">Displayed elevation</th><th class="num">LOLA there</th><th>Pass</th></tr></thead><tbody>';
+    P.rows.forEach(function (r) { h += '<tr><td>' + esc(r.name) + '</td><td>' + esc(r.quality) + '</td><td>' + r.latTxt + '°, ' + r.lonTxt + '°E</td><td class="num">' + f(r.backDist_m, 2) + ' m</td><td class="num">' + r.cell_m + ' m</td><td class="num">' + esc(r.elevTxt) + '</td><td class="num">' + f(r.demH, 2) + ' m</td><td class="' + (r.pass ? 'pass' : 'fail') + '">' + (r.pass ? 'PASS' : 'FAIL') + '</td></tr>'; });
+    h += '</tbody></table></div></details>';
+    return h;
+  }
   function renderCoarse() {
     var V = window.LUNA_COARSE_VALIDATION;
     if (!V) return '<h3>Terrain for clicked points</h3><p class="hint">Not validated (run node tests/coarse_validation.js); clicked points use a smooth horizon.</p>';

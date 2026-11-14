@@ -54,6 +54,29 @@ function loadData(file, name) { const w = {}; new Function('window', fs.readFile
     }
     expect(`${tag} instant status shown in the browser = independent Horizons + Python status (${pick.length} cases incl. ${pick.filter(r => r.edge).length} on the edge)`, bad.length === 0, bad.join('; '));
 
+    // ---- Part 2: rover readout in the browser at the positions checked against LOLA by tools/accuracy3d.py
+    await page.goto('about:blank'); await open('');
+    await page.evaluate(() => AsteriaApp.openDeploy());
+    await page.waitForFunction(() => window.AsteriaView3D && AsteriaView3D.debug().open && !AsteriaView3D.debug().refining, null, { timeout: 30000 });
+    const A3 = loadData('data/accuracy3d.js', 'LUNA_ACCURACY3D');
+    const site = await page.evaluate(() => AsteriaApp.state.site.id), q = await page.evaluate(() => AsteriaView3D.debug().quality);
+    const posList = A3.positions.rows.filter(p => p.siteId === site && (p.cell_m !== 5 || q === 'high'));
+    await page.evaluate(() => AsteriaView3D.testMode('rover'));
+    let pbad = [];
+    for (const p of posList) {
+      const got = await page.evaluate(async p => {
+        const M = AsteriaView3DMath, s = AsteriaView3D.testScene(), T = s.T, w = M.toThree(M.enu(T, p.e, p.n, M.heightAt(T, p.e, p.n)));
+        AsteriaView3D.testCamera({ rov: { x: w[0], z: w[2], yaw: 0, dist: 1, camYaw: 0, lastX: w[0], lastZ: w[2] } });
+        await new Promise(r => setTimeout(r, 400));
+        return { pos: document.getElementById('v3dRPos').textContent, elev: document.getElementById('v3dRElev').textContent, st: AsteriaView3D.debug().rover };
+      }, p);
+      const m = got.pos.match(/\((-?[\d.]+)°, (-?[\d.]+)°E\)/);
+      const ok = m && Math.abs(+m[1] - +p.latTxt) <= 0.00011 && Math.abs(+m[2] - +p.lonTxt) <= 0.00011 && Math.abs(parseFloat(got.elev) - parseFloat(p.elevTxt)) <= 0.11 && Math.abs(parseFloat(got.elev) - p.demH) <= 1;
+      if (!ok) pbad.push(`${p.e.toFixed(0)},${p.n.toFixed(0)}: shown ${got.pos} ${got.elev}; checked ${p.latTxt}, ${p.lonTxt} ${p.elevTxt} (LOLA ${p.demH.toFixed(2)})`);
+    }
+    expect(`${tag} 3D rover: displayed lat/lon and elevation at ${posList.length} checked positions = the values verified against LOLA (Validation, 3D terrain accuracy)`, posList.length > 0 && pbad.length === 0, pbad.join('; '));
+    await page.evaluate(() => AsteriaView3D.close(true));
+
     await ctx.close();
   }
 

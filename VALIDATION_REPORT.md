@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T19:13:10.452Z by `node tests/validate.js`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)
+Generated 2026-11-14T19:19:17.518Z by `node tests/validate.js`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)
 
 ## Overall: **PASS**
 
@@ -11,6 +11,7 @@ Generated 2026-11-14T19:13:10.452Z by `node tests/validate.js`. (The test code w
 | B. Physics sanity tests (5) | PASS | see below |
 | E. Custom point, one-year check vs JPL Horizons (8761 hourly rows x 2 bodies) | PASS | elevation max 0.0028 deg; azimuth max 0.0039 deg; sunrise/sunset max 1.42 min; Earth min elevation 1.63 deg |
 | F. Instant status check (independent: Horizons + Python terrain; 8 sites x 21 times x 2 bodies) | PASS | 336/336 agree; 3 on the edge (within 0.05 deg), 0 disagreements outside the edge |
+| G. 3D terrain accuracy (every grid point vs LOLA; slopes; rover positions) | PASS | heights max 0.100 m over 3,444,523 points (limit 1 m); rover slope vs Python max diff 0.534 deg; 20 rover positions within one DEM cell and 1 m |
 | C. Blind test vs JPL Horizons (5 new random cases, 10 comparisons, fetched fresh) | PASS | elevation max 0.0029 deg; azimuth max 0.0038 deg |
 
 ## Method
@@ -239,6 +240,86 @@ Per site (all 21 times):
 | Mons Mouton (landform centre) | 10 / 10 | 10 / 10 | 42/42 | `tests/horizons_cache/f8f56c64eab1e30f.txt`, `tests/horizons_cache/1c6801fc0f9c542f.txt` |
 | Mons Malapert (landform centre) | 7 / 7 | 21 / 21 | 42/42 | `tests/horizons_cache/1fb408b277218f22.txt`, `tests/horizons_cache/8f8e1c6874647b0d.txt` |
 | Shackleton crater centre (floor) | 0 / 0 | 0 / 0 | 42/42 | `tests/horizons_cache/f9c3e8c92e4d6566.txt`, `tests/horizons_cache/85840f52844d32dd.txt` |
+
+## G. 3D terrain accuracy: **PASS**
+
+Run with `node tests/accuracy3d.js` (the app's own 3D code in Node) and `.venv\Scripts\python -I tools\accuracy3d.py` (independent, from the LOLA DEMs); results of 2026-11-14 19:18 UTC.
+
+**Heights.** Every stored grid point of every 3D terrain product (the 6 km tile of each of the 8 sites, ring A to 16 km, ring B to 40 km, and the three 5 m patches): its geographic position is computed independently (site up vector rotated by the ground distance; not the great-circle routine the generators use), and the LOLA DEM the product names is sampled there directly (bilinear, raw PDS array). Differences come from the 0.1 m (0.2 m where the relief is larger) storage step.
+
+| Site | Product | DEM | Grid points | Spacing (m) | Max abs diff (m) | Mean abs diff (m) |
+|---|---|---|---|---|---|---|
+| IM-1 Odysseus | 6 km tile | LDEM_80S_80M | 5,929 | 80 | 0.050 | 0.025 |
+| IM-1 Odysseus | Ring A (to 16 km) | LDEM_75S_120M | 160,801 | 80 | 0.050 | 0.025 |
+| IM-1 Odysseus | Ring B (to 40 km) | LDEM_75S_120M | 251,001 | 160 | 0.050 | 0.025 |
+| IM-2 Athena | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
+| IM-2 Athena | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
+| IM-2 Athena | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.100 | 0.050 |
+| Peak near Shackleton (illuminated area) | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
+| Peak near Shackleton (illuminated area) | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
+| Peak near Shackleton (illuminated area) | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.050 | 0.025 |
+| Peak near Shackleton (illuminated area) | 5 m patch (2 km) | LDEM_875S_5M | 160,801 | 5 | 0.050 | 0.023 |
+| Peak near Shackleton - best-lit point (derived) | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
+| Peak near Shackleton - best-lit point (derived) | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
+| Peak near Shackleton - best-lit point (derived) | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.050 | 0.025 |
+| Peak near Shackleton - best-lit point (derived) | 5 m patch (2 km) | LDEM_875S_5M | 160,801 | 5 | 0.050 | 0.024 |
+| Nobile Rim 2 (site DM2) | 6 km tile | LDEM_80S_80M | 5,929 | 80 | 0.050 | 0.025 |
+| Nobile Rim 2 (site DM2) | Ring A (to 16 km) | LDEM_80S_80M | 160,801 | 80 | 0.050 | 0.025 |
+| Nobile Rim 2 (site DM2) | Ring B (to 40 km) | LDEM_75S_120M | 251,001 | 160 | 0.100 | 0.050 |
+| Mons Mouton (landform centre) | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
+| Mons Mouton (landform centre) | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
+| Mons Mouton (landform centre) | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.100 | 0.050 |
+| Mons Malapert (landform centre) | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
+| Mons Malapert (landform centre) | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
+| Mons Malapert (landform centre) | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.100 | 0.050 |
+| Shackleton crater centre (floor) | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
+| Shackleton crater centre (floor) | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
+| Shackleton crater centre (floor) | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.050 | 0.025 |
+| Shackleton crater centre (floor) | 5 m patch (2 km) | LDEM_875S_5M | 160,801 | 5 | 0.050 | 0.020 |
+
+All 3,444,523 grid points: max abs difference **0.100 m**, mean 0.030 m (limit 1 m) -> PASS.
+
+**Slopes.** Same method in both: central differences over one grid spacing d of the bilinear DEM heights in the site's true ground east/north directions, dh/de = (h(e+d) - h(e-d)) / 2d, dh/dn = (h(n+d) - h(n-d)) / 2d, slope = atan(sqrt(dh/de^2 + dh/dn^2)). The 3D readout uses the stored grid (js/view3d_math.js slopeAt); Python samples the LOLA DEM directly at the geographic positions of those points (tools/accuracy3d.py). d = 20 m or 80 m (6 km tile) and 5 m (patch). The 2D map's slope layer uses the same formula on a 37 m sample grid (np.gradient), averaged over 2 x 2 samples into 74 m pixels and shown in 8 classes (tools/tiles.py).
+
+| Comparison | Points | Max abs diff (deg) | Mean abs diff (deg) | Note |
+|---|---|---|---|---|
+| Rover readout vs Python, tile grid points (20 m / 80 m) | 200 | 0.169 | 0.039 | 200 of 200 within the storage-step bound (0.05-0.20 deg for 80 m / 20 m spacing) |
+| Rover readout vs Python, 5 m patch points (High quality) | 42 | 0.534 | 0.169 | 42 of 42 within the storage-step bound (0.81 deg at 5 m spacing) |
+| 3D slope shading (mesh attribute) vs rover readout, same points | 200 | 0.000 | 0.000 | same formula, same heights |
+| Before the fix: old rover readout (bilinear gradient inside one cell) vs Python, tile points | 200 | 15.943 | 1.075 | different method (one-sided over one cell); fixed this round |
+| Before the fix: old readout vs Python, 5 m patch points | 42 | 7.799 | 1.276 | fixed this round |
+| 2D map layer: Python reproduction of the 74 m pixel vs the map's stored class | 200 | 0.000 | 0.000 | 200 of 200 in the same class |
+| Rover readout (20 m / 80 m) vs the 2D map's 74 m pixel value at the same points | 200 | 8.055 | 1.036 | different pixel size, not an error; 155 of 200 readouts fall in the map pixel's class |
+| Python at 37 m spacing (no 74 m averaging) vs the 2D map's 74 m pixel value | 200 | 5.622 | 0.788 | effect of averaging alone |
+
+Tolerance: the error that the 0.1 m height storage step alone can cause, atan(sqrt(2) x 0.05 m / d): 0.05 deg at 80 m, 0.20 deg at 20 m, 0.81 deg at 5 m spacing. Finding: before this round the rover readout used the gradient of the bilinear surface inside one grid cell (one-sided differences), while the 3D slope shading used central differences; against the DEM-derived central-difference slope the old readout differed by up to 15.9 deg (mean 1.07 deg) on the 6 km tiles and 7.8 deg on the 5 m patches. The readout (js/view3d_math.js slopeAt) now uses central differences over one grid spacing, the same formula as the slope shading and as the Python check: max difference 0.169 deg (tile) and 0.534 deg (5 m), every point within the storage-step bound. The 2D map's slope layer is correct for its own 74 m pixels (200/200 classes reproduced); it is smoother than the 3D readout because of its larger pixels (mean difference 1.0 deg), which the map legend states.
+
+**Positions.** Rover positions chosen at random inside the drawn tile (14 on the 6 km tiles as at Low/Medium quality, 6 inside the 5 m patches as at High). The latitude/longitude the Rover panel displays (4 decimals) is converted with the 2D map's own projection (js/map.js project: south polar stereographic) and compared with the rover's true position, computed independently in Python (site-frame east/north -> great-circle position -> the DEM's stereographic grid). The displayed elevation (1 decimal) is compared with a bilinear sample of the LOLA DEM (the tile's product, or LDEM_875S_5M inside the patch) at the displayed latitude/longitude.
+
+| Site | e (m) | n (m) | Displayed lat, lon | Back through the map projection: distance (m) | DEM cell (m) | Displayed elevation | DEM height there (m) | Pass |
+|---|---|---|---|---|---|---|---|---|
+| IM-1 Odysseus | -1723.6 | 2612.0 | -80.0437, 1.1112 | 0.25 | 80 | 2618.8 m | 2618.92 | PASS |
+| IM-2 Athena | 1953.9 | 605.6 | -84.7702, 29.9026 | 0.99 | 20 | 5223.6 m | 5223.42 | PASS |
+| Peak near Shackleton (illuminated area) | -2277.3 | -515.0 | -88.8046, 120.8977 | 0.67 | 20 | 1276.7 m | 1276.65 | PASS |
+| Peak near Shackleton - best-lit point (derived) | -1288.5 | 2219.8 | -88.7112, 122.4543 | 0.19 | 20 | 1221.2 m | 1221.63 | PASS |
+| Nobile Rim 2 (site DM2) | -641.4 | -394.6 | -84.2145, 60.4901 | 1.08 | 80 | 1044.7 m | 1044.90 | PASS |
+| Mons Mouton (landform centre) | -723.7 | -2502.6 | -84.6825, 30.7425 | 0.72 | 20 | 5111.9 m | 5111.92 | PASS |
+| Mons Malapert (landform centre) | -242.5 | 1460.6 | -85.9318, -1.7827 | 0.71 | 20 | 4701.2 m | 4700.95 | PASS |
+| Shackleton crater centre (floor) | 1886.9 | 2298.1 | -89.5895, 138.4981 | 0.94 | 20 | -2631.4 m | -2631.14 | PASS |
+| IM-1 Odysseus | -2252.7 | -2614.3 | -80.2159, 1.0028 | 1.12 | 80 | 2717.9 m | 2717.62 | PASS |
+| IM-2 Athena | -96.9 | -93.3 | -84.7937, 29.1605 | 0.73 | 20 | 5323.8 m | 5323.76 | PASS |
+| Peak near Shackleton (illuminated area) | 2371.7 | 1967.1 | -88.7227, 128.0110 | 0.98 | 20 | 1143.2 m | 1143.53 | PASS |
+| Peak near Shackleton - best-lit point (derived) | 1919.9 | -1200.4 | -88.8230, 127.4276 | 0.52 | 20 | 1437.4 m | 1437.47 | PASS |
+| Nobile Rim 2 (site DM2) | 2146.0 | -2269.1 | -84.2760, 61.4095 | 1.41 | 80 | 834.9 m | 835.15 | PASS |
+| Mons Mouton (landform centre) | -1847.8 | -1854.2 | -84.6608, 30.3451 | 0.04 | 20 | 5040.7 m | 5040.62 | PASS |
+| Shackleton crater centre (floor) | 293.6 | -817.6 | -89.6968, 131.6099 | 0.20 | 5 | -2762.7 m | -2762.75 | PASS |
+| Peak near Shackleton (illuminated area) | 608.7 | -575.9 | -88.8088, 125.4656 | 0.65 | 5 | 1585.3 m | 1585.25 | PASS |
+| Peak near Shackleton - best-lit point (derived) | 730.5 | 169.2 | -88.7793, 125.4747 | 0.56 | 5 | 1526.4 m | 1526.65 | PASS |
+| Shackleton crater centre (floor) | 313.7 | 243.8 | -89.6618, 131.5332 | 0.07 | 5 | -2789.4 m | -2789.47 | PASS |
+| Peak near Shackleton (illuminated area) | 947.7 | -299.4 | -88.7995, 125.9919 | 0.97 | 5 | 1531.2 m | 1531.29 | PASS |
+| Peak near Shackleton - best-lit point (derived) | 833.9 | 827.1 | -88.7575, 125.6122 | 0.59 | 5 | 1433.1 m | 1433.02 | PASS |
+
+20 positions: largest distance 1.41 m (limit: one DEM cell), largest elevation difference 0.43 m (limit 1 m) -> PASS.
 
 ## Terrain illumination cross-check
 

@@ -86,13 +86,18 @@
     if (a + b <= 1) return h00 + (h10 - h00) * a + (h01 - h00) * b;
     return h11 + (h01 - h11) * (1 - a) + (h10 - h11) * (1 - b);
   }
-  // Slope (deg) and downhill azimuth from the bilinear DEM surface over one grid cell (DEM resolution).
+  // Slope (deg) and downhill azimuth of the DEM surface: central differences over one grid spacing d of the bilinear
+  // heights, dh/de = (h(e+d) - h(e-d)) / 2d, dh/dn likewise (round 5: the same formula as the 3D slope shading in
+  // buildGridMesh and as the independent Python check, tools/accuracy3d.py; before, a one-sided gradient inside one
+  // cell was used, which differed from the DEM-derived slope by up to 16 deg on rough ground).
   function slopeAt(T, e, n) {
-    if (inPatch(T, e, n)) return slopeAt(T.patch, e, n);
-    var q = cell(T, e, n), i = q.i, j = q.j, a = q.a, b = q.b;
-    var h00 = node(T, i, j), h10 = node(T, i + 1, j), h01 = node(T, i, j + 1), h11 = node(T, i + 1, j + 1);
-    var dhde = ((h10 - h00) * (1 - b) + (h11 - h01) * b) / T.d;          // east
-    var dhdn = -((h01 - h00) * (1 - a) + (h11 - h10) * a) / T.d;         // north (row index grows southward)
+    if (inPatch(T, e, n)) {
+      var P = T.patch, lim = P.half - P.d;
+      if (Math.abs(e) <= lim && Math.abs(n) <= lim) return slopeAt(P, e, n);
+    }
+    var d = T.d, h = function (x, y) { return heightAt(T, x, y); };
+    var dhde = (h(e + d, n) - h(e - d, n)) / (2 * d);                     // east
+    var dhdn = (h(e, n + d) - h(e, n - d)) / (2 * d);                     // north
     var g = Math.sqrt(dhde * dhde + dhdn * dhdn);
     var down = Math.atan2(-dhde, -dhdn) / DEG; if (down < 0) down += 360;
     return { slope: Math.atan(g) / DEG, downhillAz: down };

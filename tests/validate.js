@@ -398,7 +398,7 @@ function accuracy3dSection(A) {
   md += `\nAll ${A.heights.points.toLocaleString('en-US')} grid points: max abs difference **${f(A.heights.worst, 3)} m**, mean ${f(A.heights.mean, 3)} m (limit 1 m) -> ${A.heights.pass ? 'PASS' : 'FAIL'}.\n\n`;
   md += `**Slopes.** ${A.slope.method}\n\n| Comparison | Points | Max abs diff (deg) | Mean abs diff (deg) | Note |\n|---|---|---|---|---|\n`;
   for (const r of A.slope.rows) md += `| ${r.what} | ${r.n} | ${f(r.max, 3)} | ${f(r.mean, 3)} | ${r.note} |\n`;
-  md += `\n${A.slope.finding}\n\n`;
+  md += `\n${A.slope.bound} ${A.slope.finding}\n\n`;
   md += `**Positions.** ${A.positions.method}\n\n| Site | e (m) | n (m) | Displayed lat, lon | Back through the map projection: distance (m) | DEM cell (m) | Displayed elevation | DEM height there (m) | Pass |\n|---|---|---|---|---|---|---|---|---|\n`;
   for (const r of A.positions.rows) md += `| ${r.name} | ${f(r.e, 1)} | ${f(r.n, 1)} | ${r.latTxt}, ${r.lonTxt} | ${f(r.backDist_m, 2)} | ${r.cell_m} | ${r.elevTxt} | ${f(r.demH, 2)} | ${r.pass ? 'PASS' : '**FAIL**'} |\n`;
   md += `\n${A.positions.n} positions: largest distance ${f(A.positions.maxBack_m, 2)} m (limit: one DEM cell), largest elevation difference ${f(A.positions.maxElev_m, 2)} m (limit 1 m) -> ${A.positions.pass ? 'PASS' : 'FAIL'}.\n`;
