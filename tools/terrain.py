@@ -1,5 +1,5 @@
 """
-LunaWindow - Phase 3 terrain horizons from LOLA polar DEMs.
+ASTERIA - Phase 3 terrain horizons from LOLA polar DEMs.
 
 Products (PDS Geosciences Node, LRO LOLA RDR, lola_gdr/polar/img):
   LDEM_85S_20M  (15168 x 15168, 20 m/pix, ~85S-90S)  - near field, preferred

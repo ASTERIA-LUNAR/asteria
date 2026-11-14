@@ -4,7 +4,7 @@ Terrain illumination cross-check against the published LOLA average-illumination
 
 Inputs:
   dem/work/sun_18p6y.bin   hourly apparent Sun direction (Moon body-fixed) + distance from
-                           tools/export_sun_vectors.js (validated LunaWindow engine)
+                           tools/export_sun_vectors.js (validated ASTERIA engine)
   dem/ldem_*.img           LOLA DEMs (horizon masks, via tools/terrain.py)
   dem/pgda/AVGVISIB_85S_060M_201608.IMG   published average illumination map (60 m/px)
 

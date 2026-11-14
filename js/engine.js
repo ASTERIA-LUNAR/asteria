@@ -1,5 +1,5 @@
 /*
- * LunaWindow ephemeris engine
+ * ASTERIA ephemeris engine
  * ---------------------------------------------------------------------------
  * Topocentric Sun / Earth azimuth & elevation for an observer on the Moon.
  * Plain JavaScript; works in the browser (expects window.Astronomy from

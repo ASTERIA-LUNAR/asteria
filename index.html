@@ -3,15 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LunaWindow - Lunar Landing Site Navigator</title>
+<title>ASTERIA - Lunar South Pole Landing Site Navigator</title>
 <meta name="description" content="Compare lunar landing sites and dates: Sun and Earth above the horizon, power and direct-to-Earth communication windows, with LOLA terrain horizons at the south pole.">
+<meta name="application-name" content="ASTERIA">
+<meta property="og:title" content="ASTERIA - Lunar South Pole Landing Site Navigator">
+<meta property="og:description" content="When is the Sun up and Earth in view at lunar south-pole landing sites? LOLA terrain horizons, ephemeris validated against JPL Horizons. Not endorsed by NASA.">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <header class="topbar">
   <div class="brand">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 19 Q16 12 29 19" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="22" cy="10" r="3" fill="var(--sun)"/></svg>
-    <div><div class="brand-name">LunaWindow</div><div class="brand-sub">Lunar Landing Site Navigator</div></div>
+    <div><div class="brand-name">ASTERIA</div><div class="brand-sub">Lunar South Pole Landing Site Navigator</div></div>
   </div>
   <nav class="tabs" role="tablist">
     <button class="tab active" data-page="explorer" role="tab">Explorer</button>
@@ -207,9 +210,9 @@
 <!-- ================================================================== ABOUT -->
 <section id="page-about" class="page">
   <div class="panel prose" id="aboutContent">
-    <h2>About LunaWindow</h2>
-    <p>LunaWindow is an entry for the NASA Space Apps Challenge 2026 challenge "Lunar Landing Site Navigator". It shows, for any lunar site and date, when the Sun is above the local horizon (solar power) and when the Earth is above it (direct-to-Earth communication), with special attention to the lunar south pole, where the Sun skims the horizon and terrain decides everything.</p>
-    <p class="disclaimer"><b>Not endorsed by NASA.</b> This is an independent hackathon project. It is not a mission planning product and must not be used for operational decisions.</p>
+    <h2>About ASTERIA</h2>
+    <p>ASTERIA (Lunar South Pole Landing Site Navigator) is an entry for the NASA Space Apps Challenge 2026 challenge "Lunar Landing Site Navigator". It shows, for any lunar site and date, when the Sun is above the local horizon (solar power) and when the Earth is above it (direct-to-Earth communication), with special attention to the lunar south pole, where the Sun skims the horizon and terrain decides everything.</p>
+    <p class="disclaimer"><b>Not endorsed by NASA.</b> Not affiliated with NASA's ASTERIA CubeSat mission. This is an independent hackathon project. It is not a mission planning product and must not be used for operational decisions.</p>
     <h3>Methods</h3>
     <ul>
       <li><b>Ephemeris</b>: Sun, Earth and Moon positions from Astronomy Engine (VSOP87 and a Chapront-based lunar theory). Moon orientation from the IAU/WGCCRE rotation model (pole direction and prime-meridian angle). Positions are corrected for light travel time and stellar aberration. Azimuth is measured clockwise from local north (toward the lunar north pole). No atmospheric refraction (the Moon has none).</li>
@@ -250,7 +253,7 @@
   <div class="tourtext" id="tourText"></div>
   <div class="tourbtns"><button id="tourPrev" class="btn ghost">Back</button><button id="tourNext" class="btn primary">Next</button><button id="tourClose" class="btn ghost" aria-label="Close tour">Close</button></div>
 </div>
-<footer class="foot">LunaWindow &middot; NASA Space Apps Challenge 2026 &middot; Not endorsed by NASA &middot; Ephemeris validated against JPL Horizons (see Validation)</footer>
+<footer class="foot">ASTERIA &middot; NASA Space Apps Challenge 2026 &middot; Not endorsed by NASA &middot; Ephemeris validated against JPL Horizons (see Validation)</footer>
 
 <script src="lib/astronomy.browser.min.js"></script>
 <script src="js/engine.js"></script>

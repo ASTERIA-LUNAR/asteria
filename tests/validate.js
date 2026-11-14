@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * LunaWindow validation (Phase 2).
+ * ASTERIA validation (Phase 2).
  *  A) Angles vs JPL Horizons (observer on the Moon, airless apparent az/el).
  *  A2) Event times (sunset / Earthset, smooth Moon) vs Horizons 1-minute tables.
  *  B) Physics sanity tests over one year.
@@ -214,7 +214,7 @@ function stat(arr) {
 
 function report(r) {
   const f = (x, n) => x.toFixed(n);
-  let md = `# LunaWindow - Validation Report\n\nGenerated ${r.generated} by \`node tests/validate.js\`.\n\n`;
+  let md = `# ASTERIA - Validation Report\n\nGenerated ${r.generated} by \`node tests/validate.js\`.\n\n`;
   md += `## Overall: **${r.overall ? 'PASS' : 'FAIL'}**\n\n`;
   md += `| Part | Result | Detail |\n|---|---|---|\n`;
   md += `| A. Angles vs JPL Horizons (${r.angles.length} comparisons) | ${r.anglePass ? 'PASS' : 'FAIL'} | elevation max ${f(r.angleStats.el.max, 4)} deg / mean ${f(r.angleStats.el.mean, 4)} deg; azimuth max ${f(r.angleStats.az.max, 4)} deg / mean ${f(r.angleStats.az.mean, 4)} deg |\n`;
@@ -258,7 +258,7 @@ function xcheckSection() {
   const p = v => (v === null || v === undefined) ? 'n/a' : (100 * v).toFixed(1) + '%';
   let md = `\n## Terrain illumination cross-check\n\nPeak near Shackleton (${X.pubLat}, ${X.pubLon}) vs the published "approximately 80%" figure. Do-not-tune policy: nothing in the model was adjusted to match.\n\n**Sources and definitions**\n\n`;
   for (const s of XCHECK_SOURCES) md += `* ${s.what}: ${s.quote} (${s.url})\n`;
-  md += `\n**Method.** Sun directions from the validated LunaWindow engine (hourly, ${X.span}, ${X.records} steps = one 18.6-year nodal cycle; "2027" = calendar year 2027). Terrain horizons from LOLA LDEM_85S_20M/80S_80M/75S_120M (20 m/px near the site), 360 azimuths, rays to 300 km, at observer heights 2 m and 10 m above the surface. Three definitions: (1) average visible fraction of the solar disk, (2) % of time the Sun centre is above the horizon, (3) % of time any part of the disk is above the horizon. The published map (${X.pgdaProduct}) is sampled at the same points (bilinear; nearest-pixel in brackets).\n\n`;
+  md += `\n**Method.** Sun directions from the validated ASTERIA engine (hourly, ${X.span}, ${X.records} steps = one 18.6-year nodal cycle; "2027" = calendar year 2027). Terrain horizons from LOLA LDEM_85S_20M/80S_80M/75S_120M (20 m/px near the site), 360 azimuths, rays to 300 km, at observer heights 2 m and 10 m above the surface. Three definitions: (1) average visible fraction of the solar disk, (2) % of time the Sun centre is above the horizon, (3) % of time any part of the disk is above the horizon. The published map (${X.pgdaProduct}) is sampled at the same points (bilinear; nearest-pixel in brackets).\n\n`;
   md += `| Observer height | Period | (1) Avg disk fraction | (2) Sun centre up | (3) Any part of disk up |\n|---|---|---|---|---|\n`;
   for (const c of X.central) md += `| ${c.height_m} m | ${c.period} | ${p(c.avgDiskFrac)} | ${c.pctCentre.toFixed(1)}% | ${c.pctAnyPart.toFixed(1)}% |\n`;
   md += `| Published map ${X.pgdaProduct} at the same point | 18.6 yr | ${p(X.pgdaAtPoint.bilinear)} (nearest pixel ${p(X.pgdaAtPoint.nearest)}) | | |\n| Published text (Mahanti et al. 2024) | not stated | ~80% | | |\n\n`;

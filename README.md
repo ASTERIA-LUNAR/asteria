@@ -1,9 +1,9 @@
-# LunaWindow - Lunar Landing Site Navigator
+# ASTERIA - Lunar South Pole Landing Site Navigator
 
 Entry for the **NASA Space Apps Challenge 2026** challenge "Lunar Landing Site Navigator".
-*Not endorsed by NASA.*
+*Not endorsed by NASA. Not affiliated with NASA's ASTERIA CubeSat mission.*
 
-LunaWindow shows, for any lunar site and date, when the **Sun** is above the local horizon (solar power) and when the **Earth** is above it (direct-to-Earth communication). It focuses on the lunar south pole, where the Sun skims the horizon and terrain decides everything. Mission planners, educators and the public can use it to compare sites and dates, and to see what a launch slip does to the power and communication windows.
+ASTERIA shows, for any lunar site and date, when the **Sun** is above the local horizon (solar power) and when the **Earth** is above it (direct-to-Earth communication). It focuses on the lunar south pole, where the Sun skims the horizon and terrain decides everything. Mission planners, educators and the public can use it to compare sites and dates, and to see what a launch slip does to the power and communication windows.
 
 ## How to open it
 
@@ -119,9 +119,9 @@ The cross-check compares Peak near Shackleton (−88.79, 124.5) with the publish
 
 | | Avg disk fraction | Sun centre up | Any part up |
 |---|---|---|---|
-| LunaWindow, 2 m, 2027 | 49.6 % | 49.6 % | 51.3 % |
-| LunaWindow, 2 m, 18.6 yr (2027-2045) | 48.1 % | 48.1 % | 49.8 % |
-| LunaWindow, 10 m, 18.6 yr | 59.6 % | 59.6 % | 61.5 % |
+| ASTERIA, 2 m, 2027 | 49.6 % | 49.6 % | 51.3 % |
+| ASTERIA, 2 m, 18.6 yr (2027-2045) | 48.1 % | 48.1 % | 49.8 % |
+| ASTERIA, 10 m, 18.6 yr | 59.6 % | 59.6 % | 61.5 % |
 | Published map at the same point | 45.4 % | | |
 | Best point within 500 m (2 m, both models agree) | ours 59.8 %, map 59.2 % | | |
 | Best point within 500 m (10 m, ours) | 79.2 % | | |

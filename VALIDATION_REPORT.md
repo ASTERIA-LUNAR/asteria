@@ -1,4 +1,4 @@
-# LunaWindow - Validation Report
+# ASTERIA - Validation Report
 
 Generated 2026-11-14T06:58:38.902Z by `node tests/validate.js`.
 
@@ -120,7 +120,7 @@ Peak near Shackleton (-88.79, 124.5) vs the published "approximately 80%" figure
 * Original method (abstract): Mazarico et al. 2011, Icarus 211: horizons from "240 m-resolution polar digital elevation models"; "simulations over long periods (several 18.6-years lunar precession cycles) with a high temporal resolution (6 h)". Observer height is not stated in the abstract; the full paper (Elsevier) was not accessible. (https://ntrs.nasa.gov/citations/20120010094)
 * Published map product: NASA PGDA product 69: "Maps of the solar illumination, averaged over hourly timesteps spanning 18.6 years" (no start year given). Map AVGVISIB_85S_060M_201608 (60 m/px, based on LDEM_85S_060M), label: "average illumination by the solar disc ... indicate the percentage of timesteps where each pixel was sunlit (by any fraction of the solar disc)"; the same label's image description says "its average solar disc visibility". The two wordings differ, so we compute both definitions. (https://pgda.gsfc.nasa.gov/products/69)
 
-**Method.** Sun directions from the validated LunaWindow engine (hourly, 2027-01-01 to 2045-08-08, 163057 steps = one 18.6-year nodal cycle; "2027" = calendar year 2027). Terrain horizons from LOLA LDEM_85S_20M/80S_80M/75S_120M (20 m/px near the site), 360 azimuths, rays to 300 km, at observer heights 2 m and 10 m above the surface. Three definitions: (1) average visible fraction of the solar disk, (2) % of time the Sun centre is above the horizon, (3) % of time any part of the disk is above the horizon. The published map (AVGVISIB_85S_060M_201608) is sampled at the same points (bilinear; nearest-pixel in brackets).
+**Method.** Sun directions from the validated ASTERIA engine (hourly, 2027-01-01 to 2045-08-08, 163057 steps = one 18.6-year nodal cycle; "2027" = calendar year 2027). Terrain horizons from LOLA LDEM_85S_20M/80S_80M/75S_120M (20 m/px near the site), 360 azimuths, rays to 300 km, at observer heights 2 m and 10 m above the surface. Three definitions: (1) average visible fraction of the solar disk, (2) % of time the Sun centre is above the horizon, (3) % of time any part of the disk is above the horizon. The published map (AVGVISIB_85S_060M_201608) is sampled at the same points (bilinear; nearest-pixel in brackets).
 
 | Observer height | Period | (1) Avg disk fraction | (2) Sun centre up | (3) Any part of disk up |
 |---|---|---|---|---|

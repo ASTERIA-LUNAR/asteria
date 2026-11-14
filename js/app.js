@@ -1,4 +1,4 @@
-/* LunaWindow web app. No build step; all data comes from <script> tags (works from file://). */
+/* ASTERIA web app. No build step; all data comes from <script> tags (works from file://). */
 (function () {
   'use strict';
   var E = window.LunaEngine;
@@ -630,7 +630,7 @@
     X.sites.forEach(function (s) { var site = siteById(s.id); h += '<tr><td>' + esc(site ? site.name : s.id) + '</td><td class="num">' + p(s.avgDiskFrac) + '</td><td class="num">' + s.pctCentre.toFixed(1) + '%</td><td class="num">' + p(s.pgda) + '</td></tr>'; });
     h += '</tbody></table></div>';
     var c18 = X.central.filter(function (c) { return c.height_m === 2 && c.period === '18.6 yr'; })[0];
-    h += '<p><b>Finding:</b> at the published coordinate the published 60 m map itself gives ' + p(X.pgdaAtPoint.bilinear) + ' and LunaWindow gives ' + p(c18.avgDiskFrac) + ' (2 m, 18.6 years). Both are well below "approximately 80%", so that figure is not reproduced at this coordinate by the public map product.' + (X.grid['10.0'] ? ' With the observer 10 m above the surface, the best point within 500 m reaches ' + p(X.grid['10.0'].best.avgDiskFrac) + ' in our model (published map there: ' + p(X.grid['10.0'].best.pgda) + '; the map does not state its observer height).' : '') + ' Nothing was tuned. Full tables: VALIDATION_REPORT.md.</p>';
+    h += '<p><b>Finding:</b> at the published coordinate the published 60 m map itself gives ' + p(X.pgdaAtPoint.bilinear) + ' and ASTERIA gives ' + p(c18.avgDiskFrac) + ' (2 m, 18.6 years). Both are well below "approximately 80%", so that figure is not reproduced at this coordinate by the public map product.' + (X.grid['10.0'] ? ' With the observer 10 m above the surface, the best point within 500 m reaches ' + p(X.grid['10.0'].best.avgDiskFrac) + ' in our model (published map there: ' + p(X.grid['10.0'].best.pgda) + '; the map does not state its observer height).' : '') + ' Nothing was tuned. Full tables: VALIDATION_REPORT.md.</p>';
     return h;
   }
 
@@ -1078,6 +1078,7 @@
     runPower: runPower, powerResults: function () { return PW.res; },
     tour: { start: function () { tourShow(0); }, step: function () { return TOUR.i; } }
   };
+  window.AsteriaApp = window.LunaApp;   // product name alias (internal LunaApp kept for compatibility)
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

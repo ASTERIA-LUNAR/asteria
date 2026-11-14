@@ -1,4 +1,4 @@
-# LunaWindow - Gaps, issues and approximations
+# ASTERIA - Gaps, issues and approximations
 
 Status as of 2026-11-14 (after the second development round). This file lists what is missing, what is approximate, and what could not be sourced.
 
