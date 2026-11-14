@@ -125,7 +125,7 @@
       sl.max = S.series.t.length - 1;
       if (S.idx > S.series.t.length - 1) S.idx = 0;
       sl.value = S.idx;
-      $('stepNote').textContent = 'Sampling every ' + step + ' min (' + S.series.t.length + ' samples); rise/set events refined to 1 min; statistics accurate to about one sampling step. ' + (Jobs.mode() === 'worker' ? 'Computed in a background Web Worker.' : 'Computed on the main thread (' + Jobs.mode() + ').');
+      $('stepNote').textContent = 'Basis: validated engine (Sun and Earth centre vs horizon); horizon = ' + (args.mask ? terrainName(S.site) + ' (observer 2 m above ground)' : 'smooth Moon (0°)') + (S.minEl ? '; Earth needs ' + S.minEl + '° above it' : '') + '. Sampling every ' + step + ' min (' + S.series.t.length + ' samples); rise/set events refined to 1 min; statistics accurate to about one sampling step. ' + (Jobs.mode() === 'worker' ? 'Computed in a background Web Worker.' : 'Computed on the main thread (' + Jobs.mode() + ').');
       renderMetrics(); renderTimeline(); renderWindows(); renderInstant(); writeHash();
     }, function (e) { S.computing = false; document.body.classList.remove('computing'); console.error(e); });
     S.ready = p;
@@ -761,7 +761,8 @@
           return '<td class="num' + (isBest ? ' best' : '') + '">' + (row[3] ? row[3](v) : v) + '</td>';
         }).join('') + '</tr>';
       });
-      html += '</tbody></table><p class="hint">Highlighted = best in row (higher % and longer windows are better; shorter darkness/blackout is better). Ties are not highlighted. Windows cut by the period start/end count only their part inside it.</p>';
+      html += '</tbody></table><p class="hint">Highlighted = best in row (higher % and longer windows are better; shorter darkness/blackout is better). Ties are not highlighted. Windows cut by the period start/end count only their part inside it.</p>' +
+        '<p class="hint x-only">Basis: validated engine, one series per scenario sampled every ' + res[0].ser.stepMin + ' min, horizon as in the "Horizon model" row, events refined to 1 min; statistics accurate to about one sampling step.</p>';
       $('cmpResult').innerHTML = html;
       $('cmpBars').innerHTML = res.map(function (r, k) { return '<div class="cmpbar"><div class="lbl">Scenario ' + (k + 1) + ': ' + esc(r.s.name) + ' from ' + fmtUTC(r.c.start) + ' UTC</div><canvas id="cmpc' + k + '" style="width:100%"></canvas></div>'; }).join('');
       res.forEach(function (r, k) {
@@ -992,7 +993,8 @@
     var every = Math.max(1, Math.ceil(nS / Math.max(2, Math.floor(pw / (narrow ? 38 : 45)))));
     R.sites[0].scan.rows.forEach(function (x, i) { if (i % every === 0) ctx.fillText('+' + x.slip + 'd', labW + (i + 0.5) * cw, f.h - 8); });
     $('slipLegend').innerHTML = (bySite ? 'Rows: sites, coloured by <b>' + esc(M.label) + '</b> on a common scale.' : 'Rows: metrics for <b>' + esc(R.sites[0].name) + '</b>, each row on its own scale.') +
-      ' Brighter = better. White outline = nominal landing (slip 0); green outline = best in range. Mission ' + R.dur + ' days; sampling ' + R.sites[0].scan.stepMin + ' min' + (R.minEl ? '; Earth link needs ≥ ' + R.minEl + '° above terrain' : '') + '. Hover (or tap) for values, click to open in Explore.';
+      ' Brighter = better. White outline = nominal landing (slip 0); green outline = best in range. Mission ' + R.dur + ' days; sampling ' + R.sites[0].scan.stepMin + ' min' + (R.minEl ? '; Earth link needs ≥ ' + R.minEl + '° above terrain' : '') + '. Hover (or tap) for values, click to open in Explore.' +
+      '<span class="x-only"> Basis: one engine series per site covering the whole slip range; each landing date uses the samples of its own mission window (slip 0 equals the Explore metrics for the same window, tested); horizons as in the badge above.</span>';
     var note = $('slipHorizonNote'), anyTerrain = R.sites.some(function (s) { return s.mask; }), allTerrain = R.sites.every(function (s) { return s.mask; });
     note.className = 'badge ' + (allTerrain ? 'terrain' : 'smooth');
     note.textContent = allTerrain ? 'Terrain horizons (LOLA)' : anyTerrain ? 'Mixed: some sites smooth horizon - terrain not included' : 'Smooth horizon - terrain not included';
@@ -1116,14 +1118,15 @@
       var cards = [
         ['Energy generated', kWh(Wh)], ['Energy needed by load', kWh(loadWh)], ['Energy balance', (Wh >= loadWh ? '+' : '−') + kWh(Math.abs(Wh - loadWh))],
         ['Mean / peak power', PW.res.mean.toFixed(0) + ' / ' + peak.toFixed(0) + ' W'], ['Longest darkness', fmtHours(darkH)],
-        ['Battery for longest darkness', kWh(battery) + ' (' + Math.round(usable * 100) + '% usable)']
+        ['Battery for longest darkness (estimate)', '≈ ' + kWh(battery) + ' (' + Math.round(usable * 100) + '% usable)']
       ];
       $('pwCards').innerHTML = cards.map(function (x) { return '<div class="card"><div class="cardlbl">' + x[0] + '</div><div class="val mono">' + x[1] + '</div></div>'; }).join('');
       var v = $('pwVerdict');
       v.className = 'verdict ' + (Wh >= loadWh ? 'pos' : 'neg');
       v.textContent = (Wh >= loadWh ? 'Energy positive' : 'Energy negative') + ' over the window (estimate): generates ' + kWh(Wh) + ' vs ' + kWh(loadWh) + ' needed; battery for the longest darkness ≈ ' + kWh(battery) + '.' +
         (zeroH > darkH + 1e-9 ? ' Note: with this orientation the panel produces nothing for up to ' + fmtHours(zeroH) + ' (Sun behind the panel), which would need ' + kWh(batteryZero) + '.' : '');
-      $('pwWindowNote').textContent = 'Window: ' + win.label + '. ' + (win.mask ? 'Horizon: ' + terrainName(S.site) + '.' : 'Smooth horizon - terrain not included.') + ' Sampling ' + s.stepMin + ' min.';
+      $('pwWindowNote').innerHTML = esc('Window: ' + win.label + '. ' + (win.mask ? 'Horizon: ' + terrainName(S.site) + '.' : 'Smooth horizon - terrain not included.') + ' Sampling ' + s.stepMin + ' min.') +
+        '<span class="x-only"> Basis: at each sample, power from the computed Sun elevation, azimuth and distance and the visible fraction of the solar disk above the horizon; energy by the trapezoid rule; longest darkness = longest run with the Sun centre below the horizon. All panel and load inputs are example values unless you entered your own.</span>';
       renderPowerChart();
     });
   }

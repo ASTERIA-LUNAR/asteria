@@ -178,6 +178,8 @@ const path = require('path'), fs = require('fs'), url = require('url');
     await page.selectOption('#pwMode', 'track'); await page.click('#pwRun'); await page.waitForTimeout(400);
     const pv = await page.textContent('#pwVerdict');
     expect(`${tag} power verdict rendered`, /Energy (positive|negative)/.test(pv), pv.slice(0, 90));
+    const ex = await page.textContent('#pwExample');
+    expect(`${tag} power inputs labelled "example values - enter your mission's values"`, await page.isVisible('#pwExample') && /Example values - enter your mission's values/i.test(ex), ex.slice(0, 80));
     await shot(page, vp.name + '_7_power');
 
     // ---- compare: sunlight and Earth-link metrics side by side
