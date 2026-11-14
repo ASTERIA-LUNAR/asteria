@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T09:01:40.604Z by `node tests/validate.js`.
+Generated 2026-11-14T09:11:48.559Z by `node tests/validate.js`.
 
 ## Overall: **PASS**
 
@@ -162,3 +162,9 @@ Best point supported by both models (maximum of min(ours at 2 m, published map))
 Covered sites (excluding the derived point, which was chosen using the map): 10; |difference| mean 1.9 pts, max 6.1 pts.
 
 **Finding.** At the published coordinate, the published 60 m map itself gives 45.4%, and our model gives 48.1% (2 m, 18.6 years). Both are well below "approximately 80%". The ~80% figure is therefore not reproduced by the public map product at that coordinate. Possible reasons: the 2011 analysis used 240 m topography and different heights or periods, the coordinate is rounded to 0.01° (about ±150 m), and illumination changes a lot over a few hundred metres. We report this as-is. With the observer 10 m above the surface (the Mazarico et al. abstract notes that ~10 m height gains can greatly improve illumination), the best point within 500 m reaches 79.2% in our model; the published map at that point gives 58.1% (the map does not state its observer height).
+
+## Other checks (run separately)
+
+* `node tests/features_test.js`: power model vs S*A*eta*sin(E_Horizons); launch-slip slip 0 = timeline metrics; the optional Earth mask leaves the validated default unchanged and equals "Earth el > horizon + minimum elevation"; the worker job code gives the same series as the engine; `js/core.js` is a verbatim rebuild of the engine; every requestable map tile exists, the tile set is < 80 MB, and the browser map projection puts the IAU Shackleton centre on the same tile pixel as the tile generator.
+* `.venv/Scripts/python -I tools/tiles.py check`: tile georeference - for 5 sites the tile pixel containing the site has the DEM height of the site, and the Shackleton IAU centre is a ~3.5 km-deep bowl relative to a 10 km ring.
+* `node tests/ui_check.js`: the app opened via file:// at laptop and phone sizes (all features, tour, Blob Web Worker, loader, reduced motion), no console errors.

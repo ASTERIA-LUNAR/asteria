@@ -236,6 +236,10 @@ function report(r) {
   for (const s of SITES) md += `| ${s.name} | ${s.lat} | ${s.lon} | ${s.src} |\n`;
   md += `\nNotes: "Synthetic test coordinate" points are not landing sites; they were chosen to exercise geometry (near-pole Sun skimming, Earth near the east limb). The Chang'e-7 coordinate comes from a Wikipedia infobox (which itself cites a social-media post) and is used only as a test geometry.\n`;
   md += xcheckSection();
+  md += `\n## Other checks (run separately)\n\n` +
+    '* `node tests/features_test.js`: power model vs S*A*eta*sin(E_Horizons); launch-slip slip 0 = timeline metrics; the optional Earth mask leaves the validated default unchanged and equals "Earth el > horizon + minimum elevation"; the worker job code gives the same series as the engine; `js/core.js` is a verbatim rebuild of the engine; every requestable map tile exists, the tile set is < 80 MB, and the browser map projection puts the IAU Shackleton centre on the same tile pixel as the tile generator.\n' +
+    '* `.venv/Scripts/python -I tools/tiles.py check`: tile georeference - for 5 sites the tile pixel containing the site has the DEM height of the site, and the Shackleton IAU centre is a ~3.5 km-deep bowl relative to a 10 km ring.\n' +
+    '* `node tests/ui_check.js`: the app opened via file:// at laptop and phone sizes (all features, tour, Blob Web Worker, loader, reduced motion), no console errors.\n';
   return md;
 }
 
