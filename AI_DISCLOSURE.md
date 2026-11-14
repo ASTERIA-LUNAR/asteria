@@ -45,9 +45,18 @@ Searched all project files (HTML, CSS, JS, Markdown, and every image file outsid
 * Result: **none found**. The project contains no logo image files at all; the map tiles are data renderings.
 * Text references to NASA data, NASA pages and mission names are kept (allowed), as are the statements "Not endorsed by NASA" and "Not affiliated with NASA's ASTERIA CubeSat mission".
 
+## Round 4 (3D view and Sky view)
+
+* New AI-written files (same header): `tools/terrain3d_ext.py`, `tools/fetch_round4.py`, `tools/stars.py`, `tools/earth_texture.py`, `tools/features3d.py`, `tests/perf3d.js`, `tests/shading_consistency.js`, `tests/earth_orientation.js`. Large changes to `js/view3d.js`, `js/view3d_math.js`, `js/app.js` (Sky view, faster Deploy), `js/jobs.js`, `css/style.css`, `tests/ui_check.js`, `tests/view3d_test.js`.
+* New generated data (values computed by those scripts, not written by hand): `data/terrain3d/ext/`, `data/terrain3d/hi5m/`, `data/terrain3d/features.js`, `data/stars.js`, `data/earth/`, `data/shading_consistency.js`.
+* Imagery and catalogues that are **not** AI-generated: the Earth texture is NASA Blue Marble Next Generation (public domain NASA imagery, only resized); the stars are the Yale Bright Star Catalogue; feature names and positions come from the IAU Gazetteer; all terrain is LOLA data.
+* Graphics drawn in code by Claude Code this round: the Sun glare halo (a radial gradient, labelled on screen as "camera glare (display effect)"), the compass, the mini-map symbols, and the track and ring lines. As requested for this round, no new "AI-generated" labels were added to the user interface; these graphics are listed here instead. The earlier labels (pixel-art rocket, rover) are unchanged.
+* The new parts were verified against independent references: direct DEM samples (`tools/terrain3d_ext.py check`), an independent IAU 2009 rotation computation for star directions, JPL Horizons for Earth's orientation, and the validated horizon model for the rendered shadows.
+
 ## Third-party code (not AI-generated)
 
 * Astronomy Engine 2.1.19 by Don Cross (MIT) - `lib/astronomy.browser.min.js` and its verbatim copy inside `js/core.js`.
 * Leaflet 1.9.4 (BSD-2-Clause) - `lib/leaflet/`.
 * Three.js r149 (MIT) - `lib/three/`, loaded only when the 3D view is opened.
 * Development only (not shipped): Playwright, Python, NumPy, Pillow.
+* Data (not code): LOLA DEMs, PGDA maps, Yale Bright Star Catalogue, NASA Blue Marble Next Generation, IAU Gazetteer; see README.md and SUBMISSION_LINKS.md.

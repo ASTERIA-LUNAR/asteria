@@ -1,0 +1,482 @@
+[
+ {
+  "viewport": "laptop",
+  "site": "im1",
+  "quality": "low",
+  "firstFrameMs": 279,
+  "refinedMs": 320,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 40401
+ },
+ {
+  "viewport": "laptop",
+  "site": "im1",
+  "quality": "medium",
+  "firstFrameMs": 212,
+  "refinedMs": 221,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 160801
+ },
+ {
+  "viewport": "laptop",
+  "site": "im1",
+  "quality": "high",
+  "firstFrameMs": 160,
+  "refinedMs": 291,
+  "fps": 59,
+  "vertices": 5929,
+  "extVertices": 411802
+ },
+ {
+  "viewport": "laptop",
+  "site": "im2",
+  "quality": "low",
+  "firstFrameMs": 219,
+  "refinedMs": 280,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "laptop",
+  "site": "im2",
+  "quality": "medium",
+  "firstFrameMs": 504,
+  "refinedMs": 512,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "laptop",
+  "site": "im2",
+  "quality": "high",
+  "firstFrameMs": 321,
+  "refinedMs": 578,
+  "fps": 59,
+  "vertices": 90601,
+  "extVertices": 263842
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton",
+  "quality": "low",
+  "firstFrameMs": 304,
+  "refinedMs": 367,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "firstFrameMs": 423,
+  "refinedMs": 435,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton",
+  "quality": "high",
+  "firstFrameMs": 390,
+  "refinedMs": 706,
+  "fps": 59,
+  "vertices": 90601,
+  "extVertices": 424643
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton_lw",
+  "quality": "low",
+  "firstFrameMs": 287,
+  "refinedMs": 347,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton_lw",
+  "quality": "medium",
+  "firstFrameMs": 398,
+  "refinedMs": 411,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton_lw",
+  "quality": "high",
+  "firstFrameMs": 381,
+  "refinedMs": 628,
+  "fps": 59,
+  "vertices": 90601,
+  "extVertices": 424643
+ },
+ {
+  "viewport": "laptop",
+  "site": "nobile_rim2_dm2",
+  "quality": "low",
+  "firstFrameMs": 331,
+  "refinedMs": 420,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 40401
+ },
+ {
+  "viewport": "laptop",
+  "site": "nobile_rim2_dm2",
+  "quality": "medium",
+  "firstFrameMs": 431,
+  "refinedMs": 464,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 160801
+ },
+ {
+  "viewport": "laptop",
+  "site": "nobile_rim2_dm2",
+  "quality": "high",
+  "firstFrameMs": 242,
+  "refinedMs": 505,
+  "fps": 59,
+  "vertices": 5929,
+  "extVertices": 411802
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_mouton",
+  "quality": "low",
+  "firstFrameMs": 440,
+  "refinedMs": 517,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_mouton",
+  "quality": "medium",
+  "firstFrameMs": 497,
+  "refinedMs": 514,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_mouton",
+  "quality": "high",
+  "firstFrameMs": 297,
+  "refinedMs": 532,
+  "fps": 59,
+  "vertices": 90601,
+  "extVertices": 263842
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_malapert",
+  "quality": "low",
+  "firstFrameMs": 374,
+  "refinedMs": 401,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "firstFrameMs": 467,
+  "refinedMs": 484,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_malapert",
+  "quality": "high",
+  "firstFrameMs": 327,
+  "refinedMs": 596,
+  "fps": 59,
+  "vertices": 90601,
+  "extVertices": 263842
+ },
+ {
+  "viewport": "laptop",
+  "site": "shackleton_centre",
+  "quality": "low",
+  "firstFrameMs": 310,
+  "refinedMs": 369,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "laptop",
+  "site": "shackleton_centre",
+  "quality": "medium",
+  "firstFrameMs": 334,
+  "refinedMs": 344,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "laptop",
+  "site": "shackleton_centre",
+  "quality": "high",
+  "firstFrameMs": 208,
+  "refinedMs": 415,
+  "fps": 59,
+  "vertices": 90601,
+  "extVertices": 424643
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "im1",
+  "quality": "low",
+  "firstFrameMs": 361,
+  "refinedMs": 414,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 40401
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "im1",
+  "quality": "medium",
+  "firstFrameMs": 311,
+  "refinedMs": 352,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 160801
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "im1",
+  "quality": "high",
+  "firstFrameMs": 257,
+  "refinedMs": 506,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 411802
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "im2",
+  "quality": "low",
+  "firstFrameMs": 269,
+  "refinedMs": 350,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "im2",
+  "quality": "medium",
+  "firstFrameMs": 426,
+  "refinedMs": 434,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "im2",
+  "quality": "high",
+  "firstFrameMs": 274,
+  "refinedMs": 456,
+  "fps": 59,
+  "vertices": 90601,
+  "extVertices": 263842
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "peak_shackleton",
+  "quality": "low",
+  "firstFrameMs": 197,
+  "refinedMs": 237,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "firstFrameMs": 263,
+  "refinedMs": 284,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "peak_shackleton",
+  "quality": "high",
+  "firstFrameMs": 292,
+  "refinedMs": 638,
+  "fps": 59,
+  "vertices": 90601,
+  "extVertices": 424643
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "peak_shackleton_lw",
+  "quality": "low",
+  "firstFrameMs": 170,
+  "refinedMs": 199,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "peak_shackleton_lw",
+  "quality": "medium",
+  "firstFrameMs": 345,
+  "refinedMs": 367,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "peak_shackleton_lw",
+  "quality": "high",
+  "firstFrameMs": 174,
+  "refinedMs": 373,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 424643
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "nobile_rim2_dm2",
+  "quality": "low",
+  "firstFrameMs": 270,
+  "refinedMs": 327,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 40401
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "nobile_rim2_dm2",
+  "quality": "medium",
+  "firstFrameMs": 289,
+  "refinedMs": 312,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 160801
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "nobile_rim2_dm2",
+  "quality": "high",
+  "firstFrameMs": 226,
+  "refinedMs": 463,
+  "fps": 59,
+  "vertices": 5929,
+  "extVertices": 411802
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "mons_mouton",
+  "quality": "low",
+  "firstFrameMs": 318,
+  "refinedMs": 378,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "mons_mouton",
+  "quality": "medium",
+  "firstFrameMs": 364,
+  "refinedMs": 389,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "mons_mouton",
+  "quality": "high",
+  "firstFrameMs": 251,
+  "refinedMs": 391,
+  "fps": 59,
+  "vertices": 90601,
+  "extVertices": 263842
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "mons_malapert",
+  "quality": "low",
+  "firstFrameMs": 231,
+  "refinedMs": 252,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "firstFrameMs": 492,
+  "refinedMs": 500,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "mons_malapert",
+  "quality": "high",
+  "firstFrameMs": 292,
+  "refinedMs": 522,
+  "fps": 59,
+  "vertices": 90601,
+  "extVertices": 263842
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "shackleton_centre",
+  "quality": "low",
+  "firstFrameMs": 272,
+  "refinedMs": 323,
+  "fps": 59,
+  "vertices": 22801,
+  "extVertices": 25921
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "shackleton_centre",
+  "quality": "medium",
+  "firstFrameMs": 457,
+  "refinedMs": 462,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 103041
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "shackleton_centre",
+  "quality": "high",
+  "firstFrameMs": 313,
+  "refinedMs": 545,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 424643
+ }
+]

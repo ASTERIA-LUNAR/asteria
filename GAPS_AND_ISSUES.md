@@ -1,4 +1,4 @@
-Status as of 2026-11-14 (round 3: 3D terrain view "Deploy", rover, AI disclosure and branding check, submission links, first-visit intro; builds on rounds 2B and 2C). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
+Status as of 2026-11-14 (round 4: faster, clearer and more realistic 3D view, beginner Sky view - section 9; round 3: 3D terrain view "Deploy", rover, AI disclosure and branding check, submission links, first-visit intro; builds on rounds 2B and 2C). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
 
 ## 1. Sites and coordinates
 
@@ -141,6 +141,8 @@ Status as of 2026-11-14 (round 3: 3D terrain view "Deploy", rover, AI disclosure
 
 ## 7. Round 3: 3D terrain view ("Deploy")
 
+*Round 4 changed the 3D view (extended terrain and its shadows, quality levels, real stars, Blue Marble Earth, regolith shading). Where this section and section 9 differ, section 9 is current.*
+
 **Sites with 3D**: all 8 curated south-pole sites with terrain horizons. 6 tiles use LDEM_85S_20M (20 m grid: both Peak near Shackleton points, Shackleton crater centre, Mons Malapert, Mons Mouton, IM-2); IM-1 and Nobile Rim 2 (DM2) lie outside the 20 m DEM and use LDEM_80S_80M (80 m grid, 6.08 km tile). Each tile uses one DEM product only (no seams). Reference sites outside the pole and clicked or typed custom points have no 3D view (no Deploy button).
 
 **Isolation from the existing app**: index.html loads only the 8-entry list `data/terrain3d/index.js`. Three.js, `js/view3d.js`, `js/view3d_math.js` and the tile are injected only when Deploy is clicked (the UI test checks that `THREE` is undefined before). The only changes to `js/app.js` are the Deploy button, the lazy loader and a listener hook at the end of `renderInstant()`. All earlier tests pass unchanged.
@@ -176,3 +178,38 @@ Status as of 2026-11-14 (round 3: 3D terrain view "Deploy", rover, AI disclosure
 * **Branding check**: no NASA or NASA Space Apps logos, "meatball" or "worm" insignia, agency flags or mission patches are in the project (it contains no logo image files at all). Text references to NASA data and missions remain, as do "Not endorsed by NASA" and "Not affiliated with NASA's ASTERIA CubeSat mission".
 * **SUBMISSION_LINKS.md**: 16 NASA links and 16 other links, each a full https URL that the project cites elsewhere (tested). The PGDA file server is now cited over https. On 2026-11-14 every URL answered HTTP 200 to a plain HTTP client except the NASA NTRS page (no answer within 60 s); NTRS's public API returned the same record. NASA Moon Trek and LROC Quickmap are mentioned in the app only as places to check results, so they are not listed as used.
 * **First-visit intro**: an honest title card (no loading claim), `INTRO_MS = 3000` at the top of `js/intro.js`. Remembered in localStorage (in try/catch: with storage blocked it can show again on the next visit). Skipped automatically with reduced motion, a share link, and in automated browsers unless a test sets `window.ASTERIA_INTRO_TEST`. It never delays computation: in the UI test the first results were ready about 0.5 s after load while the intro was still showing.
+
+## 9. Round 4: faster, clearer, more realistic 3D view; clearer Sky view
+
+Validated values are unchanged: `js/engine.js` was not modified, and every earlier test still passes. Everything new in the 3D view is either real data (LOLA, the Bright Star Catalogue, NASA Blue Marble, the IAU Gazetteer) or a display setting labelled as such.
+
+**Parts done**: 0 speed, 1 quality levels, 2 brightness, 3 extended terrain with shadows, 4 5 m patches, 5 regolith shading and DEM overlays (uniform albedo), 6 real stars, 7 Earth and Sun, 8 orientation aids, 9 beginner Sky view, 10 tests and documents. **Skipped**: none. **Not found**: a LOLA albedo map at ≤ 250 m/pixel (see below).
+
+### Speed (Part 0)
+* **Cause of the slow sites**: Deploy waited for the whole main-app computation, including the search for the first event after the window (up to 400 days in 60-minute steps). At the Shackleton crater floor (no sunrise, no Earthrise) and where Earth never sets (IM-1, Mons Malapert) that search takes most of a second, and longer on slower computers. The 3D rendering itself was never the bottleneck.
+* **Fix**: the window's series and the search beyond it are now two worker jobs. Deploy waits only for the first, and Three.js and the tile load in parallel. Until the search returns (about 0.2-0.8 s), countdowns beyond the window read "Searching…". Also: progressive mesh (coarse first frame), decoded-tile cache, extended terrain loaded after the first frame.
+* Shackleton crater centre: 1,088 ms → 313 ms to the first frame (laptop). Full before/after tables per site and quality: PERFORMANCE.md.
+
+### What is accurate and what is approximate (3D view)
+The full table is in README.md ("3D terrain view"). Summary of the limits:
+* **Terrain resolution**: 5 m (High, within 1 km of three sites), 20 m or 80 m (6 km tile), 100 m (to 16 km; 200 m at Low), 200 m (16-40 km, High). The 5 m product's label says it is made from preliminary LOLA data. Where the grid changes, the amount of detail changes visibly.
+* **Shadows**: shadow mapping (visual approximation, texel 7-22 m). Terrain beyond 3 km (Low: tile only), 16 km (Medium) or 40 km (High) casts no shadows; the 16-40 km ring receives none. Shading consistency at the site marker (8 sites × 50 times in the next year): Low 97.8 %, Medium 99.0 %, High 99.8 %; every disagreement is the Sun blocked by terrain beyond the shadow-casting range (`tests/shading_consistency.js`, `data/shading_consistency.js`). The status tiles always use the validated horizon model.
+* **Surface**: Lommel-Seeliger law with a **uniform albedo**. No public LOLA 1064 nm normal-albedo map of the south pole at ≤ 250 m/pixel was found: the Lucey et al. (2014) polar maps are about 2 km/pixel; the PDS LOLA polar folder has elevation (LDEM/LDEC), slope (LDSM), roughness (LDRM) and count products only; the PGDA product pages 68/90 list DEM, roughness, slope and PSR products. Brightness differences therefore come from the terrain's shape only.
+* **Fill light and brightness**: the faint fill light is not physical (no light reflected from terrain, no Earthshine); the Brightness slider changes only the display exposure and the fill light (tested: light direction, Sun intensity and status tiles unchanged).
+* **Earth**: Blue Marble July 2004 composite (clouds not shown; snow and vegetation of that month). Polar motion is ignored (< 0.0001°). Orientation agrees with JPL Horizons within 0.155°; the geodetic vs geocentric latitude difference explains most of it.
+* **Stars**: positions to about 0.002° (proper motion applied; annual aberration, < 0.006°, not applied). The view shows stars on request even when a real camera could not (stated on screen).
+* **Sun glare**: display effect (optional, labelled); hidden when the validated model says the Sun is hidden.
+* **Feature labels**: Gazetteer centre points; a crater name sits on its floor. Features beyond the drawn terrain are labelled on the skyline in their direction, with their distance (direction only).
+* **Fixed in this round**: Earth was drawn unlit whenever the Sun was below the site's horizon (the scene's sunlight is switched off then). Earth now has its own lighting from the computed Sun direction.
+
+### Performance and devices
+* Measured in headless Chromium on the development laptop. Its automatic choice saw Intel integrated graphics in most runs and the laptop's NVIDIA GPU in others (the browser chose the adapter). At every quality level: first frame and full terrain within 1 s, 53-60 frames/s while orbiting (the browser caps at 60). **Phones were emulated** (screen size and touch only, same laptop GPU), so the numbers say nothing about a real phone's GPU. Not tested on a real phone, in Firefox or in Safari.
+* Automatic quality: phones (touch or narrow window) start at Low, recognisable dedicated GPUs on large screens at High, everything else at Medium; a frame-rate probe steps down one level below 30 frames/s. The probe is skipped when the user has chosen a level (remembered in localStorage, inside try/catch).
+* Data sizes: extended rings 6.2 MB (16 files), 5 m patches 1.3 MB, Earth textures 0.8 MB, stars 0.1 MB. Repository (tracked files) 85.3 MB in total; largest file data/dem_coarse.js, 8.4 MB (limits: 300 MB total, 50 MB per file). The downloaded inputs (5 m DEM windows, catalogue, Blue Marble original, Gazetteer) stay in the git-ignored dem/ folder. Each is loaded only when the 3D view needs it (ring B, the 5 m patch and the 2048 px Earth only at High).
+
+### Known limitations
+* The scale bar is exact only at the stated distance (perspective). Mini-map distances are horizontal ground distances in the site frame.
+* Walk and Rover stay on the 6 km tile (the extended terrain is for viewing).
+* Two-finger gestures are implemented but not covered by the automated test (no multi-touch in Playwright), as before.
+* The CDS file server for the star catalogue did not answer; the identical file was taken from the Harvard-Smithsonian CfA mirror (http only). The Lucey et al. DOI blocks scripted link checks (HTTP 403) but resolves in a browser.
+* Working copies on this computer use CRLF line endings (git `core.autocrlf`); the repository stores LF. `tests/features_test.js` now reads SUBMISSION_LINKS.md with either.

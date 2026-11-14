@@ -30,7 +30,7 @@ Double-click **`index.html`**. It runs offline in any modern browser, with no se
   * **Earth link** (blue): Earth in view or hidden, time to the next Earthset or Earthrise.
   * **Mission status**: green for both, amber or blue for only one, grey for neither.
   * If no change is found within the search limit (the window plus 400 days), the tile says e.g. "Next Earthset: Not within the next 430 days (search limit)", and Explain mode adds a one-line explanation. Compare and Launch slip, which only look inside their own window, say "Whole N-day window (no sunset within it)" or "No sunset within the N-day mission".
-* **Sky view**: a 360° horizon panorama with the terrain skyline and the Sun and Earth at their computed positions. Play steps through computed samples only; nothing is interpolated.
+* **Sky view**: a 360° horizon panorama with the terrain skyline and the Sun and Earth at their computed positions. For beginners: "Direction you are facing" (N, NE, E …) and "Height above the flat horizon (degrees)", the brown area named "Mountains and crater walls (LOLA terrain)", larger Sun and Earth tagged "visible" or "hidden" (validated status), the current positions highlighted, and "How to read this: If the Sun or Earth is above the brown shape, it can be seen from the site; below it, it is hidden." Expert view keeps the detailed chart. Play steps through computed samples only; nothing is interpolated.
 * **Timeline** of sunlight, Earth link and both, with summary metrics.
 * **Earth link windows** and **Sunlight windows**:
   * Each window with start, end, duration and maximum elevation.
@@ -68,28 +68,34 @@ Double-click **`index.html`**. It runs offline in any modern browser, with no se
 
 ### 3D terrain view ("Deploy")
 
-For each of the 8 curated south-pole sites (all inside the LOLA DEM coverage), the Site Card shows **Deploy: 3D terrain view**. Nothing of the 3D view is loaded before that click: Three.js (`lib/three/`, r149, MIT), `js/view3d*.js` and the site's terrain tile are added on demand (the rocket loader appears if that takes more than 250 ms; about 0.2-0.4 s in the tests). The view fades in and out; Close or Escape returns to the app.
+For each of the 8 curated south-pole sites, the Site Card shows **Deploy: 3D terrain view**. Nothing of the 3D view is loaded before that click: Three.js (`lib/three/`, r149, MIT), `js/view3d*.js` and the site's terrain are added on demand. Deploy waits only for the selected window's series (not for the slower search beyond the window), shows a coarse mesh first and refines it, then adds the extended terrain. Close or Escape returns to the app. Opening takes 0.2-0.9 s on the development laptop at every quality level (PERFORMANCE.md).
 
-* **Terrain**: a 6 km × 6 km LOLA tile centred on the site, at true scale (vertical exaggeration 1×, 2×, 3×, 5×, always shown on screen).
-* **Sun**: the light direction and a disk at the engine's azimuth/elevation and angular size. **Earth**: a sphere at the engine's azimuth/elevation and angular size (about 1.9° across), lit by the same Sun direction, so its phase comes from the real geometry (the lit % is in Expert view). Plain blue (no clouds or continents).
-* **Distant skyline**: the site's terrain horizon (`data/horizons`) drawn as a ring 60 km away, so from the site marker the 3D horizon matches the 2D sky view.
-* **Shadows**: shadow mapping of the tile, labelled "Near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model." When the validated model says the Sun is behind terrain at the site, a banner says so.
-* **Panel**: time, Sunlight and Earth-link tiles at the site marker (same colours as the main app; from the validated model), Sun and Earth elevation/azimuth in Expert view, and a time slider and play button synced with the main app.
-* **Controls**: Orbit (drag, right/Shift-drag to pan, wheel or pinch, arrow keys, + / -), Walk (eye 2 m above the ground as in the horizon model; WASD/arrows, Q/E, Shift; drag to look; on-screen arrow buttons), Rover.
-* **Rover**: a simple AI-drawn illustration driven with WASD/arrows or the on-screen buttons. Shows position (m from the site and lat/lon), DEM elevation, local slope (gradient over one DEM cell) with a warning above a user-set limit (default 15°), and whether the Sun is above the tile's own terrain, labelled "near-field estimate".
+* **Quality** Low / Medium / High (selector in the panel): mesh resolution, extended-terrain size, shadow map, pixel ratio, antialiasing, number of stars, Earth texture size. Chosen automatically from device hints (touch screen or small window, memory and cores, the GPU name when the browser gives it), then a 1.5 s frame-rate probe steps down one level if the average stays below 30 frames/s (with a note). A choice made in the selector is remembered.
+* **Terrain**: the 6 km LOLA tile (20 m or 80 m) centred on the site, surrounded by **real LOLA terrain to 16 km** (LDEM_80S_80M, 100 m grid; 200 m at Low) and, at High, **to 40 km** (LDEM_75S_120M, 200 m grid). From the Shackleton floor this includes the whole crater rim. At High, the three sites inside 87.5°S (both Peak near Shackleton points, Shackleton crater centre) get a **2 km × 2 km patch at 5 m** from LDEM_875S_5M. The meshes share their edge vertices (no gaps; tested) and short skirts hide the T-junctions. True scale by default (vertical exaggeration 1×, 2×, 3×, 5×, always shown on screen).
+* **Shadows**: on Medium and High all drawn terrain casts shadows on the tile and on the 16 km ring (shadow camera fitted to them), so a site in the shadow of a crater wall looks shadowed. Checked against the validated model (below).
+* **Surface**: the same grey, shaded with the Lommel-Seeliger law used for regolith, with normals from the DEM at full resolution. Uniform albedo: no public LOLA albedo map at 250 m/pixel or finer was found. Optional **contour lines** (interval selectable, labelled) and **slope shading** from the DEM. No synthetic rocks, craters or textures.
+* **Brightness** slider and **Light up** button: display exposure and the fill light only ("Display brightness only (like camera exposure). Real polar shadows are almost black; this does not change the computed lighting."). When the validated model says the site is in shadow, a tip suggests Light up. Remembered.
+* **Sun**: light direction and disk at the engine's azimuth/elevation and angular size; optional faint glare labelled "camera glare (display effect); there is no atmosphere on the Moon". **Earth**: NASA Blue Marble Next Generation (cloud-free), rotated for the time (sub-observer point within 0.2° of JPL Horizons), lit from the computed Sun direction (so its phase is right even when the Sun is below the site's horizon). Labels say "(below horizon)" or "(hidden by terrain)" when that is the validated status; when Sun or Earth is outside the picture, its label sits at the screen edge with an arrow.
+* **Stars** (optional): Yale Bright Star Catalogue to magnitude 5.0 (4.5 at Medium, 3.5 at Low) at their true directions for the selected time (engine's Moon orientation), sized by magnitude, with the note "Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view."
+* **Distant skyline**: the site's horizon mask drawn as a ring 60 km away (exact from the site marker).
+* **Finding your way**: oblique default view with the Sun in the picture (crater floors are framed from 26 km so the walls show), compass, scale bar, distance from the site, top-view mini-map (LOLA heights, the tile, your position and heading, Sun/Earth directions), rover track, optional 500 m distance rings in Walk/Rover, and up to 5 named features per site from the IAU Gazetteer (on the terrain, or on the skyline in their direction when farther away).
+* **Panel**: time, Sunlight and Earth-link tiles at the site marker (validated model), Expert values, time slider and play synced with the main app; Orbit, Walk (eye 2 m above the ground), Rover (position, DEM elevation, slope, slope warning, near-field Sun estimate).
 
 | 3D view | Accurate (tested) | Approximate / not modelled |
 |---|---|---|
-| Terrain heights | Tile = bilinear LOLA DEM samples, within 0.05 m of direct DEM samples (`tools/terrain3d.py check`) | DEM resolution: 20 m (6 sites) or 80 m (IM-1, Nobile Rim 2); boulders, sub-grid relief and the lander are not represented. Phones draw every 2nd node (40 m); readouts still use the full grid |
-| Geometry | Exact site-centred ENU positions including lunar curvature (about 5 m drop at the corners); nodes placed by true ground distance, so the stereographic scale factor is handled | Spherical Moon (R = 1737.4 km), as in the rest of the app |
-| Sun | Light direction = engine az/el within 0.01° (1.7e-6° in `tests/view3d_test.js`; checked again in the browser); disk size from the engine | - |
-| Earth | Position and angular size from the engine (< 0.01°); phase from the engine's Sun and Earth vectors | Plain sphere; unlit side drawn faintly so it can be found |
-| Sunlit / Earth link at the site | From the validated horizon model (same as the main app) | - |
-| Shadows on the tile | Cast by the tile's own terrain | Visual approximation (shadow-map resolution); shadows from terrain outside the tile are not rendered |
-| Distant skyline | Exact horizon mask from the site marker | Drawn as a ring 60 km away: approximate when the camera is elsewhere; terrain between the tile edge and the skyline is not drawn (dark) |
-| Lighting | - | A faint uniform fill light (not physical); no light reflected from terrain or Earthshine |
-| Rover | DEM elevation and slope at the DEM's resolution | Sun "near-field estimate" uses the tile only; the rover model and speed are illustrative |
-| Stars | - | Off by default; decorative random points, not a star catalogue |
+| Terrain heights | Tile, rings and 5 m patch = bilinear LOLA samples; within 0.1 m of direct DEM samples at stored check points (`tools/terrain3d.py check`, `tools/terrain3d_ext.py check`, `tests/view3d_test.js`) | Grid 5 / 20 / 80 / 100 / 200 m depending on the area and quality; boulders, sub-grid relief and the lander are not represented. LDEM_875S_5M is labelled "preliminary LOLA data" by its producers |
+| Joins between meshes | Edge vertices identical to the finer mesh (9,712 vertices tested, 0 m difference) | Short skirts hide T-junctions; a slight change of detail is visible where the grid changes |
+| Geometry | Exact site-centred ENU positions including lunar curvature (460 m drop at 40 km) | Spherical Moon (R = 1737.4 km), as in the rest of the app |
+| Sun | Light direction = engine az/el (worst 1.7e-6°); disk size from the engine | Glare halo is a display effect (optional, labelled) |
+| Earth | Position and size from the engine (< 0.01°); orientation: sub-observer point vs JPL Horizons, worst 0.155° in 12 cases (`tests/earth_orientation.js`); phase from the engine's Sun and Earth vectors | Texture: Blue Marble July 2004 composite, clouds not shown; night side drawn very faintly so Earth can be found |
+| Stars | Directions vs an independent IAU/WGCCRE 2009 computation: worst 0.0012° (72 cases) | Annual aberration (< 0.006°) not applied; point sizes are a display choice |
+| Shadows | Shading consistency with the validated "Sun up" at the site marker, 50 times per site over a year: Low 97.8 %, Medium 99.0 %, High 99.8 %; every disagreement is the Sun blocked by terrain beyond the shadow-casting range | Shadow map texel 7-22 m; terrain beyond 3 km (Low), 16 km (Medium) or 40 km (High) casts no shadows; the 16-40 km ring is shaded but receives no shadows |
+| Status tiles, labels | From the validated horizon model (same as the main app) | - |
+| Surface shading | Normals from the DEM at full resolution | Lommel-Seeliger law with a uniform albedo (no albedo map); faint uniform fill light (not physical); brightness slider is display only |
+| Contours, slope | From the same DEM heights (true heights) | Slope over one DEM cell; real slopes over a few metres can be steeper |
+| Feature names | IAU Gazetteer centre coordinates | Labels at the feature centre (a crater name sits on its floor); beyond the drawn terrain they show a direction only |
+| Distant skyline | Exact horizon mask from the site marker | Ring 60 km away: exact only from the site marker; between the drawn terrain and the ring nothing is drawn |
+| Rover | DEM elevation and slope at the DEM's resolution | Near-field Sun estimate uses the tile only; the rover model and speed are illustrative |
 
 ## Sites
 
@@ -148,6 +154,10 @@ Other south-pole sites:
 | **Blind test** (`node tests/blind_test.js --new`): 5 new random south-pole site/time cases in 2026-2030, fetched fresh from Horizons, 10 comparisons | 10/10 pass; elevation max 0.0029°, azimuth max 0.0038° |
 | **Terrain for clicked points** (`node tests/coarse_validation.js`), 240 m data | curated sites: % sunlit differs from the 20 m horizons by 2.0 points on average, 6.9 at most (limits 5 / 10); 50 random points in 85-90°S vs NASA's map: 1.5 points on average (limit 5) -> PASS, shipped |
 | `node tests/view3d_test.js` | 3D geometry: Sun and Earth direction vectors vs the engine's raw apparent vectors (96 site/time cases, worst 1.7e-6°), tile decoder vs DEM check points (0.05 m), curvature, world-to-grid inverse, slope, near-field Sun, Earth phase, lazy loading |
+| `node tests/view3d_test.js` (round 4 additions) | extended rings vs stored DEM samples (worst 0.097 m), 5 m patch (0.047 m), seams (9,712 shared edge vertices, 0 m), DEM normals (10° plane), star directions vs an independent IAU 2009 computation (worst 0.0012°) |
+| `node tests/earth_orientation.js` | Earth sub-observer point vs JPL Horizons quantity 14, 12 cases: worst 0.155° (limit 1°) |
+| `node tests/shading_consistency.js` | rendered shadow at the site marker vs validated "Sun up", 8 sites × 50 times: Low 97.8 %, Medium 99.0 %, High 99.8 %; all disagreements = Sun blocked by terrain beyond the shadow-casting range |
+| `.venv\Scripts\python -I tools\terrain3d_ext.py check` | rings and 5 m patches vs direct DEM samples by an independent path, worst 0.098 m (limit 1 m) |
 | `.venv\Scripts\python -I tools\terrain3d.py check` | 3D tiles: site centre + 3 random nodes per site vs raw DEM samples by an independent path, worst 0.049 m (limit 1 m) |
 | `node tests/features_test.js` | power model, slip = timeline, minimum-elevation logic, worker job = engine, `js/core.js` in sync, all 8,536 requestable tiles exist, tiles < 80 MB, map projection, site sources and Artemis region rules, downsampled DEM size/decoding/gating, SUBMISSION_LINKS.md links all cited, AI-disclosure meta tags and file headers |
 | `node tests/ui_check.js` | laptop and phone via file://, every feature, tour, worker, loader, reduced motion, map fit (data square fills the panel on first load and after "Whole pole"), map coverage limits, search-limit wording, clicked-point terrain, the VERIFY_YOURSELF share link, the 3D view (lazy loading, light direction vs engine < 0.01° in the browser, Earth position and size, time sync both ways, exaggeration label, orbit/walk/rover controls incl. on-screen buttons, phone mesh reduction, GPU memory freed on close), the first-visit intro (shows once, Skip/key/tap, auto-close after 3 s, not with a share link, reduced motion or in tests unless enabled, replay); no console errors |
@@ -188,6 +198,14 @@ Every site records `sourceType` (all **primary** this round) and what its source
 * Solar constant: IAU 2015 Resolution B3, 1361 W/m² (Prša et al. 2016, AJ 152, 41; https://arxiv.org/abs/1510.07674, value read from the resolution text)
 * Apollo coordinates: NASA NSSDC. Robotic landers: LROC featured-image pages (Blue Ghost M1: post-landing page 1407).
 * Other south-pole points: Mahanti et al. 2024 (PSJ 5, 62) and Peña-Asensio et al. (arXiv 2406.19863, "Accepted for publication in Acta Astronautica").
+* 3D view (round 4):
+  * Extended terrain: LDEM_80S_80M and LDEM_75S_120M (same PDS directory as above).
+  * 5 m patches: LOLA LDEM_875S_5M, https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_875s_5m.img (only the rows around the three sites were fetched, with HTTP Range requests: 3 × 34.6 MB instead of 1.84 GB).
+  * Stars: Yale Bright Star Catalogue, 5th revised edition (Hoffleit & Warren 1991), CDS catalogue V/50, public domain: https://cdsarc.cds.unistra.fr/viz-bin/cat/V/50 (file taken from the Harvard-Smithsonian CfA copy http://tdc-www.harvard.edu/catalogs/bsc5.dat.gz because the CDS file server did not answer).
+  * Earth: NASA Blue Marble Next Generation, https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/ ; file https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-topography-bathymetry/july/world.topo.bathy.200407.3x5400x2700.jpg (cloud-free July 2004 composite, public domain NASA imagery; no NASA logos).
+  * Feature names: IAU Gazetteer GIS downloads, https://planetarynames.wr.usgs.gov/GIS_Downloads ; file https://asc-planetarynames-data.s3.us-west-2.amazonaws.com/MOON_nomenclature_center_pts.zip
+  * Albedo: none used. The only LOLA 1064 nm albedo maps found (Lucey et al. 2014, JGR Planets 119, https://doi.org/10.1002/2013JE004592) are about 2 km/pixel near the poles; the PDS polar LDRM products are roughness maps; PGDA products 68/90 have no albedo map.
+  * Lunar rotation model for the independent star test: Archinal et al. 2011, https://doi.org/10.1007/s10569-010-9320-4
 * Libraries: Astronomy Engine 2.1.19 (MIT), Leaflet 1.9.4 (BSD-2-Clause), Three.js r149 (MIT, https://threejs.org/, loaded only by Deploy), all in `lib/`.
 * Development tools (not shipped): Python (https://www.python.org/) with NumPy (https://numpy.org/) and Pillow (https://python-pillow.org/), Playwright (https://playwright.dev/), Claude Code (https://www.anthropic.com/claude-code).
 * All links used for the submission: [SUBMISSION_LINKS.md](SUBMISSION_LINKS.md).
@@ -204,6 +222,9 @@ js/map.js                Leaflet map, polar stereographic CRS, data-coverage lim
 js/app.js                UI;  js/loader.js pixel rocket loader;  js/explain.js "?" texts
 js/intro.js              first-visit intro (INTRO_MS at the top)
 js/view3d.js             3D view (loaded only by Deploy);  js/view3d_math.js its geometry (also used by Node tests)
+data/terrain3d/          6 km tiles; ext/<site>_a.js, _b.js (16 / 40 km rings); hi5m/<site>.js (5 m patches); features.js (IAU names)
+data/stars.js            Bright Star Catalogue to V = 5.0 (3D stars);  data/earth/earth_<w>.js  Blue Marble textures (base64)
+data/shading_consistency.js   rendered shadows vs the validated model (tests/shading_consistency.js)
 lib/                     Astronomy Engine, Leaflet, Three.js (local copies)
 tiles/                   map tiles (hill, slope, illum, illum120);  data/tiles_meta.js
 data/sites.js            sites (with source type) + NASA Artemis III region list
@@ -222,6 +243,9 @@ tests/view3d_test.js     3D geometry unit tests
 tests/ui_check.js        headless browser check (Playwright), laptop + phone, file://
 tools/terrain.py         DEM reading, horizon masks
 tools/terrain3d.py       6 km terrain tiles for the 3D view (build / check) -> data/terrain3d/
+tools/terrain3d_ext.py   extended rings and 5 m patches (build / check);  tools/fetch_round4.py  their downloads
+tools/stars.py, tools/earth_texture.py, tools/features3d.py   stars, Earth textures, feature labels for the 3D view
+tests/perf3d.js, tests/shading_consistency.js, tests/earth_orientation.js   3D performance, shadows vs model, Earth vs Horizons
 tools/coarse_dem.py      builds data/dem_coarse.js (+ "check": terrain.py on the same grid)
 tools/tiles.py           map tile pyramids + georeference check ("illum120" = outer illumination layer only)
 tools/illum_crosscheck.py, tools/export_sun_vectors.js   illumination cross-check
@@ -241,6 +265,11 @@ python -m venv .venv; .venv\Scripts\python -m pip install numpy pillow
 .venv\Scripts\python -I tools\terrain.py check
 .venv\Scripts\python -I tools\terrain.py horizons
 .venv\Scripts\python -I tools\terrain3d.py build   # 3D tiles (seconds); 'check' compares them with the DEM
+.venv\Scripts\python -I tools\fetch_round4.py      # 5 m DEM windows, star catalogue, Blue Marble (into dem/)
+.venv\Scripts\python -I tools\terrain3d_ext.py build; .venv\Scripts\python -I tools\terrain3d_ext.py check
+.venv\Scripts\python -I tools\stars.py; .venv\Scripts\python -I tools\earth_texture.py
+# download the Gazetteer centre points (URL above), unzip into dem/gazetteer/, then:
+.venv\Scripts\python -I tools\features3d.py
 .venv\Scripts\python -I tools\tiles.py           # ~12 min, writes tiles/ and data/tiles_meta.js
 node tests/illumination.js
 node tools/export_sun_vectors.js -88.79 124.5 2027-01-01T00:00:00Z 2045-08-08T00:00:00Z 60 dem/work/sun_18p6y.bin
@@ -256,6 +285,9 @@ node tools/build_core.js                     # after any change to js/engine.js
 node tests/view3d_test.js
 node tests/features_test.js
 npx playwright install chromium; node tests/ui_check.js
+node tests/earth_orientation.js              # Earth orientation vs JPL Horizons (cached)
+node tests/shading_consistency.js            # rendered shadows vs the validated model, 3 quality levels
+node tests/perf3d.js --phone --quality low,medium,high
 ```
 
 ## Credits

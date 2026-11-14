@@ -22,6 +22,9 @@ Every link below is a full public https:// URL (no login) that the project actua
 14. LROC, Chang'e-6 lander position - https://lroc.im-ldi.com/images/1374
 15. LROC, Blue Ghost Mission 1 lander position - https://lroc.im-ldi.com/images/1407
 16. LROC, IM-2 Athena lander position - https://lroc.im-ldi.com/images/1408
+17. LRO LOLA LDEM_875S_5M, 5 m/pixel south-pole DEM, NASA PDS Geosciences Node (3D view: 2 km × 2 km inner patches at High quality; only the needed rows were fetched with HTTP Range requests) - https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_875s_5m.img
+18. NASA Earth Observatory, Blue Marble Next Generation (cloud-free monthly composites; 3D view Earth texture) - https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/
+19. NASA Blue Marble Next Generation, topography and bathymetry, July 2004, 5400 × 2700 (the file used for the Earth texture) - https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-topography-bathymetry/july/world.topo.bathy.200407.3x5400x2700.jpg
 
 ## 2. Space agency partner and other data, resources and tools used
 
@@ -41,10 +44,16 @@ Every link below is a full public https:// URL (no login) that the project actua
 14. NumPy (data processing) - https://numpy.org/
 15. Pillow (map tile images) - https://python-pillow.org/
 16. Claude Code by Anthropic (AI coding assistant that generated the code, scripts and documentation; see AI_DISCLOSURE.md) - https://www.anthropic.com/claude-code
+17. Yale Bright Star Catalogue, 5th revised edition (Hoffleit & Warren 1991), CDS catalogue V/50, public domain (3D view stars; file copy from the Harvard-Smithsonian CfA mirror http://tdc-www.harvard.edu/catalogs/bsc5.dat.gz) - https://cdsarc.cds.unistra.fr/viz-bin/cat/V/50
+18. IAU Gazetteer of Planetary Nomenclature, GIS downloads (3D view feature labels) - https://planetarynames.wr.usgs.gov/GIS_Downloads
+19. IAU Gazetteer, Moon nomenclature centre points (the file used: MOON_nomenclature_center_pts) - https://asc-planetarynames-data.s3.us-west-2.amazonaws.com/MOON_nomenclature_center_pts.zip
+20. Lucey et al. 2014, "The global albedo of the Moon at 1.064 µm from LOLA", JGR Planets 119 (checked for a south-pole albedo map; its polar maps are about 2 km/pixel, so none was used) - https://doi.org/10.1002/2013JE004592
+21. Archinal et al. 2011, "Report of the IAU Working Group on Cartographic Coordinates and Rotational Elements: 2009", Celestial Mechanics and Dynamical Astronomy 109 (lunar rotation model, written out independently in the star-direction test) - https://doi.org/10.1007/s10569-010-9320-4
 
 ## Notes
 
-* Counts: 16 NASA links, 16 other links.
+* Counts: 19 NASA links, 21 other links (round 4 added 3 NASA and 5 other links for the 3D view).
 * Not listed because they were not used as a data source or tool: NASA Moon Trek and LROC Quickmap (mentioned in the app and in VERIFY_YOURSELF.md only as places where readers can check results themselves); the LROC home page.
 * Not used: Chart.js (charts are drawn directly on HTML canvas).
 * Reachability was checked on 2026-11-14 with a plain HTTP client: all URLs returned HTTP 200 except the NASA NTRS page, which did not answer that client within 60 s; the NTRS public API returned the same record (20120010094, "public use permitted") at that time. https://www.anthropic.com/claude-code redirects to Anthropic's current Claude Code page.
+* Round 4 links were checked on 2026-11-14: the PDS 5 m DEM, Blue Marble page and file, the Gazetteer GIS page and file, and the Archinal et al. DOI answered (HTTP 200/206). The CDS V/50 catalogue page answered HTTP 200 once and timed out on a second check; the CDS file server did not answer, so the identical catalogue file was taken from the Harvard-Smithsonian CfA mirror (http only). The Lucey et al. DOI returns HTTP 403 to scripted clients (publisher block); it resolves in a browser.

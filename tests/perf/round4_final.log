@@ -1,0 +1,48 @@
+laptop            im1                  low     first frame   279 ms  refined   320 ms   60 fps  5929 + 40401 vertices
+laptop            im1                  medium  first frame   212 ms  refined   221 ms   60 fps  5929 + 160801 vertices
+laptop            im1                  high    first frame   160 ms  refined   291 ms   59 fps  5929 + 411802 vertices
+laptop            im2                  low     first frame   219 ms  refined   280 ms   60 fps  22801 + 25921 vertices
+laptop            im2                  medium  first frame   504 ms  refined   512 ms   60 fps  90601 + 103041 vertices
+laptop            im2                  high    first frame   321 ms  refined   578 ms   59 fps  90601 + 263842 vertices
+laptop            peak_shackleton      low     first frame   304 ms  refined   367 ms   60 fps  22801 + 25921 vertices
+laptop            peak_shackleton      medium  first frame   423 ms  refined   435 ms   60 fps  90601 + 103041 vertices
+laptop            peak_shackleton      high    first frame   390 ms  refined   706 ms   59 fps  90601 + 424643 vertices
+laptop            peak_shackleton_lw   low     first frame   287 ms  refined   347 ms   60 fps  22801 + 25921 vertices
+laptop            peak_shackleton_lw   medium  first frame   398 ms  refined   411 ms   60 fps  90601 + 103041 vertices
+laptop            peak_shackleton_lw   high    first frame   381 ms  refined   628 ms   59 fps  90601 + 424643 vertices
+laptop            nobile_rim2_dm2      low     first frame   331 ms  refined   420 ms   60 fps  5929 + 40401 vertices
+laptop            nobile_rim2_dm2      medium  first frame   431 ms  refined   464 ms   60 fps  5929 + 160801 vertices
+laptop            nobile_rim2_dm2      high    first frame   242 ms  refined   505 ms   59 fps  5929 + 411802 vertices
+laptop            mons_mouton          low     first frame   440 ms  refined   517 ms   60 fps  22801 + 25921 vertices
+laptop            mons_mouton          medium  first frame   497 ms  refined   514 ms   60 fps  90601 + 103041 vertices
+laptop            mons_mouton          high    first frame   297 ms  refined   532 ms   59 fps  90601 + 263842 vertices
+laptop            mons_malapert        low     first frame   374 ms  refined   401 ms   60 fps  22801 + 25921 vertices
+laptop            mons_malapert        medium  first frame   467 ms  refined   484 ms   60 fps  90601 + 103041 vertices
+laptop            mons_malapert        high    first frame   327 ms  refined   596 ms   59 fps  90601 + 263842 vertices
+laptop            shackleton_centre    low     first frame   310 ms  refined   369 ms   60 fps  22801 + 25921 vertices
+laptop            shackleton_centre    medium  first frame   334 ms  refined   344 ms   60 fps  90601 + 103041 vertices
+laptop            shackleton_centre    high    first frame   208 ms  refined   415 ms   59 fps  90601 + 424643 vertices
+phone (emulated)  im1                  low     first frame   361 ms  refined   414 ms   60 fps  5929 + 40401 vertices
+phone (emulated)  im1                  medium  first frame   311 ms  refined   352 ms   60 fps  5929 + 160801 vertices
+phone (emulated)  im1                  high    first frame   257 ms  refined   506 ms   60 fps  5929 + 411802 vertices
+phone (emulated)  im2                  low     first frame   269 ms  refined   350 ms   60 fps  22801 + 25921 vertices
+phone (emulated)  im2                  medium  first frame   426 ms  refined   434 ms   60 fps  90601 + 103041 vertices
+phone (emulated)  im2                  high    first frame   274 ms  refined   456 ms   59 fps  90601 + 263842 vertices
+phone (emulated)  peak_shackleton      low     first frame   197 ms  refined   237 ms   60 fps  22801 + 25921 vertices
+phone (emulated)  peak_shackleton      medium  first frame   263 ms  refined   284 ms   60 fps  90601 + 103041 vertices
+phone (emulated)  peak_shackleton      high    first frame   292 ms  refined   638 ms   59 fps  90601 + 424643 vertices
+phone (emulated)  peak_shackleton_lw   low     first frame   170 ms  refined   199 ms   60 fps  22801 + 25921 vertices
+phone (emulated)  peak_shackleton_lw   medium  first frame   345 ms  refined   367 ms   60 fps  90601 + 103041 vertices
+phone (emulated)  peak_shackleton_lw   high    first frame   174 ms  refined   373 ms   60 fps  90601 + 424643 vertices
+phone (emulated)  nobile_rim2_dm2      low     first frame   270 ms  refined   327 ms   60 fps  5929 + 40401 vertices
+phone (emulated)  nobile_rim2_dm2      medium  first frame   289 ms  refined   312 ms   60 fps  5929 + 160801 vertices
+phone (emulated)  nobile_rim2_dm2      high    first frame   226 ms  refined   463 ms   59 fps  5929 + 411802 vertices
+phone (emulated)  mons_mouton          low     first frame   318 ms  refined   378 ms   60 fps  22801 + 25921 vertices
+phone (emulated)  mons_mouton          medium  first frame   364 ms  refined   389 ms   60 fps  90601 + 103041 vertices
+phone (emulated)  mons_mouton          high    first frame   251 ms  refined   391 ms   59 fps  90601 + 263842 vertices
+phone (emulated)  mons_malapert        low     first frame   231 ms  refined   252 ms   60 fps  22801 + 25921 vertices
+phone (emulated)  mons_malapert        medium  first frame   492 ms  refined   500 ms   60 fps  90601 + 103041 vertices
+phone (emulated)  mons_malapert        high    first frame   292 ms  refined   522 ms   59 fps  90601 + 263842 vertices
+phone (emulated)  shackleton_centre    low     first frame   272 ms  refined   323 ms   59 fps  22801 + 25921 vertices
+phone (emulated)  shackleton_centre    medium  first frame   457 ms  refined   462 ms   60 fps  90601 + 103041 vertices
+phone (emulated)  shackleton_centre    high    first frame   313 ms  refined   545 ms   60 fps  90601 + 424643 vertices

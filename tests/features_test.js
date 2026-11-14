@@ -150,7 +150,7 @@ const loadData = (...files) => { for (const f of files) new Function('window', f
 {
   const R = path.join(__dirname, '..'), rd = f => fs.readFileSync(path.join(R, f), 'utf8');
   const md = rd('SUBMISSION_LINKS.md');
-  const sec = n => (md.split(/^## /m).find(s => s.startsWith(n + '.')) || '').split('\n').slice(1).filter(l => /^\d+\. /.test(l));   // slice(1): skip the section title
+  const sec = n => (md.split(/^## /m).find(s => s.startsWith(n + '.')) || '').split(/\r?\n/).slice(1).filter(l => /^\d+\. /.test(l));   // slice(1): skip the section title
   const nasa = sec('1'), other = sec('2'), items = nasa.concat(other);
   const urls = items.map(l => (l.match(/ - (\S+)$/) || [])[1]);
   const cites = ['README.md', 'index.html', 'data/sites.js', 'data/illum_crosscheck_meta.js', 'VALIDATION_REPORT.md', 'lib/README.md', 'tests/horizons_api.js'].map(rd).join('\n');

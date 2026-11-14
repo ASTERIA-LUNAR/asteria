@@ -1,0 +1,13 @@
+peak_shackleton  2026-12-03T05:00  app 35.971E -5.198  Horizons 35.969E -5.231  diff 0.033 deg
+peak_shackleton  2027-03-21T17:30  app 89.456E 0.669  Horizons 89.461E 0.672  diff 0.005 deg
+peak_shackleton  2027-09-09T11:00  app 122.757E -26.615  Horizons 122.759E -26.770  diff 0.155 deg
+peak_shackleton  2028-06-30T23:00  app -60.013E -16.107  Horizons 299.989E -16.211  diff 0.104 deg
+im1              2026-12-03T05:00  app 35.979E -5.201  Horizons 35.977E -5.235  diff 0.033 deg
+im1              2027-03-21T17:30  app 89.462E 0.667  Horizons 89.467E 0.670  diff 0.005 deg
+im1              2027-09-09T11:00  app 122.765E -26.615  Horizons 122.766E -26.770  diff 0.155 deg
+im1              2028-06-30T23:00  app -60.007E -16.112  Horizons 299.995E -16.216  diff 0.104 deg
+mons_mouton      2026-12-03T05:00  app 35.966E -5.197  Horizons 35.964E -5.230  diff 0.033 deg
+mons_mouton      2027-03-21T17:30  app 89.449E 0.671  Horizons 89.454E 0.674  diff 0.005 deg
+mons_mouton      2027-09-09T11:00  app 122.750E -26.616  Horizons 122.752E -26.771  diff 0.155 deg
+mons_mouton      2028-06-30T23:00  app -60.020E -16.107  Horizons 299.982E -16.211  diff 0.104 deg
+PASS Earth sub-observer point vs JPL Horizons: 12 cases, worst 0.155 deg (limit 1 deg; Horizons gives geodetic latitude, the app geocentric: up to 0.19 deg apart)
