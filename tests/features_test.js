@@ -146,5 +146,22 @@ const loadData = (...files) => { for (const f of files) new Function('window', f
   check('custom points outside the data use a smooth horizon (no terrain)', J.demCovers(dem, -89, 0) && !J.demCovers(dem, -60, 10));
 }
 
+// ---- SUBMISSION_LINKS.md: every link is a full https URL that the project actually cites elsewhere; AI disclosure present.
+{
+  const R = path.join(__dirname, '..'), rd = f => fs.readFileSync(path.join(R, f), 'utf8');
+  const md = rd('SUBMISSION_LINKS.md');
+  const sec = n => (md.split(/^## /m).find(s => s.startsWith(n + '.')) || '').split('\n').slice(1).filter(l => /^\d+\. /.test(l));   // slice(1): skip the section title
+  const nasa = sec('1'), other = sec('2'), items = nasa.concat(other);
+  const urls = items.map(l => (l.match(/ - (\S+)$/) || [])[1]);
+  const cites = ['README.md', 'index.html', 'data/sites.js', 'data/illum_crosscheck_meta.js', 'VALIDATION_REPORT.md', 'lib/README.md', 'tests/horizons_api.js'].map(rd).join('\n');
+  const missing = urls.filter(u => !u || !/^https:\/\/\S+$/.test(u) || cites.indexOf(u) < 0);
+  check('SUBMISSION_LINKS.md: ' + nasa.length + ' NASA + ' + other.length + ' other links, each "Name - full https URL" and cited elsewhere in the project', nasa.length > 0 && other.length > 0 && !missing.length && new Set(urls).size === urls.length, missing.join(', '));
+  const html = rd('index.html');
+  check('AI disclosure: generator + ai-disclosure meta tags, About "How this was made", AI_DISCLOSURE.md', /<meta name="generator" content="Claude Code/.test(html) && /<meta name="ai-disclosure"/.test(html) && /How this was made/.test(html) && /How this was made/.test(rd('README.md')) && fs.existsSync(path.join(R, 'AI_DISCLOSURE.md')));
+  const src = ['index.html', 'css/style.css', 'data/sites.js'].concat(fs.readdirSync(path.join(R, 'js')).map(f => 'js/' + f), fs.readdirSync(path.join(R, 'tools')).filter(f => /\.(js|py)$/.test(f)).map(f => 'tools/' + f), fs.readdirSync(path.join(R, 'tests')).filter(f => /\.js$/.test(f)).map(f => 'tests/' + f));
+  const noHdr = src.filter(f => rd(f).slice(0, 2000).indexOf('Generated with Claude Code (Anthropic) under human direction') < 0);
+  check('every AI-written source file has the "Generated with Claude Code (Anthropic) under human direction" header (' + src.length + ' files)', !noHdr.length, noHdr.join(', '));
+}
+
 console.log(fails ? `${fails} FAILED` : 'ALL FEATURE TESTS PASS');
 process.exit(fails ? 1 : 0);

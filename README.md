@@ -153,8 +153,8 @@ Every site records `sourceType` (all **primary** this round) and what its source
 * IAU Gazetteer of Planetary Nomenclature (USGS): https://planetarynames.wr.usgs.gov/ (feature pages linked from each site)
 * LRO LOLA gridded polar DEMs, PDS Geosciences Node: https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/
 * LOLA average illumination maps, NASA PGDA product 69: https://pgda.gsfc.nasa.gov/products/69 (AVGVISIB_85S_060M_201608 and AVGVISIB_75S_120M_201608)
-  * Files: http://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/
-  * The PGDA page gives no licence text. It asks users to cite Mazarico et al. (2011), Icarus 211, 1066-1081, which the app does.
+  * Files: https://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/
+  * The PGDA page gives no licence text. It asks users to cite Mazarico et al. (2011), Icarus 211, 1066-1081 (https://doi.org/10.1016/j.icarus.2010.10.030; original method abstract on NASA NTRS: https://ntrs.nasa.gov/citations/20120010094), which the app does.
 * NASA/JPL Horizons API (validation reference): https://ssd.jpl.nasa.gov/horizons/
 * Solar constant: IAU 2015 Resolution B3, 1361 W/m² (Prša et al. 2016, AJ 152, 41; https://arxiv.org/abs/1510.07674, value read from the resolution text)
 * Apollo coordinates: NASA NSSDC. Robotic landers: LROC featured-image pages (Blue Ghost M1: post-landing page 1407).
