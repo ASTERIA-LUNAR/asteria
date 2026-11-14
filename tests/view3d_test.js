@@ -176,6 +176,51 @@ function loadWin(file) {
   }
 })();
 
+// ---------------------------------------------------------------- 3c. real stars (round 4)
+// Independent check: star az/el from the IAU/WGCCRE 2009 lunar rotation model (Archinal et al. 2011, Celest. Mech.
+// Dyn. Astr. 109, 101, Table 2: alpha0, delta0, W with the E1-E13 terms) written out here, versus the 3D view's
+// directions (which use the engine's frame from Astronomy Engine's RotationAxis).
+(function () {
+  const rows = loadWin('data/stars.js').ASTERIA_STARS.rows;
+  const pick = [2491, 2326, 5340, 5459, 7001, 472];   // Sirius, Canopus, Arcturus, alpha Cen A, Vega, Achernar
+  const sel = rows.filter(r => pick.includes(r[0]));
+  const s = Math.sin, c = Math.cos, D = DEG;
+  function iauMoon(date) {
+    const d = (date.getTime() / 86400000 + 2440587.5 + 69.184 / 86400) - 2451545.0, T = d / 36525;
+    const E = [0, 125.045 - 0.0529921 * d, 250.089 - 0.1059842 * d, 260.008 + 13.0120009 * d, 176.625 + 13.3407154 * d, 357.529 + 0.9856003 * d,
+      311.589 + 26.4057084 * d, 134.963 + 13.0649930 * d, 276.617 + 0.3287146 * d, 34.226 + 1.7484877 * d, 15.134 - 0.1589763 * d,
+      119.743 + 0.0036096 * d, 239.961 + 0.1643573 * d, 25.053 + 12.9590088 * d].map(x => x * D);
+    const a0 = 269.9949 + 0.0031 * T - 3.8787 * s(E[1]) - 0.1204 * s(E[2]) + 0.0700 * s(E[3]) - 0.0172 * s(E[4]) + 0.0072 * s(E[6]) - 0.0052 * s(E[10]) + 0.0043 * s(E[13]);
+    const d0 = 66.5392 + 0.0130 * T + 1.5419 * c(E[1]) + 0.0239 * c(E[2]) - 0.0278 * c(E[3]) + 0.0068 * c(E[4]) - 0.0029 * c(E[6]) + 0.0009 * c(E[7]) + 0.0008 * c(E[10]) - 0.0009 * c(E[13]);
+    const W = 38.3213 + 13.17635815 * d - 1.4e-12 * d * d + 3.5610 * s(E[1]) + 0.1208 * s(E[2]) - 0.0642 * s(E[3]) + 0.0158 * s(E[4]) + 0.0252 * s(E[5]) - 0.0066 * s(E[6]) - 0.0047 * s(E[7]) - 0.0046 * s(E[8]) + 0.0028 * s(E[9]) + 0.0052 * s(E[10]) + 0.0040 * s(E[11]) + 0.0019 * s(E[12]) - 0.0044 * s(E[13]);
+    return { a0: a0 * D, d0: d0 * D, W: W * D };
+  }
+  // EQJ -> body fixed with the standard 3-1-3 rotation Rz(W) Rx(90 - d0) Rz(90 + a0)
+  function rotZ(v, t) { return [c(t) * v[0] + s(t) * v[1], -s(t) * v[0] + c(t) * v[1], v[2]]; }
+  function rotX(v, t) { return [v[0], c(t) * v[1] + s(t) * v[2], -s(t) * v[1] + c(t) * v[2]]; }
+  let worst = 0, n = 0, sample = '';
+  for (const id of ['peak_shackleton_lw', 'mons_malapert', 'im1']) {
+    const hz = loadWin('data/horizons/' + id + '.js').LUNA_HORIZONS[id];
+    for (const iso of ['2026-12-01T00:00:00Z', '2027-05-17T13:00:00Z', '2028-02-29T06:30:00Z', '2030-08-08T20:00:00Z']) {
+      const date = new Date(iso), years = (date.getTime() - Date.UTC(2000, 0, 1, 12)) / (365.25 * 86400000);
+      const got = M.starDirs(sel, E._moonFrame(date), hz.lat, hz.lon, years);
+      const R = iauMoon(date), la = hz.lat * D, lo = hz.lon * D;
+      sel.forEach((r, k) => {
+        const dec = (r[2] + r[6] * years / 3600) * D, ra = (r[1] + r[5] * years / 3600 / Math.cos(r[2] * D)) * D;
+        let v = [c(dec) * c(ra), c(dec) * s(ra), s(dec)];
+        v = rotZ(rotX(rotZ(v, Math.PI / 2 + R.a0), Math.PI / 2 - R.d0), R.W);
+        const e = -s(lo) * v[0] + c(lo) * v[1], nn = -s(la) * c(lo) * v[0] - s(la) * s(lo) * v[1] + c(la) * v[2], u = c(la) * c(lo) * v[0] + c(la) * s(lo) * v[1] + s(la) * v[2];
+        const want = M.azElFromDir([e, u, -nn]), have = M.azElFromDir([got[3 * k], got[3 * k + 1], got[3 * k + 2]]);
+        const err = Math.max(Math.abs(((have.az - want.az + 540) % 360) - 180) * Math.cos(want.el * D), Math.abs(have.el - want.el));
+        if (err > worst) { worst = err; sample = r[7] + ' at ' + id + ' ' + iso + ': az/el ' + have.az.toFixed(3) + '/' + have.el.toFixed(3) + ' vs ' + want.az.toFixed(3) + '/' + want.el.toFixed(3); }
+        n++;
+      });
+    }
+  }
+  expect('real stars: ' + n + ' az/el values of 6 bright stars (3 sites, 4 dates) match an independent IAU/WGCCRE 2009 computation within 0.1°', worst < 0.1 && sel.length === 6, 'worst ' + worst.toFixed(4) + '° (' + sample + ')');
+  expect('star list: Yale Bright Star Catalogue to V = 5.0 (' + rows.length + ' stars), source cited in the file', rows.length > 1500 && rows.every(r => r[3] <= 5.0) && /Bright Star Catalogue/.test(loadWin('data/stars.js').ASTERIA_STARS.source));
+})();
+
 // ---------------------------------------------------------------- 4. lazy loading: the main page does not load the 3D code
 (function () {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');

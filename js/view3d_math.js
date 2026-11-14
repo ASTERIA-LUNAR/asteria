@@ -208,6 +208,25 @@
     return { pos: pos, normal: nor, H: H, slope: sl, index: new Uint32Array(idx) };
   }
 
+  // ------------------------------------------------------------ stars (round 4)
+  // Unit directions (Three.js world, site frame) of catalogue stars at a time. rows: [hr, ra, dec (deg, J2000), vmag,
+  // b-v, pmRA*cos(dec), pmDec ("/yr)]; F: the engine's Moon body-fixed frame (rows x, y, z in EQJ: LunaEngine._moonFrame);
+  // years: time since J2000.0 (proper motion). Annual aberration (< 0.006 deg) and parallax are neglected.
+  function starDirs(rows, F, lat, lon, years) {
+    var la = lat * DEG, lo = lon * DEG, cl = Math.cos(la), sl = Math.sin(la), co = Math.cos(lo), so = Math.sin(lo);
+    var up = [cl * co, cl * so, sl], east = [-so, co, 0], north = [-sl * co, -sl * so, cl];
+    // site ENU axes expressed in EQJ (BF axis k in EQJ = F.x[k], F.y[k], F.z[k] columns)
+    var ax = function (v) { return [v[0] * F.x[0] + v[1] * F.y[0] + v[2] * F.z[0], v[0] * F.x[1] + v[1] * F.y[1] + v[2] * F.z[1], v[0] * F.x[2] + v[1] * F.y[2] + v[2] * F.z[2]]; };
+    var E = ax(east), N = ax(north), U = ax(up), out = new Float32Array(rows.length * 3);
+    for (var k = 0; k < rows.length; k++) {
+      var r = rows[k], dec = (r[2] + r[6] * years / 3600) * DEG, ra = (r[1] + r[5] * years / 3600 / Math.max(1e-6, Math.cos(r[2] * DEG))) * DEG;
+      var u = [Math.cos(dec) * Math.cos(ra), Math.cos(dec) * Math.sin(ra), Math.sin(dec)];
+      var e = u[0] * E[0] + u[1] * E[1] + u[2] * E[2], n = u[0] * N[0] + u[1] * N[1] + u[2] * N[2], z = u[0] * U[0] + u[1] * U[1] + u[2] * U[2];
+      out[3 * k] = e; out[3 * k + 1] = z; out[3 * k + 2] = -n;     // ENU -> Three.js
+    }
+    return out;
+  }
+
   // ------------------------------------------------------------ Earth phase
   // Illuminated fraction of Earth's disk seen from the site, from the engine's Sun and Earth vectors
   // (az, el, distance). Phase angle = angle at Earth between the directions to the Sun and to the observer.
@@ -259,7 +278,7 @@
   }
 
   return {
-    latLonAt: latLonAt, nodeOrMesh: nodeOrMesh, buildGridMesh: buildGridMesh, buildSkirt: buildSkirt,
+    latLonAt: latLonAt, starDirs: starDirs, nodeOrMesh: nodeOrMesh, buildGridMesh: buildGridMesh, buildSkirt: buildSkirt,
     decodeTile: decodeTile, enu: enu, toThree: toThree, fromThree: fromThree, dirFromAzEl: dirFromAzEl, azElFromDir: azElFromDir,
     heightAt: heightAt, meshHeightAt: meshHeightAt, slopeAt: slopeAt, gridFromWorld: gridFromWorld, groundWorld: groundWorld,
     inside: inside, buildIndex: buildIndex, buildPositions: buildPositions, earthPhase: earthPhase, nearFieldSunUp: nearFieldSunUp

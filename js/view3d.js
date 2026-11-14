@@ -101,8 +101,9 @@ window.AsteriaView3D = (function () {
       '    <label>Vertical exaggeration <select id="v3dExag"><option value="1" selected>1× (true scale)</option><option value="2">2×</option><option value="3">3×</option><option value="5">5×</option></select></label>' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dShadows" checked> shadows</label>' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dRing" checked> distant skyline</label>' +
-      '    <label class="smallswitch"><input type="checkbox" id="v3dStars"> stars (decorative)</label>' +
+      '    <label class="smallswitch"><input type="checkbox" id="v3dStars"> stars</label>' +
       '  </div>' +
+      '  <p class="fineprint" id="v3dStarNote" hidden>Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view.</p>' +
       '  <div class="v3d-ctl">' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dContours"> contour lines</label>' +
       '    <select id="v3dContourInt" aria-label="Contour interval"><option value="10">10 m</option><option value="25">25 m</option><option value="50">50 m</option><option value="100">100 m</option><option value="250">250 m</option></select>' +
@@ -140,7 +141,7 @@ window.AsteriaView3D = (function () {
       '<b>Distant skyline</b>: the site\'s terrain horizon (data/horizons, rays to 300 km) drawn as the top edge of a dark ring ' + RING_M / 1000 + ' km away. It is exact only when seen from the site marker; elsewhere it is approximate. Between the edge of the drawn terrain (' + (km || 3) + ' km) and the ring nothing is drawn (dark).',
       '<b>Shadows</b>: ' + (shKm ? 'cast by all terrain drawn within ' + shKm + ' km of the site (shadow-map texel about ' + (s.shadowTexel || 0).toFixed(0) + ' m; visual approximation). Terrain farther away does not cast shadows in the picture' + (B ? '; the ring from 16 to 40 km is shaded but receives no shadows' : '') + '.' : 'cast by the 6 km tile only at ' + Q.label + ' quality (choose Medium or High for shadows from the surrounding terrain).') + ' Sunlit and Earth-visible status at the site marker always come from the validated horizon model.',
       '<b>Fill light and brightness</b>: a faint uniform light keeps unlit ground from being pure black. It is not physical (real shadows get only faint light reflected from sunlit terrain and Earthshine). The Brightness slider and "Light up" change only the display exposure and this fill light, never the Sun direction or any computed value.',
-      '<b>Stars</b> (off by default): decorative random points, not a star catalogue.',
+      '<b>Stars</b> (off by default): the ' + (s.starRows ? s.starRows.length + ' ' : '') + 'stars brighter than magnitude ' + Q.starMag.toFixed(1) + ' (at ' + Q.label + ' quality) of the Yale Bright Star Catalogue, 5th revised edition (Hoffleit &amp; Warren 1991, public domain), at their true directions in the site\'s sky for the selected time, using the engine\'s Moon orientation (checked against an independent IAU/WGCCRE computation: within 0.002°). Size and brightness by magnitude, tint by colour index. Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view.',
       '<b>Vertical exaggeration</b> above 1× stretches heights (and therefore shadows and the look of slopes); rover slope readouts always use true heights. The distant skyline ring is never exaggerated.',
       '<b>Rover</b>: a simple AI-generated illustration (drawn in code by Claude Code; not a vehicle model; speed not realistic). Slope = gradient of the DEM over one ' + (P5 ? '5 m cell within 1 km of the site and one ' : '') + m.spacing_m + ' m grid cell' + (P5 ? ' elsewhere' : '') + '. "Sun over the tile terrain" is a near-field estimate using only the tile.'
     ];
@@ -215,15 +216,8 @@ window.AsteriaView3D = (function () {
     }
     scene.add(ring);
 
-    // decorative stars (seeded, not a catalogue), off by default
-    var sp = new Float32Array(1500 * 3), seed = 7;
-    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
-    for (var k = 0; k < 1500; k++) {
-      var z = 2 * rnd() - 1, ph = 2 * Math.PI * rnd(), rr = Math.sqrt(1 - z * z);
-      sp.set([rr * Math.cos(ph) * STAR_D, z * STAR_D, rr * Math.sin(ph) * STAR_D], k * 3);
-    }
-    var sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
-    var stars = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0x9fb0cc, size: 1.3, sizeAttenuation: false }));
+    // real stars (Yale Bright Star Catalogue), off by default; built on first use (ensureStars)
+    var stars = new THREE.Group();
     stars.visible = false; scene.add(stars);
 
     // site marker: a thin post (not to scale) at the site
@@ -549,6 +543,7 @@ window.AsteriaView3D = (function () {
       b.textContent = 'At the site marker the Sun is hidden behind terrain (validated horizon model, Sun ' + fmtDeg(r.sun.el, 1) + ' vs horizon ' + fmtDeg(inst.hzSun, 1) + '). ' + (v.s.Q.extShadow ? 'Terrain more than ' + (extKm(v) || 16) + ' km away casts no shadows in this view, so parts of the ground may still look lit.' : 'At ' + v.s.Q.label + ' quality only the 6 km tile casts shadows, so parts of the ground may look lit (Medium or High add shadows from the surrounding terrain).');
     } else b.hidden = true;
     updateTip(v);
+    updateStars(v);
     v.dirty = true;
   }
 
@@ -668,7 +663,11 @@ window.AsteriaView3D = (function () {
     add($('v3dContourInt'), 'change', function () { overlays(v); });
     add($('v3dSlope'), 'change', function () { overlays(v); });
     add($('v3dRing'), 'change', function () { v.s.ring.visible = this.checked; v.dirty = true; });
-    add($('v3dStars'), 'change', function () { v.s.stars.visible = this.checked; v.dirty = true; });
+    add($('v3dStars'), 'change', function () {
+      var on = this.checked; $('v3dStarNote').hidden = !on;
+      if (on) ensureStars(v).then(function () { if (V === v) { v.s.stars.visible = $('v3dStars').checked; v.dirty = true; } });
+      else { v.s.stars.visible = false; v.dirty = true; }
+    });
     add($('v3dSlopeMax'), 'change', function () { v.lastRead = 0; v.dirty = true; });
     add($('v3dSlider'), 'input', function () { v.app.setIdx(+this.value); });
     add($('v3dPlay'), 'click', function () { v.app.setPlaying(!v.app.playing()); syncPlay(v); });
@@ -702,6 +701,47 @@ window.AsteriaView3D = (function () {
     v.s.renderer.setSize(w, h, false);
     v.s.camera.aspect = w / h; v.s.camera.updateProjectionMatrix();
     v.dirty = true;
+  }
+
+  // ------------------------------------------------------------ real stars
+  // Bright Star Catalogue to the quality's magnitude limit, drawn as points sized and dimmed by magnitude (5 groups),
+  // tinted by B-V colour, at their directions for the selected time (engine's Moon orientation; js/view3d_math.js).
+  var STAR_BINS = [[-2, 1, 4.5, 1.0], [1, 2, 3.4, 0.92], [2, 3, 2.6, 0.8], [3, 4, 1.9, 0.66], [4, 5.01, 1.4, 0.52]];
+  function ensureStars(v) {
+    var s = v.s;
+    if (s.starRows) return Promise.resolve();
+    var go = window.ASTERIA_STARS ? Promise.resolve() : loadExtScript('data/stars.js');
+    return go.then(function () {
+      if (V !== v || s.starRows) return;
+      var THREE = s.THREE, all = window.ASTERIA_STARS.rows.filter(function (r) { return r[3] <= s.Q.starMag; });
+      s.starRows = all; s.starBins = [];
+      STAR_BINS.forEach(function (b) {
+        var rows = all.filter(function (r) { return r[3] >= b[0] && r[3] < b[1]; });
+        if (!rows.length) return;
+        var col = new Float32Array(rows.length * 3);
+        rows.forEach(function (r, k) {
+          var bv = Math.max(-0.3, Math.min(1.8, r[4])), t = (bv + 0.3) / 2.1;   // blue-white to orange
+          col[3 * k] = b[3] * (0.75 + 0.25 * t); col[3 * k + 1] = b[3] * (0.85 + 0.05 * t); col[3 * k + 2] = b[3] * (1.0 - 0.35 * t);
+        });
+        var g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(rows.length * 3), 3));
+        g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+        var pts = new THREE.Points(g, new THREE.PointsMaterial({ size: b[2], sizeAttenuation: false, vertexColors: true }));
+        pts.frustumCulled = false;
+        s.stars.add(pts); s.starBins.push({ rows: rows, pts: pts });
+      });
+      updateStars(v); notes(v);
+    }, function (e) { console.warn('Star catalogue not loaded: ' + (e && e.message || e)); });
+  }
+  function updateStars(v) {
+    var s = v.s; if (!s.starBins || !v.inst) return;
+    var t = new Date(v.inst.t), F = window.LunaEngine._moonFrame(t), years = (t.getTime() - Date.UTC(2000, 0, 1, 12)) / (365.25 * 86400000);
+    s.starBins.forEach(function (b) {
+      var d = M.starDirs(b.rows, F, v.site.lat, v.site.lon, years), P = b.pts.geometry.attributes.position;
+      for (var k = 0; k < d.length; k++) P.array[k] = d[k] * STAR_D;
+      P.needsUpdate = true;
+    });
+    s.starTime = v.inst.t;
   }
 
   // ------------------------------------------------- real-data overlays (contours, slope)
@@ -876,6 +916,7 @@ window.AsteriaView3D = (function () {
     var DEG = Math.PI / 180;
     return {
       open: true, frames: v.frames, refining: !!s.refinePending, quality: v.quality, autoQuality: v.auto, userQuality: v.userQuality, probe: v.probeResult || null, probing: !!v.probing,
+      stars: s.starRows ? { n: s.starRows.length, magLimit: s.Q.starMag, visible: s.stars.visible, time: s.starTime } : null,
       overlays: { contour: s.terrainMat.userData.uniforms.uContour.value, slope: s.terrainMat.userData.uniforms.uSlope.value }, shadowMapSize: s.sun.shadow.mapSize.x, pixelRatio: s.renderer.getPixelRatio(), brightness: v.bright, fillIntensity: s.fill.intensity, exposure: s.renderer.toneMappingExposure, mode: v.ctl.mode, stride: v.stride, phone: v.phone, exaggeration: s.T.k,
       sunLightDir: [lp.x, lp.y, lp.z], sunLight: M.azElFromDir([lp.x, lp.y, lp.z]), sunDiskRadiusDeg: Math.asin(s.sunDisk.scale.x / SUN_D) / DEG,
       earthDir: [ep.x, ep.y, ep.z], earthAzEl: M.azElFromDir([ep.x, ep.y, ep.z]), earthRadiusDeg: Math.asin(s.earth.scale.x / EARTH_D) / DEG,
@@ -935,8 +976,17 @@ window.AsteriaView3D = (function () {
     return { el: best, km: Math.round(far / 100) / 10 };
   }
   function testScene() { return V && V.s; }
+  // direction (az/el) of a catalogue star as drawn (tests)
+  function starAzEl(hr) {
+    var s = V && V.s; if (!s || !s.starBins) return null;
+    for (var q = 0; q < s.starBins.length; q++) {
+      var b = s.starBins[q], k = b.rows.findIndex(function (r) { return r[0] === hr; });
+      if (k >= 0) { var P = b.pts.geometry.attributes.position.array; return M.azElFromDir([P[3 * k], P[3 * k + 1], P[3 * k + 2]]); }
+    }
+    return null;
+  }
   function testCamera(o) { if (V) { Object.assign(V.ctl, o); V.dirty = true; } }
   function testQuality(q) { if (V) setQuality(V, q, 'Quality set to ' + QUALITY[q].label + '.'); }
   function testBrightness(b) { if (V) setBrightness(V, b); }
-  return { testScene: testScene, QUALITY: QUALITY, shadowProbe: shadowProbe, testCamera: testCamera, testQuality: testQuality, testBrightness: testBrightness, open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
+  return { starAzEl: starAzEl, testScene: testScene, QUALITY: QUALITY, shadowProbe: shadowProbe, testCamera: testCamera, testQuality: testQuality, testBrightness: testBrightness, open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
 })();

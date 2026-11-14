@@ -127,6 +127,16 @@ const path = require('path'), fs = require('fs'), url = require('url');
     const ovl = await page.evaluate(() => ({ d: AsteriaView3D.debug().overlays, iv: document.getElementById('v3dContourInt').value, leg: document.getElementById('v3dLegend').textContent, notes: document.getElementById('v3dNotes').textContent }));
     expect(`${tag} 3D: contour lines (every ${ovl.iv} m) and slope shading toggle on, with a legend; Lommel-Seeliger shading and uniform albedo explained`, ovl.d.contour === +ovl.iv && ovl.d.slope === 1 && new RegExp("Contour lines every " + ovl.iv + " m").test(ovl.leg) && /Slope from the DEM/.test(ovl.leg) && /Lommel-Seeliger/.test(ovl.notes) && /Uniform albedo/.test(ovl.notes) && /No synthetic rocks/.test(ovl.notes), JSON.stringify(ovl.d));
     await page.click('#v3dContours'); await page.click('#v3dSlope');
+    // real stars: catalogue loaded on demand, labelled; Sirius drawn at the direction computed for the shown time
+    await page.click('#v3dStars');
+    await page.waitForFunction(() => { const d = AsteriaView3D.debug(); return d.stars && d.stars.visible; }, null, { timeout: 15000 });
+    const stv = await page.evaluate(() => {
+      const d = AsteriaView3D.debug(), S = AsteriaApp.state, t = new Date(d.instant.t), r = ASTERIA_STARS.rows.find(x => x[0] === 2491);
+      const yrs = (t.getTime() - Date.UTC(2000, 0, 1, 12)) / (365.25 * 86400000), dir = AsteriaView3DMath.starDirs([r], LunaEngine._moonFrame(t), S.site.lat, S.site.lon, yrs);
+      return { d: d.stars, drawn: AsteriaView3D.starAzEl(2491), want: AsteriaView3DMath.azElFromDir([dir[0], dir[1], dir[2]]), note: document.getElementById('v3dStarNote').hidden ? '' : document.getElementById('v3dStarNote').textContent, notes: document.getElementById('v3dNotes').textContent };
+    });
+    expect(`${tag} 3D: real stars (${stv.d.n} from the Bright Star Catalogue to magnitude ${stv.d.magLimit}) drawn at their computed directions for the shown time, with the camera note`, stv.d.n > 200 && Math.abs(stv.drawn.el - stv.want.el) < 1e-3 && /Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view\./.test(stv.note) && /Yale Bright Star Catalogue/.test(stv.notes), JSON.stringify({ drawn: stv.drawn, want: stv.want }));
+    await page.click('#v3dStars');
     // orbit: keyboard and mouse
     const cam0 = (await v3at()).d.camera;
     await page.evaluate(() => AsteriaView3D.testKey('ArrowLeft', true)); const tf = Date.now(), f0 = (await v3at()).d.frames;
@@ -455,7 +465,7 @@ const path = require('path'), fs = require('fs'), url = require('url');
   // ---- no artificial delay: a fast operation never shows the loader
   const fctx = await browser.newContext({ viewport: { width: 1024, height: 768 } });
   const fp = await fctx.newPage();
-  await fp.goto(base); await fp.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series);
+  await fp.goto(base); await fp.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series); await fp.evaluate(() => AsteriaApp.ready());
   const fast = await fp.evaluate(() => { const n0 = AsteriaLoader.shownCount(); return AsteriaLoader.track(new Promise(r => setTimeout(r, 50)), 'x').then(() => new Promise(r => setTimeout(() => r(AsteriaLoader.shownCount() - n0), 400))); });
   expect('loader not shown for a 50 ms operation (only after 250 ms)', fast === 0, 'shown ' + fast + ' times');
   await fctx.close();
