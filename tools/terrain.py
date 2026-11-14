@@ -154,6 +154,51 @@ def horizon_mask(lat0, lon0):
     return elev, reach, h0, prod0
 
 
+def horizon_at(lat0, lon0, azimuths):
+    """Terrain horizon elevation (deg) at EXACT azimuths (not the 1-degree mask), same ray method as horizon_mask:
+    observer 2 m above the bilinear DEM surface, great-circle rays to 300 km, finest DEM first, lunar curvature.
+    Used by the independent instant-status check (tests/instant_status_check.js); reads only the DEMs."""
+    h0, prod0 = height(lat0, lon0)
+    if prod0 is None:
+        raise ValueError('site outside DEM coverage')
+    ro = R_M + h0 + OBS_HEIGHT_M
+    s = distances()
+    theta = s / R_M
+    out = []
+    for az in azimuths:
+        la, lo = destination(lat0, lon0, float(az), s)
+        x, y = PolarDEM.xy(la, lo)
+        h = np.full(x.shape, np.nan)
+        for d in dems():
+            miss = np.isnan(h)
+            if not miss.any():
+                break
+            h[miss] = d.sample(x[miss], y[miss])
+        valid = ~np.isnan(h)
+        if not valid.all():
+            valid[np.argmin(valid):] = False
+        rt = R_M + h[valid]
+        th = theta[valid]
+        e = np.degrees(np.arctan2(rt * np.cos(th) - ro, rt * np.sin(th)))
+        k = int(np.argmax(e)) if e.size else -1
+        out.append({'az': float(az), 'horizon_deg': float(e.max()) if e.size else 0.0,
+                    'at_km': round(float(s[valid][k]) / 1000, 3) if e.size else None})
+    return out, h0, prod0
+
+
+def cmd_horizon_at():
+    """python tools/terrain.py horizon_at <in.json> <out.json>; in = [{"key", "lat", "lon", "az": [..]}]"""
+    src, dst = sys.argv[2], sys.argv[3]
+    jobs = json.load(open(src, encoding='utf-8'))
+    res = []
+    for j in jobs:
+        rows, h0, prod = horizon_at(j['lat'], j['lon'], j['az'])
+        res.append({'key': j['key'], 'lat': j['lat'], 'lon': j['lon'], 'siteHeight_m': round(h0, 2), 'siteHeightFrom': prod, 'rows': rows})
+        print('%-24s %d azimuths, site height %.1f m (%s)' % (j['key'], len(rows), h0, prod))
+    with open(dst, 'w', encoding='utf-8') as f:
+        json.dump({'generator': 'tools/terrain.py horizon_at', 'observerAboveTerrain_m': OBS_HEIGHT_M, 'results': res}, f, indent=1)
+
+
 def cmd_check():
     d85, d80 = dems()[:2]
     print('DEMs loaded:', d85.name, d85.n, d85.scale, 'm |', d80.name, d80.n, d80.scale, 'm')
@@ -270,4 +315,4 @@ def cmd_hillshade():
 
 if __name__ == '__main__':
     cmd = sys.argv[1] if len(sys.argv) > 1 else 'check'
-    {'check': cmd_check, 'horizons': cmd_horizons, 'hillshade': cmd_hillshade}[cmd]()
+    {'check': cmd_check, 'horizons': cmd_horizons, 'hillshade': cmd_hillshade, 'horizon_at': cmd_horizon_at}[cmd]()

@@ -955,6 +955,10 @@
     if (V.blind) h += '<tr><td>Blind test vs Horizons (' + V.blind.rows.length + ' comparisons)</td><td class="' + (V.blind.pass ? 'pass' : 'fail') + '">' + (V.blind.pass ? 'PASS' : 'FAIL') + '</td><td>' + V.blind.cases.length + ' new random cases fetched fresh; elevation max ' + f(V.blind.el.max, 4) + '°, azimuth max ' + f(V.blind.az.max, 4) + '°.</td></tr>';
     var OY = V.oneYear;
     if (OY) h += '<tr><td>Custom point, one-year check (' + OY.rows + ' hourly rows × 2 bodies)</td><td class="' + (OY.pass ? 'pass' : 'fail') + '">' + (OY.pass ? 'PASS' : 'FAIL') + '</td><td>Elevation error max ' + f(Math.max(OY.angles.earth.el.max, OY.angles.sun.el.max), 4) + '°, azimuth max ' + f(Math.max(OY.angles.earth.az.max, OY.angles.sun.az.max), 4) + '°; sunrise/sunset max ' + f(OY.events.sun.maxAbsMin, 2) + ' min.</td></tr>';
+    var IS = window.LUNA_INSTANT;
+    if (IS) h += '<tr><td>Instant status check (independent: Horizons + Python terrain)</td><td class="' + (IS.pass ? 'pass' : 'fail') + '">' + (IS.pass ? 'PASS' : 'FAIL') + '</td><td>' + IS.agree + ' of ' + IS.n + ' Sun/Earth status decisions agree (' + IS.cases.length + ' sites × ' + IS.cases[0].times.length + ' times); ' + IS.edgeCount + ' on the edge (within ' + IS.edgeDeg + '°); ' + IS.disagreeOutsideEdge + ' disagreements.</td></tr>';
+    var A3 = window.LUNA_ACCURACY3D;
+    if (A3) h += '<tr><td>3D terrain accuracy</td><td class="' + (A3.pass ? 'pass' : 'fail') + '">' + (A3.pass ? 'PASS' : 'FAIL') + '</td><td>' + A3.heights.points.toLocaleString('en-US') + ' grid points vs LOLA: max ' + f(A3.heights.worst, 3) + ' m (limit 1 m); rover slope vs Python max ' + f(A3.slope.maxReadout, 3) + '°; ' + A3.positions.n + ' rover positions within one DEM cell.</td></tr>';
     h += '</tbody></table></div>';
     h += '<h3>Method</h3><p>Our engine vs Horizons with the observer on the Moon (<code>CENTER=\'coord@301\'</code>, <code>COORD_TYPE=\'GEODETIC\'</code>, height 0 km on the 1737.4 km sphere), targets Sun (10) and Earth (399), quantity 4 (apparent azimuth/elevation), <code>APPARENT=\'AIRLESS\'</code>. Azimuth tolerance is relaxed (' + V.tolerances.azDeg + '°/cos el) only above 80° elevation, where azimuth becomes ill-defined near the zenith.</p>';
     h += '<details><summary>Angle cases (' + V.angles.length + ')</summary><div class="tablewrap"><table><thead><tr><th>Site</th><th class="num">Lat</th><th class="num">E-lon</th><th>UTC</th><th>Body</th><th class="num">Az ours</th><th class="num">Az Horizons</th><th class="num">ΔAz</th><th class="num">El ours</th><th class="num">El Horizons</th><th class="num">ΔEl</th><th>Pass</th></tr></thead><tbody>';
@@ -1000,10 +1004,34 @@
       });
       h += '</tbody></table></div>';
     }
+    h += renderInstantCheck();
+    h += renderAccuracy3d();
     h += renderXcheck();
     h += renderCoarse();
     el.innerHTML = h;
   }
+  // Instant status check (tests/instant_status_check.js): Horizons angles + Python terrain vs the app's status.
+  function renderInstantCheck() {
+    var I = window.LUNA_INSTANT;
+    if (!I) return '<h3>Instant status check (independent: Horizons + Python terrain)</h3><p class="hint">Not run (node tests/instant_status_check.js).</p>';
+    var f = function (x, n) { return x.toFixed(n); }, ts = function (t) { return t.replace('T', ' ').replace('Z', ''); };
+    var h = '<h3 id="valInstant">Instant status check (independent: Horizons + Python terrain)</h3>';
+    h += '<div class="bigresult ' + (I.pass ? 'pass' : 'fail') + '">' + I.agree + ' of ' + I.n + ' agree · ' + I.edgeCount + ' on the edge · ' + I.disagreeOutsideEdge + ' disagreements</div>';
+    h += '<p>For each of the ' + I.cases.length + ' south-pole sites, at ' + I.cases[0].times.length + ' times (the moment the cases were chosen, ' + esc(ts(I.now)) + ' UTC, and 20 random times in 2026-2028), the Sun and Earth positions were taken directly from NASA/JPL Horizons, and the height of the terrain in exactly those directions was computed separately in Python from NASA\'s LOLA elevation data. "Sun up" means the Sun\'s centre is above that terrain; "Earth visible" means Earth\'s centre is above it (minimum elevation 0°). ASTERIA\'s own status was then compared for the same site and time.</p>';
+    h += '<p class="hint">Result: ' + I.agree + ' of ' + I.n + ' decisions agree. "On the edge" = body within ' + I.edgeDeg + '° of the terrain horizon (' + I.edgeCount + ' cases, ' + I.edgeDisagree + ' of them disagree). ASTERIA vs Horizons: elevation within ' + f(I.maxElDiff, 4) + '°; ASTERIA\'s stored horizon vs the Python horizon: within ' + f(I.maxHorizonDiff, 3) + '° (mean ' + f(I.meanHorizonDiff, 3) + '°).</p>';
+    h += '<p><b>Sunlit right then (' + esc(ts(I.now)) + ' UTC):</b> ' + esc(I.nowText) + '</p>';
+    h += '<details><summary>Sun at each site at ' + esc(ts(I.now)) + ' UTC</summary><div class="tablewrap"><table><thead><tr><th>Site</th><th class="num">Sun elevation (Horizons)</th><th class="num">Sun azimuth</th><th class="num">Terrain horizon there (Python)</th><th>Sunlit</th><th>ASTERIA</th></tr></thead><tbody>';
+    I.nowSun.forEach(function (r) { h += '<tr><td>' + esc(r.name) + '</td><td class="num">' + fmtDeg(r.el, 3) + '</td><td class="num">' + f(r.az, 2) + '°</td><td class="num">' + fmtDeg(r.horizon, 3) + '</td><td>' + (r.up ? 'yes' : 'no') + '</td><td class="' + (r.up === r.app ? 'pass' : 'fail') + '">' + (r.app ? 'yes' : 'no') + '</td></tr>'; });
+    h += '</tbody></table></div></details>';
+    var Ed = I.rows.filter(function (r) { return r.edge; });
+    if (Ed.length) {
+      h += '<details><summary>On the edge (' + Ed.length + ')</summary><div class="tablewrap"><table><thead><tr><th>Site</th><th>UTC</th><th>Body</th><th class="num">Elevation (Horizons)</th><th class="num">Terrain (Python)</th><th class="num">Margin</th><th>Independent</th><th>ASTERIA</th></tr></thead><tbody>';
+      Ed.forEach(function (r) { h += '<tr><td>' + esc(r.name) + '</td><td>' + esc(ts(r.t)) + '</td><td>' + (r.body === 'sun' ? 'Sun' : 'Earth') + '</td><td class="num">' + fmtDeg(r.hzEl, 4) + '</td><td class="num">' + fmtDeg(r.pyHorizon, 4) + '</td><td class="num">' + fmtDeg(r.margin, 4) + '</td><td>' + (r.indep ? 'up' : 'down') + '</td><td>' + (r.app ? 'up' : 'down') + '</td></tr>'; });
+      h += '</tbody></table></div></details>';
+    }
+    return h;
+  }
+  function renderAccuracy3d() { return ''; }
   function renderCoarse() {
     var V = window.LUNA_COARSE_VALIDATION;
     if (!V) return '<h3>Terrain for clicked points</h3><p class="hint">Not validated (run node tests/coarse_validation.js); clicked points use a smooth horizon.</p>';

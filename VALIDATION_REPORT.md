@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T16:34:36.472Z by `node tests/validate.js`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)
+Generated 2026-11-14T19:13:10.452Z by `node tests/validate.js`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)
 
 ## Overall: **PASS**
 
@@ -10,6 +10,7 @@ Generated 2026-11-14T16:34:36.472Z by `node tests/validate.js`. (The test code w
 | A. Event times vs Horizons (4 events) | PASS | max 0.76 min / mean 0.42 min |
 | B. Physics sanity tests (5) | PASS | see below |
 | E. Custom point, one-year check vs JPL Horizons (8761 hourly rows x 2 bodies) | PASS | elevation max 0.0028 deg; azimuth max 0.0039 deg; sunrise/sunset max 1.42 min; Earth min elevation 1.63 deg |
+| F. Instant status check (independent: Horizons + Python terrain; 8 sites x 21 times x 2 bodies) | PASS | 336/336 agree; 3 on the edge (within 0.05 deg), 0 disagreements outside the edge |
 | C. Blind test vs JPL Horizons (5 new random cases, 10 comparisons, fetched fresh) | PASS | elevation max 0.0029 deg; azimuth max 0.0038 deg |
 
 ## Method
@@ -198,6 +199,46 @@ Fetch times (UTC): 2026-11-14T10:50:04.389Z, 2026-11-14T10:50:05.748Z, 2026-11-1
 | East limb test point (Earth near horizon) | 0 | 88 | Synthetic test coordinate |
 
 Notes: "Synthetic test coordinate" points are not landing sites; they were chosen to exercise geometry (near-pole Sun skimming, Earth near the east limb).
+
+## F. Instant status check (independent: Horizons + Python terrain): **PASS**
+
+Run with `node tests/instant_status_check.js` (`--new` chooses new cases). Cases: per site: the current whole minute when the cases were chosen, plus 20 whole-minute times uniform in 2026-01-01..2028-12-31 UTC (seeded PRNG, seed 20261114 + 97 x site index); chosen 2026-11-14 19:11 UTC ("now" = 2026-11-14 19:11 UTC). Sun (10) and Earth (399) apparent azimuth/elevation from the JPL Horizons API (observer on the Moon at the site, geodetic, height 0, QUANTITIES 4, APPARENT AIRLESS, UT; one TLIST query per site and body); terrain horizon at exactly those azimuths from tools/terrain.py horizon_at (LOLA DEMs, observer 2 m above the surface, rays to 300 km, lunar curvature); up = centre above that horizon (Earth minimum elevation 0). App = js/engine.js series sample with the stored horizon mask (as in the main view). Agreement is required in every case except where the body is within 0.05 deg of the horizon ("on the edge", listed separately).
+
+**Result**: 336 of 336 status decisions agree (8 sites x 21 times x Sun and Earth). On the edge: 3 (0 of them disagree). Disagreements outside the edge: **0** (no bug found). Supporting numbers: app vs Horizons elevation max |difference| 0.0028 deg, azimuth 0.0041 deg; the app's stored 1-degree horizon mask vs the Python horizon at the exact azimuth: max 0.050 deg, mean 0.005 deg.
+
+On the edge (body within 0.05 deg of the terrain horizon):
+
+| Site | UTC | Body | Horizons el | Python horizon | Margin | Independent | App |
+|---|---|---|---|---|---|---|---|
+| IM-2 Athena | 2027-08-22 19:58 | sun | -0.2276 | -0.1874 | -0.0402 | down | down |
+| Peak near Shackleton - best-lit point (derived) | 2027-05-30 00:30 | earth | 3.2569 | 3.2406 | 0.0163 | up | up |
+| Mons Mouton (landform centre) | 2028-08-29 11:16 | earth | 2.7693 | 2.8117 | -0.0424 | down | down |
+
+**Sunlit now.** At 2026-11-14 19:11 UTC, 3 of 8 south-pole sites are sunlit. Near the pole the Sun never climbs high: at these sites it is between -2.7° and +4.8° above the flat horizon right now, so a hill or crater wall of a degree or two in the Sun's direction decides between light and shadow. Sunlit: Peak near Shackleton (illuminated area) (Sun +2.76° at azimuth 352°, terrain there -2.71°); Peak near Shackleton - best-lit point (derived) (Sun +2.76° at azimuth 353°, terrain there -2.72°); Nobile Rim 2 (site DM2) (Sun +4.77° at azimuth 56°, terrain there +1.08°). In shadow: IM-1 Odysseus (Sun -2.68°, terrain +9.64°; below the flat horizon too); IM-2 Athena (Sun +1.76°, terrain +2.94°); Mons Mouton (landform centre) (Sun +1.94°, terrain +8.31°); Mons Malapert (landform centre) (Sun -0.37°, terrain +1.19°; below the flat horizon too); Shackleton crater centre (floor) (Sun +1.88°, terrain +20.12°). Sun positions from JPL Horizons; terrain heights computed from the LOLA elevation data in the Sun's direction.
+
+| Site | Sun el (Horizons) | Sun az | Terrain horizon there (Python) | Sunlit (independent) | App |
+|---|---|---|---|---|---|
+| IM-1 Odysseus | -2.685 | 115.35 | 9.636 (highest point 0.35 km away) | no | no |
+| IM-2 Athena | 1.761 | 87.83 | 2.938 (highest point 28.36 km away) | no | no |
+| Peak near Shackleton (illuminated area) | 2.756 | 352.37 | -2.709 (highest point 46.82 km away) | yes | yes |
+| Peak near Shackleton - best-lit point (derived) | 2.761 | 352.53 | -2.720 (highest point 46.66 km away) | yes | yes |
+| Nobile Rim 2 (site DM2) | 4.775 | 56.44 | 1.084 (highest point 65.12 km away) | yes | yes |
+| Mons Mouton (landform centre) | 1.937 | 86.04 | 8.315 (highest point 0.4 km away) | no | no |
+| Mons Malapert (landform centre) | -0.366 | 118.58 | 1.192 (highest point 0.05 km away) | no | no |
+| Shackleton crater centre (floor) | 1.878 | 347.09 | 20.119 (highest point 10.98 km away) | no | no |
+
+Per site (all 21 times):
+
+| Site | Sun up (indep / app) | Earth visible (indep / app) | Agree | Horizons files (Sun, Earth) |
+|---|---|---|---|---|
+| IM-1 Odysseus | 6 / 6 | 21 / 21 | 42/42 | `tests/horizons_cache/45b713d0c4e6d964.txt`, `tests/horizons_cache/825b4c2db78fb99f.txt` |
+| IM-2 Athena | 9 / 9 | 19 / 19 | 42/42 | `tests/horizons_cache/67360c29091f579f.txt`, `tests/horizons_cache/7852b8018e8fd3a2.txt` |
+| Peak near Shackleton (illuminated area) | 13 / 13 | 3 / 3 | 42/42 | `tests/horizons_cache/bdfb333af2978983.txt`, `tests/horizons_cache/ae59c77232d3f526.txt` |
+| Peak near Shackleton - best-lit point (derived) | 12 / 12 | 6 / 6 | 42/42 | `tests/horizons_cache/0a3f7eb3760099af.txt`, `tests/horizons_cache/d51c6d9bc9de032a.txt` |
+| Nobile Rim 2 (site DM2) | 8 / 8 | 6 / 6 | 42/42 | `tests/horizons_cache/b79834fc930db184.txt`, `tests/horizons_cache/45505fecc724d279.txt` |
+| Mons Mouton (landform centre) | 10 / 10 | 10 / 10 | 42/42 | `tests/horizons_cache/f8f56c64eab1e30f.txt`, `tests/horizons_cache/1c6801fc0f9c542f.txt` |
+| Mons Malapert (landform centre) | 7 / 7 | 21 / 21 | 42/42 | `tests/horizons_cache/1fb408b277218f22.txt`, `tests/horizons_cache/8f8e1c6874647b0d.txt` |
+| Shackleton crater centre (floor) | 0 / 0 | 0 / 0 | 42/42 | `tests/horizons_cache/f9c3e8c92e4d6566.txt`, `tests/horizons_cache/85840f52844d32dd.txt` |
 
 ## Terrain illumination cross-check
 
