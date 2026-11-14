@@ -247,3 +247,19 @@ New or changed user-facing text, checked the same way (new rows: 24; changed: 4;
 | Feature labels "Name (crater, 21 km)" or "Name (crater, 21 km), 27 km away" and the notes' list with Gazetteer links | IAU Gazetteer (MOON_nomenclature_center_pts, fetched 2026-11-14), tools/features3d.py | new |
 | Toggles "feature names (IAU)", "mini-map", "500 m distance rings", "contour lines", "slope shading", "stars" | app settings | new |
 | Main view countdowns "Searching…" (for the moment the search beyond the window is still running) | app behaviour | new |
+
+## Round 4B (disclosure tidy-up)
+
+AI wording in the rendered app is now limited to two lines (checked by `tests/ui_check.js` on every page, in Orbit, Walk and Rover, on the loader and on the intro: case-insensitive search for "AI-", "AI ", "artificial intelligence", "generated", "illustrated by").
+
+| Text | Basis | Status |
+|---|---|---|
+| About, credits list: "Development assisted by Claude Code (Anthropic), an AI coding assistant; details in AI_DISCLOSURE.md (in the project repository)." | AI_DISCLOSURE.md | new (replaces the "How this was made" section and the Claude Code mention in the development-tools credit) |
+| About, credits list: "No NASA or NASA Space Apps logos, insignia or mission patches are used; NASA data and missions are referred to in text only." | branding check (AI_DISCLOSURE.md) | moved from "How this was made" |
+| 3D "What is accurate, what is approximate", own line: "Graphics: the rover and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images." | AI_DISCLOSURE.md; data sources in README | new |
+| 3D notes, Rover: "Rover model, speed and tilt are illustrative." (was "a simple AI-generated illustration (drawn in code by Claude Code; not a vehicle model; speed not realistic)") | app behaviour | rewritten |
+| Loader "AI-generated pixel art"; intro "AI-generated pixel art"; rover label tag "AI-generated illustration" | - | removed (graphics kept) |
+| About "How this was made" section | - | removed (replaced by the credit line) |
+| Power: "Energy produced" (was "Energy generated") | definition | reworded (same value) |
+| Validation: "Computed <date> by node tests/validate.js" (was "Generated …") | data/validation.js | reworded |
+| About, Map method: "tiles made locally" (was "generated locally") | tools/tiles.py | reworded |

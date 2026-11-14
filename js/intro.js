@@ -47,7 +47,6 @@ window.AsteriaIntro = (function () {
       '<div class="intro-name">ASTERIA</div>' +
       '<div class="intro-sub">Lunar South Pole Landing Site Navigator</div>' +
       '<button type="button" class="btn intro-skip" id="introSkip">Skip</button>' +
-      '<div class="aiwm intro-ai">AI-generated pixel art</div>' +
       '</div>';
     (document.body || document.documentElement).appendChild(el);
     t0 = 0; raf = requestAnimationFrame(draw);

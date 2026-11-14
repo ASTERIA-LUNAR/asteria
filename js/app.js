@@ -947,7 +947,7 @@
     var f = function (x, n) { return x.toFixed(n); };
     var h = '<h2>Ephemeris validation against NASA/JPL Horizons</h2>';
     h += '<div class="bigresult ' + (V.overall ? 'pass' : 'fail') + '">Overall: ' + (V.overall ? 'PASS' : 'FAIL') + '</div>';
-    h += '<p class="hint">Generated ' + esc(V.generated) + ' by <code>node tests/validate.js</code>. Raw Horizons responses are cached in <code>tests/horizons_cache/</code>. Full write-up: VALIDATION_REPORT.md.</p>';
+    h += '<p class="hint">Computed ' + esc(V.generated) + ' by <code>node tests/validate.js</code>. Raw Horizons responses are cached in <code>tests/horizons_cache/</code>. Full write-up: VALIDATION_REPORT.md.</p>';
     h += '<div class="tablewrap"><table><thead><tr><th>Part</th><th>Result</th><th>Detail</th></tr></thead><tbody>';
     h += '<tr><td>Angles vs Horizons (' + V.angles.length + ' comparisons)</td><td class="' + (V.anglePass ? 'pass' : 'fail') + '">' + (V.anglePass ? 'PASS' : 'FAIL') + '</td><td>Elevation error max ' + f(V.angleStats.el.max, 4) + '° (mean ' + f(V.angleStats.el.mean, 4) + '°), limit ' + V.tolerances.elDeg + '°. Azimuth error max ' + f(V.angleStats.az.max, 4) + '° (mean ' + f(V.angleStats.az.mean, 4) + '°), limit ' + V.tolerances.azDeg + '°.</td></tr>';
     h += '<tr><td>Event times vs Horizons (' + V.events.length + ')</td><td class="' + (V.eventPass ? 'pass' : 'fail') + '">' + (V.eventPass ? 'PASS' : 'FAIL') + '</td><td>Max ' + f(V.eventStats.max, 2) + ' min (mean ' + f(V.eventStats.mean, 2) + ' min), limit ' + V.tolerances.eventMin + ' min.</td></tr>';
@@ -1301,7 +1301,7 @@
       PW.res = { P: P, t: s.t, load: load, Wh: Wh, loadWh: loadWh, peak: peak, mean: Wh / hours, darkH: darkH, zeroH: zeroH, battery: battery, batteryZero: batteryZero, hours: hours, win: win, opts: opts, usable: usable };
       var kWh = function (x) { return (x / 1000).toFixed(x < 10000 ? 2 : 1) + ' kWh'; };
       var cards = [
-        ['Energy generated', kWh(Wh)], ['Energy needed by load', kWh(loadWh)], ['Energy balance', (Wh >= loadWh ? '+' : '−') + kWh(Math.abs(Wh - loadWh))],
+        ['Energy produced', kWh(Wh)], ['Energy needed by load', kWh(loadWh)], ['Energy balance', (Wh >= loadWh ? '+' : '−') + kWh(Math.abs(Wh - loadWh))],
         ['Mean / peak power', PW.res.mean.toFixed(0) + ' / ' + peak.toFixed(0) + ' W'], ['Longest darkness', fmtHours(darkH)],
         ['Battery for longest darkness (estimate)', '≈ ' + kWh(battery) + ' (' + Math.round(usable * 100) + '% usable)']
       ];

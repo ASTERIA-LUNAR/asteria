@@ -420,8 +420,6 @@ body.v3d-open { overflow: hidden; }
   .v3d-hud { bottom: 92px; padding: 4px 6px; font-size: .68rem; max-width: calc(100% - 150px); } .v3d-compass { width: 40px; height: 40px; }
 }
 @media (prefers-reduced-motion: reduce) { .v3d { transition: none; } }
-.aiwm { font-size: .62rem; color: #7f8aa3; letter-spacing: .02em; }
-.loader .aiwm { display: block; margin-top: 1px; }
 
 /* ---------------------------------------------------------------- first-visit intro (title card) */
 .intro { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 16px;
@@ -432,7 +430,6 @@ body.v3d-open { overflow: hidden; }
 .intro-name { font-weight: 800; font-size: clamp(2rem, 9vw, 3.4rem); letter-spacing: .22em; color: var(--text); margin-left: .22em; }
 .intro-sub { font-size: clamp(.78rem, 3.2vw, 1rem); color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-top: 4px; }
 .intro-skip { margin-top: 26px; min-width: 96px; }
-.intro-ai { margin-top: 14px; }
 @media (prefers-reduced-motion: reduce) { .intro { transition: none; } }
 
 .nowrap { white-space: nowrap; }

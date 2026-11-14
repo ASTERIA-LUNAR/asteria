@@ -17,6 +17,21 @@ const path = require('path'), fs = require('fs'), url = require('url');
   const expect = (name, ok, detail) => { console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail ? ' - ' + detail : '')); if (!ok) fails.push(name); };
   const ready = page => page.evaluate(() => window.AsteriaApp.ready());
   const shot = (page, name, full) => page.screenshot({ path: path.join(out, name + '.png'), fullPage: full !== false });
+  // AI wording in the rendered UI: allowed ONLY in the About credit line and the single "Graphics:" line of the 3D
+  // "What is accurate, what is approximate" notes. Scans all text in the document (hidden and collapsed parts included).
+  const AI_CREDIT = 'Development assisted by Claude Code (Anthropic), an AI coding assistant; details in AI_DISCLOSURE.md (in the project repository).';
+  const AI_GRAPHICS = 'Graphics: the rover and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images.';
+  const AI_RE = /\bAI-|\bAI |artificial intelligence|generated|illustrated by/gi;
+  const aiScan = async (page, where) => {
+    // text nodes of the whole body except scripts/styles and except the list item that is exactly one of the two allowed lines
+    const rest = await page.evaluate(allowed => {
+      const norm = t => t.replace(/\s+/g, ' ').trim();
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: n => { const p = n.parentNode, li = p.closest && p.closest('li'); return /^(SCRIPT|STYLE|NOSCRIPT)$/.test(p.nodeName) || (li && allowed.includes(norm(li.textContent))) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; } });
+      let t = '', n; while ((n = w.nextNode())) t += n.nodeValue + ' '; return norm(t);
+    }, [AI_CREDIT, AI_GRAPHICS]);
+    const hits = [...rest.matchAll(AI_RE)].map(m => rest.slice(Math.max(0, m.index - 40), m.index + 40));
+    expect(`${where} no AI wording outside the About credit line and the 3D "Graphics:" line`, hits.length === 0, hits.slice(0, 3).join(' | '));
+  };
 
   for (const vp of [{ name: 'laptop', width: 1440, height: 900 }, { name: 'phone', width: 390, height: 844, isMobile: true, hasTouch: true }]) {
     const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, isMobile: !!vp.isMobile, hasTouch: !!vp.hasTouch });
@@ -86,6 +101,9 @@ const path = require('path'), fs = require('fs'), url = require('url');
     const lbl = await page.evaluate(() => ({ note: document.querySelector('.v3d-shadownote').textContent, badge: document.getElementById('v3dExagBadge').textContent, notes: document.getElementById('v3dNotes').textContent }));
     expect(`${tag} 3D: shadow label, true-scale badge and the accurate/approximate notes are shown`, /^(Near-field shadows \(visual approximation\); distant terrain shadows not rendered|Shadows from terrain within \d+ km \(visual approximation\); farther terrain casts no shadows here); sunlit and Earth-visible status at the site marker come from the validated horizon model\.$/.test(lbl.note) && lbl.badge === 'Vertical scale 1× (true scale)' && /near-field estimate/.test(lbl.notes), JSON.stringify(lbl).slice(0, 200));
     await shot(page, vp.name + '_11_3d_orbit', false);
+    const gl = await page.evaluate(() => [...document.querySelectorAll('#v3dNotes li')].map(li => li.textContent.replace(/\s+/g, ' ').trim()).filter(t => /AI|Claude/.test(t)));
+    expect(`${tag} 3D: "What is accurate, what is approximate" has exactly one AI line, the "Graphics:" line, as its own item`, gl.length === 1 && gl[0] === AI_GRAPHICS, JSON.stringify(gl));
+    await aiScan(page, `${tag} 3D orbit:`);
     // extended real terrain around the tile (ring A to 16 km at every level; casts shadows on Medium/High)
     const exT = await page.evaluate(() => { const d = AsteriaView3D.debug(); return { q: d.quality, layers: d.layers, err: d.extError, notes: document.getElementById('v3dNotes').textContent, note: document.querySelector('.v3d-shadownote').textContent }; });
     const rA = exT.layers.find(l => l.name === 'ringA');
@@ -184,6 +202,7 @@ const path = require('path'), fs = require('fs'), url = require('url');
     const w1 = (await v3at()).d;
     expect(`${tag} 3D: walk mode (on-screen button) moves over the terrain with the eye 2 m above the ground`, Math.hypot(w1.camera[0] - w0[0], w1.camera[2] - w0[2]) > 3 && Math.abs(w1.eyeAboveGround - 2) < 0.05, 'eye ' + w1.eyeAboveGround.toFixed(3) + ' m');
     await shot(page, vp.name + '_12_3d_walk', false);
+    await aiScan(page, `${tag} 3D walk:`);
     // rover: drive, readouts, slope warning, near-field label
     await page.click('.v3d .seg button[data-mode="rover"]');
     await page.evaluate(() => AsteriaView3D.testKey('KeyW', true)); await page.waitForTimeout(1200); await page.evaluate(() => AsteriaView3D.testKey('KeyW', false));
@@ -196,6 +215,8 @@ const path = require('path'), fs = require('fs'), url = require('url');
     expect(`${tag} 3D rover: drives, shows position / DEM elevation / slope, warns above the user's threshold, near-field Sun labelled`, rv.r && rv.r.dist > 2 && isFinite(rv.r.h) && isFinite(rv.r.slope) && rv.warn === (rv.r.slope > 1) && /near-field estimate/.test(rv.sun), JSON.stringify(rv).slice(0, 260));
     await page.fill('#v3dSlopeMax', '15'); await page.dispatchEvent('#v3dSlopeMax', 'change');
     await shot(page, vp.name + '_13_3d_rover', false);
+    expect(`${tag} 3D rover: label shows just "Rover" (no AI label on the graphic)`, await page.evaluate(() => { const l = document.getElementById('v3dLblRover'); return !l.hidden && l.textContent.trim() === 'Rover'; }));
+    await aiScan(page, `${tag} 3D rover:`);
     // close (button on laptop, Escape on phone): GPU resources released, DOM removed, app untouched
     if (vp.isMobile) await page.keyboard.press('Escape'); else await page.click('#v3dClose');
     await page.waitForTimeout(700);
@@ -394,6 +415,13 @@ const path = require('path'), fs = require('fs'), url = require('url');
     const ab = await page.textContent('#aboutContent');
     expect(`${tag} About: disclaimer and the nine Artemis regions`, /Not affiliated with NASA's ASTERIA CubeSat mission\. Not endorsed by NASA\./.test(ab) && ['Peak near Cabeus B', 'Haworth', 'Malapert Massif', 'Mons Mouton Plateau', 'Nobile Rim 1', 'Nobile Rim 2', 'de Gerlache Rim 2', 'Slater Plain'].every(n => ab.includes(n)));
     await shot(page, vp.name + '_10_about');
+    const cr = await page.evaluate(() => { const li = document.getElementById('aiCredit'); return { t: li && li.textContent.replace(/\s+/g, ' ').trim(), howMade: !!document.getElementById('howMade') || /How this was made/.test(document.getElementById('aboutContent').textContent), footerAI: [...document.querySelectorAll('footer')].some(f => /\bAI\b|Claude|artificial intelligence|generated/i.test(f.textContent)) }; });
+    expect(`${tag} About: the AI credit line is in the credits list; no "How this was made" section, no AI wording in the footer`, cr.t === AI_CREDIT && !cr.howMade && !cr.footerAI, JSON.stringify(cr));
+    await aiScan(page, `${tag} all pages (after Explore, Launch slip, Power, Compare, Validation, About):`);
+    await page.evaluate(() => AsteriaLoader.begin('Computing…')); await page.waitForTimeout(await page.evaluate(() => AsteriaLoader.delayMs) + 150);
+    const ld = await page.evaluate(() => ({ shown: AsteriaLoader.isShown(), canvas: !!document.querySelector('#loader canvas') }));
+    await aiScan(page, `${tag} loader (pixel-art rocket shown: ${ld.shown && ld.canvas}):`);
+    await page.evaluate(() => AsteriaLoader.end());
 
     // ---- tour (all numbers read live)
     await page.click('#tourBtn');
@@ -457,6 +485,7 @@ const path = require('path'), fs = require('fs'), url = require('url');
     const behind = await ip.evaluate(() => ({ intro: AsteriaIntro.isShown(), hint: !document.getElementById('hint').hidden }));
     expect(`[intro] the app computes normally behind the intro (first results after ${Date.now() - tg} ms while the intro is still up; hint waits)`, behind.intro && !behind.hint && Date.now() - tg < 3000, JSON.stringify(behind));
     await shot(ip, 'intro_1_title_card', false);
+    await aiScan(ip, '[intro] title card:');
     await ip.click('#introSkip'); await ip.waitForTimeout(400);
     expect('[intro] Skip button closes it; the getting-started hint follows', await ip.evaluate(() => !document.getElementById('intro') && !AsteriaIntro.isShown()) && await ip.waitForSelector('#hint', { state: 'visible', timeout: 3000 }).then(() => true, () => false));
     await ip.goto('about:blank'); await ip.goto(base); await ip.waitForTimeout(300);   // (reload() would keep the app's #site= hash)

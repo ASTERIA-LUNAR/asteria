@@ -49,7 +49,7 @@ window.AsteriaLoader = (function () {
     el = document.createElement('div');
     el.id = 'loader'; el.className = 'loader' + (reduce ? ' reduced' : '');
     el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); el.hidden = true;
-    el.innerHTML = (reduce ? '<span class="spinner" aria-hidden="true"></span>' : '<canvas width="' + W + '" height="' + H + '" aria-hidden="true"></canvas>') + '<span><span class="loadertxt">Computing…</span>' + (reduce ? '' : '<span class="aiwm">AI-generated pixel art</span>') + '</span>';
+    el.innerHTML = (reduce ? '<span class="spinner" aria-hidden="true"></span>' : '<canvas width="' + W + '" height="' + H + '" aria-hidden="true"></canvas>') + '<span><span class="loadertxt">Computing…</span></span>';
     document.body.appendChild(el);
     cv = el.querySelector('canvas'); ctx = cv && cv.getContext('2d');
     label = el.querySelector('.loadertxt');

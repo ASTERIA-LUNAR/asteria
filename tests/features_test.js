@@ -157,7 +157,14 @@ const loadData = (...files) => { for (const f of files) new Function('window', f
   const missing = urls.filter(u => !u || !/^https:\/\/\S+$/.test(u) || cites.indexOf(u) < 0);
   check('SUBMISSION_LINKS.md: ' + nasa.length + ' NASA + ' + other.length + ' other links, each "Name - full https URL" and cited elsewhere in the project', nasa.length > 0 && other.length > 0 && !missing.length && new Set(urls).size === urls.length, missing.join(', '));
   const html = rd('index.html');
-  check('AI disclosure: generator + ai-disclosure meta tags, About "How this was made", AI_DISCLOSURE.md', /<meta name="generator" content="Claude Code/.test(html) && /<meta name="ai-disclosure"/.test(html) && /How this was made/.test(html) && /How this was made/.test(rd('README.md')) && fs.existsSync(path.join(R, 'AI_DISCLOSURE.md')));
+  {
+    const rdme = rd('README.md'), disc = fs.existsSync(path.join(R, 'AI_DISCLOSURE.md')) ? rd('AI_DISCLOSURE.md') : '';
+    const howMade = (rdme.split(/^## How this was made$/m)[1] || '').split(/^## /m)[0];
+    check('AI disclosure: generator + ai-disclosure meta tags in index.html', /<meta name="generator" content="Claude Code/.test(html) && /<meta name="ai-disclosure" content="[^"]*Claude Code/.test(html));
+    check('AI disclosure: README "How this was made" names the code-drawn graphics, no image/audio model, NASA/catalogue data', /Claude Code/.test(howMade) && /rover/.test(howMade) && /pixel-art rocket, Earth and Moon/.test(howMade) && /No image- or audio-generation model/.test(howMade) && /NASA Blue Marble|NASA imagery/.test(howMade) && /AI_DISCLOSURE\.md/.test(howMade));
+    check('AI disclosure: AI_DISCLOSURE.md lists code, scripts, documentation, in-app text, code-drawn graphics and where the app discloses it', /Data-processing scripts/.test(disc) && /Documentation/.test(disc) && /Text in the app/.test(disc) && /pixel-art rocket/.test(disc) && /rover/.test(disc) && /About/.test(disc) && /What is accurate, what is approximate/.test(disc));
+    check('AI disclosure: the About credit line and the 3D "Graphics:" line are in the source', html.includes('Development assisted by Claude Code (Anthropic), an AI coding assistant; details in AI_DISCLOSURE.md (in the project repository).') && rd('js/view3d.js').includes('Graphics</b>: the rover and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images.'));
+  }
   const src = ['index.html', 'css/style.css', 'data/sites.js'].concat(fs.readdirSync(path.join(R, 'js')).map(f => 'js/' + f), fs.readdirSync(path.join(R, 'tools')).filter(f => /\.(js|py)$/.test(f)).map(f => 'tools/' + f), fs.readdirSync(path.join(R, 'tests')).filter(f => /\.js$/.test(f)).map(f => 'tests/' + f));
   const noHdr = src.filter(f => rd(f).slice(0, 2000).indexOf('Generated with Claude Code (Anthropic) under human direction') < 0);
   check('every AI-written source file has the "Generated with Claude Code (Anthropic) under human direction" header (' + src.length + ' files)', !noHdr.length, noHdr.join(', '));
