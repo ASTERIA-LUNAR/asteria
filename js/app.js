@@ -394,7 +394,12 @@
   }
 
   // -------------------------------------------------------------- sky view
+  // Sky view. Expert view: the detailed chart (degree ticks, all lines). Otherwise the same data drawn for beginners:
+  // plain-language axis titles, compass letters, the terrain area named, larger Sun/Earth with a visible/hidden tag
+  // (validated status), the current positions highlighted, and a one-line "How to read this".
   function renderSky(cur) {
+    if (!document.body.classList.contains('expert')) return renderSkySimple(cur);
+    $('skyTerrainLg').textContent = 'Terrain skyline';
     var c = $('sky');
     if (!c.clientWidth) return;
     var cssH = Math.max(220, Math.min(360, (c.clientWidth || 600) * 0.3));
@@ -462,6 +467,116 @@
     $('skyCaption').textContent = (mask ? 'Brown: ' + terrainName(S.site) + ' skyline (2 m above ground); dashed: smooth-Moon horizon (0°). '
       : 'Smooth Moon horizon - terrain not included. ') + (S.minEl ? 'Blue dotted: minimum usable link elevation. ' : '') +
       'Vertical scale ' + (S.fullSky ? 'full sky' : 'zoomed to the horizon') + '. Dots: computed positions over the window (faint = hidden). Play steps through computed samples only.';
+  }
+  function renderSkySimple(cur) {
+    var c = $('sky');
+    if (!c.clientWidth) return;
+    var cssH = Math.max(250, Math.min(380, (c.clientWidth || 600) * 0.32));
+    var f = fitCanvas(c, cssH), ctx = f.ctx, w = f.w, h = f.h;
+    var s = S.series, mask = maskFor(S.site, S.useTerrain), i0 = S.idx;
+    var L = 50, R = 10, T = 12, B = 44, pw = w - L - R, ph = h - T - B;
+    var ymin, ymax;
+    if (S.fullSky) { ymin = -10; ymax = 90; }
+    else {
+      var mmax = 0, mmin = 0;
+      if (mask) { var mm = minMax(mask); mmin = mm[0]; mmax = mm[1]; }
+      var smax = minMax(s.sunEl)[1], emax = minMax(s.earthEl)[1];
+      ymin = Math.floor(Math.min(-3, mmin - 1));
+      ymax = Math.ceil(Math.max(6, mmax + 2, Math.min(smax, 25) + 1, Math.min(emax, 25) + 1, S.minEl + 2));
+    }
+    var X = function (az) { return L + az / 360 * pw; };
+    var Y = function (el) { return T + (ymax - el) / (ymax - ymin) * ph; };
+    ctx.fillStyle = C.bg; ctx.fillRect(0, 0, w, h);
+    var g = ctx.createLinearGradient(0, T, 0, Y(0));
+    g.addColorStop(0, '#060a14'); g.addColorStop(1, '#0d1a33');
+    ctx.fillStyle = g; ctx.fillRect(L, T, pw, Math.max(0, Y(0) - T));
+    // grid: compass letters only, a few height lines
+    ctx.strokeStyle = 'rgba(42,58,92,.6)'; ctx.lineWidth = 1; ctx.fillStyle = C.text; ctx.font = '600 12px system-ui';
+    var dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
+    for (var k = 0; k <= 8; k++) {
+      var az = k * 45;
+      ctx.beginPath(); ctx.moveTo(X(az), T); ctx.lineTo(X(az), T + ph); ctx.stroke();
+      ctx.textAlign = 'center'; ctx.fillText(dirs[k], X(az), T + ph + 15);
+    }
+    var span = ymax - ymin, stepY = span > 60 ? 30 : span > 20 ? 10 : span > 10 ? 5 : 2;
+    ctx.textAlign = 'right'; ctx.font = '11px system-ui';
+    for (var el = Math.ceil(ymin / stepY) * stepY; el <= ymax; el += stepY) {
+      ctx.beginPath(); ctx.moveTo(L, Y(el)); ctx.lineTo(L + pw, Y(el)); ctx.stroke();
+      ctx.fillText(el + '°', L - 5, Y(el) + 4);
+    }
+    // axis titles in plain language
+    ctx.fillStyle = '#c3cee2'; ctx.font = '12px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('Direction you are facing', L + pw / 2, h - 6);
+    ctx.save(); ctx.translate(13, T + ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText('Height above the flat horizon (degrees)', 0, 0); ctx.restore();
+    // terrain (or smooth) horizon
+    ctx.beginPath(); ctx.moveTo(X(0), T + ph);
+    for (var a = 0; a <= 360; a++) ctx.lineTo(X(a), Y(mask ? mask[a % 360] : 0));
+    ctx.lineTo(X(360), T + ph); ctx.closePath();
+    ctx.fillStyle = mask ? C.terrain : C.smooth; ctx.globalAlpha = 0.95; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.strokeStyle = mask ? C.terrainLine : '#55607a'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (a = 0; a <= 360; a++) { var yy = Y(mask ? mask[a % 360] : 0); if (a === 0) ctx.moveTo(X(a), yy); else ctx.lineTo(X(a), yy); }
+    ctx.stroke();
+    // name the brown area where it is tallest (inside it)
+    var areaTxt = mask ? 'Mountains and crater walls (LOLA terrain)' : 'Flat horizon (smooth Moon, terrain not included)';
+    ctx.font = '600 12px system-ui'; ctx.textAlign = 'center';
+    var tw = ctx.measureText(areaTxt).width, best = 0, bestScore = -Infinity;
+    for (a = 0; a < 360; a += 5) {
+      var x0 = X(a);
+      if (x0 - tw / 2 < L + 4 || x0 + tw / 2 > L + pw - 4) continue;
+      // keep clear of the current Sun and Earth (their tags are drawn there)
+      if (Math.abs(x0 - X(cur.sun.az)) < tw / 2 + 90 || Math.abs(x0 - X(cur.earth.az)) < tw / 2 + 90) continue;
+      var low = Infinity;
+      for (var b = Math.floor(a - tw / 2 / pw * 360); b <= a + tw / 2 / pw * 360; b++) low = Math.min(low, mask ? mask[((b % 360) + 360) % 360] : 0);
+      if (low > bestScore) { bestScore = low; best = a; }
+    }
+    if (bestScore > -Infinity) {   // only where it fits inside the shape, clear of the Sun and Earth tags
+      var ty = Math.min(T + ph - 8, Math.max(Y(bestScore) + 16, T + ph - (T + ph - Y(bestScore)) / 2 + 4));
+      ctx.fillStyle = '#f3e6d6'; ctx.fillText(areaTxt, X(best), ty);
+    }
+    $('skyTerrainLg').textContent = mask ? 'Mountains and crater walls (LOLA terrain)' : 'Flat horizon (smooth Moon)';
+    if (S.minEl) {
+      ctx.setLineDash([3, 4]); ctx.strokeStyle = 'rgba(78,168,255,.7)'; ctx.lineWidth = 1.5; ctx.beginPath();
+      for (a = 0; a <= 360; a++) { var y2 = Y((mask ? mask[a % 360] : 0) + S.minEl); if (a === 0) ctx.moveTo(X(a), y2); else ctx.lineTo(X(a), y2); }
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.save(); ctx.beginPath(); ctx.rect(L, T, pw, ph); ctx.clip();
+    var n = s.t.length, every = Math.max(1, Math.floor(n / 1500));
+    [['sun', C.sun], ['earth', C.earth]].forEach(function (bd) {
+      var azA = bd[0] === 'sun' ? s.sunAz : s.earthAz, elA = bd[0] === 'sun' ? s.sunEl : s.earthEl, upA = bd[0] === 'sun' ? s.sunUp : s.earthUp;
+      ctx.fillStyle = bd[1];
+      for (var i = 0; i < n; i += every) { ctx.globalAlpha = upA[i] ? 0.45 : 0.12; ctx.fillRect(X(azA[i]) - 1, Y(elA[i]) - 1, 2, 2); }
+    });
+    ctx.globalAlpha = 1;
+    // "now": larger bodies with a highlight ring and a visible / hidden tag from the validated status
+    var pxPerDeg = ph / (ymax - ymin), tags = [];
+    [['Earth', cur.earth, C.earth, s.earthUp[i0]], ['Sun', cur.sun, C.sun, s.sunUp[i0]]].forEach(function (bd) {
+      var x = X(bd[1].az), y = Y(bd[1].el), r = Math.max(9, bd[1].radius_deg * pxPerDeg);
+      ctx.strokeStyle = bd[2]; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.arc(x, y, r + 7, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
+      var gl = ctx.createRadialGradient(x, y, r * 0.2, x, y, r * 2.2);
+      gl.addColorStop(0, bd[2]); gl.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gl; ctx.globalAlpha = bd[3] ? 0.4 : 0.15; ctx.beginPath(); ctx.arc(x, y, r * 2.2, 0, 2 * Math.PI); ctx.fill();
+      ctx.globalAlpha = bd[3] ? 1 : 0.55; ctx.fillStyle = bd[2]; ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fill();
+      ctx.globalAlpha = 1; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+      var tag = bd[0] + ' now: ' + (bd[3] ? 'visible' : 'hidden');
+      ctx.font = '700 13px system-ui'; ctx.textAlign = x > L + pw - 150 ? 'right' : 'left';
+      var below = y > T + ph, above = y < T;
+      if (below || above) tag += below ? ' (below this view)' : ' (above this view)';
+      var tx = x + (ctx.textAlign === 'left' ? r + 10 : -(r + 10)), tyy = Math.min(T + ph - 8, Math.max(T + 14, y - r - 6));
+      var bw = ctx.measureText(tag).width + 10, bx = ctx.textAlign === 'left' ? tx - 5 : tx - bw + 5;
+      if (bx < L + 2) { bx = L + 2; ctx.textAlign = 'left'; tx = bx + 5; }                 // keep the tag inside the chart
+      if (bx + bw > L + pw - 2) { bx = L + pw - 2 - bw; ctx.textAlign = 'left'; tx = bx + 5; }
+      ctx.fillStyle = 'rgba(7,11,20,.8)'; ctx.fillRect(bx, tyy - 13, bw, 18);
+      ctx.fillStyle = bd[3] ? bd[2] : '#aab4c8'; ctx.fillText(tag, tx, tyy);
+      tags.push(tag);
+    });
+    ctx.restore();
+    ctx.strokeStyle = '#2a3a5c'; ctx.strokeRect(L, T, pw, ph);
+    S.skyTags = tags;
+    $('skyCaption').innerHTML = '<b>How to read this:</b> If the Sun or Earth is above the brown shape, it can be seen from the site; below it, it is hidden.' +
+      (mask ? '' : ' (Here the shape is the flat horizon of a smooth Moon: terrain not included.)') +
+      ' <span class="muted">Dots: where they move during the selected period (faint = hidden). ' + (S.minEl ? 'Blue dotted line: your minimum link elevation. ' : '') + 'Expert view shows the detailed chart.</span>';
   }
   function drawBody(ctx, x, y, r, col, lbl) {
     var gl = ctx.createRadialGradient(x, y, r * 0.2, x, y, r * 2.4);

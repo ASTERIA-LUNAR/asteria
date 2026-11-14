@@ -306,7 +306,13 @@ const path = require('path'), fs = require('fs'), url = require('url');
     await page.selectOption('#windowSel', '30'); await ready(page);
 
     // ---- expert / explain
+    // Sky view for beginners: plain caption, terrain named, visible/hidden tags = validated status; Expert keeps the detailed chart
+    const sky0 = await page.evaluate(() => ({ cap: document.getElementById('skyCaption').textContent, lg: document.getElementById('skyTerrainLg').textContent, tags: AsteriaApp.state.skyTags, su: AsteriaApp.state.series.sunUp[AsteriaApp.state.idx], eu: AsteriaApp.state.series.earthUp[AsteriaApp.state.idx] }));
+    const tagOk = sky0.tags && sky0.tags.some(t => t.startsWith('Sun now: ' + (sky0.su ? 'visible' : 'hidden'))) && sky0.tags.some(t => t.startsWith('Earth now: ' + (sky0.eu ? 'visible' : 'hidden')));
+    expect(`${tag} Sky view (beginner): "How to read this" caption, terrain named "${sky0.lg}", Sun/Earth tags match the validated status (${(sky0.tags || []).join('; ')})`, /^How to read this: If the Sun or Earth is above the brown shape, it can be seen from the site; below it, it is hidden\./.test(sky0.cap) && sky0.lg === 'Mountains and crater walls (LOLA terrain)' && tagOk);
     await page.check('#expertToggle'); await page.waitForTimeout(150);
+    const sky1 = await page.evaluate(() => ({ cap: document.getElementById('skyCaption').textContent, lg: document.getElementById('skyTerrainLg').textContent }));
+    expect(`${tag} Sky view (Expert): the detailed chart and caption are kept`, /^Brown: /.test(sky1.cap) && sky1.lg === 'Terrain skyline', sky1.cap.slice(0, 60));
     expect(`${tag} Expert view reveals technical values`, await page.isVisible('#expertPanel') && await page.isVisible('#sunExpert'));
     await shot(page, vp.name + '_4_expert');
     await page.uncheck('#expertToggle'); await page.waitForTimeout(150);

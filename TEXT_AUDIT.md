@@ -218,3 +218,32 @@ Rows marked **removed** are listed in place, with what (if anything) replaced th
 | Loader: "AI-generated pixel art"; rover label "AI-generated illustration" | AI disclosure (AI_DISCLOSURE.md) | new |
 | About "How this was made" (single team member; Claude Code; validated against JPL Horizons and PGDA maps; no image/audio models; no NASA logos) | AI_DISCLOSURE.md; Validation tab | new |
 | About credits: Three.js r149 (MIT); Python, NumPy, Pillow, Playwright, Claude Code; Mazarico et al. 2011 DOI now a link | lib/README.md; SUBMISSION_LINKS.md | new |
+
+## Round 4 (3D view and Sky view)
+
+New or changed user-facing text, checked the same way (new rows: 24; changed: 4; removed: 2).
+
+| Text | Basis | Status |
+|---|---|---|
+| Sky view (beginner): axis titles "Direction you are facing" (N, NE, E, SE, S, SW, W, NW) and "Height above the flat horizon (degrees)" | definition (azimuth clockwise from local north; elevation above the local horizontal plane) | new |
+| Sky view (beginner): legend and in-chart label "Mountains and crater walls (LOLA terrain)"; for smooth-horizon sites "Flat horizon (smooth Moon)" / "(smooth Moon, terrain not included)" | data/horizons (LOLA DEMs) / smooth-horizon definition | new |
+| Sky view (beginner): tags "Sun now: visible / hidden", "Earth now: visible / hidden", "(below this view)" / "(above this view)" | computed live: validated series (sunUp / earthUp at the current sample); position outside the chart's vertical range | new |
+| Sky view (beginner) caption "How to read this: If the Sun or Earth is above the brown shape, it can be seen from the site; below it, it is hidden." plus "Dots: where they move during the selected period (faint = hidden)" | definition of the horizon test used by the engine (body centre above the terrain horizon) | new (wording from the specification) |
+| Explain "?" for the Sky view (rewritten for beginners: standing at the site, turning around; brown shape = real skyline from LOLA; above = visible) | definition / data source | rewritten |
+| 3D Quality selector "Low / Medium / High", "(automatic: …)" reason, note "Quality lowered to … automatically (N frames/s at …)" | app behaviour; frame rate measured live | new |
+| 3D Brightness: "Display brightness only (like camera exposure). Real polar shadows are almost black; this does not change the computed lighting." and the tip "The site is in shadow, so the ground looks almost black. Light up (display brightness only)" | wording from the specification; tip shown only when the validated model says "Sun down" | new |
+| 3D shadow label "Shadows from terrain within 16 / 40 km (visual approximation); farther terrain casts no shadows here; sunlit and Earth-visible status at the site marker come from the validated horizon model." (Low keeps the near-field label) | describes the renderer; tests/shading_consistency.js | changed |
+| 3D banner second sentence: "Terrain more than N km away casts no shadows in this view, so parts of the ground may still look lit." / at Low: "only the 6 km tile casts shadows …" | describes the renderer | changed |
+| Notes: extended terrain (LDEM_80S_80M to 16 km; LDEM_75S_120M to 40 km; heights within 0.1 m of direct samples; shared edge vertices and skirts) | tools/terrain3d_ext.py check; tests/view3d_test.js | new |
+| Notes: 5 m patch "2 km × 2 km at 5 m from LOLA LDEM_875S_5M … The label of this product says it is made from preliminary LOLA data." | product label (fetched 2026-11-14); tools/terrain3d_ext.py check | new |
+| Notes: "Surface shading: Lommel-Seeliger law … normals from the DEM at full resolution. Uniform albedo: no public LOLA 1064 nm normal-albedo map of the south pole at 250 m/pixel or finer was found (LOLA's published albedo maps are about 2 km/pixel near the poles; the PDS LOLA polar products named LDRM are roughness maps) … No synthetic rocks, small craters or textures are added." | PDS LOLA GDR polar directory and LDRM label (fetched 2026-11-14); Lucey et al. 2014, JGR Planets 119, doi:10.1002/2013JE004592 (polar maps about 2 km); PGDA product pages 68/90 checked | new |
+| Contour lines "every N m (every 5th brighter), from the LOLA heights"; slope legend "< 10°, 10-20°, 20-30°, > 30°" | computed from the DEM in the browser | new |
+| Stars: "Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view." and the notes (Yale Bright Star Catalogue, magnitude limit by quality, within 0.002° of an independent IAU computation) | wording from the specification; tests/view3d_test.js | new (replaces "stars (decorative)", removed) |
+| Earth caption "Earth: continents from NASA Blue Marble (cloud-free composite); clouds not shown; orientation computed for this time." and notes (Blue Marble Next Generation July 2004; agrees with JPL Horizons within 0.2°) | wording from the specification; tests/earth_orientation.js | new (replaces "plain blue sphere", removed) |
+| "Sun glare (camera glare (display effect); there is no atmosphere on the Moon)" | wording from the specification | new |
+| Labels "Sun (below horizon)", "Sun (hidden by terrain)", "Earth (below horizon)", "Earth (hidden by terrain)", "Earth (below your minimum link elevation)" | computed live from the validated status (series) and the elevation | new |
+| HUD: "Facing NW (319°)", scale bar "1 km (at the view centre)" / "(at 100 m ahead)", "View centre … from the site · camera … away", "You are …", "Rover … · driven …" | computed live from the camera and the grid geometry | new |
+| Mini-map caption "Top view, north up, 32 km across; shade = LOLA height (lighter = higher); square = 6 km tile; white dot = site; pink = you; yellow / blue = Sun / Earth direction (hollow = hidden)" | data/terrain3d/ext (ring A extent read live); validated status | new |
+| Feature labels "Name (crater, 21 km)" or "Name (crater, 21 km), 27 km away" and the notes' list with Gazetteer links | IAU Gazetteer (MOON_nomenclature_center_pts, fetched 2026-11-14), tools/features3d.py | new |
+| Toggles "feature names (IAU)", "mini-map", "500 m distance rings", "contour lines", "slope shading", "stars" | app settings | new |
+| Main view countdowns "Searching…" (for the moment the search beyond the window is still running) | app behaviour | new |

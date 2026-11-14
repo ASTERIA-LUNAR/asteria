@@ -434,3 +434,5 @@ body.v3d-open { overflow: hidden; }
 .intro-skip { margin-top: 26px; min-width: 96px; }
 .intro-ai { margin-top: 14px; }
 @media (prefers-reduced-motion: reduce) { .intro { transition: none; } }
+
+.nowrap { white-space: nowrap; }
