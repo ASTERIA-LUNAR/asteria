@@ -140,9 +140,9 @@ window.AsteriaMap = (function () {
     });
     map.on('zoomend', renderMarkers);
     map.on('mousemove', function (e) { if (readout) readout.textContent = inData(e.latlng.lat, e.latlng.lng) ? fmtLL(e.latlng.lat, e.latlng.lng) : 'No elevation data here'; });
-    map.on('mouseout', function () { if (readout) readout.textContent = 'Click anywhere to pick a point'; });
+    map.on('mouseout', function () { if (readout) readout.textContent = 'Click the map to pick a point'; });
     // readout box
-    var Rd = L.Control.extend({ options: { position: 'bottomleft' }, onAdd: function () { var d = L.DomUtil.create('div', 'mapreadout'); d.textContent = 'Click anywhere to pick a point'; readout = d; return d; } });
+    var Rd = L.Control.extend({ options: { position: 'bottomleft' }, onAdd: function () { var d = L.DomUtil.create('div', 'mapreadout'); d.textContent = 'Click the map to pick a point'; readout = d; return d; } });
     map.addControl(new Rd());
     fitMinZoom();
     map.on('resize', fitMinZoom);

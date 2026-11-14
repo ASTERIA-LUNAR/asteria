@@ -203,10 +203,13 @@ function report(r) {
   for (const s of SITES) md += `| ${s.name} | ${s.lat} | ${s.lon} | ${s.src} |\n`;
   md += `\nNotes: "Synthetic test coordinate" points are not landing sites; they were chosen to exercise geometry (near-pole Sun skimming, Earth near the east limb).\n`;
   md += xcheckSection();
+  md += coarseSection();
   md += `\n## Other checks (run separately)\n\n` +
     '* `node tests/features_test.js`: power model vs S*A*eta*sin(E_Horizons); launch-slip slip 0 = timeline metrics; the optional Earth mask leaves the validated default unchanged and equals "Earth el > horizon + minimum elevation"; the worker job code gives the same series as the engine; `js/core.js` is a verbatim rebuild of the engine; every requestable map tile exists, the tile set is < 80 MB, and the browser map projection puts the IAU Shackleton centre on the same tile pixel as the tile generator.\n' +
     '* `.venv/Scripts/python -I tools/tiles.py check`: tile georeference - for 5 sites the tile pixel containing the site has the DEM height of the site, and the Shackleton IAU centre is a ~3.5 km-deep bowl relative to a 10 km ring.\n' +
-    '* `node tests/ui_check.js`: the app opened via file:// at laptop and phone sizes (all features, tour, Blob Web Worker, loader, reduced motion), no console errors.\n';
+    '* `node tests/ui_check.js`: the app opened via file:// at laptop and phone sizes (all features, tour, Blob Web Worker, loader, reduced motion, map coverage limits, clicked-point terrain, outside-click message, the VERIFY_YOURSELF.md share link), no console errors.\n' +
+    '* `node tests/coarse_validation.js`: section D above. `node tests/blind_test.js`: section C (offline re-check from the cache).\n' +
+    '* `node tests/features_test.js` also checks: every site has a primary/secondary source type and no Wikipedia source; the removed points have no site, horizon or computed rows; Artemis III regions are plotted only through landform centres or a published point; the downsampled DEM is <= 15 MB, decodes correctly and, with the shipped worker code, reproduces the stored validation; terrain for clicked points is gated on the validation result.\n';
   return md;
 }
 
@@ -253,6 +256,30 @@ function xcheckSection() {
   const g10 = X.grid['10.0'] || X.grid['10'];
   if (g10) md += ` With the observer 10 m above the surface (the Mazarico et al. abstract notes that ~10 m height gains can greatly improve illumination), the best point within 500 m reaches ${p(g10.best.avgDiskFrac)} in our model; the published map at that point gives ${p(g10.best.pgda)} (the map does not state its observer height).`;
   md += '\n';
+  return md;
+}
+
+// Terrain for clicked points (downsampled DEM): results of tests/coarse_validation.js.
+function coarseSection() {
+  const file = path.join(ROOT, 'data', 'coarse_validation.js');
+  if (!fs.existsSync(file)) return '\n## D. Terrain for clicked points\n\nNot validated (run node tests/coarse_validation.js); clicked points use a smooth horizon.\n';
+  const w = {}; new Function('window', fs.readFileSync(file, 'utf8'))(w);
+  const V = w.LUNA_COARSE_VALIDATION, P1 = V.part1, P2 = V.part2;
+  const SW = {}; new Function('window', fs.readFileSync(path.join(ROOT, 'data', 'sites.js'), 'utf8'))(SW);
+  const nameOf = id => { const s = SW.LUNA_SITES.find(x => x.id === id); return s ? s.name : id; };
+  let md = `\n## D. Terrain for clicked points (downsampled ${V.dem.pixel_m} m DEM): **${V.pass ? 'PASS - shipped' : 'FAIL - not shipped'}**\n\n`;
+  md += `\`tools/coarse_dem.py\` builds a ${V.dem.n} x ${V.dem.n} grid at ${V.dem.pixel_m} m covering the whole map square, as the area mean of the finest LOLA DEM fully covering each pixel (${V.dem.products.map(p => p.name).join(', ')}); heights in whole metres, row differences, zlib, base64, embedded as \`data/dem_coarse.js\` (${V.dem.fileMB.toFixed(2)} MB, loaded only when a point is clicked). The browser (Web Worker, \`js/jobs.js\`) computes the horizon with the method of \`tools/terrain.py\`: 360 azimuths, the same ray sample distances to 300 km, bilinear heights, lunar curvature, observer 2 m above the interpolated surface; rays stop at the edge of the grid.\n\n`;
+  md += `Pass criteria (fixed before running \`node tests/coarse_validation.js\`): ${V.criteria.sites}; ${V.criteria.random}.\n\n`;
+  md += `**(1) Curated south-pole sites** (2027, 30-minute steps, Earth minimum elevation 0):\n\n| Site | Horizon |diff| mean / max (deg) | Sunlit % (20 m) | Sunlit % (${V.dem.pixel_m} m) | Earth visible % (20 m) | Earth visible % (${V.dem.pixel_m} m) |\n|---|---|---|---|---|---|\n`;
+  for (const r of V.sites) md += `| ${nameOf(r.id)} | ${r.hzMeanDiff.toFixed(2)} / ${r.hzMaxDiff.toFixed(2)} | ${r.sun20.toFixed(1)} | ${r.sunCoarse.toFixed(1)} | ${r.earth20.toFixed(1)} | ${r.earthCoarse.toFixed(1)} |\n`;
+  md += `\n|difference in % sunlit|: mean **${P1.meanAbsSun.toFixed(2)}**, max **${P1.maxAbsSun.toFixed(2)}** points -> ${P1.pass ? 'PASS' : 'FAIL'}. |difference in % Earth visible|: mean ${P1.meanAbsEarth.toFixed(2)}, max ${P1.maxAbsEarth.toFixed(2)} points (reported, not a criterion). Horizon difference: mean of site means ${P1.meanHz.toFixed(2)} deg, largest single azimuth ${P1.maxHz.toFixed(2)} deg.\n\n`;
+  if (P2) {
+    md += `**(2) ${P2.n} random points in 85-90 S** (seed ${P2.seed}, uniform in area): 18.6-year average illumination (average visible solar-disk fraction, hourly ${P2.span}, same method and Sun-direction file as the cross-check) from the ${V.dem.pixel_m} m horizon vs the published map AVGVISIB_85S_060M_201608 (bilinear): |difference| mean **${P2.meanAbs.toFixed(2)}**, median ${P2.medianAbs.toFixed(2)}, max ${P2.maxAbs.toFixed(2)} points; ${P2.within5}/${P2.n} within 5 points; ${P2.bothZero} points are in permanent shadow in both -> ${P2.pass ? 'PASS' : 'FAIL'}.\n\n`;
+    md += `| lat | E-lon | Ours (${V.dem.pixel_m} m) | Published map | Difference (pts) |\n|---|---|---|---|---|\n`;
+    for (const r of V.randoms) md += `| ${r.lat} | ${r.lon} | ${(100 * r.ours).toFixed(1)}% | ${(100 * r.pgda).toFixed(1)}% | ${r.diffPts.toFixed(1)} |\n`;
+  }
+  if (V.impl) md += `\nImplementation check: on the same ${V.dem.pixel_m} m grid, \`tools/terrain.py\`'s own ray code and the browser code agree to ${Math.max(...V.impl.map(r => r.maxAbsDeg)).toExponential(1)} deg (${V.impl.map(r => r.id).join(', ')}).\n`;
+  md += `\n${V.pass ? 'Result: shipped. Clicked or typed points inside the map get this horizon, labelled "terrain from coarser ' + V.dem.pixel_m + ' m data (less precise than curated sites)".' : 'Result: not shipped; clicked points keep the smooth horizon.'} No finer grid was needed. A 120 m grid of the same area would be about four times larger (over the 15 MB limit).\n`;
   return md;
 }
 

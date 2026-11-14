@@ -1,11 +1,9 @@
-# ASTERIA - Gaps, issues and approximations
-
-Status as of 2026-11-14 (third development round: ASTERIA rename, south-pole map, Artemis III regions, new interface, Earth communication, worker and loader). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
+Status as of 2026-11-14 (round 2B: accuracy audit and map fixes). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
 
 ## 1. Sites and coordinates
 
-* **25 sites** in total:
-  * **14 south-pole sites** with LOLA terrain horizons.
+* **19 sites** in total:
+  * **8 south-pole sites** with LOLA terrain horizons.
   * **11 reference sites** outside the south pole (Apollo 11-17 and robotic landers), shown as "Reference sites (outside the south pole)" with a smooth horizon (terrain not included).
 * **NASA Artemis III regions** (28 Oct 2024 list of nine; names confirmed from the NASA release).
   * NASA publishes the region boundaries **only as images**, with no numeric coordinates.
@@ -31,9 +29,10 @@ Status as of 2026-11-14 (third development round: ASTERIA rename, south-pole map
 
 * **Reference**: NASA's published map AVGVISIB_85S_060M_201608 (PGDA product 69). It is 60 m/px, covers about 85°S-90°S, and averages hourly steps over 18.6 years.
   * Its label describes the value both as "% of timesteps sunlit (by any fraction of the solar disc)" and as "average solar disc visibility". We compute both definitions, plus Sun-centre-up.
-* **All 14 south-pole sites** were compared (observer 2 m, 18.6 years, hourly).
-  * 10 are inside the map. Excluding the derived point, which was chosen using the map, our values differ from the map by **1.9 points on average and 6.1 points at most** (Chang'e-7 target).
-  * IM-1, Nobile Rim 2 (DM2) and Cabeus B lie outside the map.
+* **All 8 south-pole sites** were compared (observer 2 m, 18.6 years, hourly).
+  * 6 are inside the 60 m map. Excluding the derived point, which was chosen using that map, our values differ from it by **2.3 points on average and 5.1 points at most** (Mons Malapert landform centre).
+  * Against the coarser 120 m map (AVGVISIB_75S_120M_201608, covers all sites incl. IM-1 and DM2): 3.0 points on average, 9.3 at most (Mons Malapert landform centre, where the 120 m map is 4 points brighter than the 60 m map).
+  * (Earlier rounds also compared the Chang'e-7 target and five crater-centre points; those were removed in round 2B.)
 * **Peak near Shackleton, "approximately 80 %"** (Mahanti et al. 2024, citing Mazarico et al. 2011):
   * At the published coordinate, our model gives 48.1 % and the published map gives 45.4 %. Neither reproduces 80 %.
   * With the observer 10 m above the ground, the best point within 500 m reaches 79.2 % in our model; the map gives 58.1 % there.
@@ -113,7 +112,12 @@ Status as of 2026-11-14 (third development round: ASTERIA rename, south-pole map
 * **Copy link** uses the clipboard API. Where the browser blocks it (some file:// contexts), a prompt shows the link to copy by hand.
 * **Map tiles**: 63.9 MB in 8,195 files, under the 80 MB target. On disk they take about 77 MB because of file-system block size. Above zoom 7 the map overzooms (it enlarges zoom-7 tiles).
 
-## 5. Process notes
+## 5. Verification aids
+
+* VERIFY_YOURSELF.md: step-by-step checks for non-programmers (Horizons URL for a blind-test case and the matching share link, LROC Quickmap, NASA's illumination layer, a raw cached Horizons response).
+* LROC Quickmap's controls were described from general knowledge of the site, not re-checked in a browser this round; the guide says to look for the closest-named control if a label differs.
+
+## 6. Process notes
 
 * **Git**: the repository-local identity is "LunaWindow" with a noreply address (kept by request; the global git config is unchanged).
   * The folder name also stays `lunawindow`. Internal identifiers (`LunaEngine`, `LUNA_*` globals, `window.LunaApp`) keep the old name to avoid regressions; `window.AsteriaApp` is an alias.

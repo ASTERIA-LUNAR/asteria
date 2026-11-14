@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T10:50:39.634Z by `node tests/validate.js`.
+Generated 2026-11-14T10:58:35.369Z by `node tests/validate.js`.
 
 ## Overall: **PASS**
 
@@ -177,8 +177,90 @@ Sites covered by the 60 m map (excluding the derived point, which was chosen usi
 
 **Finding.** At the published coordinate, the published 60 m map itself gives 45.4%, and our model gives 48.1% (2 m, 18.6 years). Both are well below "approximately 80%". The ~80% figure is therefore not reproduced by the public map product at that coordinate. Possible reasons: the 2011 analysis used 240 m topography and different heights or periods, the coordinate is rounded to 0.01° (about ±150 m), and illumination changes a lot over a few hundred metres. We report this as-is. With the observer 10 m above the surface (the Mazarico et al. abstract notes that ~10 m height gains can greatly improve illumination), the best point within 500 m reaches 79.2% in our model; the published map at that point gives 58.1% (the map does not state its observer height).
 
+## D. Terrain for clicked points (downsampled 240 m DEM): **PASS - shipped**
+
+`tools/coarse_dem.py` builds a 2534 x 2534 grid at 240 m covering the whole map square, as the area mean of the finest LOLA DEM fully covering each pixel (LDEM_75S_120M, LDEM_80S_80M, LDEM_85S_20M); heights in whole metres, row differences, zlib, base64, embedded as `data/dem_coarse.js` (8.79 MB, loaded only when a point is clicked). The browser (Web Worker, `js/jobs.js`) computes the horizon with the method of `tools/terrain.py`: 360 azimuths, the same ray sample distances to 300 km, bilinear heights, lunar curvature, observer 2 m above the interpolated surface; rays stop at the edge of the grid.
+
+Pass criteria (fixed before running `node tests/coarse_validation.js`): mean |difference in % sunlit (2027)| <= 5 points and max <= 10 points vs the 20 m-based horizons; mean |difference| in 18.6-year average illumination vs the published PGDA map <= 5 points.
+
+**(1) Curated south-pole sites** (2027, 30-minute steps, Earth minimum elevation 0):
+
+| Site | Horizon |diff| mean / max (deg) | Sunlit % (20 m) | Sunlit % (240 m) | Earth visible % (20 m) | Earth visible % (240 m) |
+|---|---|---|---|---|---|
+| IM-1 Odysseus | 0.19 / 1.15 | 38.3 | 38.3 | 100.0 | 100.0 |
+| IM-2 Athena | 0.03 / 0.26 | 43.7 | 43.8 | 80.4 | 80.5 |
+| Peak near Shackleton (illuminated area) | 0.42 / 1.28 | 49.6 | 53.5 | 15.2 | 23.7 |
+| Peak near Shackleton - best-lit point (derived) | 0.46 / 1.97 | 61.0 | 57.2 | 27.8 | 24.8 |
+| Nobile Rim 2 (site DM2) | 0.19 / 1.25 | 32.6 | 34.0 | 24.7 | 24.9 |
+| Mons Mouton (landform centre) | 0.10 / 0.71 | 29.6 | 29.4 | 56.2 | 56.3 |
+| Mons Malapert (landform centre) | 2.29 / 4.85 | 33.0 | 39.8 | 100.0 | 100.0 |
+| Shackleton crater centre (floor) | 0.06 / 0.15 | 0.0 | 0.0 | 0.0 | 0.0 |
+
+|difference in % sunlit|: mean **2.03**, max **6.86** points -> PASS. |difference in % Earth visible|: mean 1.49, max 8.54 points (reported, not a criterion). Horizon difference: mean of site means 0.47 deg, largest single azimuth 4.85 deg.
+
+**(2) 50 random points in 85-90 S** (seed 20261114, uniform in area): 18.6-year average illumination (average visible solar-disk fraction, hourly 2027-01-01 to 2045-08-08 (hourly), same method and Sun-direction file as the cross-check) from the 240 m horizon vs the published map AVGVISIB_85S_060M_201608 (bilinear): |difference| mean **1.47**, median 0.98, max 16.01 points; 49/50 within 5 points; 8 points are in permanent shadow in both -> PASS.
+
+| lat | E-lon | Ours (240 m) | Published map | Difference (pts) |
+|---|---|---|---|---|
+| -88.93271 | -10.82084 | 15.5% | 18.8% | -3.3 |
+| -86.81233 | -94.06097 | 33.6% | 34.5% | -0.9 |
+| -86.2407 | -50.53364 | 19.7% | 22.1% | -2.4 |
+| -86.08357 | 131.5693 | 44.9% | 40.3% | 4.6 |
+| -87.44114 | 176.70663 | 32.2% | 33.2% | -1.0 |
+| -88.27863 | 70.70666 | 5.4% | 6.6% | -1.2 |
+| -86.59476 | 36.22473 | 4.8% | 5.5% | -0.6 |
+| -85.62515 | -15.90084 | 0.7% | 0.3% | 0.3 |
+| -85.45101 | 164.16069 | 41.1% | 41.7% | -0.6 |
+| -87.23427 | 167.1823 | 34.9% | 35.9% | -1.0 |
+| -85.45945 | -42.97631 | 1.7% | 2.3% | -0.6 |
+| -87.48613 | -176.50296 | 36.2% | 36.7% | -0.5 |
+| -86.12282 | 94.97876 | 37.5% | 21.5% | 16.0 |
+| -86.39628 | 78.49155 | 16.4% | 17.7% | -1.3 |
+| -88.35832 | 20.23747 | 17.8% | 21.3% | -3.5 |
+| -86.64337 | -128.97589 | 18.3% | 16.4% | 1.9 |
+| -85.15071 | -53.61735 | 4.5% | 5.1% | -0.6 |
+| -85.59778 | 12.5541 | 12.9% | 13.6% | -0.6 |
+| -85.29751 | -92.82677 | 0.3% | 0.6% | -0.3 |
+| -89.293 | 104.29524 | 31.9% | 32.4% | -0.5 |
+| -85.69456 | 44.36391 | 16.6% | 18.9% | -2.3 |
+| -88.93155 | -71.68308 | 21.0% | 23.8% | -2.8 |
+| -88.61785 | -146.99346 | 0.0% | 0.0% | 0.0 |
+| -85.22438 | 48.07295 | 0.0% | 0.0% | 0.0 |
+| -87.7891 | -100.98474 | 3.3% | 5.3% | -2.0 |
+| -85.46662 | -145.58449 | 34.1% | 35.3% | -1.2 |
+| -88.00016 | -17.46748 | 4.4% | 6.8% | -2.4 |
+| -85.50923 | -55.94002 | 2.7% | 3.2% | -0.6 |
+| -85.27396 | 40.4436 | 28.9% | 30.4% | -1.5 |
+| -85.99042 | 130.05191 | 47.0% | 43.0% | 4.0 |
+| -86.12633 | 53.84003 | 32.4% | 33.8% | -1.4 |
+| -87.0604 | -117.72518 | 24.0% | 22.7% | 1.2 |
+| -85.07482 | 1.0722 | 13.0% | 13.8% | -0.8 |
+| -85.14149 | 146.96206 | 15.3% | 17.5% | -2.2 |
+| -86.10656 | 100.23585 | 10.4% | 10.0% | 0.3 |
+| -87.38857 | 1.14605 | 0.0% | 0.0% | 0.0 |
+| -88.01632 | 174.1791 | 32.8% | 32.2% | 0.6 |
+| -88.29033 | 81.99756 | 0.0% | 0.0% | 0.0 |
+| -87.82073 | -76.10839 | 15.3% | 15.1% | 0.2 |
+| -85.96349 | 101.40287 | 34.4% | 35.5% | -1.0 |
+| -86.98444 | 104.88089 | 0.0% | 0.0% | 0.0 |
+| -85.6894 | -145.31102 | 10.6% | 12.2% | -1.5 |
+| -85.10664 | 47.51299 | 0.0% | 0.1% | -0.1 |
+| -87.33126 | -136.69448 | 24.9% | 25.6% | -0.6 |
+| -88.15411 | -96.8105 | 0.0% | 0.0% | 0.0 |
+| -87.14209 | 95.40091 | 1.6% | 3.0% | -1.3 |
+| -87.55224 | -166.76776 | 24.1% | 25.2% | -1.1 |
+| -86.11815 | 129.87317 | 43.7% | 44.4% | -0.7 |
+| -85.00339 | -95.15112 | 32.0% | 30.5% | 1.4 |
+| -85.74335 | 168.31705 | 0.0% | 0.4% | -0.4 |
+
+Implementation check: on the same 240 m grid, `tools/terrain.py`'s own ray code and the browser code agree to 3.7e-10 deg (im2, mons_malapert, peak_shackleton).
+
+Result: shipped. Clicked or typed points inside the map get this horizon, labelled "terrain from coarser 240 m data (less precise than curated sites)". No finer grid was needed. A 120 m grid of the same area would be about four times larger (over the 15 MB limit).
+
 ## Other checks (run separately)
 
 * `node tests/features_test.js`: power model vs S*A*eta*sin(E_Horizons); launch-slip slip 0 = timeline metrics; the optional Earth mask leaves the validated default unchanged and equals "Earth el > horizon + minimum elevation"; the worker job code gives the same series as the engine; `js/core.js` is a verbatim rebuild of the engine; every requestable map tile exists, the tile set is < 80 MB, and the browser map projection puts the IAU Shackleton centre on the same tile pixel as the tile generator.
 * `.venv/Scripts/python -I tools/tiles.py check`: tile georeference - for 5 sites the tile pixel containing the site has the DEM height of the site, and the Shackleton IAU centre is a ~3.5 km-deep bowl relative to a 10 km ring.
-* `node tests/ui_check.js`: the app opened via file:// at laptop and phone sizes (all features, tour, Blob Web Worker, loader, reduced motion), no console errors.
+* `node tests/ui_check.js`: the app opened via file:// at laptop and phone sizes (all features, tour, Blob Web Worker, loader, reduced motion, map coverage limits, clicked-point terrain, outside-click message, the VERIFY_YOURSELF.md share link), no console errors.
+* `node tests/coarse_validation.js`: section D above. `node tests/blind_test.js`: section C (offline re-check from the cache).
+* `node tests/features_test.js` also checks: every site has a primary/secondary source type and no Wikipedia source; the removed points have no site, horizon or computed rows; Artemis III regions are plotted only through landform centres or a published point; the downsampled DEM is <= 15 MB, decodes correctly and, with the shipped worker code, reproduces the stored validation; terrain for clicked points is gated on the validation result.

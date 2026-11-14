@@ -103,5 +103,47 @@ for (const [id, days] of [['peak_shackleton', 14], ['apollo11', 30], ['im2', 45]
   check('map.js unproject(project(p)) == p', Math.abs(back.lat + 89.67) < 1e-9 && Math.abs(back.lon - 129.78) < 1e-9);
 }
 
+// ---- 6. Sites, sources and Artemis III regions (round 2B accuracy audit)
+const loadData = (...files) => { for (const f of files) new Function('window', fs.readFileSync(path.join(__dirname, '..', f), 'utf8'))(global.window); };
+{
+  global.window = {}; loadData('data/sites.js', 'data/horizons/index.js');
+  const S = window.LUNA_SITES, REG = window.LUNA_ARTEMIS_REGIONS, root = path.join(__dirname, '..');
+  check('every site has sourceType primary/secondary and a sourceCheck', S.every(s => ['primary', 'secondary'].includes(s.sourceType) && s.sourceCheck), S.filter(s => !s.sourceType).map(s => s.id).join(', '));
+  check('no Wikipedia source left; Chang\'e-7 target removed', !JSON.stringify(S).toLowerCase().includes('wikipedia') && !S.some(s => s.id === 'change7'));
+  const removed = ['cabeus_b', 'haworth', 'nobile', 'de_gerlache', 'slater', 'change7'];
+  check('removed points have no site, horizon file or computed rows', removed.every(id => !S.some(s => s.id === id) && !fs.existsSync(path.join(root, 'data', 'horizons', id + '.js')) && !window.LUNA_HORIZON_IDS.includes(id)));
+  const plotted = REG.regions.filter(r => r.sites.length);
+  check('Artemis III regions: 9 listed, plotted only via landform centres or a published point', REG.regions.length === 9 && plotted.every(r => r.sites.every(id => { const s = S.find(x => x.id === id); return s && (s.landformCentre || s.regionPoint) && s.artemisRegions.includes(r.name); })) && !!REG.notPlottedNote,
+    plotted.map(r => r.name).join(', ') + ' plotted; ' + REG.regions.filter(r => !r.sites.length).map(r => r.name).join(', ') + ' by name only');
+  const hzFiles = fs.readdirSync(path.join(root, 'data', 'horizons')).filter(f => f !== 'index.js').map(f => f.replace('.js', '')).sort();
+  check('horizon files == index == curated south-pole sites', JSON.stringify(hzFiles) === JSON.stringify(window.LUNA_HORIZON_IDS.slice().sort()) && hzFiles.every(id => S.some(s => s.id === id && s.lat <= -79)), hzFiles.join(', '));
+  global.window = {}; loadData('data/illumination.js', 'data/illum_crosscheck.js');
+  check('one-year table and cross-check list exactly the terrain sites', JSON.stringify(window.LUNA_ILLUMINATION.rows.map(r => r.id).sort()) === JSON.stringify(hzFiles) && JSON.stringify(window.LUNA_XCHECK.sites.map(r => r.id).sort()) === JSON.stringify(hzFiles));
+}
+
+// ---- 7. Clicked-point terrain: size limit, decoding, the shipped code reproduces the validation, gating.
+{
+  const root = path.join(__dirname, '..'), zlib = require('zlib');
+  const mb = fs.statSync(path.join(root, 'data', 'dem_coarse.js')).size / 1e6;
+  check('downsampled DEM file <= 15 MB', mb <= 15, mb.toFixed(2) + ' MB');
+  global.window = {}; loadData('data/dem_coarse.js', 'data/coarse_validation.js', 'data/sites.js', ...fs.readdirSync(path.join(root, 'data', 'horizons')).filter(f => f !== 'index.js').map(f => 'data/horizons/' + f));
+  const M = window.LUNA_DEM_COARSE, CV = window.LUNA_COARSE_VALIDATION;
+  const raw = zlib.inflateSync(Buffer.from(M.b64, 'base64')), h = new Int16Array(raw.buffer, raw.byteOffset, raw.length / 2).slice();
+  for (let j = 0; j < M.n; j++) for (let i = 1; i < M.n; i++) h[j * M.n + i] = h[j * M.n + i] + h[j * M.n + i - 1];
+  const mn = h.reduce((a, b) => Math.min(a, b)), mx = h.reduce((a, b) => Math.max(a, b));
+  check('downsampled DEM decodes to the recorded height range', h.length === M.n * M.n && mn === M.heightRange_m[0] && mx === M.heightRange_m[1], `${M.n}x${M.n}, ${mn}..${mx} m`);
+  global.window.LunaEngine = E; loadData('js/jobs.js');
+  const J = window.ASTERIA_JOBS(E), dem = { n: M.n, px: M.pixel_m, h };
+  const s = window.LUNA_SITES.find(x => x.id === 'im2'), c = J.terrainHorizon(dem, s.lat, s.lon, 2);
+  const ref = window.LUNA_HORIZONS.im2.elevations, md = ref.reduce((a, v, i) => a + Math.abs(c.elevations[i] - v), 0) / 360;
+  const row = CV.sites.find(r => r.id === 'im2');
+  check('shipped DEM + worker code reproduce the stored validation (IM-2 horizon difference)', Math.abs(md - row.hzMeanDiff) < 1e-9, md.toFixed(4) + ' deg');
+  check('clicked-point terrain validation passed (criteria met) before shipping', CV.pass && CV.part1.meanAbsSun <= 5 && CV.part1.maxAbsSun <= 10 && CV.part2.meanAbs <= 5,
+    `sites |d sunlit| mean ${CV.part1.meanAbsSun.toFixed(2)} max ${CV.part1.maxAbsSun.toFixed(2)}; random vs PGDA mean ${CV.part2.meanAbs.toFixed(2)}`);
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8'), app = fs.readFileSync(path.join(root, 'js', 'app.js'), 'utf8');
+  check('app gates terrain for clicked points on the validation result and lazy-loads the DEM', /COARSE_OK = !!\(CV && CV\.pass\)/.test(app) && html.includes('data/coarse_validation.js') && !html.includes('src="data/dem_coarse.js"'));
+  check('custom points outside the data use a smooth horizon (no terrain)', J.demCovers(dem, -89, 0) && !J.demCovers(dem, -60, 10));
+}
+
 console.log(fails ? `${fails} FAILED` : 'ALL FEATURE TESTS PASS');
 process.exit(fails ? 1 : 0);

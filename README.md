@@ -40,7 +40,7 @@ Double-click **`index.html`**. It runs offline in any modern browser, with no se
 
 **Tabs**
 
-* **Launch slip**: a heatmap of the surface-mission metrics for landing slips of 0-60 days. Rows are either the metrics for one site or all 14 terrain sites. Click a cell to open that date.
+* **Launch slip**: a heatmap of the surface-mission metrics for landing slips of 0-60 days. Rows are either the metrics for one site or all 8 south-pole sites with terrain horizons. Click a cell to open that date.
 * **Power**: a first-order solar power and battery estimate.
 * **Compare**: up to 4 site and date scenarios, with sunlight and Earth-link metrics side by side.
 * **Validation**: JPL Horizons comparison, sanity tests, and the terrain illumination cross-check against NASA's published map.
@@ -60,7 +60,7 @@ Double-click **`index.html`**. It runs offline in any modern browser, with no se
 
 ## Sites
 
-There are 14 south-pole sites with LOLA terrain horizons, plus 11 reference sites outside the south pole. The reference sites use a smooth horizon (terrain not included) and are kept for comparison and education. Every site has source links and a note on exactly what its coordinate is (`data/sites.js`).
+There are 8 south-pole sites with LOLA terrain horizons, plus 11 reference sites outside the south pole. The reference sites use a smooth horizon (terrain not included) and are kept for comparison and education. Every site has source links and a note on exactly what its coordinate is (`data/sites.js`).
 
 **NASA Artemis III candidate regions.** NASA's 28 Oct 2024 list of nine regions publishes the region boundaries only as images, with no coordinates. A region is plotted (with sunlight and Earth calculations) **only** where a point is genuinely inside it:
 
@@ -92,10 +92,11 @@ Other south-pole sites:
   * **Windows** come from the refined events. A window cut by the start or end of the period counts only its part inside the period, and is marked.
 * **Terrain** (`tools/terrain.py`)
   * LOLA polar DEMs LDEM_85S_20M, LDEM_80S_80M and LDEM_75S_120M.
-  * 360 rays to 300 km, observer 2 m above the ground, exact spherical geometry.
+  * 360 rays to 300 km, observer 2 m above the ground, spherical geometry (lunar curvature).
+  * Clicked points: the same method in the Web Worker on a downsampled 240 m grid (`tools/coarse_dem.py`, `js/jobs.js`); it reproduces `terrain.py` on the same grid to 1e-9°, and was validated against the 20 m horizons and NASA's map before being enabled.
 * **Map tiles** (`tools/tiles.py`)
   * Polar stereographic grid identical to the DEMs and to the browser CRS (`js/map.js`).
-  * 8,195 tiles, 63.9 MB.
+  * 8,536 tiles, 66.7 MB (incl. the outer 120 m illumination layer).
   * `python tools/tiles.py check` verifies the georeference: Shackleton's IAU centre lands on the 2,789 m-deep floor pixel. A browser test checks the same pixel through Leaflet.
 * **Launch slip**: one series per site; each landing date is an exact slice of it, so slip 0 equals the Explore metrics. This is tested with the minimum elevation applied.
 * **Power** (first-order estimate)
@@ -109,43 +110,47 @@ Other south-pole sites:
 | `node tests/validate.js`: 52 angle comparisons vs JPL Horizons | elevation error max 0.0038°, azimuth max 0.055° (Sun at 89° elevation) |
 | 4 event times vs Horizons | max 0.76 min |
 | Physics sanity tests (pole Sun ±1.55°, Apollo 11 Earth 100 %, Chang'e-4 Earth 0 %, equator Sun 48.6 %) | pass |
-| `node tests/features_test.js` | power model, slip = timeline, minimum-elevation logic, worker job = engine, `js/core.js` in sync, all 8,195 requestable tiles exist, tiles < 80 MB, map projection |
-| `node tests/ui_check.js` | laptop and phone via file://, every feature, tour, worker, loader, reduced motion; no console errors |
+| **Blind test** (`node tests/blind_test.js --new`): 5 new random south-pole site/time cases in 2026-2030, fetched fresh from Horizons, 10 comparisons | 10/10 pass; elevation max 0.0029°, azimuth max 0.0038° |
+| **Terrain for clicked points** (`node tests/coarse_validation.js`), 240 m data | curated sites: % sunlit differs from the 20 m horizons by 2.0 points on average, 6.9 at most (limits 5 / 10); 50 random points in 85-90°S vs NASA's map: 1.5 points on average (limit 5) -> PASS, shipped |
+| `node tests/features_test.js` | power model, slip = timeline, minimum-elevation logic, worker job = engine, `js/core.js` in sync, all 8,536 requestable tiles exist, tiles < 80 MB, map projection, site sources and Artemis region rules, downsampled DEM size/decoding/gating |
+| `node tests/ui_check.js` | laptop and phone via file://, every feature, tour, worker, loader, reduced motion, map coverage limits, clicked-point terrain, the VERIFY_YOURSELF share link; no console errors |
 
-Terrain illumination cross-check against NASA's published average-illumination map (PGDA AVGVISIB_85S_060M_201608; 18.6 years, observer 2 m):
+Terrain illumination cross-check against NASA's published average-illumination maps (PGDA product 69; 18.6 years, observer 2 m):
 
-* 10 of our south-pole sites are covered by the map. Excluding the derived point, which was chosen using the map, our values differ from it by **1.9 points on average and 6.1 points at most**.
-* The published "~80%" at Peak near Shackleton (−88.79, 124.5) is not reproduced by either model at that coordinate: ours 48.1 %, map 45.4 %. Nothing was tuned.
+* 60 m map (AVGVISIB_85S_060M_201608, about 85°S-90°S): 5 of our south-pole sites (excluding the derived point, which was chosen using that map) differ from it by **2.3 points on average and 5.1 at most**.
+* 120 m map (AVGVISIB_75S_120M_201608, 75°S-90°S, covers every site): **3.0 points on average, 9.3 at most** (Mons Malapert landform centre).
+* The published "~80%" at Peak near Shackleton (−88.79, 124.5) is not reproduced by either model at that coordinate: ours 48.1 %, the 60 m map 45.4 %. Nothing was tuned.
 * Full tables are in [VALIDATION_REPORT.md](VALIDATION_REPORT.md) and on the Validation page.
+
+**Check it yourself:** [VERIFY_YOURSELF.md](VERIFY_YOURSELF.md) shows, without programming, how to repeat a blind-test case in a browser against NASA/JPL Horizons, check coordinates in LROC Quickmap, compare a site with NASA's illumination map, and read a saved raw Horizons response. All user-facing claims are listed with their basis in [TEXT_AUDIT.md](TEXT_AUDIT.md).
 
 ## Terrain results (2027, `node tests/illumination.js`, Earth minimum elevation 0°)
 
 | Site | Sunlit % (terrain) | Sunlit % (smooth) | Earth visible % | Both % |
 |---|---|---|---|---|
 | Peak near Shackleton - best-lit point (derived) | 61.0 | 50.9 | 27.8 | 17.2 |
-| Chang'e-7 target | 55.0 | 51.0 | 55.8 | 32.9 |
-| Peak near Shackleton (published point) | 49.6 | 50.9 | 15.2 | 7.3 |
+| Peak near Shackleton (illuminated area) | 49.6 | 50.9 | 15.2 | 7.3 |
 | IM-2 Athena | 43.7 | 48.6 | 80.4 | 35.9 |
 | IM-1 Odysseus | 38.3 | 48.6 | 100.0 | 38.3 |
-| Nobile (feature) | 34.5 | 49.0 | 21.0 | 6.9 |
-| Mons Malapert (feature) | 33.0 | 48.8 | 100.0 | 33.0 |
+| Mons Malapert (landform centre) | 33.0 | 48.8 | 100.0 | 33.0 |
 | Nobile Rim 2 (site DM2) | 32.6 | 49.1 | 24.7 | 7.7 |
-| Mons Mouton (feature) | 29.6 | 48.6 | 56.2 | 20.0 |
-| Cabeus B (feature, crater floor) | 8.3 | 49.8 | 38.1 | 4.5 |
-| Haworth, de Gerlache, Slater (features, crater floors), Shackleton floor | 0.0 | 49-55 | 0-17 | 0.0 |
+| Mons Mouton (landform centre) | 29.6 | 48.6 | 56.2 | 20.0 |
+| Shackleton crater centre (floor) | 0.0 | 54.6 | 0.0 | 0.0 |
 
 ## Data sources
 
-* NASA Artemis III candidate regions, 28 Oct 2024: https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/
+Every site records `sourceType` (all **primary** this round) and what its source states (`sourceCheck`), shown in Expert view. All coordinate sources were re-fetched and checked on 2026-11-14.
+
+* NASA Artemis III candidate regions, 28 Oct 2024: https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/ (2022 list: https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/)
 * IAU Gazetteer of Planetary Nomenclature (USGS): https://planetarynames.wr.usgs.gov/ (feature pages linked from each site)
 * LRO LOLA gridded polar DEMs, PDS Geosciences Node: https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/
-* LOLA average illumination maps, NASA PGDA product 69: https://pgda.gsfc.nasa.gov/products/69
+* LOLA average illumination maps, NASA PGDA product 69: https://pgda.gsfc.nasa.gov/products/69 (AVGVISIB_85S_060M_201608 and AVGVISIB_75S_120M_201608)
   * Files: http://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/
   * The PGDA page gives no licence text. It asks users to cite Mazarico et al. (2011), Icarus 211, 1066-1081, which the app does.
 * NASA/JPL Horizons API (validation reference): https://ssd.jpl.nasa.gov/horizons/
-* Solar constant: IAU 2015 Resolution B3, 1361 W/m² (Prša et al. 2016, AJ 152, 41)
-* Apollo coordinates: NASA NSSDC. Robotic landers: LROC featured images.
-* Other south-pole points: Mahanti et al. 2024 (PSJ 5, 62) and Peña-Asensio et al. (arXiv 2406.19863).
+* Solar constant: IAU 2015 Resolution B3, 1361 W/m² (Prša et al. 2016, AJ 152, 41; https://arxiv.org/abs/1510.07674, value read from the resolution text)
+* Apollo coordinates: NASA NSSDC. Robotic landers: LROC featured-image pages (Blue Ghost M1: post-landing page 1407).
+* Other south-pole points: Mahanti et al. 2024 (PSJ 5, 62) and Peña-Asensio et al. (arXiv 2406.19863, "Accepted for publication in Acta Astronautica").
 * Libraries: Astronomy Engine 2.1.19 (MIT), Leaflet 1.9.4 (BSD-2-Clause), both in `lib/`.
 
 ## Project layout
@@ -155,22 +160,29 @@ index.html               app (open this)
 css/style.css            styling
 js/engine.js             validated ephemeris engine (browser + Node)
 js/core.js               GENERATED: Astronomy Engine + engine.js verbatim, so a Blob worker can reuse them
-js/jobs.js               compute jobs (worker or main thread)
-js/map.js                Leaflet map, polar stereographic CRS
+js/jobs.js               compute jobs (worker or main thread), incl. the clicked-point terrain horizon
+js/map.js                Leaflet map, polar stereographic CRS, data-coverage limits
 js/app.js                UI;  js/loader.js pixel rocket loader;  js/explain.js "?" texts
 lib/                     Astronomy Engine, Leaflet (local copies)
-tiles/                   map tiles (hill, slope, illum);  data/tiles_meta.js
-data/sites.js            sites + NASA Artemis III region list, with sources
-data/horizons/*.js       LOLA terrain horizon masks (14 sites)
-data/validation.js, data/illumination.js, data/illum_crosscheck*.js   generated results
-tests/validate.js        Horizons + sanity validation -> VALIDATION_REPORT.md
+tiles/                   map tiles (hill, slope, illum, illum120);  data/tiles_meta.js
+data/sites.js            sites (with source type) + NASA Artemis III region list
+data/horizons/*.js       LOLA terrain horizon masks (8 south-pole sites)
+data/dem_coarse.js       downsampled 240 m DEM for clicked points (8.8 MB, loaded on first click)
+data/validation.js, data/illumination.js, data/illum_crosscheck*.js,
+data/coarse_validation.js, data/blind_test.js                        generated results
+tests/validate.js        Horizons + sanity + blind test -> VALIDATION_REPORT.md
+tests/horizons_api.js    shared JPL Horizons client and cache (tests/horizons_cache/)
+tests/blind_test.js      picks and fetches new random blind-test cases (--new)
+tests/coarse_validation.js  validation of terrain for clicked points
 tests/illumination.js    one-year terrain statistics
-tests/features_test.js   unit tests (power, slip, minimum elevation, packaging, tiles, projection)
+tests/features_test.js   unit tests
 tests/ui_check.js        headless browser check (Playwright), laptop + phone, file://
 tools/terrain.py         DEM reading, horizon masks
-tools/tiles.py           map tile pyramids + georeference check
+tools/coarse_dem.py      builds data/dem_coarse.js (+ "check": terrain.py on the same grid)
+tools/tiles.py           map tile pyramids + georeference check ("illum120" = outer illumination layer only)
 tools/illum_crosscheck.py, tools/export_sun_vectors.js   illumination cross-check
 tools/build_core.js      builds js/core.js
+README.md, GAPS_AND_ISSUES.md, VALIDATION_REPORT.md, TEXT_AUDIT.md, VERIFY_YOURSELF.md
 ```
 
 ## Re-running everything
@@ -180,13 +192,18 @@ npm install                                  # astronomy-engine, playwright (tes
 node tests/validate.js                       # validation (offline from the Horizons cache)
 python -m venv .venv; .venv\Scripts\python -m pip install numpy pillow
 # download ldem_85s_20m, ldem_80s_80m, ldem_75s_120m (.img + .lbl) into dem/, and
-# AVGVISIB_85S_060M_201608.IMG/.LBL into dem/pgda/ (URLs above)
+# AVGVISIB_85S_060M_201608 and AVGVISIB_75S_120M_201608 (.IMG/.LBL) into dem/pgda/ (URLs above)
 .venv\Scripts\python -I tools\terrain.py check
 .venv\Scripts\python -I tools\terrain.py horizons
 .venv\Scripts\python -I tools\tiles.py           # ~12 min, writes tiles/ and data/tiles_meta.js
 node tests/illumination.js
 node tools/export_sun_vectors.js -88.79 124.5 2027-01-01T00:00:00Z 2045-08-08T00:00:00Z 60 dem/work/sun_18p6y.bin
-.venv\Scripts\python -I tools\illum_crosscheck.py         # ~10 min; "sites" argument = per-site rows only
+.venv\Scripts\python -I tools\illum_crosscheck.py         # ~10 min; "sites" = per-site rows only
+.venv\Scripts\python -I tools\illum_crosscheck.py pgda120 # adds the 120 m map value per site
+.venv\Scripts\python -I tools\coarse_dem.py 240           # data/dem_coarse.js
+.venv\Scripts\python -I tools\coarse_dem.py check 240     # terrain.py on the same grid (implementation check)
+node tests/coarse_validation.js              # must PASS for clicked-point terrain to be enabled
+node tests/blind_test.js                     # offline re-check; "--new" picks and fetches new cases
 node tests/validate.js
 node tools/build_core.js                     # after any change to js/engine.js
 node tests/features_test.js
