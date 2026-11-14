@@ -24,7 +24,7 @@ const API = 'https://ssd.jpl.nasa.gov/api/horizons.api';
 // Test coordinates. Named mission sites use the same sourced values as data/sites.js.
 const SITES = [
   { id: 'near_pole', name: 'Near south pole (test point)', lat: -89.5, lon: 0, src: 'Synthetic test coordinate' },
-  { id: 'change7_shackleton', name: "Chang'e-7 target, peak near SE ridge of Shackleton", lat: -88.8, lon: 123.4, src: 'https://en.wikipedia.org/wiki/Chang%27e_7' },
+  { id: 'polar_test2', name: 'Polar test point near Shackleton (test geometry)', lat: -88.8, lon: 123.4, src: 'Test geometry only (not a curated site)' },
   { id: 'apollo11', name: 'Apollo 11 LM', lat: 0.67416, lon: 23.47314, src: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html' },
   { id: 'apollo15', name: 'Apollo 15 LM (mid-latitude)', lat: 26.13239, lon: 3.63330, src: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html' },
   { id: 'change4', name: "Chang'e-4 (far side)", lat: -45.457, lon: 177.589, src: 'https://lroc.im-ldi.com/images/1087' },
@@ -234,7 +234,7 @@ function report(r) {
   for (const t of r.sanity.tests) md += `| ${t.name} | ${t.value} | ${t.pass ? 'PASS' : '**FAIL**'} |\n`;
   md += `\n## Test sites\n\n| Site | lat | E-lon | Source |\n|---|---|---|---|\n`;
   for (const s of SITES) md += `| ${s.name} | ${s.lat} | ${s.lon} | ${s.src} |\n`;
-  md += `\nNotes: "Synthetic test coordinate" points are not landing sites; they were chosen to exercise geometry (near-pole Sun skimming, Earth near the east limb). The Chang'e-7 coordinate comes from a Wikipedia infobox (which itself cites a social-media post) and is used only as a test geometry.\n`;
+  md += `\nNotes: "Synthetic test coordinate" points are not landing sites; they were chosen to exercise geometry (near-pole Sun skimming, Earth near the east limb).\n`;
   md += xcheckSection();
   md += `\n## Other checks (run separately)\n\n` +
     '* `node tests/features_test.js`: power model vs S*A*eta*sin(E_Horizons); launch-slip slip 0 = timeline metrics; the optional Earth mask leaves the validated default unchanged and equals "Earth el > horizon + minimum elevation"; the worker job code gives the same series as the engine; `js/core.js` is a verbatim rebuild of the engine; every requestable map tile exists, the tile set is < 80 MB, and the browser map projection puts the IAU Shackleton centre on the same tile pixel as the tile generator.\n' +

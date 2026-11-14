@@ -18,8 +18,9 @@ Status as of 2026-11-14 (third development round: ASTERIA rename, south-pole map
 * **Peak near Shackleton**: two entries.
   * The published coordinate (Mahanti et al. 2024).
   * A clearly labelled **derived** "best-supported point": the 50 m grid point within 500 m where our model and the published map agree it is best lit. This point is the app's default view. It is an illustration, not a landing recommendation.
-* **Chang'e-7 target**: weakly sourced (a Wikipedia infobox citing a social-media post).
-* **Blue Ghost Mission 1**: the LROC landing-region image centre, not a lander fix.
+* **Chang'e-7 target: removed.** Its only source was a Wikipedia infobox citing a social-media post (no primary source found). It is no longer a site and is not used in any calculation. The validation still uses the geometry (-88.8, 123.4) as a plain test coordinate for the JPL Horizons comparison; it is labelled "test geometry only".
+* **Source quality** (`sourceType` in `data/sites.js`, shown in Expert view): every remaining site has a **primary** coordinate source (NSSDC, LROC/ASU, IAU/USGS Gazetteer, or the authors' own peer-reviewed paper), each re-fetched and checked on 2026-11-14. **Secondary sources remaining: none.** Wikipedia links were removed, together with note text that only Wikipedia supported.
+* **Blue Ghost Mission 1**: now the LROC post-landing lander position (18.5623°N, 61.8103°E, LROC image page 1407). Earlier versions used the pre-landing region image centre.
 * **Not added as sites** (no numeric coordinates in any fetched source):
   * the IM-2 pre-launch target
   * the VIPER target (its destination, Mons Mouton, is noted on that site)

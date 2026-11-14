@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T10:29:35.614Z by `node tests/validate.js`.
+Generated 2026-11-14T10:32:02.839Z by `node tests/validate.js`.
 
 ## Overall: **PASS**
 
@@ -30,14 +30,14 @@ Generated 2026-11-14T10:29:35.614Z by `node tests/validate.js`.
 | Near south pole (test point) | -89.5 | 0 | 2027-11-03T15:00Z | Earth | 3.9165 | 3.9170 | -0.0005 | -2.5283 | -2.5284 | 0.0001 | PASS |
 | Near south pole (test point) | -89.5 | 0 | 2028-07-22T21:45Z | Sun | 167.0743 | 167.0754 | -0.0010 | -0.3069 | -0.3066 | -0.0003 | PASS |
 | Near south pole (test point) | -89.5 | 0 | 2028-07-22T21:45Z | Earth | 357.7951 | 357.7956 | -0.0004 | -1.8815 | -1.8811 | -0.0004 | PASS |
-| Chang'e-7 target, peak near SE ridge of Shackleton | -88.8 | 123.4 | 2026-12-01T00:00Z | Sun | 156.6677 | 156.6714 | -0.0038 | 0.3687 | 0.3683 | 0.0004 | PASS |
-| Chang'e-7 target, peak near SE ridge of Shackleton | -88.8 | 123.4 | 2026-12-01T00:00Z | Earth | 243.2966 | 243.2998 | -0.0032 | -2.1493 | -2.1496 | 0.0003 | PASS |
-| Chang'e-7 target, peak near SE ridge of Shackleton | -88.8 | 123.4 | 2027-04-17T06:30Z | Sun | 285.8942 | 285.8929 | 0.0013 | -1.1161 | -1.1161 | -0.0000 | PASS |
-| Chang'e-7 target, peak near SE ridge of Shackleton | -88.8 | 123.4 | 2027-04-17T06:30Z | Earth | 239.3440 | 239.3421 | 0.0019 | -3.4150 | -3.4152 | 0.0002 | PASS |
-| Chang'e-7 target, peak near SE ridge of Shackleton | -88.8 | 123.4 | 2027-11-03T15:00Z | Sun | 359.8777 | 359.8788 | -0.0011 | 2.7448 | 2.7457 | -0.0008 | PASS |
-| Chang'e-7 target, peak near SE ridge of Shackleton | -88.8 | 123.4 | 2027-11-03T15:00Z | Earth | 240.5741 | 240.5746 | -0.0005 | -3.6170 | -3.6171 | 0.0001 | PASS |
-| Chang'e-7 target, peak near SE ridge of Shackleton | -88.8 | 123.4 | 2028-07-22T21:45Z | Sun | 43.6833 | 43.6844 | -0.0010 | 1.0483 | 1.0486 | -0.0003 | PASS |
-| Chang'e-7 target, peak near SE ridge of Shackleton | -88.8 | 123.4 | 2028-07-22T21:45Z | Earth | 234.4364 | 234.4368 | -0.0004 | -3.0792 | -3.0788 | -0.0004 | PASS |
+| Polar test point near Shackleton (test geometry) | -88.8 | 123.4 | 2026-12-01T00:00Z | Sun | 156.6677 | 156.6714 | -0.0038 | 0.3687 | 0.3683 | 0.0004 | PASS |
+| Polar test point near Shackleton (test geometry) | -88.8 | 123.4 | 2026-12-01T00:00Z | Earth | 243.2966 | 243.2998 | -0.0032 | -2.1493 | -2.1496 | 0.0003 | PASS |
+| Polar test point near Shackleton (test geometry) | -88.8 | 123.4 | 2027-04-17T06:30Z | Sun | 285.8942 | 285.8929 | 0.0013 | -1.1161 | -1.1161 | -0.0000 | PASS |
+| Polar test point near Shackleton (test geometry) | -88.8 | 123.4 | 2027-04-17T06:30Z | Earth | 239.3440 | 239.3421 | 0.0019 | -3.4150 | -3.4152 | 0.0002 | PASS |
+| Polar test point near Shackleton (test geometry) | -88.8 | 123.4 | 2027-11-03T15:00Z | Sun | 359.8777 | 359.8788 | -0.0011 | 2.7448 | 2.7457 | -0.0008 | PASS |
+| Polar test point near Shackleton (test geometry) | -88.8 | 123.4 | 2027-11-03T15:00Z | Earth | 240.5741 | 240.5746 | -0.0005 | -3.6170 | -3.6171 | 0.0001 | PASS |
+| Polar test point near Shackleton (test geometry) | -88.8 | 123.4 | 2028-07-22T21:45Z | Sun | 43.6833 | 43.6844 | -0.0010 | 1.0483 | 1.0486 | -0.0003 | PASS |
+| Polar test point near Shackleton (test geometry) | -88.8 | 123.4 | 2028-07-22T21:45Z | Earth | 234.4364 | 234.4368 | -0.0004 | -3.0792 | -3.0788 | -0.0004 | PASS |
 | Apollo 11 LM | 0.67416 | 23.47314 | 2026-12-01T00:00Z | Sun | 268.6484 | 268.6487 | -0.0004 | -13.4261 | -13.4223 | -0.0038 | PASS |
 | Apollo 11 LM | 0.67416 | 23.47314 | 2026-12-01T00:00Z | Earth | 272.4205 | 272.4223 | -0.0018 | 73.1057 | 73.1089 | -0.0032 | PASS |
 | Apollo 11 LM | 0.67416 | 23.47314 | 2027-04-17T06:30Z | Sun | 88.0771 | 88.0772 | -0.0001 | 64.1976 | 64.1989 | -0.0013 | PASS |
@@ -102,13 +102,13 @@ Period: 2027-01-01 to 2028-01-01 UTC, 10-minute steps. Smooth-Moon horizon (0 de
 | Site | lat | E-lon | Source |
 |---|---|---|---|
 | Near south pole (test point) | -89.5 | 0 | Synthetic test coordinate |
-| Chang'e-7 target, peak near SE ridge of Shackleton | -88.8 | 123.4 | https://en.wikipedia.org/wiki/Chang%27e_7 |
+| Polar test point near Shackleton (test geometry) | -88.8 | 123.4 | Test geometry only (not a curated site) |
 | Apollo 11 LM | 0.67416 | 23.47314 | https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html |
 | Apollo 15 LM (mid-latitude) | 26.13239 | 3.6333 | https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html |
 | Chang'e-4 (far side) | -45.457 | 177.589 | https://lroc.im-ldi.com/images/1087 |
 | East limb test point (Earth near horizon) | 0 | 88 | Synthetic test coordinate |
 
-Notes: "Synthetic test coordinate" points are not landing sites; they were chosen to exercise geometry (near-pole Sun skimming, Earth near the east limb). The Chang'e-7 coordinate comes from a Wikipedia infobox (which itself cites a social-media post) and is used only as a test geometry.
+Notes: "Synthetic test coordinate" points are not landing sites; they were chosen to exercise geometry (near-pole Sun skimming, Earth near the east limb).
 
 ## Terrain illumination cross-check
 
@@ -146,7 +146,6 @@ Best point supported by both models (maximum of min(ours at 2 m, published map))
 |---|---|---|---|---|---|---|---|
 | IM-1 Odysseus | -80.13 | 1.44 | 39.4% | 39.4% | 40.0% | outside map | n/a |
 | IM-2 Athena | -84.7906 | 29.1957 | 45.0% | 45.0% | 46.7% | 46.0% | -1.0 pts |
-| Chang'e-7 target | -88.8 | 123.4 | 55.1% | 55.1% | 57.1% | 49.0% | 6.1 pts |
 | Peak near Shackleton (illuminated area) | -88.79 | 124.5 | 48.1% | 48.1% | 49.8% | 45.4% | 2.8 pts |
 | Peak near Shackleton - best-lit point (derived) | -88.7851 | 124.3438 | 59.8% | 59.8% | 61.4% | 59.1% | 0.7 pts |
 | Nobile Rim 2 (site DM2) | -84.20156 | 60.69989 | 32.8% | 32.8% | 34.2% | outside map | n/a |
@@ -154,7 +153,7 @@ Best point supported by both models (maximum of min(ours at 2 m, published map))
 | Mons Malapert (landform centre) | -85.98 | -1.67 | 33.9% | 33.9% | 34.6% | 39.0% | -5.1 pts |
 | Shackleton crater centre (floor) | -89.67 | 129.78 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0 pts |
 
-Covered sites (excluding the derived point, which was chosen using the map): 6; |difference| mean 2.9 pts, max 6.1 pts.
+Covered sites (excluding the derived point, which was chosen using the map): 5; |difference| mean 2.3 pts, max 5.1 pts.
 
 **Finding.** At the published coordinate, the published 60 m map itself gives 45.4%, and our model gives 48.1% (2 m, 18.6 years). Both are well below "approximately 80%". The ~80% figure is therefore not reproduced by the public map product at that coordinate. Possible reasons: the 2011 analysis used 240 m topography and different heights or periods, the coordinate is rounded to 0.01° (about ±150 m), and illumination changes a lot over a few hundred metres. We report this as-is. With the observer 10 m above the surface (the Mazarico et al. abstract notes that ~10 m height gains can greatly improve illumination), the best point within 500 m reaches 79.2% in our model; the published map at that point gives 58.1% (the map does not state its observer height).
 

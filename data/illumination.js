@@ -33,20 +33,6 @@ window.LUNA_ILLUMINATION = {
    "longestBlackoutH": 138
   },
   {
-   "id": "change7",
-   "name": "Chang'e-7 target",
-   "lat": -88.8,
-   "lon": 123.4,
-   "siteHeight_m": 1632.4,
-   "sunTerrain": 55.03110553050625,
-   "sunSmooth": 51.00736259345928,
-   "earthTerrain": 55.767364876433994,
-   "earthSmooth": 43.838821985046515,
-   "bothTerrain": 32.897665658352835,
-   "longestDarkH": 352,
-   "longestBlackoutH": 299
-  },
-  {
    "id": "peak_shackleton",
    "name": "Peak near Shackleton (illuminated area)",
    "lat": -88.79,

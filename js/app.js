@@ -177,6 +177,7 @@
     if (s.id) {
       m += '<span class="b-only"> · <a href="' + esc(s.sources[0]) + '" target="_blank" rel="noopener">source</a></span>';
       m += '<div class="x-only"><b>Coordinate:</b> ' + esc(s.coordKind) + '. ' + esc(s.notes) + '<br>Mission/region: ' + esc(s.mission) + ' · ' + esc(s.agency) + ' · ' + esc(s.status) + (s.year ? ' (' + s.year + ')' : '') +
+        '<br>Source type: ' + (s.sourceType === 'secondary' ? '<b class="secsrc">secondary source</b> (no primary source found; see GAPS_AND_ISSUES.md)' : 'primary') + (s.sourceCheck ? ' - ' + esc(s.sourceCheck) : '') +
         '<br>Sources: ' + s.sources.map(function (u) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(u.replace(/^https?:\/\//, '').slice(0, 64)) + '</a>'; }).join(' · ') +
         (hasTerrain(s) ? '<br>Terrain: LOLA, site height ' + HZ[s.id].siteHeight_m.toFixed(0) + ' m above the 1737.4 km sphere; observer 2 m above ground; horizon from ' + fmtDeg(minMax(HZ[s.id].elevations)[0], 1) + ' to ' + fmtDeg(minMax(HZ[s.id].elevations)[1], 1) + '; rays to ' + HZ[s.id].minReach_km.toFixed(0) + '-300 km.' : '') + '</div>';
       if (s.landformCentre) m += '<div class="warnline">One point at the centre of a large landform, not a landing site. NASA\'s region boundary is not plotted; conditions elsewhere in the region can be very different.</div>';

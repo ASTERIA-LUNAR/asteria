@@ -340,3 +340,4 @@ body.expert div.metricx.x-only { display: contents !important; }
 .regionnames { padding: 4px 10px 10px; }
 .regionnames .sub { font-size: .78rem; color: var(--muted); line-height: 1.45; }
 .regionnames a { color: #9cc9ff; }
+.secsrc { color: #ffb36b; }

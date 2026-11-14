@@ -75,7 +75,6 @@ Both landform centres were checked to lie inside the IAU Gazetteer outline of th
 Other south-pole sites:
 
 * Peak near Shackleton: the published point, plus the **derived** best-supported point.
-* The Chang'e-7 target.
 * IM-1 and IM-2.
 * The Shackleton crater centre.
 
