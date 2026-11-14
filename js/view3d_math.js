@@ -70,13 +70,17 @@
     return { i: i, j: j, a: fi - i, b: fj - j };
   }
   function node(T, i, j) { return T.H[j * T.n + i]; }
+  // A finer grid (the 5 m patch) attached as T.patch replaces the tile's surface inside its square.
+  function inPatch(T, e, n) { var P = T.patch; return P && Math.abs(e) <= P.half && Math.abs(n) <= P.half; }
   // Bilinear DEM height (true, m above the sphere) at grid (e, n) - the method used to build the tile.
   function heightAt(T, e, n) {
+    if (inPatch(T, e, n)) return heightAt(T.patch, e, n);
     var q = cell(T, e, n), i = q.i, j = q.j, a = q.a, b = q.b;
     return node(T, i, j) * (1 - a) * (1 - b) + node(T, i + 1, j) * a * (1 - b) + node(T, i, j + 1) * (1 - a) * b + node(T, i + 1, j + 1) * a * b;
   }
   // Height on the rendered mesh: each cell is split along the (i, j+1)-(i+1, j) diagonal, as in buildIndex().
   function meshHeightAt(T, e, n) {
+    if (inPatch(T, e, n)) return meshHeightAt(T.patch, e, n);
     var q = cell(T, e, n), i = q.i, j = q.j, a = q.a, b = q.b;
     var h00 = node(T, i, j), h10 = node(T, i + 1, j), h01 = node(T, i, j + 1), h11 = node(T, i + 1, j + 1);
     if (a + b <= 1) return h00 + (h10 - h00) * a + (h01 - h00) * b;
@@ -84,6 +88,7 @@
   }
   // Slope (deg) and downhill azimuth from the bilinear DEM surface over one grid cell (DEM resolution).
   function slopeAt(T, e, n) {
+    if (inPatch(T, e, n)) return slopeAt(T.patch, e, n);
     var q = cell(T, e, n), i = q.i, j = q.j, a = q.a, b = q.b;
     var h00 = node(T, i, j), h10 = node(T, i + 1, j), h01 = node(T, i, j + 1), h11 = node(T, i + 1, j + 1);
     var dhde = ((h10 - h00) * (1 - b) + (h11 - h01) * b) / T.d;          // east
@@ -130,6 +135,57 @@
       pos[k++] = p[0]; pos[k++] = p[1]; pos[k++] = p[2];
     }
     return { m: m, pos: pos };
+  }
+
+  // --------------------------------------------- nested grids (round 4)
+  // Height of grid G exactly at a node when (e, n) falls on one (no interpolation rounding), else on its mesh.
+  function nodeOrMesh(G, e, n) {
+    var fi = e / G.d + G.c, fj = G.c - n / G.d, i = Math.round(fi), j = Math.round(fj);
+    if (Math.abs(fi - i) < 1e-9 && Math.abs(fj - j) < 1e-9 && i >= 0 && j >= 0 && i < G.n && j < G.n) return node(G, i, j);
+    return meshHeightAt(G, e, n);
+  }
+  // Mesh of every 'stride'-th node of grid G with a square hole of half-size 'hole' (0 = none) where a finer mesh is drawn.
+  // Nodes on the hole's edge take their height from that finer grid ('inner'), so both meshes share identical edge
+  // vertices; nodes on G's own outer edge can likewise take heights from 'outerOf' (unused here). Returns positions
+  // (Three.js world), the index (cells fully inside the hole left out) and the number of nodes per side.
+  function buildGridMesh(G, stride, hole, inner) {
+    stride = stride || 1;
+    var m = Math.floor((G.n - 1) / stride) + 1, pos = new Float32Array(m * m * 3), H = new Float32Array(m * m), k = 0, eps = 1e-6;
+    for (var jj = 0; jj < m; jj++) for (var ii = 0; ii < m; ii++) {
+      var i = ii * stride, j = jj * stride, e = (i - G.c) * G.d, n = (G.c - j) * G.d, h = node(G, i, j);
+      if (hole > 0 && inner && Math.abs(e) <= hole + eps && Math.abs(n) <= hole + eps && Math.max(Math.abs(e), Math.abs(n)) >= hole - eps) h = nodeOrMesh(inner, e, n);
+      H[jj * m + ii] = h;
+      var p = toThree(enu(G, e, n, h));
+      pos[k++] = p[0]; pos[k++] = p[1]; pos[k++] = p[2];
+    }
+    var idx = [], dd = G.d * stride;
+    for (var j2 = 0; j2 < m - 1; j2++) for (var i2 = 0; i2 < m - 1; i2++) {
+      var ec = ((i2 + 0.5) * stride - G.c) * G.d, nc = (G.c - (j2 + 0.5) * stride) * G.d;
+      if (hole > 0 && Math.abs(ec) < hole && Math.abs(nc) < hole) continue;
+      var a = j2 * m + i2, b = a + 1, c = a + m, d = c + 1;
+      idx.push(a, c, b, b, c, d);
+    }
+    return { m: m, pos: pos, H: H, index: (m * m > 65535 ? new Uint32Array(idx) : new Uint16Array(idx)), spacing: dd };
+  }
+  // Skirt: a vertical strip hanging 'drop' metres below the outer edge of grid G (every 'stride'-th node), so the
+  // T-junctions where a finer mesh meets a coarser one show terrain-coloured skirt instead of gaps.
+  function buildSkirt(G, stride, drop, heightFn) {
+    stride = stride || 1;
+    var m = Math.floor((G.n - 1) / stride) + 1, ring = [];
+    for (var a = 0; a < m - 1; a++) ring.push([a, 0]);
+    for (var b = 0; b < m - 1; b++) ring.push([m - 1, b]);
+    for (var c2 = m - 1; c2 > 0; c2--) ring.push([c2, m - 1]);
+    for (var d2 = m - 1; d2 > 0; d2--) ring.push([0, d2]);
+    ring.push(ring[0]);
+    var pos = new Float32Array(ring.length * 6), idx = [];
+    for (var q = 0; q < ring.length; q++) {
+      var i = ring[q][0] * stride, j = ring[q][1] * stride, e = (i - G.c) * G.d, n = (G.c - j) * G.d;
+      var h = heightFn ? heightFn(e, n) : node(G, i, j);
+      var t = toThree(enu(G, e, n, h)), bt = toThree(enu(G, e, n, h - drop / (G.k || 1)));
+      pos.set(t, q * 6); pos.set(bt, q * 6 + 3);
+      if (q < ring.length - 1) { var t0 = 2 * q, b0 = t0 + 1, t1 = t0 + 2, b1 = t0 + 3; idx.push(t0, b0, t1, t1, b0, b1); }
+    }
+    return { pos: pos, index: new Uint32Array(idx) };
   }
 
   // ------------------------------------------------------------ Earth phase
@@ -183,7 +239,7 @@
   }
 
   return {
-    latLonAt: latLonAt,
+    latLonAt: latLonAt, nodeOrMesh: nodeOrMesh, buildGridMesh: buildGridMesh, buildSkirt: buildSkirt,
     decodeTile: decodeTile, enu: enu, toThree: toThree, fromThree: fromThree, dirFromAzEl: dirFromAzEl, azElFromDir: azElFromDir,
     heightAt: heightAt, meshHeightAt: meshHeightAt, slopeAt: slopeAt, gridFromWorld: gridFromWorld, groundWorld: groundWorld,
     inside: inside, buildIndex: buildIndex, buildPositions: buildPositions, earthPhase: earthPhase, nearFieldSunUp: nearFieldSunUp

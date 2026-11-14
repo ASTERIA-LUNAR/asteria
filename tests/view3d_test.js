@@ -113,6 +113,64 @@ function loadWin(file) {
   expect('grid -> lat/lon: centre is the site; 1 km north is 1000/R rad further north', Math.abs(ll.lat + 85.98) < 1e-9 && Math.abs(ll.lon + 1.67) < 1e-9 && Math.abs((ln.lat - ll.lat) - 1000 / 1737400 / DEG) < 1e-9);
 })();
 
+// ---------------------------------------------------------------- 3b. extended terrain rings, 5 m patch, seams (round 4)
+(function () {
+  const ids = loadWin('data/terrain3d/index.js').ASTERIA_TERRAIN3D_IDS;
+  const ids5 = loadWin('data/terrain3d/hi5m_index.js').ASTERIA_TERRAIN3D_5M_IDS;
+  let worstA = 0, worstB = 0, worst5 = 0, nA = 0, seam = 0, seamN = 0, sizes = [], gapCells = 0, worst5c = 0;
+  const posAt = (P, m, ii, jj) => [P.pos[3 * (jj * m + ii)], P.pos[3 * (jj * m + ii) + 1], P.pos[3 * (jj * m + ii) + 2]];
+  for (const id of ids) {
+    const T = M.decodeTile(loadWin('data/terrain3d/' + id + '.js').ASTERIA_TERRAIN3D[id]);
+    const A = M.decodeTile(loadWin('data/terrain3d/ext/' + id + '_a.js').ASTERIA_TERRAIN3D_EXT[id + '_a']);
+    const B = M.decodeTile(loadWin('data/terrain3d/ext/' + id + '_b.js').ASTERIA_TERRAIN3D_EXT[id + '_b']);
+    for (const p of A.meta.checkPoints) { worstA = Math.max(worstA, Math.abs(A.H[p.j * A.n + p.i] - p.h_dem_m)); nA++; }
+    for (const p of B.meta.checkPoints) { worstB = Math.max(worstB, Math.abs(B.H[p.j * B.n + p.i] - p.h_dem_m)); nA++; }
+    sizes.push(A.half, B.half);
+    // seams: every ring vertex on the hole edge is bit-identical to the vertex of the finer mesh at the same node
+    for (const [outer, inner, stride] of [[A, T, 1], [B, A, 1], [A, T, 2]]) {
+      const I = stride > 1 ? decim(inner, stride) : inner, O = stride > 1 ? decim(outer, stride) : outer;
+      const PO = M.buildGridMesh(O, 1, I.half, I), PI = M.buildGridMesh(I, 1, 0, null);
+      for (let jj = 0; jj < PO.m; jj++) for (let ii = 0; ii < PO.m; ii++) {
+        const e = (ii - O.c) * O.d, n = (O.c - jj) * O.d;
+        if (Math.max(Math.abs(e), Math.abs(n)) !== I.half || Math.abs(e) > I.half || Math.abs(n) > I.half) continue;
+        const pi = Math.round(e / I.d + I.c), pj = Math.round(I.c - n / I.d);
+        const a = posAt(PO, PO.m, ii, jj), b = posAt(PI, PI.m, pi, pj);
+        seam = Math.max(seam, Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])); seamN++;
+      }
+      // no hole cell is left undrawn: every outer cell outside the inner square is in the index
+      const cells = PO.index.length / 6, m = PO.m, inside = Math.round(2 * I.half / O.d);
+      if (cells !== (m - 1) * (m - 1) - inside * inside) gapCells++;
+    }
+    if (ids5.includes(id)) {
+      const P = M.decodeTile(loadWin('data/terrain3d/hi5m/' + id + '.js').ASTERIA_TERRAIN3D_5M[id]);
+      for (const p of P.meta.checkPoints) worst5 = Math.max(worst5, Math.abs(P.H[p.j * P.n + p.i] - p.h_dem_m));
+      // the tile's hole edge takes its heights from the patch: shared vertices
+      const PT = M.buildGridMesh(T, 1, P.half, P), PP = M.buildGridMesh(P, 1, 0, null);
+      for (let jj = 0; jj < PT.m; jj++) for (let ii = 0; ii < PT.m; ii++) {
+        const e = (ii - T.c) * T.d, n = (T.c - jj) * T.d;
+        if (Math.max(Math.abs(e), Math.abs(n)) !== P.half || Math.abs(e) > P.half || Math.abs(n) > P.half) continue;
+        const a = posAt(PT, PT.m, ii, jj), b = posAt(PP, PP.m, Math.round(e / P.d + P.c), Math.round(P.c - n / P.d));
+        seam = Math.max(seam, Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])); seamN++;
+      }
+      worst5c = Math.max(worst5c, Math.abs(P.H[P.c * P.n + P.c] - T.H[T.c * T.n + T.c]));
+      // readouts use the patch inside 1 km: T.patch hook
+      T.patch = P;
+      const h = M.heightAt(T, 123.4, -456.7), hp = M.heightAt(P, 123.4, -456.7); T.patch = null;
+      if (Math.abs(h - hp) > 1e-9) gapCells++;
+    }
+  }
+  expect('extended terrain: ring A (16 km) and ring B (40 km) heights at stored check points (' + nA + ', incl. far corners) within 1 m of direct DEM samples', worstA <= 1 && worstB <= 1, 'worst ring A ' + worstA.toFixed(3) + ' m, ring B ' + worstB.toFixed(3) + ' m');
+  expect('extended terrain: half-sizes 16 km and 40 km for every site', sizes.every((x, k) => x === (k % 2 ? 40000 : 16000)), [...new Set(sizes)].join(', '));
+  expect('seams: ' + seamN + ' hole-edge vertices (tile/ring A, ring A/ring B, Low-quality decimation, 5 m patch/tile) identical to the vertices of the finer mesh', seam === 0, 'max distance ' + seam + ' m');
+  expect('seams: no missing cells around the holes; heights inside the 5 m patch come from the patch', gapCells === 0, gapCells + ' problems');
+  expect('5 m patch (' + ids5.join(', ') + '): heights at stored check points within 1 m of direct LDEM_875S_5M samples', ids5.length === 3 && worst5 <= 1, 'worst ' + worst5.toFixed(3) + ' m; site centre 5 m vs 20 m DEM differ by ' + worst5c.toFixed(2) + ' m');
+  function decim(G, st) {
+    const mm = Math.floor((G.n - 1) / st) + 1, H = new Float32Array(mm * mm);
+    for (let j = 0; j < mm; j++) for (let i = 0; i < mm; i++) H[j * mm + i] = G.H[j * st * G.n + i * st];
+    return Object.assign({}, G, { n: mm, d: G.d * st, c: (mm - 1) / 2, half: (mm - 1) / 2 * G.d * st, H });
+  }
+})();
+
 // ---------------------------------------------------------------- 4. lazy loading: the main page does not load the 3D code
 (function () {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');

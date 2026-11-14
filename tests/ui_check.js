@@ -65,7 +65,8 @@ const path = require('path'), fs = require('fs'), url = require('url');
     await page.click('#deployBtn');
     await page.waitForFunction(() => window.AsteriaView3D && AsteriaView3D.debug().frames >= 1, null, { timeout: 30000 });
     const openMs = Date.now() - tOpen;
-    await page.waitForTimeout(450);
+    await page.waitForFunction(() => !AsteriaView3D.debug().refining, null, { timeout: 30000 });
+    await page.waitForTimeout(250);
     const v3at = () => page.evaluate(() => {
       const d = AsteriaView3D.debug(), S = AsteriaApp.state, r = LunaEngine.sunEarthAt({ lat: S.site.lat, lon: S.site.lon }, new Date(S.series.t[S.idx]));
       return { d, idx: S.idx, sunUp: S.series.sunUp[S.idx], earthUp: S.series.earthUp[S.idx], sun: { az: r.sun.az, el: r.sun.el, rad: r.sun.radius_deg }, earth: { az: r.earth.az, el: r.earth.el, rad: r.earth.radius_deg },
@@ -83,8 +84,12 @@ const path = require('path'), fs = require('fs'), url = require('url');
     expect(`${tag} 3D: Earth at engine az/el within 0.01°, Sun and Earth angular sizes from the engine`, e3.earth < 0.01 && e3.size < 1e-6 && v3.d.earthRadiusDeg > 0.85 && v3.d.earthRadiusDeg < 1.05, 'error ' + e3.earth.toExponential(2) + '°, Earth diameter ' + (2 * v3.d.earthRadiusDeg).toFixed(3) + '°');
     expect(`${tag} 3D: status tiles = validated horizon model at the same time (same colours as the main app)`, v3.tiles[0] === 'tile ' + (v3.sunUp ? 'on-sun' : 'off') && v3.tiles[1] === 'tile ' + (v3.earthUp ? 'on-earth' : 'off') && v3.d.instant.idx === v3.idx, JSON.stringify(v3.tiles));
     const lbl = await page.evaluate(() => ({ note: document.querySelector('.v3d-shadownote').textContent, badge: document.getElementById('v3dExagBadge').textContent, notes: document.getElementById('v3dNotes').textContent }));
-    expect(`${tag} 3D: shadow label, true-scale badge and the accurate/approximate notes are shown`, /Near-field shadows \(visual approximation\); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model/.test(lbl.note) && lbl.badge === 'Vertical scale 1× (true scale)' && /near-field estimate/.test(lbl.notes), JSON.stringify(lbl).slice(0, 200));
+    expect(`${tag} 3D: shadow label, true-scale badge and the accurate/approximate notes are shown`, /^(Near-field shadows \(visual approximation\); distant terrain shadows not rendered|Shadows from terrain within \d+ km \(visual approximation\); farther terrain casts no shadows here); sunlit and Earth-visible status at the site marker come from the validated horizon model\.$/.test(lbl.note) && lbl.badge === 'Vertical scale 1× (true scale)' && /near-field estimate/.test(lbl.notes), JSON.stringify(lbl).slice(0, 200));
     await shot(page, vp.name + '_11_3d_orbit', false);
+    // extended real terrain around the tile (ring A to 16 km at every level; casts shadows on Medium/High)
+    const exT = await page.evaluate(() => { const d = AsteriaView3D.debug(); return { q: d.quality, layers: d.layers, err: d.extError, notes: document.getElementById('v3dNotes').textContent, note: document.querySelector('.v3d-shadownote').textContent }; });
+    const rA = exT.layers.find(l => l.name === 'ringA');
+    expect(`${tag} 3D: extended LOLA terrain drawn around the tile (ring A, ${rA && rA.vertices} vertices; ${exT.q}: casts shadows ${rA && rA.cast}), labelled with source and grid`, rA && !exT.err && rA.cast === (exT.q !== 'low') && /Extended terrain<\/b>|Extended terrain: real LOLA heights to (16|40) km/.test(exT.notes) && /LDEM_80S_80M|LDEM_75S_120M/.test(exT.notes) && (exT.q === 'low' ? /Near-field/.test(exT.note) : /within (16|40) km/.test(exT.note)), JSON.stringify(exT.layers.map(l => l.name)));
     // time slider in 3D drives the main app (and back)
     const target = 37;
     await page.evaluate(i => { const s = document.getElementById('v3dSlider'); s.value = i; s.dispatchEvent(new Event('input', { bubbles: true })); }, target);

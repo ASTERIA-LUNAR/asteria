@@ -15,6 +15,7 @@
 window.AsteriaView3D = (function () {
   'use strict';
   var M = window.AsteriaView3DMath;
+  var SHADOW_BIAS_M = 3;
   var FILL = 0.05, LIGHT_UP = 3;   // fill-light intensity at brightness 1; brightness used by "Light up"
   var RING_M = 60000, SUN_D = 500000, EARTH_D = 450000, STAR_D = 800000, EYE_M = 2;   // eye = horizon-model observer height
   var V = null;           // current view (null when closed)
@@ -41,7 +42,9 @@ window.AsteriaView3D = (function () {
   var QORDER = ['low', 'medium', 'high'];
   // Starting level from device hints: phone-like devices (touch pointer, small screen, little memory or few cores) or a
   // software renderer -> Low; a recognisable dedicated GPU on a large screen -> High; otherwise Medium.
-  function autoQuality() {
+  var AUTO_Q = null;
+  function autoQuality() { return AUTO_Q || (AUTO_Q = autoQuality0()); }
+  function autoQuality0() {
     var why = [], q = 'medium';
     var nav = window.navigator || {}, mem = nav.deviceMemory, cores = nav.hardwareConcurrency, gpu = '';
     try {
@@ -67,8 +70,8 @@ window.AsteriaView3D = (function () {
       '<div class="v3d-stage" id="v3dStage">' +
       '  <div class="v3d-labels" id="v3dLabels"><span class="v3d-lbl sun" id="v3dLblSun">Sun</span><span class="v3d-lbl earth" id="v3dLblEarth">Earth</span><span class="v3d-lbl site" id="v3dLblSite"><i></i>Site</span><span class="v3d-lbl rover" id="v3dLblRover" hidden>Rover <span class="aiwm">AI-generated illustration</span></span></div>' +
       '  <div class="v3d-exag" id="v3dExagBadge">Vertical scale 1× (true scale)</div>' +
-      '  <div class="v3d-banner" id="v3dBanner" hidden></div>' +
-      '  <div class="v3d-tip" id="v3dTip" hidden>The site is in shadow, so the ground looks almost black. <button class="btn small" id="v3dTipBtn">Light up</button> <span class="fineprint">(display brightness only)</span></div>' +
+      '  <div class="v3d-msgs"><div class="v3d-banner" id="v3dBanner" hidden></div>' +
+      '  <div class="v3d-tip" id="v3dTip" hidden>The site is in shadow, so the ground looks almost black. <button class="btn small" id="v3dTipBtn">Light up</button> <span class="fineprint">(display brightness only)</span></div></div>' +
       '  <div class="v3d-qnote" id="v3dQNote" hidden></div>' +
       '  <p class="v3d-shadownote">Near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model.</p>' +
       '  <div class="v3d-pad" id="v3dPad" hidden><button data-k="fwd" aria-label="Forward">&#9650;</button><button data-k="left" aria-label="Turn left">&#9664;</button><button data-k="back" aria-label="Back">&#9660;</button><button data-k="right" aria-label="Turn right">&#9654;</button></div>' +
@@ -114,19 +117,28 @@ window.AsteriaView3D = (function () {
       '  </div>' +
       '</aside>';
     document.body.appendChild(el);
-    var notes = [
-      '<b>Terrain</b>: LOLA ' + esc(m.demProduct) + ', ' + m.spacing_m + ' m grid' + (o.stride > 1 ? ' (shown at ' + m.spacing_m * o.stride + ' m on this device for speed; readouts use ' + m.spacing_m + ' m)' : '') + ', ' + (m.size_m / 1000).toFixed(1) + ' km square centred on the site; heights within 0.05 m of direct DEM samples (tools/terrain3d.py check). Lunar curvature is included (about ' + m.curvatureDropAtCorner_m.toFixed(0) + ' m drop at the corners). Features smaller than the grid, boulders and the lander are not represented.',
+    return el;
+  }
+  // "What is accurate, what is approximate" - written from what this view actually loaded and draws.
+  function extKm(v) { var s = v.s; return s.ext.b && s.Q.ringB ? 40 : s.ext.a ? 16 : 0; }
+  function notes(v) {
+    var s = v.s, m = s.T.meta, Q = s.Q, A = s.ext.a, B = s.ext.b && Q.ringB ? s.ext.b : null, P5 = s.T.patch, km = extKm(v), shKm = Q.extShadow ? km : 0;
+    var list = [
+      '<b>Terrain (6 km tile)</b>: LOLA ' + esc(m.demProduct) + ', ' + m.spacing_m + ' m grid' + (v.stride > 1 ? ' (drawn at ' + m.spacing_m * v.stride + ' m at ' + Q.label + ' quality; readouts use ' + m.spacing_m + ' m)' : '') + ', ' + (m.size_m / 1000).toFixed(1) + ' km square centred on the site; heights within 0.05 m of direct DEM samples (tools/terrain3d.py check). Lunar curvature is included (about ' + m.curvatureDropAtCorner_m.toFixed(0) + ' m drop at the corners). Features smaller than the grid, boulders and the lander are not represented.',
+      P5 ? '<b>Sharper ground near the site</b>: a 2 km × 2 km patch at 5 m from LOLA ' + esc(P5.meta.demProduct) + ' (heights within 0.05 m of direct samples; tools/terrain3d_ext.py check). The label of this product says it is made from preliminary LOLA data.' : null,
+      A ? '<b>Extended terrain</b>: real LOLA heights to ' + km + ' km from the site: ' + esc(A.meta.demProduct) + ' on a ' + A.d * Q.ringA + ' m grid to 16 km' + (B ? ', and ' + esc(B.meta.demProduct) + ' on a ' + B.d + ' m grid to 40 km' : '') + ' (stored heights within 0.1 m of direct DEM samples; tools/terrain3d_ext.py check). Same site-centred frame and curvature as the tile; the meshes share their edge vertices, and short vertical skirts hide the joins.' : (s.extError ? '<b>Extended terrain</b>: could not be loaded (' + esc(s.extError) + ').' : '<b>Extended terrain</b>: loading…'),
       '<b>Sun</b>: direction and disk size from the validated engine (the light direction matches it to better than 0.01°).',
-      '<b>Earth</b>: position and size (about ' + (2 * (o.earthRadiusDeg || 0.95)).toFixed(1) + '° across) from the engine; plain blue sphere (no clouds or continents). Its lit side is the computed phase from the Sun direction; the unlit side is drawn very faintly so Earth can be found.',
-      '<b>Distant skyline</b>: the site\'s terrain horizon (data/horizons, rays to 300 km) drawn as the top edge of a dark ring ' + RING_M / 1000 + ' km away. It is exact only when seen from the site marker; elsewhere on the tile it is approximate. Terrain between the tile edge and the skyline is not drawn (dark).',
-      '<b>Shadows</b>: near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model.',
-      '<b>Fill light</b>: a faint uniform light keeps unlit ground from being pure black. It is not physical (real shadows get only faint light reflected from sunlit terrain and Earthshine).',
+      '<b>Earth</b>: position and size (about ' + (2 * (v.earthRadiusDeg || 0.95)).toFixed(1) + '° across) from the engine; plain blue sphere (no clouds or continents). Its lit side is the computed phase from the Sun direction; the unlit side is drawn very faintly so Earth can be found.',
+      '<b>Distant skyline</b>: the site\'s terrain horizon (data/horizons, rays to 300 km) drawn as the top edge of a dark ring ' + RING_M / 1000 + ' km away. It is exact only when seen from the site marker; elsewhere it is approximate. Between the edge of the drawn terrain (' + (km || 3) + ' km) and the ring nothing is drawn (dark).',
+      '<b>Shadows</b>: ' + (shKm ? 'cast by all terrain drawn within ' + shKm + ' km of the site (shadow-map texel about ' + (s.shadowTexel || 0).toFixed(0) + ' m; visual approximation). Terrain farther away does not cast shadows in the picture' + (B ? '; the ring from 16 to 40 km is shaded but receives no shadows' : '') + '.' : 'cast by the 6 km tile only at ' + Q.label + ' quality (choose Medium or High for shadows from the surrounding terrain).') + ' Sunlit and Earth-visible status at the site marker always come from the validated horizon model.',
+      '<b>Fill light and brightness</b>: a faint uniform light keeps unlit ground from being pure black. It is not physical (real shadows get only faint light reflected from sunlit terrain and Earthshine). The Brightness slider and "Light up" change only the display exposure and this fill light, never the Sun direction or any computed value.',
       '<b>Stars</b> (off by default): decorative random points, not a star catalogue.',
       '<b>Vertical exaggeration</b> above 1× stretches heights (and therefore shadows and the look of slopes); rover slope readouts always use true heights. The distant skyline ring is never exaggerated.',
-      '<b>Rover</b>: a simple AI-generated illustration (drawn in code by Claude Code; not a vehicle model; speed not realistic). Slope = gradient of the DEM over one ' + m.spacing_m + ' m grid cell. "Sun over the tile terrain" is a near-field estimate using only this tile.'
+      '<b>Rover</b>: a simple AI-generated illustration (drawn in code by Claude Code; not a vehicle model; speed not realistic). Slope = gradient of the DEM over one ' + (P5 ? '5 m cell within 1 km of the site and one ' : '') + m.spacing_m + ' m grid cell' + (P5 ? ' elsewhere' : '') + '. "Sun over the tile terrain" is a near-field estimate using only the tile.'
     ];
-    $('v3dNotes').innerHTML = notes.map(function (x) { return '<li>' + x + '</li>'; }).join('');
-    return el;
+    $('v3dNotes').innerHTML = list.filter(Boolean).map(function (x) { return '<li>' + x + '</li>'; }).join('');
+    var sn = v.el.querySelector('.v3d-shadownote');
+    sn.textContent = (shKm ? 'Shadows from terrain within ' + shKm + ' km (visual approximation); farther terrain casts no shadows here' : 'Near-field shadows (visual approximation); distant terrain shadows not rendered') + '; sunlit and Earth-visible status at the site marker come from the validated horizon model.';
   }
 
   // ----------------------------------------------------------------- scene
@@ -151,12 +163,13 @@ window.AsteriaView3D = (function () {
     scene.background = new THREE.Color(0x000000);
     var camera = new THREE.PerspectiveCamera(55, 1, 0.3, 2000000);
 
-    // terrain
-    var geo = terrainGeometry(THREE, decimate(T, coarse));
+    // terrain: the tile now (coarse first frame), then the extended rings and the 5 m patch (loadExtended)
     var terrainMat = new THREE.MeshLambertMaterial({ color: 0x9c9a95 });
+    var terrainGroup = new THREE.Group(); scene.add(terrainGroup);
+    var geo = terrainGeometry(THREE, decimate(T, coarse));
     var terrain = new THREE.Mesh(geo, terrainMat);
     terrain.castShadow = true; terrain.receiveShadow = true;
-    scene.add(terrain);
+    terrainGroup.add(terrain);
 
     var fill = new THREE.AmbientLight(0xffffff, FILL);
     scene.add(fill);
@@ -224,7 +237,8 @@ window.AsteriaView3D = (function () {
     });
     rover.visible = false; scene.add(rover);
 
-    return { THREE: THREE, T: T, TM: TM, refinePending: coarse !== stride, renderer: renderer, scene: scene, camera: camera, terrain: terrain, geo: geo, fill: fill, sun: sun,
+    return { THREE: THREE, T: T, TM: TM, Q: Q, refinePending: true, coarse: coarse !== stride, terrainMat: terrainMat, terrainGroup: terrainGroup, layers: [], ext: {},
+      renderer: renderer, scene: scene, camera: camera, terrain: terrain, geo: geo, fill: fill, sun: sun,
       sunDisk: sunDisk, earth: earth, ring: ring, stars: stars, marker: marker, markerMat: markerMat, rover: rover };
   }
 
@@ -243,30 +257,123 @@ window.AsteriaView3D = (function () {
     geo.computeBoundingBox();
     return geo;
   }
-  // Second step of progressive loading: replace the coarse first-frame mesh with the final one.
+  // Second step of progressive loading: replace the coarse first-frame mesh with the final one (and, once loaded,
+  // the extended terrain rings and the 5 m patch).
   function refine(v) {
-    var s = v.s; if (!s || !s.refinePending) return;
-    var old = s.geo;
-    s.geo = terrainGeometry(s.THREE, s.TM);
-    s.terrain.geometry = s.geo; old.dispose();
-    s.refinePending = false;
-    fitShadow(s); v.dirty = true;
+    var s = v.s; if (!s || !s.coarse) return;
+    s.coarse = false;
+    buildTerrain(s); v.dirty = true;
+  }
+  function geomFrom(THREE, P) {
+    var g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(P.pos, 3));
+    g.setIndex(new THREE.BufferAttribute(P.index, 1));
+    g.computeVertexNormals(); g.computeBoundingBox(); g.computeBoundingSphere();
+    return g;
+  }
+  // (Re)build every terrain mesh from the current grids and vertical exaggeration. Nested squares: 5 m patch (High,
+  // where available) inside the tile, inside ring A (16 km), inside ring B (40 km, High). Each outer mesh leaves a hole
+  // for the inner one and takes the heights on the hole's edge from it (shared vertices); skirts close the T-junctions.
+  function buildTerrain(s) {
+    var THREE = s.THREE, mat = s.terrainMat, Q = s.Q, e = s.ext;
+    s.layers.forEach(function (L) { s.terrainGroup.remove(L.mesh); L.mesh.geometry.dispose(); });
+    s.layers = [];
+    var add = function (name, P, cast, recv) {
+      var mesh = new THREE.Mesh(geomFrom(THREE, P), mat); mesh.castShadow = cast; mesh.receiveShadow = recv; mesh.name = name;
+      s.terrainGroup.add(mesh); s.layers.push({ name: name, mesh: mesh, vertices: P.pos.length / 3 });
+      return mesh;
+    };
+    var TM = s.TM, patch = e.p5 && Q.patch5m ? e.p5 : null;
+    TM.patch = patch; s.T.patch = patch;
+    if (patch) {
+      add('patch5m', M.buildGridMesh(patch, 1, 0, null), true, true);
+      add('patch5m-skirt', M.buildSkirt(patch, 1, 30), false, true);
+    }
+    s.terrainGroup.remove(s.terrain); s.geo.dispose();
+    var tileP = M.buildGridMesh(TM, 1, patch ? patch.half : 0, patch);
+    s.geo = geomFrom(THREE, tileP); s.terrain.geometry = s.geo; s.terrainGroup.add(s.terrain);
+    s.tileVertices = tileP.pos.length / 3;
+    var extCast = Q.extShadow;
+    if (e.a) {
+      add('tile-skirt', M.buildSkirt(TM, 1, 40, function (x, y) { return M.nodeOrMesh(TM, x, y); }), false, true);
+      s.ringA = decimate(e.a, Q.ringA);
+      s.ringA.k = TM.k;
+      add('ringA', M.buildGridMesh(s.ringA, 1, TM.half, TM), extCast, extCast);
+    } else s.ringA = null;
+    if (e.b && Q.ringB && s.ringA) {
+      add('ringA-skirt', M.buildSkirt(s.ringA, 1, 80), false, false);
+      add('ringB', M.buildGridMesh(e.b, 1, s.ringA.half, s.ringA), extCast, false);
+    }
+    s.extVertices = s.layers.reduce(function (n, L) { return n + (/skirt/.test(L.name) ? 0 : L.vertices); }, 0);
+    fitShadow(s);
+  }
+  // Load the extended terrain (ring A always; ring B and the 5 m patch on High) after the first frame.
+  var EXT_CACHE = {};
+  function loadExtScript(src) {
+    return new Promise(function (resolve, reject) {
+      var sc = document.createElement('script'); sc.src = src; sc.onload = resolve;
+      sc.onerror = function () { reject(new Error(src + ' could not be loaded')); };
+      document.head.appendChild(sc);
+    });
+  }
+  function loadExtended(v) {
+    var s = v.s;
+    var idx = s.Q.patch5m && !window.ASTERIA_TERRAIN3D_5M_IDS ? loadExtScript('data/terrain3d/hi5m_index.js') : Promise.resolve();
+    return idx.then(function () { return loadExtended2(v); }, function () { return loadExtended2(v); });
+  }
+  function loadExtended2(v) {
+    var s = v.s, id = v.site.id, Q = s.Q, want = [['a', 'data/terrain3d/ext/' + id + '_a.js', 'ASTERIA_TERRAIN3D_EXT', id + '_a']];
+    if (Q.ringB) want.push(['b', 'data/terrain3d/ext/' + id + '_b.js', 'ASTERIA_TERRAIN3D_EXT', id + '_b']);
+    if (Q.patch5m && (window.ASTERIA_TERRAIN3D_5M_IDS || []).indexOf(id) >= 0) want.push(['p5', 'data/terrain3d/hi5m/' + id + '.js', 'ASTERIA_TERRAIN3D_5M', id]);
+    return Promise.all(want.map(function (w) {
+      if (EXT_CACHE[w[3] + w[0]]) return Promise.resolve();
+      var have = window[w[2]] && window[w[2]][w[3]];
+      return (have ? Promise.resolve() : loadExtScript(w[1])).then(function () {
+        var G = M.decodeTile(window[w[2]][w[3]]);
+        EXT_CACHE[w[3] + w[0]] = G;
+      });
+    })).then(function () {
+      if (V !== v) return;
+      want.forEach(function (w) { s.ext[w[0]] = EXT_CACHE[w[3] + w[0]]; s.ext[w[0]].k = s.T.k; });
+      buildTerrain(s);
+      s.refinePending = false; v.dirty = true;
+      notes(v);
+    }, function (err) {
+      if (V !== v) return;
+      s.refinePending = false; s.extError = String(err && err.message || err); v.dirty = true;
+      console.warn('Extended terrain not loaded: ' + s.extError);
+    });
   }
 
-  // Tighten the shadow camera to the tile's bounding box seen from the Sun (much better resolution at grazing angles).
+  // Fit the shadow camera, seen from the Sun: its width and height cover the shadow-receiving terrain (the tile, or
+  // ring A when the extended terrain casts shadows: Medium/High), its depth covers every shadow-casting mesh, so ridges
+  // up to 16 km (Medium) or 40 km (High) away shade the tile. Tight fitting keeps the resolution at grazing angles.
   function fitShadow(v) {
-    var THREE = v.THREE, sun = v.sun, bb = v.geo.boundingBox, cam = sun.shadow.camera;
-    // a camera (lookAt points its -z at the target, exactly like the shadow camera; Object3D.lookAt would point +z)
+    var THREE = v.THREE, sun = v.sun, cam = sun.shadow.camera;
     var tmp = new THREE.OrthographicCamera(); tmp.position.copy(sun.position); tmp.lookAt(sun.target.position); tmp.updateMatrixWorld(true);
     var inv = new THREE.Matrix4().copy(tmp.matrixWorld).invert(), p = new THREE.Vector3();
-    var lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-    for (var c = 0; c < 8; c++) {
-      p.set(c & 1 ? bb.max.x : bb.min.x, c & 2 ? bb.max.y + 3 : bb.min.y, c & 4 ? bb.max.z : bb.min.z).applyMatrix4(inv);
-      lo = [Math.min(lo[0], p.x), Math.min(lo[1], p.y), Math.min(lo[2], p.z)]; hi = [Math.max(hi[0], p.x), Math.max(hi[1], p.y), Math.max(hi[2], p.z)];
-    }
-    cam.left = lo[0] - 5; cam.right = hi[0] + 5; cam.bottom = lo[1] - 5; cam.top = hi[1] + 5;
-    cam.near = Math.max(1, -hi[2] - 10); cam.far = -lo[2] + 10;
+    var box = function (bb, lo, hi) {
+      for (var c = 0; c < 8; c++) {
+        p.set(c & 1 ? bb.max.x : bb.min.x, c & 2 ? bb.max.y + 3 : bb.min.y, c & 4 ? bb.max.z : bb.min.z).applyMatrix4(inv);
+        lo[0] = Math.min(lo[0], p.x); lo[1] = Math.min(lo[1], p.y); lo[2] = Math.min(lo[2], p.z);
+        hi[0] = Math.max(hi[0], p.x); hi[1] = Math.max(hi[1], p.y); hi[2] = Math.max(hi[2], p.z);
+      }
+    };
+    var rlo = [Infinity, Infinity, Infinity], rhi = [-Infinity, -Infinity, -Infinity], clo = rlo.slice(), chi = rhi.slice();
+    var recv = [v.geo];
+    (v.layers || []).forEach(function (L) { if (L.mesh.receiveShadow && !/skirt/.test(L.name)) recv.push(L.mesh.geometry); });
+    var cast = [v.geo];
+    (v.layers || []).forEach(function (L) { if (L.mesh.castShadow) cast.push(L.mesh.geometry); });
+    recv.forEach(function (g) { box(g.boundingBox, rlo, rhi); });
+    cast.forEach(function (g) { box(g.boundingBox, clo, chi); });
+    cam.left = rlo[0] - 5; cam.right = rhi[0] + 5; cam.bottom = rlo[1] - 5; cam.top = rhi[1] + 5;
+    // depth: from the nearest caster to the farthest receiver (light space looks down -z)
+    cam.near = -Math.max(chi[2], rhi[2]) - 10; cam.far = -Math.min(clo[2], rlo[2]) + 10;
     cam.updateProjectionMatrix();
+    v.shadowTexel = Math.max(cam.right - cam.left, cam.top - cam.bottom) / sun.shadow.mapSize.x;
+    sun.shadow.normalBias = Math.max(v.TM.d * 0.08, v.shadowTexel * 0.6);
+    // depth bias as a fixed distance (SHADOW_BIAS_M along the light) whatever the depth range of the shadow camera
+    sun.shadow.bias = -SHADOW_BIAS_M / (cam.far - cam.near);
   }
 
   // ------------------------------------------------------------- controls
@@ -286,6 +393,17 @@ window.AsteriaView3D = (function () {
       strafeL: k.KeyQ, strafeR: k.KeyE, fast: k.ShiftLeft || k.ShiftRight, zin: k.Equal || k.NumpadAdd, zout: k.Minus || k.NumpadSubtract
     };
   }
+  var MAXD = 60000;   // farthest orbit distance (m)
+  // Height (Three.js y) of the drawn ground below world (x, z): the finest mesh that contains the point, or -1e9.
+  function groundY(s, x, z) {
+    var grids = [s.TM, s.ringA, s.ext.b && s.Q.ringB ? s.ext.b : null];
+    for (var q = 0; q < grids.length; q++) {
+      var G = grids[q]; if (!G) continue;
+      var g = M.groundWorld(G, x, z);
+      if (g.inside) return g.y;
+    }
+    return -1e9;
+  }
   function anyKey(k) { for (var x in k) if (k[x]) return true; return false; }
   function clampTile(T, x, z) {
     var g = M.gridFromWorld(T, x, z, true), lim = T.half - T.d;
@@ -300,11 +418,11 @@ window.AsteriaView3D = (function () {
     if (c.mode === 'orbit') {
       if (k.left) c.yaw -= 60 * dt; if (k.right) c.yaw += 60 * dt;
       if (k.fwd) c.pitch = Math.min(89, c.pitch + 40 * dt); if (k.back) c.pitch = Math.max(1, c.pitch - 40 * dt);
-      if (k.zin) c.dist = Math.max(30, c.dist * Math.exp(-1.5 * dt)); if (k.zout) c.dist = Math.min(30000, c.dist * Math.exp(1.5 * dt));
+      if (k.zin) c.dist = Math.max(30, c.dist * Math.exp(-1.5 * dt)); if (k.zout) c.dist = Math.min(MAXD, c.dist * Math.exp(1.5 * dt));
       var cy = c.yaw * DEG, cp = c.pitch * DEG;
       var px = c.target[0] + c.dist * Math.cos(cp) * Math.sin(cy), pz = c.target[2] - c.dist * Math.cos(cp) * Math.cos(cy);
       var py = c.target[1] + c.dist * Math.sin(cp);
-      var gnd = M.inside(TM, px, -pz) ? M.groundWorld(TM, px, pz).y : -1e9;
+      var gnd = groundY(v.s, px, pz);
       if (py < gnd + 15) py = gnd + 15;
       cam.position.set(px, py, pz); cam.lookAt(c.target[0], c.target[1], c.target[2]);
     } else if (c.mode === 'walk') {
@@ -372,7 +490,7 @@ window.AsteriaView3D = (function () {
     var r = inst.r, s = v.s, T = s.T;
     var d = M.dirFromAzEl(r.sun.az, r.sun.el);
     s.sun.target.position.set(0, 0, 0);
-    s.sun.position.set(d[0] * 20000, d[1] * 20000, d[2] * 20000);
+    s.sun.position.set(d[0] * 100000, d[1] * 100000, d[2] * 100000);
     s.sun.intensity = r.sun.el > -r.sun.radius_deg - 1 ? 1.7 : 0;
     s.sun.updateMatrixWorld(); fitShadow(s);
     v.sunDir = d; v.earthDir = M.dirFromAzEl(r.earth.az, r.earth.el);
@@ -392,7 +510,7 @@ window.AsteriaView3D = (function () {
     var b = $('v3dBanner');
     if (!inst.sunUp && r.sun.el > -r.sun.radius_deg) {
       b.hidden = false;
-      b.textContent = 'At the site marker the Sun is hidden behind terrain (validated horizon model, Sun ' + fmtDeg(r.sun.el, 1) + ' vs horizon ' + fmtDeg(inst.hzSun, 1) + '). This view does not render shadows cast by terrain outside the 6 km tile, so parts of the tile may look lit.';
+      b.textContent = 'At the site marker the Sun is hidden behind terrain (validated horizon model, Sun ' + fmtDeg(r.sun.el, 1) + ' vs horizon ' + fmtDeg(inst.hzSun, 1) + '). ' + (v.s.Q.extShadow ? 'Terrain more than ' + (extKm(v) || 16) + ' km away casts no shadows in this view, so parts of the ground may still look lit.' : 'At ' + v.s.Q.label + ' quality only the 6 km tile casts shadows, so parts of the ground may look lit (Medium or High add shadows from the surrounding terrain).');
     } else b.hidden = true;
     updateTip(v);
     v.dirty = true;
@@ -479,7 +597,7 @@ window.AsteriaView3D = (function () {
       var ids = Object.keys(c.pointers);
       if (ids.length >= 2 && c.pinch) {
         var a = c.pointers[ids[0]], b = c.pointers[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y), cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
-        if (c.mode === 'orbit') { c.dist = Math.max(30, Math.min(30000, c.dist * c.pinch.d / Math.max(1, d))); pan(v, cx - c.pinch.cx, cy - c.pinch.cy); }
+        if (c.mode === 'orbit') { c.dist = Math.max(30, Math.min(MAXD, c.dist * c.pinch.d / Math.max(1, d))); pan(v, cx - c.pinch.cx, cy - c.pinch.cy); }
         c.pinch = { d: d, cx: cx, cy: cy }; v.dirty = true; return;
       }
       if (c.mode === 'orbit') { if (p.pan) pan(v, dx, dy); else { c.yaw += dx * 0.3; c.pitch = Math.max(1, Math.min(89, c.pitch + dy * 0.25)); } }
@@ -487,7 +605,7 @@ window.AsteriaView3D = (function () {
       else c.rov.camYaw += dx * 0.3;
       v.dirty = true;
     });
-    add(cvs, 'wheel', function (e) { e.preventDefault(); if (c.mode === 'orbit') { c.dist = Math.max(30, Math.min(30000, c.dist * Math.exp(e.deltaY * 0.0012))); v.dirty = true; } }, { passive: false });
+    add(cvs, 'wheel', function (e) { e.preventDefault(); if (c.mode === 'orbit') { c.dist = Math.max(30, Math.min(MAXD, c.dist * Math.exp(e.deltaY * 0.0012))); v.dirty = true; } }, { passive: false });
     // on-screen pad (hold to move)
     v.el.querySelectorAll('#v3dPad button').forEach(function (b) {
       var k = 'pad_' + b.dataset.k;
@@ -529,12 +647,10 @@ window.AsteriaView3D = (function () {
   }
   function setExag(v, k) {
     var s = v.s;
-    refine(v);
+    s.coarse = false;
     s.T.k = k; s.TM.k = k;
-    var P = M.buildPositions(s.TM, 1);
-    s.geo.attributes.position.array.set(P.pos); s.geo.attributes.position.needsUpdate = true;
-    s.geo.computeVertexNormals(); s.geo.computeBoundingBox(); s.geo.computeBoundingSphere();
-    fitShadow(s);
+    Object.keys(s.ext).forEach(function (x) { s.ext[x].k = k; });
+    buildTerrain(s);
     var b = $('v3dExagBadge');
     b.textContent = k === 1 ? 'Vertical scale 1× (true scale)' : 'Vertical exaggeration ' + k + '× - heights stretched, not true scale';
     b.classList.toggle('warn', k !== 1);
@@ -628,6 +744,7 @@ window.AsteriaView3D = (function () {
     var el = buildDom({ site: o.site, tile: o.tile, stride: stride, earthRadiusDeg: inst0 && inst0.r.earth.radius_deg });
     var v = { el: el, stage: $('v3dStage'), app: o.app, site: o.site, dirty: true, frames: 0, raf: 0 };
     v.s = buildScene({ tile: o.tile, mask: o.mask, phone: phone, stride: stride, Q: Q });
+    v.earthRadiusDeg = inst0 && inst0.r.earth.radius_deg;
     v.stride = stride; v.phone = phone; v.quality = qName; v.Q = Q; v.auto = auto; v.userQuality = QUALITY[user] ? user : null; v.openArgs = o;
     v.stage.insertBefore(v.s.renderer.domElement, v.stage.firstChild);
     v.s.renderer.domElement.setAttribute('aria-label', '3D view of the terrain around ' + o.site.name + ' with the Sun and Earth at their computed positions');
@@ -641,6 +758,7 @@ window.AsteriaView3D = (function () {
       v.ctl.yaw = inst0.r.sun.az + 115;
     }
     initDisplay(v);
+    notes(v);
     setMode(v, 'orbit');
     if (o.keep) restoreKeep(v, o.keep);
     syncPlay(v);
@@ -650,6 +768,7 @@ window.AsteriaView3D = (function () {
       if (V !== v) return;
       if (v.frames < 1) return setTimeout(waitFirst, 16);
       refine(v);
+      loadExtended(v);
       if (!v.userQuality && !(o.keep && o.keep.probed) && !window.ASTERIA_V3D_NOPROBE) setTimeout(function () { probe(v); }, 100);
     };
     setTimeout(waitFirst, 16);
@@ -703,7 +822,9 @@ window.AsteriaView3D = (function () {
       sunLightDir: [lp.x, lp.y, lp.z], sunLight: M.azElFromDir([lp.x, lp.y, lp.z]), sunDiskRadiusDeg: Math.asin(s.sunDisk.scale.x / SUN_D) / DEG,
       earthDir: [ep.x, ep.y, ep.z], earthAzEl: M.azElFromDir([ep.x, ep.y, ep.z]), earthRadiusDeg: Math.asin(s.earth.scale.x / EARTH_D) / DEG,
       sunIntensity: s.sun.intensity, earthPhase: v.phase, instant: v.inst && { idx: v.inst.idx, t: v.inst.t, sunUp: v.inst.sunUp, earthUp: v.inst.earthUp, sun: { az: v.inst.r.sun.az, el: v.inst.r.sun.el, radius_deg: v.inst.r.sun.radius_deg }, earth: { az: v.inst.r.earth.az, el: v.inst.r.earth.el, radius_deg: v.inst.r.earth.radius_deg } },
-      vertices: s.geo.attributes.position.count, triangles: s.geo.index.count / 3,
+      vertices: s.geo.attributes.position.count, triangles: s.geo.index.count / 3, extVertices: s.extVertices || 0, extError: s.extError || null,
+      layers: s.layers.map(function (L) { return { name: L.name, vertices: L.vertices, cast: L.mesh.castShadow, receive: L.mesh.receiveShadow }; }),
+      shadowCamera: { left: s.sun.shadow.camera.left, right: s.sun.shadow.camera.right, top: s.sun.shadow.camera.top, bottom: s.sun.shadow.camera.bottom, near: s.sun.shadow.camera.near, far: s.sun.shadow.camera.far, texel: s.shadowTexel },
       memory: { geometries: s.renderer.info.memory.geometries, textures: s.renderer.info.memory.textures }, rover: v.roverState || null,
       tileCentreY: M.groundWorld(s.TM, 0, 0).y,
       camera: [cam.x, cam.y, cam.z], eyeAboveGround: cam.y - M.groundWorld(s.TM, cam.x, cam.z).y
@@ -713,7 +834,50 @@ window.AsteriaView3D = (function () {
   function testKey(code, down) { if (V) { if (down) V.ctl.keys[code] = true; else delete V.ctl.keys[code]; V.dirty = true; } }
   function testMode(m) { if (V) setMode(V, m); }
 
+  // Test hook (shading-consistency check): set the time t (ms), render, and read the rendered shadow map at the site
+  // marker (2 m above the ground, as the horizon model's observer). Returns the shadow-map verdict, the validated
+  // horizon model's "Sun up" (Sun centre above the terrain horizon) and a near-field ray march over the drawn terrain.
+  function shadowProbe(t) {
+    var v = V; if (!v || !v.s) return null;
+    var s = v.s, E = window.LunaEngine, r = E.sunEarthAt({ lat: v.site.lat, lon: v.site.lon }, new Date(t));
+    var mask = v.openArgs.mask, hz = E.maskAt(mask, r.sun.az), sunUp = r.sun.el > hz;
+    var inst = { idx: 0, n: 1, t: t, r: r, sunUp: sunUp, earthUp: r.earth.el > E.maskAt(mask, r.earth.az), hzSun: hz, hzEarth: E.maskAt(mask, r.earth.az), minEl: 0 };
+    setInstant(v, inst);
+    s.renderer.render(s.scene, s.camera);
+    var lit = false, depth = null, z = null;
+    if (s.sun.intensity > 0 && s.sun.castShadow && s.sun.shadow.map) {
+      var THREE = s.THREE, p = new THREE.Vector4(0, groundY(s, 0, 0) + EYE_M, 0, 1).applyMatrix4(s.sun.shadow.matrix);
+      var W = s.sun.shadow.mapSize.x, buf = new Uint8Array(4);
+      var px = Math.floor(p.x * W), py = Math.floor(p.y * W);
+      if (px >= 0 && py >= 0 && px < W && py < W) {
+        s.renderer.readRenderTargetPixels(s.sun.shadow.map, px, py, 1, 1, buf);
+        var f = 255 / 256;
+        depth = f * (buf[0] / 255 / 16777216 + buf[1] / 255 / 65536 + buf[2] / 255 / 256 + buf[3] / 255);
+        z = p.z + s.sun.shadow.bias;
+        lit = z <= depth;
+      } else lit = true;   // outside the shadow camera: drawn lit
+    }
+    var dh = drawnHorizon(s, r.sun.az);
+    return { t: t, sunEl: r.sun.el, sunAz: r.sun.az, horizon: hz, validatedSunUp: sunUp, renderedLit: lit, sunAboveDrawnTerrain: r.sun.el > dh.el, drawnTerrainHorizon: dh.el, castKm: dh.km, quality: v.quality, texel: s.shadowTexel };
+  }
+  // Elevation (deg) of the highest shadow-casting terrain toward azimuth az, seen from 2 m above the site (true heights from
+  // the finest drawn grid at each distance, lunar curvature included); used to explain disagreements.
+  function drawnHorizon(s, az) {
+    // only terrain that casts shadows in this view (Low: the tile; Medium: + ring A; High: + ring B)
+    var grids = [s.T, s.ringA && s.Q.extShadow ? s.ext.a : null, s.ext.b && s.Q.ringB && s.Q.extShadow ? s.ext.b : null].filter(Boolean);
+    var R = s.T.R, hObs = M.heightAt(s.T, 0, 0) + EYE_M, a = az * Math.PI / 180, se = Math.sin(a), ce = Math.cos(a), best = -90, far = 0;
+    for (var t = 10; ; t += t < 3000 ? 10 : t < 16000 ? 40 : 80) {
+      var e = se * t, n = ce * t, G = null;
+      for (var q = 0; q < grids.length; q++) if (M.inside(grids[q], e, n)) { G = grids[q]; break; }
+      if (!G) break;
+      far = t;
+      var ang = Math.atan2(M.heightAt(G, e, n) - hObs - t * t / (2 * R), t) * 180 / Math.PI;
+      if (ang > best) best = ang;
+    }
+    return { el: best, km: Math.round(far / 100) / 10 };
+  }
+  function testCamera(o) { if (V) { Object.assign(V.ctl, o); V.dirty = true; } }
   function testQuality(q) { if (V) setQuality(V, q, 'Quality set to ' + QUALITY[q].label + '.'); }
   function testBrightness(b) { if (V) setBrightness(V, b); }
-  return { QUALITY: QUALITY, testQuality: testQuality, testBrightness: testBrightness, open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
+  return { QUALITY: QUALITY, shadowProbe: shadowProbe, testCamera: testCamera, testQuality: testQuality, testBrightness: testBrightness, open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
 })();
