@@ -68,8 +68,12 @@ window.AsteriaView3D = (function () {
     var m = o.tile;
     el.innerHTML =
       '<div class="v3d-stage" id="v3dStage">' +
-      '  <div class="v3d-labels" id="v3dLabels"><span class="v3d-lbl sun" id="v3dLblSun">Sun</span><span class="v3d-lbl earth" id="v3dLblEarth">Earth</span><span class="v3d-lbl site" id="v3dLblSite"><i></i>Site</span><span class="v3d-lbl rover" id="v3dLblRover" hidden>Rover <span class="aiwm">AI-generated illustration</span></span></div>' +
+      '  <div class="v3d-labels" id="v3dLabels"><span class="v3d-lbl sun" id="v3dLblSun"><i class="arw" aria-hidden="true">➤</i><span class="t">Sun</span></span><span class="v3d-lbl earth" id="v3dLblEarth"><i class="arw" aria-hidden="true">➤</i><span class="t">Earth</span></span><span class="v3d-lbl site" id="v3dLblSite"><i></i>Site</span><span class="v3d-lbl rover" id="v3dLblRover" hidden>Rover <span class="aiwm">AI-generated illustration</span></span></div>' +
       '  <div class="v3d-exag" id="v3dExagBadge">Vertical scale 1× (true scale)</div>' +
+      '  <div class="v3d-feat" id="v3dFeat"></div>' +
+      '  <div class="v3d-hud" id="v3dHud"><svg class="v3d-compass" id="v3dCompass" viewBox="-30 -30 60 60" aria-hidden="true"><circle r="27"/><g id="v3dCompassRot"><path d="M0,-24 L6,-4 L0,-8 L-6,-4 Z" class="n"/><path d="M0,24 L6,4 L0,8 L-6,4 Z" class="s"/><text y="-11" class="nl">N</text></g></svg>' +
+      '    <div class="v3d-hudtxt"><div id="v3dHeading">-</div><div class="v3d-scale"><i id="v3dScaleBar"></i><span id="v3dScaleTxt">-</span></div><div id="v3dDist">-</div></div></div>' +
+      '  <figure class="v3d-mini" id="v3dMini"><canvas id="v3dMiniCv" width="320" height="320" aria-label="Top-view map of the terrain around the site with your position"></canvas><figcaption id="v3dMiniCap">Top view, north up</figcaption></figure>' +
       '  <div class="v3d-msgs"><div class="v3d-banner" id="v3dBanner" hidden></div>' +
       '  <div class="v3d-tip" id="v3dTip" hidden>The site is in shadow, so the ground looks almost black. <button class="btn small" id="v3dTipBtn">Light up</button> <span class="fineprint">(display brightness only)</span></div></div>' +
       '  <div class="v3d-qnote" id="v3dQNote" hidden></div>' +
@@ -107,6 +111,11 @@ window.AsteriaView3D = (function () {
       '  </div>' +
       '  <p class="fineprint" id="v3dStarNote" hidden>Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view.</p>' +
       '  <div class="v3d-ctl">' +
+      '    <label class="smallswitch"><input type="checkbox" id="v3dFeatOn" checked> feature names (IAU)</label>' +
+      '    <label class="smallswitch"><input type="checkbox" id="v3dMiniOn" checked> mini-map</label>' +
+      '    <label class="smallswitch" id="v3dRingsLbl"><input type="checkbox" id="v3dRings"> 500 m distance rings</label>' +
+      '  </div>' +
+      '  <div class="v3d-ctl">' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dContours"> contour lines</label>' +
       '    <select id="v3dContourInt" aria-label="Contour interval"><option value="10">10 m</option><option value="25">25 m</option><option value="50">50 m</option><option value="100">100 m</option><option value="250">250 m</option></select>' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dSlope"> slope shading</label>' +
@@ -128,6 +137,10 @@ window.AsteriaView3D = (function () {
     document.body.appendChild(el);
     return el;
   }
+  function featList(v) {
+    var F = (window.ASTERIA_FEATURES3D && window.ASTERIA_FEATURES3D.sites[v.site.id]) || [];
+    return F.length ? ': ' + F.map(function (f) { return '<a href="' + esc(f.link) + '" target="_blank" rel="noopener">' + esc(f.name) + '</a> (' + f.lat.toFixed(2) + '°, ' + f.lon.toFixed(2) + '°E)'; }).join(', ') : '';
+  }
   // "What is accurate, what is approximate" - written from what this view actually loaded and draws.
   function extKm(v) { var s = v.s; return s.ext.b && s.Q.ringB ? 40 : s.ext.a ? 16 : 0; }
   function notes(v) {
@@ -140,6 +153,7 @@ window.AsteriaView3D = (function () {
       '<b>Contour lines and slope shading</b> (optional): computed from the same LOLA heights (true heights, also when the vertical scale is exaggerated). Slope over one DEM cell (5 m, 20 m, 80 m or 100-200 m depending on the area); real slopes over a few metres can be steeper.',
       '<b>Sun</b>: direction and disk size from the validated engine (the light direction matches it to better than 0.01°).',
       '<b>Earth</b>: position and size (about ' + (2 * (v.earthRadiusDeg || 0.95)).toFixed(1) + '° across) from the engine. ' + (s.earthTex ? 'Continents from NASA Blue Marble Next Generation (July 2004 cloud-free composite, public domain NASA imagery; ' + s.earthTex + ' × ' + s.earthTex / 2 + ' pixels at ' + Q.label + ' quality); clouds not shown; orientation computed for this time (Earth\'s rotation from Astronomy Engine; the point of Earth facing the site agrees with JPL Horizons within 0.2°, tests/earth_orientation.js). ' : 'Plain blue sphere until the map loads. ') + 'Its lit side is the computed phase from the Sun direction; the unlit side is drawn very faintly so Earth can be found.',
+      '<b>Orientation aids</b>: compass (north = toward the lunar north pole along the site meridian, as everywhere in ASTERIA), scale bar (at the view centre in Orbit, at 100 m ahead in Walk/Rover), distance from the site, a top-view mini-map of the LOLA heights, 500 m distance rings and the rover\'s track. Named features: centres from the IAU Gazetteer of Planetary Nomenclature (USGS; up to 5 within 40 km' + featList(v) + '), placed on the drawn terrain, or on the distant skyline in their direction with their distance when they are farther away (that position is then only a direction).',
       '<b>Sun glare</b> (on by default): a faint halo around the Sun disk, a camera glare (display effect); there is no atmosphere on the Moon. The Sun disk itself has the computed position and size.',
       '<b>Distant skyline</b>: the site\'s terrain horizon (data/horizons, rays to 300 km) drawn as the top edge of a dark ring ' + RING_M / 1000 + ' km away. It is exact only when seen from the site marker; elsewhere it is approximate. Between the edge of the drawn terrain (' + (km || 3) + ' km) and the ring nothing is drawn (dark).',
       '<b>Shadows</b>: ' + (shKm ? 'cast by all terrain drawn within ' + shKm + ' km of the site (shadow-map texel about ' + (s.shadowTexel || 0).toFixed(0) + ' m; visual approximation). Terrain farther away does not cast shadows in the picture' + (B ? '; the ring from 16 to 40 km is shaded but receives no shadows' : '') + '.' : 'cast by the 6 km tile only at ' + Q.label + ' quality (choose Medium or High for shadows from the surrounding terrain).') + ' Sunlit and Earth-visible status at the site marker always come from the validated horizon model.',
@@ -259,9 +273,18 @@ window.AsteriaView3D = (function () {
     });
     rover.visible = false; scene.add(rover);
 
+    // rover track (fading trail) and 500 m distance rings around the site (draped on the ground when terrain is built)
+    var trackGeo = new THREE.BufferGeometry();
+    trackGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TRACK_MAX * 3), 3));
+    trackGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(TRACK_MAX * 3), 3));
+    trackGeo.setDrawRange(0, 0);
+    var track = new THREE.Line(trackGeo, new THREE.LineBasicMaterial({ vertexColors: true }));
+    track.frustumCulled = false; scene.add(track);
+    var distRings = new THREE.Group(); distRings.visible = false; scene.add(distRings);
+
     return { THREE: THREE, T: T, TM: TM, Q: Q, refinePending: true, coarse: coarse !== stride, terrainMat: terrainMat, terrainGroup: terrainGroup, layers: [], ext: {},
       renderer: renderer, scene: scene, camera: camera, terrain: terrain, geo: geo, fill: fill, sun: sun,
-      sunDisk: sunDisk, earth: earth, glare: glare, ring: ring, stars: stars, marker: marker, markerMat: markerMat, rover: rover };
+      sunDisk: sunDisk, earth: earth, glare: glare, track: track, trackN: 0, distRings: distRings, ring: ring, stars: stars, marker: marker, markerMat: markerMat, rover: rover };
   }
 
   function decimate(T, stride) {
@@ -356,6 +379,24 @@ window.AsteriaView3D = (function () {
     }
     s.extVertices = s.layers.reduce(function (n, L) { return n + (/skirt/.test(L.name) ? 0 : L.vertices); }, 0);
     fitShadow(s);
+    buildDistRings(s);
+    s.miniBase = null;
+  }
+  // concentric rings every 500 m around the site, 1 m above the drawn ground (Walk / Rover aid)
+  function buildDistRings(s) {
+    var THREE = s.THREE, g = s.distRings;
+    g.children.slice().forEach(function (c) { g.remove(c); c.geometry.dispose(); c.material.dispose(); });
+    for (var r = 500; r < s.TM.half; r += 500) {
+      var n = 256, pos = new Float32Array((n + 1) * 3);
+      for (var k = 0; k <= n; k++) {
+        var a = 2 * Math.PI * k / n, e = r * Math.sin(a), nn = r * Math.cos(a);
+        var p = M.toThree(M.enu(s.TM, e, nn, M.meshHeightAt(s.TM, e, nn) + 1 / (s.TM.k || 1)));
+        pos.set(p, 3 * k);
+      }
+      var geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      var line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: r % 1000 ? 0x59d9ff : 0xffffff, transparent: true, opacity: 0.8 }));
+      line.userData.r = r; g.add(line);
+    }
   }
   // Load the extended terrain (ring A always; ring B and the 5 m patch on High) after the first frame.
   var EXT_CACHE = {};
@@ -374,6 +415,7 @@ window.AsteriaView3D = (function () {
   function loadExtended2(v) {
     var s = v.s, id = v.site.id, Q = s.Q, want = [['a', 'data/terrain3d/ext/' + id + '_a.js', 'ASTERIA_TERRAIN3D_EXT', id + '_a']];
     if (Q.ringB) want.push(['b', 'data/terrain3d/ext/' + id + '_b.js', 'ASTERIA_TERRAIN3D_EXT', id + '_b']);
+    if (!window.ASTERIA_FEATURES3D) loadExtScript('data/terrain3d/features.js').then(function () { if (V === v) { v.dirty = true; notes(v); } }, function () {});
     if (Q.patch5m && (window.ASTERIA_TERRAIN3D_5M_IDS || []).indexOf(id) >= 0) want.push(['p5', 'data/terrain3d/hi5m/' + id + '.js', 'ASTERIA_TERRAIN3D_5M', id]);
     return Promise.all(want.map(function (w) {
       if (EXT_CACHE[w[3] + w[0]]) return Promise.resolve();
@@ -387,6 +429,7 @@ window.AsteriaView3D = (function () {
       want.forEach(function (w) { s.ext[w[0]] = EXT_CACHE[w[3] + w[0]]; s.ext[w[0]].k = s.T.k; });
       buildTerrain(s);
       s.refinePending = false; v.dirty = true;
+      if (!v.userMoved && !(v.openArgs.keep) && v.ctl.mode === 'orbit') defaultView(v);
       notes(v);
     }, function (err) {
       if (V !== v) return;
@@ -443,7 +486,7 @@ window.AsteriaView3D = (function () {
       strafeL: k.KeyQ, strafeR: k.KeyE, fast: k.ShiftLeft || k.ShiftRight, zin: k.Equal || k.NumpadAdd, zout: k.Minus || k.NumpadSubtract
     };
   }
-  var MAXD = 60000;   // farthest orbit distance (m)
+  var MAXD = 60000, TRACK_MAX = 2000;   // farthest orbit distance (m)
   // Height (Three.js y) of the drawn ground below world (x, z): the finest mesh that contains the point, or -1e9.
   function groundY(s, x, z) {
     var grids = [s.TM, s.ringA, s.ext.b && s.Q.ringB ? s.ext.b : null];
@@ -519,6 +562,9 @@ window.AsteriaView3D = (function () {
     var c = v.ctl;
     c.mode = mode;
     v.s.rover.visible = mode === 'rover';
+    v.s.track.visible = mode === 'rover';
+    v.s.distRings.visible = mode !== 'orbit' && $('v3dRings').checked;
+    $('v3dRingsLbl').hidden = mode === 'orbit';
     $('v3dLblRover').hidden = mode !== 'rover';
     $('v3dRover').hidden = mode !== 'rover';
     $('v3dPad').hidden = mode === 'orbit';
@@ -589,7 +635,8 @@ window.AsteriaView3D = (function () {
       s.stars.position.copy(cam.position);
       s.renderer.render(s.scene, cam);
       labels(v);
-      if (v.ctl.mode === 'rover') roverReadout(v, ts);
+      hud(v); featureLabels(v); miniMap(v);
+      if (v.ctl.mode === 'rover') { roverReadout(v, ts); trackPush(v); }
       v.dirty = false;
       v.frames++;
     }
@@ -602,8 +649,8 @@ window.AsteriaView3D = (function () {
     if (!i.sunUp) sunTxt += r.sun.el < 0 ? ' (below horizon)' : ' (hidden by terrain)';
     if (!i.earthUp) earthTxt += r.earth.el < 0 ? ' (below horizon)' : r.earth.el <= i.hzEarth ? ' (hidden by terrain)' : ' (below your minimum link elevation)';
     var a = $('v3dLblSun'), b = $('v3dLblEarth');
-    a.textContent = sunTxt; a.classList.toggle('hid', !i.sunUp);
-    b.textContent = earthTxt; b.classList.toggle('hid', !i.earthUp);
+    a.querySelector('.t').textContent = sunTxt; a.classList.toggle('hid', !i.sunUp);
+    b.querySelector('.t').textContent = earthTxt; b.classList.toggle('hid', !i.earthUp);
   }
   function labels(v) {
     var s = v.s, cam = s.camera, w = v.stage.clientWidth, h = v.stage.clientHeight, THREE = s.THREE, p = new THREE.Vector3();
@@ -613,8 +660,21 @@ window.AsteriaView3D = (function () {
       el.style.display = ok ? '' : 'none';
       if (ok) el.style.transform = 'translate(' + ((p.x + 1) / 2 * w).toFixed(1) + 'px,' + ((1 - p.y) / 2 * h).toFixed(1) + 'px)';
     };
-    put('v3dLblSun', s.sunDisk.position.x, s.sunDisk.position.y, s.sunDisk.position.z);
-    put('v3dLblEarth', s.earth.position.x, s.earth.position.y, s.earth.position.z);
+    // Sun and Earth: when outside the picture, their labels sit at the edge, with an arrow pointing toward them
+    var edge = function (id, obj) {
+      var el = $(id), q = obj.position.clone().sub(cam.position).applyQuaternion(cam.quaternion.clone().invert());
+      p.copy(obj.position).project(cam);
+      var inside = q.z < 0 && Math.abs(p.x) < 0.98 && Math.abs(p.y) < 0.95;
+      el.style.display = '';
+      el.classList.toggle('edge', !inside);
+      var arrow = el.querySelector('.arw');
+      if (inside) { el.style.transform = 'translate(' + ((p.x + 1) / 2 * w).toFixed(1) + 'px,' + ((1 - p.y) / 2 * h).toFixed(1) + 'px)'; return; }
+      var ang = Math.atan2(q.y, q.x), cx = Math.cos(ang), cy = Math.sin(ang), sc = Math.min((w / 2 - 70) / Math.max(1e-6, Math.abs(cx)), (h / 2 - 40) / Math.max(1e-6, Math.abs(cy)));
+      el.style.transform = 'translate(' + (w / 2 + cx * sc).toFixed(1) + 'px,' + (h / 2 - cy * sc).toFixed(1) + 'px)';
+      arrow.style.transform = 'rotate(' + (-ang * 180 / Math.PI).toFixed(0) + 'deg)';
+    };
+    edge('v3dLblSun', s.sunDisk);
+    edge('v3dLblEarth', s.earth);
     put('v3dLblSite', 0, 40, 0);
     if (v.ctl.mode === 'rover') put('v3dLblRover', s.rover.position.x, s.rover.position.y + 2.5, s.rover.position.z);
   }
@@ -648,6 +708,8 @@ window.AsteriaView3D = (function () {
     add(window, 'blur', function () { c.keys = {}; });
     cvs.style.touchAction = 'none';
     add(cvs, 'contextmenu', function (e) { e.preventDefault(); });
+    ['pointerdown', 'wheel'].forEach(function (ev) { add(cvs, ev, function () { v.userMoved = true; }, { passive: true }); });
+    add(window, 'keydown', function () { v.userMoved = true; });
     add(cvs, 'pointerdown', function (e) {
       cvs.setPointerCapture && cvs.setPointerCapture(e.pointerId);
       c.pointers[e.pointerId] = { x: e.clientX, y: e.clientY, pan: e.button === 2 || e.shiftKey };
@@ -693,6 +755,9 @@ window.AsteriaView3D = (function () {
     add($('v3dBright'), 'input', function () { setBrightness(v, +this.value); });
     add($('v3dLightUp'), 'click', function () { setBrightness(v, v.bright >= LIGHT_UP - 0.01 ? 1 : LIGHT_UP); });
     add($('v3dTipBtn'), 'click', function () { setBrightness(v, LIGHT_UP); });
+    add($('v3dFeatOn'), 'change', function () { v.dirty = true; });
+    add($('v3dMiniOn'), 'change', function () { $('v3dMini').hidden = !this.checked; v.dirty = true; });
+    add($('v3dRings'), 'change', function () { v.s.distRings.visible = this.checked && v.ctl.mode !== 'orbit'; v.dirty = true; });
     add($('v3dContours'), 'change', function () { overlays(v); });
     add($('v3dContourInt'), 'change', function () { overlays(v); });
     add($('v3dSlope'), 'change', function () { overlays(v); });
@@ -806,6 +871,130 @@ window.AsteriaView3D = (function () {
     s.starTime = v.inst.t;
   }
 
+  // ------------------------------------------------- framing and orientation aids (Part 8)
+  // Oblique view on open: the camera looks across the site with the Sun 35° to the right of the view direction (so
+  // slopes are side-lit and the Sun is in the picture), 20° down, far enough to show the surrounding relief.
+  function defaultView(v) {
+    var c = v.ctl, r = v.inst && v.inst.r; if (!r) return;
+    c.target = [0, groundY(v.s, 0, 0), 0];
+    c.yaw = r.sun.az + 180 - 35; c.pitch = 20; c.dist = v.s.Q.ringA > 1 ? 7000 : 9000;
+    var A = v.s.ext.a;
+    if (A) {   // a site in a deep depression (e.g. a crater floor): back off to show the walls around it
+      var hmax = -1e9;
+      for (var j = 0; j < A.n; j += 4) for (var i = 0; i < A.n; i += 4) {
+        var e = (i - A.c) * A.d, n = (A.c - j) * A.d;
+        if (e * e + n * n < 12000 * 12000) hmax = Math.max(hmax, A.H[j * A.n + i]);
+      }
+      if (hmax - v.s.T.h0 > 1500) { c.dist = 26000; c.pitch = 32; }
+    }
+    v.dirty = true;
+  }
+  function compassName(az) { return ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(((az % 360) + 360) % 360 / 45) % 8]; }
+  function niceLen(m) { var p = Math.pow(10, Math.floor(Math.log10(m))), f = m / p; return (f >= 5 ? 5 : f >= 2 ? 2 : 1) * p; }
+  function fmtLen(m) { return m >= 1000 ? (m / 1000).toFixed(m % 1000 ? 1 : 0) + ' km' : Math.round(m) + ' m'; }
+  // compass, scale bar and distance readout
+  function hud(v) {
+    var s = v.s, cam = s.camera, c = v.ctl, THREE = s.THREE;
+    var f = new THREE.Vector3(); cam.getWorldDirection(f);
+    var head = Math.atan2(f.x, -f.z) * 180 / Math.PI; if (head < 0) head += 360;
+    $('v3dCompassRot').setAttribute('transform', 'rotate(' + (-head).toFixed(1) + ')');
+    $('v3dHeading').textContent = 'Facing ' + compassName(head) + ' (' + head.toFixed(0) + '°)';
+    var D = c.mode === 'orbit' ? c.dist : 100, h = v.stage.clientHeight || 1;
+    var mpp = 2 * D * Math.tan(cam.fov * Math.PI / 360) / h, len = niceLen(mpp * 110);
+    $('v3dScaleBar').style.width = (len / mpp).toFixed(0) + 'px';
+    $('v3dScaleTxt').textContent = fmtLen(len) + (c.mode === 'orbit' ? ' (at the view centre)' : ' (at 100 m ahead)');
+    var px, pz;
+    if (c.mode === 'orbit') { px = c.target[0]; pz = c.target[2]; }
+    else if (c.mode === 'walk') { px = c.walk.x; pz = c.walk.z; }
+    else { px = c.rov.x; pz = c.rov.z; }
+    var g = M.gridFromWorld(s.TM, px, pz, true), d = Math.sqrt(g.e * g.e + g.n * g.n);
+    var dtxt = (c.mode === 'orbit' ? 'View centre ' : c.mode === 'walk' ? 'You are ' : 'Rover ') + fmtLen(d) + ' from the site' + (d > 1 ? ' (' + compassName(Math.atan2(g.e, g.n) * 180 / Math.PI) + ')' : '');
+    if (c.mode === 'orbit') dtxt += ' · camera ' + fmtLen(c.dist) + ' away';
+    if (c.mode === 'rover') dtxt += ' · driven ' + fmtLen(c.rov.dist);
+    $('v3dDist').textContent = dtxt;
+    v.hudState = { heading: head, scaleM: len, metresPerPixel: mpp, distFromSite: d };
+  }
+  // rover track: fading trail of the last TRACK_MAX positions (one every metre), 0.15 m above the ground
+  function trackPush(v) {
+    var s = v.s, r = v.ctl.rov, last = s.trackLast;
+    if (last && Math.hypot(r.x - last[0], r.z - last[1]) < 1) return;
+    s.trackLast = [r.x, r.z];
+    var P = s.track.geometry.attributes.position, C = s.track.geometry.attributes.color;
+    if (s.trackN >= TRACK_MAX) { P.array.copyWithin(0, 3); s.trackN = TRACK_MAX - 1; }
+    P.array.set([r.x, groundY(s, r.x, r.z) + 0.15, r.z], 3 * s.trackN); s.trackN++;
+    for (var k = 0; k < s.trackN; k++) { var a = 0.15 + 0.85 * k / Math.max(1, s.trackN - 1); C.array[3 * k] = a; C.array[3 * k + 1] = 0.85 * a; C.array[3 * k + 2] = 0.35 * a; }
+    P.needsUpdate = true; C.needsUpdate = true; s.track.geometry.setDrawRange(0, s.trackN);
+  }
+  // named features (IAU Gazetteer): on the drawn ground, or on the distant skyline in their direction if farther away
+  function featureLabels(v) {
+    var s = v.s, F = (window.ASTERIA_FEATURES3D && window.ASTERIA_FEATURES3D.sites[v.site.id]) || [], box = $('v3dFeat');
+    if (!s.featEls || s.featEls.length !== F.length) {
+      box.innerHTML = '';
+      s.featEls = F.map(function (f) {
+        var el = document.createElement('span'); el.className = 'v3d-lbl feat';
+        box.appendChild(el); return el;
+      });
+    }
+    var on = $('v3dFeatOn').checked, w = v.stage.clientWidth, h = v.stage.clientHeight, p = new s.THREE.Vector3(), out = [];
+    F.forEach(function (f, k) {
+      var el = s.featEls[k], y = groundY(s, f.e, -f.n), onGround = y > -1e8, pos;
+      var what = f.type.replace(/,.*/, '').toLowerCase() + (f.diameter_km ? ', ' + (f.diameter_km >= 10 ? f.diameter_km.toFixed(0) : f.diameter_km.toFixed(1)) + ' km' : '');
+      if (onGround) { pos = [f.e, y + 40, -f.n]; el.textContent = f.name + ' (' + what + ')'; }
+      else {
+        var az = Math.atan2(f.e, f.n) * 180 / Math.PI; if (az < 0) az += 360;
+        var mask = v.openArgs.mask, el0 = mask ? window.LunaEngine.maskAt(mask, az) : 0, d = M.dirFromAzEl(az, el0 + 0.4);
+        pos = [d[0] * RING_M, EYE_M + d[1] * RING_M, d[2] * RING_M];
+        el.textContent = f.name + ' (' + what + '), ' + f.dist_km.toFixed(0) + ' km away';
+      }
+      p.set(pos[0], pos[1], pos[2]).project(s.camera);
+      var ok = on && p.z < 1 && p.z > -1 && Math.abs(p.x) < 1 && Math.abs(p.y) < 1;
+      el.style.display = ok ? '' : 'none';
+      if (ok) el.style.transform = 'translate(' + ((p.x + 1) / 2 * w).toFixed(1) + 'px,' + ((1 - p.y) / 2 * h).toFixed(1) + 'px)';
+      el.classList.toggle('far', !onGround);
+      out.push({ name: f.name, onGround: onGround, shown: ok, text: el.textContent });
+    });
+    v.featState = out;
+  }
+  // mini-map: LOLA heights of ring A (lighter = higher), the 6 km tile square, the site, your position and heading,
+  // and the Sun and Earth directions; north up
+  function miniMap(v) {
+    var s = v.s, cv = $('v3dMiniCv'); if (!cv || $('v3dMini').hidden) return;
+    var A = s.ext.a, G = A || s.T, W = cv.width, ctx = cv.getContext('2d'), half = G.half;
+    if (!s.miniBase) {
+      var img = ctx.createImageData(W, W), lo = Infinity, hi = -Infinity;
+      for (var q = 0; q < G.H.length; q++) { lo = Math.min(lo, G.H[q]); hi = Math.max(hi, G.H[q]); }
+      for (var y = 0; y < W; y++) for (var x = 0; x < W; x++) {
+        var e = (x / (W - 1) * 2 - 1) * half, n = (1 - y / (W - 1) * 2) * half, hh = M.heightAt(G, e, n), t = (hh - lo) / Math.max(1, hi - lo);
+        var gv = Math.round(30 + 190 * t), o = 4 * (y * W + x);
+        img.data[o] = gv; img.data[o + 1] = gv; img.data[o + 2] = Math.round(gv * 1.03); img.data[o + 3] = 255;
+      }
+      var off = document.createElement('canvas'); off.width = off.height = W; off.getContext('2d').putImageData(img, 0, 0);
+      s.miniBase = off; s.miniHalf = half;
+      $('v3dMiniCap').textContent = 'Top view, north up, ' + (2 * half / 1000).toFixed(0) + ' km across; shade = LOLA height (lighter = higher); square = 6 km tile; white dot = site; pink = you; yellow / blue = Sun / Earth direction (hollow = hidden)';
+    }
+    var k = W / (2 * s.miniHalf), X = function (e) { return W / 2 + e * k; }, Y = function (n) { return W / 2 - n * k; };
+    ctx.drawImage(s.miniBase, 0, 0);
+    ctx.strokeStyle = 'rgba(89,217,255,.9)'; ctx.lineWidth = 2; ctx.strokeRect(X(-s.TM.half), Y(s.TM.half), 2 * s.TM.half * k, 2 * s.TM.half * k);
+    var dirArrow = function (az, col, hollow) {
+      var a = az * Math.PI / 180, r = W / 2 - 14, x = W / 2 + Math.sin(a) * r, y = W / 2 - Math.cos(a) * r;
+      ctx.beginPath(); ctx.arc(x, y, 10, 0, 2 * Math.PI);
+      if (hollow) { ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke(); } else { ctx.fillStyle = col; ctx.fill(); ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke(); }
+    };
+    // direction of the Sun (yellow) and Earth (blue) at the map edge; hollow when the validated model says hidden
+    if (v.inst) { dirArrow(v.inst.r.sun.az, '#ffc23d', !v.inst.sunUp); dirArrow(v.inst.r.earth.az, '#4ea8ff', !v.inst.earthUp); }
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(X(0), Y(0), 5, 0, 2 * Math.PI); ctx.fill();
+    var c = v.ctl, px, pz, yaw;
+    if (c.mode === 'orbit') { px = c.target[0]; pz = c.target[2]; yaw = c.yaw + 180; }
+    else if (c.mode === 'walk') { px = c.walk.x; pz = c.walk.z; yaw = c.walk.yaw; }
+    else { px = c.rov.x; pz = c.rov.z; yaw = c.rov.yaw; }
+    var gx = X(px), gy = Y(-pz), ya = yaw * Math.PI / 180;
+    ctx.save(); ctx.translate(gx, gy); ctx.rotate(ya);
+    ctx.fillStyle = '#ff5c8a'; ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, -13); ctx.lineTo(8, 9); ctx.lineTo(0, 4); ctx.lineTo(-8, 9); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('N ↑', 8, 6);
+  }
+
   // ------------------------------------------------- real-data overlays (contours, slope)
   function overlays(v) {
     var U = v.s.terrainMat.userData.uniforms, c = $('v3dContours').checked, sl = $('v3dSlope').checked, iv = +$('v3dContourInt').value;
@@ -914,7 +1103,7 @@ window.AsteriaView3D = (function () {
     resize(v);
     if (inst0) {
       setInstant(v, inst0);
-      v.ctl.yaw = inst0.r.sun.az + 115;
+      defaultView(v);
     }
     initDisplay(v);
     $('v3dContourInt').value = String(defaultContour(v.s.T));
@@ -987,11 +1176,13 @@ window.AsteriaView3D = (function () {
     return {
       open: true, frames: v.frames, refining: !!s.refinePending, quality: v.quality, autoQuality: v.auto, userQuality: v.userQuality, probe: v.probeResult || null, probing: !!v.probing,
       stars: s.starRows ? { n: s.starRows.length, magLimit: s.Q.starMag, visible: s.stars.visible, time: s.starTime } : null,
+      hud: v.hudState || null, features: v.featState || null, track: s.trackN, distRings: { visible: s.distRings.visible, n: s.distRings.children.length },
+      miniMap: !$('v3dMini').hidden && !!s.miniBase, labelEdge: { sun: $('v3dLblSun').classList.contains('edge'), earth: $('v3dLblEarth').classList.contains('edge') },
       overlays: { contour: s.terrainMat.userData.uniforms.uContour.value, slope: s.terrainMat.userData.uniforms.uSlope.value }, shadowMapSize: s.sun.shadow.mapSize.x, pixelRatio: s.renderer.getPixelRatio(), brightness: v.bright, fillIntensity: s.fill.intensity, exposure: s.renderer.toneMappingExposure, mode: v.ctl.mode, stride: v.stride, phone: v.phone, exaggeration: s.T.k,
       sunLightDir: [lp.x, lp.y, lp.z], sunLight: M.azElFromDir([lp.x, lp.y, lp.z]), sunDiskRadiusDeg: Math.asin(s.sunDisk.scale.x / SUN_D) / DEG,
       earthDir: v.earthDir, earthDirDrawn: [ep.x, ep.y, ep.z], earthAzEl: M.azElFromDir([ep.x, ep.y, ep.z]), earthRadiusDeg: Math.asin(s.earth.scale.x / EARTH_D) / DEG,
       sunIntensity: s.sun.intensity, earthPhase: v.phase, earthTexture: s.earthTex || null, subObserver: v.subObs || null, glare: s.glare.visible,
-      labelSun: $('v3dLblSun').textContent, labelEarth: $('v3dLblEarth').textContent, instant: v.inst && { idx: v.inst.idx, t: v.inst.t, sunUp: v.inst.sunUp, earthUp: v.inst.earthUp, sun: { az: v.inst.r.sun.az, el: v.inst.r.sun.el, radius_deg: v.inst.r.sun.radius_deg }, earth: { az: v.inst.r.earth.az, el: v.inst.r.earth.el, radius_deg: v.inst.r.earth.radius_deg } },
+      labelSun: $('v3dLblSun').querySelector('.t').textContent, labelEarth: $('v3dLblEarth').querySelector('.t').textContent, instant: v.inst && { idx: v.inst.idx, t: v.inst.t, sunUp: v.inst.sunUp, earthUp: v.inst.earthUp, sun: { az: v.inst.r.sun.az, el: v.inst.r.sun.el, radius_deg: v.inst.r.sun.radius_deg }, earth: { az: v.inst.r.earth.az, el: v.inst.r.earth.el, radius_deg: v.inst.r.earth.radius_deg } },
       vertices: s.geo.attributes.position.count, triangles: s.geo.index.count / 3, extVertices: s.extVertices || 0, extError: s.extError || null,
       layers: s.layers.map(function (L) { return { name: L.name, vertices: L.vertices, cast: L.mesh.castShadow, receive: L.mesh.receiveShadow }; }),
       shadowCamera: { left: s.sun.shadow.camera.left, right: s.sun.shadow.camera.right, top: s.sun.shadow.camera.top, bottom: s.sun.shadow.camera.bottom, near: s.sun.shadow.camera.near, far: s.sun.shadow.camera.far, texel: s.shadowTexel },
