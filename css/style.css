@@ -422,6 +422,7 @@ body.v3d-open { overflow: hidden; }
 .v3d-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin: 0 3px 0 6px; vertical-align: -1px; }
 .v3d-legend i.cl { height: 2px; width: 16px; vertical-align: 3px; margin-left: 0; background: #59d9ff; }
 .v3d-notes { margin-top: 10px; font-size: .8rem; color: #c3cee2; } .v3d-notes summary { cursor: pointer; color: var(--accent); } .v3d-notes li { margin: 4px 0; }
+.v3d-about { margin-top: 8px; font-size: .8rem; color: #c3cee2; border: 1px solid #2a3550; border-radius: 8px; padding: 6px 8px; } .v3d-about summary { cursor: pointer; color: var(--accent); font-weight: 600; } .v3d-about p { margin: 6px 0; } .v3d-about a { color: var(--accent); }
 @media (max-width: 700px) {
   .v3d { flex-direction: column; }
   .v3d-panel { flex: 0 0 auto; max-width: none; max-height: 46vh; border-left: 0; border-top: 1px solid var(--line); padding: 10px 12px; }

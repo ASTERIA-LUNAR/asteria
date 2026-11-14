@@ -108,3 +108,40 @@ Measured with `node tests/perf3d.js --phone --quality low,medium,high` (headless
 | Near-camera shadow cascade | Approximate (shadow mapping, as before) |
 | Earthshine light | Approximate (documented formula, cited albedo, engine geometry) |
 | Earthshine exposure | Illustrative (display exposure, stated on screen) |
+
+## Part 2 - Rover modelled on NASA VIPER (Illustrative, clearly labelled) - DONE
+
+**What changed**
+* The 3D rover now has VIPER's **published proportions**: 2.5 m overall height (mast and camera head), 1.5 m × 1.5 m footprint, four wheel modules; plus headlights and a drill housing (both published features). Not published on the NASA pages read, therefore drawn as **approximate** proportions and labelled so: wheel size (0.5 m across), body size and ground clearance, mast and camera-head size, solar-panel layout (vertical panels on three sides), drill position. Mass is not stated on those pages and is not shown.
+* **Ground contact** (Calculated from DEM heights at the DEM's resolution): each wheel rests on the LOLA surface below it (the drawn mesh, i.e. linear interpolation between DEM nodes; with the 5 m patch where it exists); suspension struts stretch from the body to each wheel hub; the body's pitch and roll follow from the four wheel heights; readout "Body tilt (wheels on LOLA heights)" from true (not exaggerated) heights. With 1.0-1.3 m between the wheels and 20 m (or 5 m) DEM cells, the tilt equals the DEM slope over about one cell (stated).
+* **Driving stays Illustrative**: no traction, slip, power, wheel-soil interaction or obstacle physics; speed is for viewing (NASA's published driving rate, about 0.72 km/h, is quoted). The slope warning remains a user-set threshold on the DEM slope only.
+* **"About this rover"** (expandable, in the Rover panel): what VIPER is, the sourced facts, the current status with its date, and the required statement "Illustrative model based on NASA VIPER's published dimensions. It is not a mobility simulation: ASTERIA does not predict whether a rover can traverse a slope or surface."
+* The AI disclosure "Graphics:" line (round 4B) is unchanged and still accurate: the rover is drawn by code written with Claude Code; no other AI wording was added (UI test).
+
+**VIPER facts used and their sources** (fetched 2026-11-15)
+
+| Fact | Source (verbatim where quoted) | Page date |
+|---|---|---|
+| 2.5 m tall, 1.5 m long and wide ("Measuring 8 feet (2.5 meters) tall and 5 feet (1.5 meters) in length and width") | https://science.nasa.gov/mission/viper/rover-and-instruments/ | page last updated 21 Sep 2023 |
+| Four wheel modules, active suspension, independent steering | same page | 21 Sep 2023 |
+| Headlights ("NASA's first rover with headlights"); 1 m TRIDENT drill; NSS, NIRVSS, MSolo | same page | 21 Sep 2023 |
+| Driving rate "about 0.45 mph (0.72 kph)" | same page | 21 Sep 2023 |
+| Mission: map water ice and other potential resources; 100-day mission; destination Mons Mouton; Blue Moon MK-1 delivery announced 19 Sep 2025 (task order CS-7) | https://science.nasa.gov/mission/viper/ | page last updated 21 Sep 2026 |
+| **Current status**: "will embark on a mission to the lunar South Pole region in 2027"; "currently at NASA's Johnson Space Center in Houston where it is fully built and undergoing final testing before traveling to NASA's Kennedy Space Center in Florida for launch to the Moon"; delivery by a Blue Moon Mark 1 lander | https://www.nasa.gov/missions/moon-base/nasa-provides-progress-update-on-moon-base-rovers/ | 20 Oct 2026 (updated 21 Oct 2026) |
+| Blue Origin selected to deliver VIPER "in late 2027, using a second Blue Moon MK1 lander" | https://www.nasa.gov/news-release/nasa-selects-blue-origin-to-deliver-viper-rover-to-moons-south-pole/ | 19 Sep 2025 |
+| 17 July 2024: NASA's "intent to discontinue development" (cost increases, launch delays, risk of cost growth) | https://www.nasa.gov/news-release/nasa-ends-viper-project-continues-moon-exploration/ | 17 Jul 2024 |
+| Not published on these pages: mass, wheel diameter, mast height, solar-panel count/arrangement, battery | - | - |
+
+Note for the owner: the science.nasa.gov VIPER page (updated 21 Sep 2026) still says VIPER "was slated to land" and shows "Occurred 2 years ago", which conflicts with NASA's newer 20 Oct 2026 progress update. The app states the status from the newest NASA page and its date. The page https://www.nasa.gov/mission/viper/ returned HTTP 404.
+
+**Files changed**: `js/view3d.js` (ROVER proportions, model, placeRover, tilt readout, About tab, notes), `css/style.css` (About tab), `tests/ui_round6.js` (new).
+
+**Scientific data used**: LOLA heights already in the view (no new data); NASA VIPER pages above (facts only).
+
+**Existing calculations affected**: none (rover elevation/slope readouts unchanged; the tilt is a new readout).
+
+**Tests**: `node tests/ui_round6.js` (laptop + phone): wheels on the LOLA surface (difference 0), hubs one wheel radius above; tilt vs DEM slope within 2° (9.2° vs 9.6° at Mons Mouton); model 2.5 m tall and 1.5 m × 1.5 m; About text with statement, dimensions, dated status and NASA links; no traversability claims anywhere in the page except the disclaimer; no AI wording in the rover panel; no console errors - ALL PASS. `node tests/ui_check.js` PASS.
+
+**Remaining limitations**: the model is a simplified shape (boxes and cylinders); wheel size, panels and mast are approximate; the tilt shows the DEM-scale slope, not rover-scale roughness; headlights are not light sources.
+
+**Classification**: rover model - Illustrative; wheel contact and body tilt - Calculated (from LOLA heights at the DEM's resolution); driving - Illustrative.

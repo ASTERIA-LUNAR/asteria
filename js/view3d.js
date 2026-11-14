@@ -18,6 +18,11 @@ window.AsteriaView3D = (function () {
   var SHADOW_BIAS_M = 3;
   var FILL = 0.05, LIGHT_UP = 3;   // fill-light intensity at brightness 1; brightness used by "Light up"
   var RING_M = 60000, SUN_D = 500000, EARTH_D = 450000, STAR_D = 800000, EYE_M = 2;   // eye = horizon-model observer height
+  // Rover model (round 6): NASA VIPER proportions. Published (NASA VIPER "Rover and Instruments" page): height 2.5 m,
+  // length 1.5 m, width 1.5 m, four wheel modules. Approximate (not published there): every other size below.
+  var ROVER = { height: 2.5, length: 1.5, width: 1.5,
+    wheelR: 0.25, wheelW: 0.2, clear: 0.45, bodyH: 0.45, bodyW: 1.1, bodyL: 1.1, panelH: 0.8, headH: 0.18,
+    wheels: [[-0.65, -0.5], [0.65, -0.5], [-0.65, 0.5], [0.65, 0.5]] };   // wheel centres: x right, z back (m)
   var V = null;           // current view (null when closed)
   var TILE_CACHE = {};    // decoded tiles by site id (re-opening or changing quality does not decode again)
   var lastClosed = null;  // stats captured while closing (tests)
@@ -134,10 +139,12 @@ window.AsteriaView3D = (function () {
       '    <div class="cards small"><div class="card"><div class="cardlbl">Position from site</div><div class="val mono" id="v3dRPos">-</div></div>' +
       '    <div class="card"><div class="cardlbl">Terrain elevation</div><div class="val mono" id="v3dRElev">-</div></div>' +
       '    <div class="card"><div class="cardlbl">Local slope</div><div class="val mono" id="v3dRSlope">-</div></div>' +
-      '    <div class="card"><div class="cardlbl">Sun over the tile terrain</div><div class="val" id="v3dRSun">-</div></div></div>' +
+      '    <div class="card"><div class="cardlbl">Sun over the tile terrain</div><div class="val" id="v3dRSun">-</div></div>' +
+      '    <div class="card"><div class="cardlbl">Body tilt (wheels on LOLA heights)</div><div class="val mono" id="v3dRTilt">-</div></div></div>' +
       '    <label>Slope warning above <span class="inl"><input id="v3dSlopeMax" type="number" min="1" max="45" step="1" value="15" aria-label="Slope warning threshold in degrees"> &deg;</span></label>' +
       '    <div class="v3d-warn" id="v3dRWarn" hidden></div>' +
       '    <p class="fineprint" id="v3dRNote"></p>' +
+      '    <details class="v3d-about" id="v3dAboutRover"><summary>About this rover</summary>' + ABOUT_ROVER + '</details>' +
       '  </div>' +
       '  <details class="v3d-notes"><summary>What is accurate, what is approximate</summary><ul id="v3dNotes"></ul></details>' +
       '  </div>' +
@@ -145,6 +152,19 @@ window.AsteriaView3D = (function () {
     document.body.appendChild(el);
     return el;
   }
+  // "About this rover" (round 6). Facts as published by NASA (pages and dates in ROUND6_REPORT.md, SUBMISSION_LINKS.md).
+  var VIPER_URL = 'https://science.nasa.gov/mission/viper/', VIPER_RI = 'https://science.nasa.gov/mission/viper/rover-and-instruments/',
+    VIPER_2026 = 'https://www.nasa.gov/missions/moon-base/nasa-provides-progress-update-on-moon-base-rovers/',
+    VIPER_2025 = 'https://www.nasa.gov/news-release/nasa-selects-blue-origin-to-deliver-viper-rover-to-moons-south-pole/',
+    VIPER_2024 = 'https://www.nasa.gov/news-release/nasa-ends-viper-project-continues-moon-exploration/';
+  var lnk = function (u, t) { return '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>'; };
+  var ABOUT_ROVER =
+    '<p><b>Illustrative model based on NASA VIPER\'s published dimensions. It is not a mobility simulation: ASTERIA does not predict whether a rover can traverse a slope or surface.</b></p>' +
+    '<p><b>What VIPER is</b>: NASA\'s Volatiles Investigating Polar Exploration Rover, built to map the location of water ice and other potential resources at the Moon\'s South Pole on a 100-day mission (' + lnk(VIPER_URL, 'NASA VIPER mission page') + ').</p>' +
+    '<p><b>Published facts used here</b> (' + lnk(VIPER_RI, 'NASA: VIPER rover and instruments') + '): 2.5 m (8 ft) tall, 1.5 m (5 ft) long and wide; four wheel modules with active suspension and independent steering; headlights; a 1 m drill (TRIDENT); instruments NSS (neutron spectrometer), NIRVSS (near-infrared volatiles spectrometer) and MSolo (mass spectrometer). NASA gives its driving speed as about 0.72 km/h; driving in this view is faster, for viewing.</p>' +
+    '<p><b>Approximate</b> (not given on those pages): wheel size (drawn 0.5 m across), body size and ground clearance, mast and camera head, solar-panel layout, drill position. VIPER\'s mass is not stated there and is not shown.</p>' +
+    '<p><b>Current status</b> (' + lnk(VIPER_2026, 'NASA, 20 October 2026') + '): VIPER "will embark on a mission to the lunar South Pole region in 2027"; it is "currently at NASA\'s Johnson Space Center in Houston where it is fully built and undergoing final testing before traveling to NASA\'s Kennedy Space Center in Florida for launch to the Moon", to be delivered by a Blue Origin Blue Moon Mark 1 lander. Earlier: on 19 September 2025 NASA selected Blue Origin to deliver VIPER in late 2027 (' + lnk(VIPER_2025, 'NASA release') + '; NASA\'s VIPER page names Mons Mouton as the destination); on 17 July 2024 NASA had announced its intent to discontinue VIPER, citing cost increases and launch delays (' + lnk(VIPER_2024, 'NASA release') + ').</p>' +
+    '<p><b>In this view</b>: each wheel rests on the LOLA surface under it and the body\'s pitch and roll follow from those four heights (Calculated from the DEM at its resolution - 20 m, or 5 m in the patch - so the tilt is the DEM\'s slope over about one cell; real ground under a rover is rougher). No traction, slip, power, wheel-soil or obstacle physics. The slope warning only compares the DEM slope with the limit you set.</p>';
   function featList(v) {
     var F = (window.ASTERIA_FEATURES3D && window.ASTERIA_FEATURES3D.sites[v.site.id]) || [];
     return F.length ? ': ' + F.map(function (f) { return '<a href="' + esc(f.link) + '" target="_blank" rel="noopener">' + esc(f.name) + '</a> (' + f.lat.toFixed(2) + '°, ' + f.lon.toFixed(2) + '°E)'; }).join(', ') : '';
@@ -170,7 +190,7 @@ window.AsteriaView3D = (function () {
       '<b>Earthshine</b> (off by default; Approximate): sunlight reflected by Earth, from the computed Earth direction. Strength = Earth&#39;s geometric albedo 0.434 (NASA Earth Fact Sheet) × (Earth radius / distance)² (its angular size) × the Lambert phase law at the computed phase angle (how much of Earth is lit) - about 1/8,000 of sunlight at full Earth. Off where Earth&#39;s centre is below the validated terrain horizon at the site marker; ' + (s.earthLight.castShadow ? 'the drawn terrain casts earthshine shadows' : 'no earthshine shadows at ' + Q.label + ' quality') + '. Earth is treated as an evenly reflecting sphere and a point source: the real value depends on clouds and Earth&#39;s real phase curve (within about a factor of 2; a sphere with Earth&#39;s Bond albedo 0.294 gives about half), and real earthshine shadows have soft edges (Earth is about 2° wide). Light reflected by sunlit terrain is not included. While on, the uniform fill light is off, and a site in shadow is shown with a raised exposure (stated on screen). Display only: no status or readout uses it.',
       '<b>Stars</b> (off by default): the ' + (s.starRows ? s.starRows.length + ' ' : '') + 'stars brighter than magnitude ' + Q.starMag.toFixed(1) + ' (at ' + Q.label + ' quality) of the Yale Bright Star Catalogue, 5th revised edition (Hoffleit &amp; Warren 1991, public domain), at their true directions in the site\'s sky for the selected time, using the engine\'s Moon orientation (checked against an independent IAU/WGCCRE computation: within 0.002°). Size and brightness by magnitude, tint by colour index. Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view.',
       '<b>Vertical exaggeration</b> above 1× stretches heights (and therefore shadows and the look of slopes); rover slope readouts always use true heights. The distant skyline ring is never exaggerated.',
-      '<b>Rover</b>: rover model, speed and tilt are illustrative. Elevation = LOLA height at the rover (bilinear); slope = central differences of the LOLA heights over ' + (P5 ? '5 m within 1 km of the site and ' : '') + m.spacing_m + ' m' + (P5 ? ' elsewhere' : '') + ' (checked against an independent computation from the DEM; Validation page, "3D terrain accuracy"). "Sun over the tile terrain" is a near-field estimate using only the tile.',
+      '<b>Rover</b>: model with NASA VIPER\'s published proportions (2.5 m tall, 1.5 m long and wide, four wheels; other sizes approximate; see "About this rover"); Illustrative, not a mobility simulation. Each wheel rests on the LOLA surface and the body\'s pitch and roll follow from the four wheel heights (Calculated at the DEM\'s resolution); speed is for viewing. Elevation = LOLA height at the rover (bilinear); slope = central differences of the LOLA heights over ' + (P5 ? '5 m within 1 km of the site and ' : '') + m.spacing_m + ' m' + (P5 ? ' elsewhere' : '') + ' (checked against an independent computation from the DEM; Validation page, "3D terrain accuracy"). "Sun over the tile terrain" is a near-field estimate using only the tile.',
       '<b>Graphics</b>: the rover and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images.'
     ];
     $('v3dNotes').innerHTML = list.filter(Boolean).map(function (x) { return '<li>' + x + '</li>'; }).join('');
@@ -289,18 +309,33 @@ window.AsteriaView3D = (function () {
     var markerMat = new THREE.LineBasicMaterial({ color: 0x6f7890 });
     var marker = new THREE.Line(mg, markerMat); scene.add(marker);
 
-    // rover (simple illustration, about 2 m long)
-    var rover = new THREE.Group();
-    var body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 2.0), litMaterial(THREE, U, 0xe8e8e8));
-    body.position.y = 0.75; body.castShadow = true; rover.add(body);
-    var mast = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.8, 0.12), litMaterial(THREE, U, 0xffc23d));
-    mast.position.set(0, 1.4, -0.7); rover.add(mast);
-    var panel = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.04, 1.0), litMaterial(THREE, U, 0x24406e));
-    panel.position.set(0, 1.05, 0.3); panel.castShadow = true; rover.add(panel);
-    var wheelGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 16), wheelMat = litMaterial(THREE, U, 0x333333);
-    [[-0.8, -0.7], [0.8, -0.7], [-0.8, 0.7], [0.8, 0.7]].forEach(function (w) {
-      var wh = new THREE.Mesh(wheelGeo, wheelMat); wh.rotation.z = Math.PI / 2; wh.position.set(w[0], 0.32, w[1]); wh.castShadow = true; rover.add(wh);
-    });
+    // Rover (round 6): proportions of NASA's VIPER (Illustrative model). Published (NASA, rover-and-instruments page):
+    // 2.5 m tall, 1.5 m long and 1.5 m wide, four wheel modules with active suspension and independent steering, headlights,
+    // a 1 m drill. NOT published there (approximate proportions, labelled in "About this rover"): wheel size, body size and
+    // ground clearance, mast and camera-head size, solar-panel layout, mass. Model axes: x right, y up, -z forward.
+    var rover = new THREE.Group(), RV = ROVER;
+    var roverBody = new THREE.Group(); rover.add(roverBody);
+    var white = litMaterial(THREE, U, 0xdedede), dark = litMaterial(THREE, U, 0x2b2b2b), gold = litMaterial(THREE, U, 0xc9a24a), cell = litMaterial(THREE, U, 0x1d3157);
+    var box = function (w, h, d, mat, x, y, z, parent) { var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.castShadow = true; (parent || roverBody).add(m); return m; };
+    // chassis (body bottom at the clearance height above the ground plane; positions relative to the ground plane)
+    box(RV.bodyW, RV.bodyH, RV.bodyL, white, 0, RV.clear + RV.bodyH / 2, 0);
+    box(RV.bodyW * 0.9, 0.04, RV.bodyL * 0.9, gold, 0, RV.clear + RV.bodyH + 0.02, 0);                       // top deck (thermal blanket colour)
+    // solar panels: vertical on the left, right and rear sides (approximate layout)
+    box(0.03, RV.panelH, RV.bodyL * 0.95, cell, -RV.bodyW / 2 - 0.02, RV.clear + RV.bodyH + RV.panelH / 2 - 0.05, 0);
+    box(0.03, RV.panelH, RV.bodyL * 0.95, cell, RV.bodyW / 2 + 0.02, RV.clear + RV.bodyH + RV.panelH / 2 - 0.05, 0);
+    box(RV.bodyW * 0.95, RV.panelH, 0.03, cell, 0, RV.clear + RV.bodyH + RV.panelH / 2 - 0.05, RV.bodyL / 2 + 0.02);
+    // mast with camera head: total height 2.5 m above the ground plane (published overall height)
+    var mastH = RV.height - RV.headH - (RV.clear + RV.bodyH);
+    var mastM = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, mastH, 10), white); mastM.position.set(0.25, RV.clear + RV.bodyH + mastH / 2, -RV.bodyL / 2 + 0.2); mastM.castShadow = true; roverBody.add(mastM);
+    box(0.36, RV.headH, 0.2, dark, 0.25, RV.height - RV.headH / 2, -RV.bodyL / 2 + 0.2);
+    // headlights (published: "NASA's first rover with headlights") and the drill housing at the front (approximate)
+    [-0.35, 0.35].forEach(function (x) { var h = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.02), new THREE.MeshBasicMaterial({ color: 0xfff6d0 })); h.position.set(x, RV.clear + RV.bodyH * 0.7, -RV.bodyL / 2 - 0.01); roverBody.add(h); });
+    var drill = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.0, 8), dark); drill.position.set(-0.3, RV.clear + RV.bodyH - 0.1, -RV.bodyL / 2 - 0.08); roverBody.add(drill);
+    // wheel modules: wheels (children of the rover, placed on the LOLA surface every frame) and suspension struts
+    var wheelGeo = new THREE.CylinderGeometry(RV.wheelR, RV.wheelR, RV.wheelW, 20), wheelMat = dark;
+    var roverWheels = RV.wheels.map(function () { var wh = new THREE.Mesh(wheelGeo, wheelMat); wh.castShadow = true; rover.add(wh); return wh; });
+    var strutMat = new THREE.LineBasicMaterial({ color: 0x9a9a9a });
+    var roverStruts = RV.wheels.map(function () { var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3)); var l = new THREE.Line(g, strutMat); l.frustumCulled = false; rover.add(l); return l; });
     rover.visible = false; scene.add(rover);
 
     // rover track (fading trail) and 500 m distance rings around the site (draped on the ground when terrain is built)
@@ -314,7 +349,7 @@ window.AsteriaView3D = (function () {
 
     return { THREE: THREE, T: T, TM: TM, Q: Q, U: U, nmapOK: nmapOK, floatLinear: floatLinear, refinePending: true, coarse: coarse !== stride, terrainMat: terrainMat, terrainGroup: terrainGroup, layers: [], ext: {},
       renderer: renderer, scene: scene, camera: camera, terrain: terrain, geo: geo, fill: fill, sun: sun, sunNear: sunNear, earthLight: earthLight,
-      sunDisk: sunDisk, earth: earth, glare: glare, track: track, trackN: 0, distRings: distRings, ring: ring, stars: stars, marker: marker, markerMat: markerMat, rover: rover };
+      sunDisk: sunDisk, earth: earth, glare: glare, roverBody: roverBody, roverWheels: roverWheels, roverStruts: roverStruts, track: track, trackN: 0, distRings: distRings, ring: ring, stars: stars, marker: marker, markerMat: markerMat, rover: rover };
   }
 
   function decimate(T, stride) {
@@ -720,17 +755,40 @@ window.AsteriaView3D = (function () {
       cam.position.set(bx, Math.max(gy + 6, bg + 3), bz); cam.lookAt(r.x, gy + 1.2, r.z);
     }
   }
+  // Rover pose (round 6): each wheel rests on the LOLA surface under it (the drawn mesh: linear interpolation between
+  // DEM nodes, the same surface the picture shows); the body's pitch and roll follow from the four wheel heights
+  // (plane through the front/rear and left/right averages). Readout values use the true (not exaggerated) heights.
+  // This is Calculated from DEM heights at the DEM's resolution (20 m, 5 m in the patch): with 1-1.3 m between the
+  // wheels the tilt equals the DEM's slope over about one cell. No traction, slip, power or obstacle physics.
   function placeRover(v) {
-    var THREE = v.s.THREE, r = v.ctl.rov, TM = v.s.TM, ro = v.s.rover, DEG = Math.PI / 180, y = r.yaw * DEG;
-    var g = function (dx, dz) { var x = r.x + dx, z = r.z + dz; return new THREE.Vector3(x, M.groundWorld(TM, x, z).y, z); };
-    var fw = [Math.sin(y) * 1.0, -Math.cos(y) * 1.0], rt = [Math.cos(y) * 0.8, Math.sin(y) * 0.8];
-    var pf = g(fw[0], fw[1]), pb = g(-fw[0], -fw[1]), pr = g(rt[0], rt[1]), pl = g(-rt[0], -rt[1]);
-    var fwd = pf.clone().sub(pb).normalize(), right = pr.clone().sub(pl).normalize();
-    var up = new THREE.Vector3().crossVectors(right, fwd).normalize();
-    right.crossVectors(fwd, up).normalize();
-    var m = new THREE.Matrix4().makeBasis(right, up, fwd.clone().negate());
-    ro.quaternion.setFromRotationMatrix(m);
-    ro.position.set(r.x, (pf.y + pb.y + pr.y + pl.y) / 4, r.z);
+    var THREE = v.s.THREE, s = v.s, r = v.ctl.rov, TM = s.TM, DEG = Math.PI / 180, y = r.yaw * DEG, RV = ROVER;
+    var fw = [Math.sin(y), -Math.cos(y)], rt = [Math.cos(y), Math.sin(y)];
+    var c = RV.wheels.map(function (w) {
+      var x = r.x + rt[0] * w[0] - fw[0] * w[1], z = r.z + rt[1] * w[0] - fw[1] * w[1], g = M.groundWorld(TM, x, z);
+      return { x: x, z: z, y: g.y, h: M.meshHeightAt(TM, g.e, g.n), wx: w[0], wz: w[1] };
+    });
+    var avg = function (f, k) { var a = c.filter(f); return a.reduce(function (q, p) { return q + p[k]; }, 0) / a.length; };
+    var front = function (p) { return p.wz < 0; }, back = function (p) { return p.wz > 0; }, left = function (p) { return p.wx < 0; }, right = function (p) { return p.wx > 0; };
+    var L = 2 * Math.abs(RV.wheels[0][1]), W = 2 * Math.abs(RV.wheels[0][0]);
+    var fwdV = new THREE.Vector3(fw[0] * L, avg(front, 'y') - avg(back, 'y'), fw[1] * L).normalize();
+    var rtV = new THREE.Vector3(rt[0] * W, avg(right, 'y') - avg(left, 'y'), rt[1] * W).normalize();
+    var up = new THREE.Vector3().crossVectors(rtV, fwdV).normalize();
+    rtV.crossVectors(fwdV, up).normalize();
+    var q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(rtV, up, fwdV.clone().negate()));
+    var cy = c.reduce(function (a, p) { return a + p.y; }, 0) / c.length;
+    s.roverBody.quaternion.copy(q); s.roverBody.position.set(r.x, cy, r.z);
+    var wq = q.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2));
+    var corner = new THREE.Vector3();
+    c.forEach(function (p, k) {
+      var wh = s.roverWheels[k]; wh.quaternion.copy(wq); wh.position.set(p.x, p.y + RV.wheelR, p.z);
+      // suspension strut: from the body's bottom corner above the wheel to the wheel hub (its length follows the ground)
+      corner.set(p.wx * 0.75, RV.clear, p.wz).applyQuaternion(q).add(s.roverBody.position);
+      var a = s.roverStruts[k].geometry.attributes.position; a.setXYZ(0, corner.x, corner.y, corner.z); a.setXYZ(1, p.x, p.y + RV.wheelR, p.z); a.needsUpdate = true;
+    });
+    s.rover.position.set(0, 0, 0);
+    // true-height tilt (degrees) for the readout
+    var pitch = Math.atan2(avg(front, 'h') - avg(back, 'h'), L) / DEG, roll = Math.atan2(avg(right, 'h') - avg(left, 'h'), W) / DEG;
+    v.roverPose = { pitch: pitch, roll: roll, wheels: c.map(function (p) { return { x: p.x, z: p.z, h: p.h, drawnY: p.y, hub: s.roverWheels[c.indexOf(p)].position.y }; }) };
   }
 
   function setMode(v, mode) {
@@ -860,7 +918,7 @@ window.AsteriaView3D = (function () {
     edge('v3dLblSun', s.sunDisk);
     edge('v3dLblEarth', s.earth);
     put('v3dLblSite', 0, 40, 0);
-    if (v.ctl.mode === 'rover') put('v3dLblRover', s.rover.position.x, s.rover.position.y + 2.5, s.rover.position.z);
+    if (v.ctl.mode === 'rover') put('v3dLblRover', s.roverBody.position.x, s.roverBody.position.y + 3.2, s.roverBody.position.z);
   }
   function setPos(el, x, y) { el._x = x; el._y = y; el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)'; }
   // Keep every on-screen label inside the picture and off the panels drawn over it (mini-map, compass/scale box,
@@ -916,7 +974,9 @@ window.AsteriaView3D = (function () {
     if (!warn.hidden) warn.textContent = 'Slope ' + sl.slope.toFixed(1) + '° is above your limit of ' + lim + '°.';
     var inst = v.inst, ns = inst ? M.nearFieldSunUp(T, g.e, g.n, inst.r.sun.az, inst.r.sun.el, EYE_M) : null;
     $('v3dRSun').innerHTML = ns ? (ns.up ? '<span class="c-sun">above</span>' : 'blocked') + ' <span class="fineprint">near-field estimate</span>' : '-';
-    v.roverState = { e: g.e, n: g.n, h: h, slope: sl.slope, lat: ll.lat, lon: ll.lon, nearFieldSunUp: ns && ns.up, warn: !warn.hidden, dist: r.dist };
+    var P = v.roverPose;
+    $('v3dRTilt').textContent = P ? 'pitch ' + (P.pitch >= 0 ? '+' : '') + P.pitch.toFixed(1) + '°, roll ' + (P.roll >= 0 ? '+' : '') + P.roll.toFixed(1) + '°' : '-';
+    v.roverState = { e: g.e, n: g.n, h: h, slope: sl.slope, lat: ll.lat, lon: ll.lon, nearFieldSunUp: ns && ns.up, warn: !warn.hidden, dist: r.dist, pitch: P && P.pitch, roll: P && P.roll, wheels: P && P.wheels };
   }
 
   // -------------------------------------------------------------- events
@@ -1569,5 +1629,5 @@ window.AsteriaView3D = (function () {
     if ('tileShadow' in o) { v.s.diagTileShadow = !!o.tileShadow; fitShadow(v.s); }
     v.dirty = true;
   }
-  return { starAzEl: starAzEl, testScene: testScene, QUALITY: QUALITY, shadowProbe: shadowProbe, testCamera: testCamera, testQuality: testQuality, testBrightness: testBrightness, testRelief: testRelief, testDiag: testDiag, open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
+  return { ROVER: ROVER, starAzEl: starAzEl, testScene: testScene, QUALITY: QUALITY, shadowProbe: shadowProbe, testCamera: testCamera, testQuality: testQuality, testBrightness: testBrightness, testRelief: testRelief, testDiag: testDiag, open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
 })();
