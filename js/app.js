@@ -306,11 +306,11 @@
     var mask = maskFor(S.site, S.useTerrain);
     var hs = E.maskAt(mask, r.sun.az), he = E.maskAt(mask, r.earth.az);
     var frac = E.diskFractionAbove(r.sun.el, r.sun.radius_deg, hs);
-    $('vSunEl').textContent = fmtDeg(r.sun.el);
-    $('vSunAz').textContent = r.sun.az.toFixed(1) + '°';
+    $('vSunEl').textContent = fmtDeg(r.sun.el, 3);
+    $('vSunAz').textContent = r.sun.az.toFixed(3) + '°';
     $('vSunFrac').textContent = (100 * frac).toFixed(0) + '%';
-    $('vEarthEl').textContent = fmtDeg(r.earth.el);
-    $('vEarthAz').textContent = r.earth.az.toFixed(1) + '°';
+    $('vEarthEl').textContent = fmtDeg(r.earth.el, 3);
+    $('vEarthAz').textContent = r.earth.az.toFixed(3) + '°';
     $('vHz').textContent = fmtDeg(hs, 1) + ' / ' + fmtDeg(he, 1);
     var sunUp = s.sunUp[i], earthUp = s.earthUp[i];
     tile('tileSun', sunUp ? 'on-sun' : 'off', $('sunState'), sunUp ? 'Sun up' : 'Sun down');
@@ -791,7 +791,9 @@
     h += '<div class="tablewrap"><table><thead><tr><th>Part</th><th>Result</th><th>Detail</th></tr></thead><tbody>';
     h += '<tr><td>Angles vs Horizons (' + V.angles.length + ' comparisons)</td><td class="' + (V.anglePass ? 'pass' : 'fail') + '">' + (V.anglePass ? 'PASS' : 'FAIL') + '</td><td>Elevation error max ' + f(V.angleStats.el.max, 4) + '° (mean ' + f(V.angleStats.el.mean, 4) + '°), limit ' + V.tolerances.elDeg + '°. Azimuth error max ' + f(V.angleStats.az.max, 4) + '° (mean ' + f(V.angleStats.az.mean, 4) + '°), limit ' + V.tolerances.azDeg + '°.</td></tr>';
     h += '<tr><td>Event times vs Horizons (' + V.events.length + ')</td><td class="' + (V.eventPass ? 'pass' : 'fail') + '">' + (V.eventPass ? 'PASS' : 'FAIL') + '</td><td>Max ' + f(V.eventStats.max, 2) + ' min (mean ' + f(V.eventStats.mean, 2) + ' min), limit ' + V.tolerances.eventMin + ' min.</td></tr>';
-    h += '<tr><td>Physics sanity tests (' + V.sanity.tests.length + ')</td><td class="' + (V.sanityPass ? 'pass' : 'fail') + '">' + (V.sanityPass ? 'PASS' : 'FAIL') + '</td><td>' + esc(V.sanity.period) + '</td></tr></tbody></table></div>';
+    h += '<tr><td>Physics sanity tests (' + V.sanity.tests.length + ')</td><td class="' + (V.sanityPass ? 'pass' : 'fail') + '">' + (V.sanityPass ? 'PASS' : 'FAIL') + '</td><td>' + esc(V.sanity.period) + '</td></tr>';
+    if (V.blind) h += '<tr><td>Blind test vs Horizons (' + V.blind.rows.length + ' comparisons)</td><td class="' + (V.blind.pass ? 'pass' : 'fail') + '">' + (V.blind.pass ? 'PASS' : 'FAIL') + '</td><td>' + V.blind.cases.length + ' new random cases fetched fresh; elevation max ' + f(V.blind.el.max, 4) + '°, azimuth max ' + f(V.blind.az.max, 4) + '°.</td></tr>';
+    h += '</tbody></table></div>';
     h += '<h3>Method</h3><p>Our engine vs Horizons with the observer on the Moon (<code>CENTER=\'coord@301\'</code>, <code>COORD_TYPE=\'GEODETIC\'</code>, height 0 km on the 1737.4 km sphere), targets Sun (10) and Earth (399), quantity 4 (apparent azimuth/elevation), <code>APPARENT=\'AIRLESS\'</code>. Azimuth tolerance is relaxed (' + V.tolerances.azDeg + '°/cos el) only above 80° elevation, where azimuth becomes ill-defined near the zenith.</p>';
     h += '<details><summary>Angle cases (' + V.angles.length + ')</summary><div class="tablewrap"><table><thead><tr><th>Site</th><th class="num">Lat</th><th class="num">E-lon</th><th>UTC</th><th>Body</th><th class="num">Az ours</th><th class="num">Az Horizons</th><th class="num">ΔAz</th><th class="num">El ours</th><th class="num">El Horizons</th><th class="num">ΔEl</th><th>Pass</th></tr></thead><tbody>';
     V.angles.forEach(function (c) {
@@ -803,6 +805,12 @@
       h += '<tr><td>' + esc(e.label) + '</td><td class="num">' + e.lat + '</td><td class="num">' + e.lon + '</td><td>' + (e.ours || '-') + '</td><td>' + (e.horizons || '-') + '</td><td class="num">' + (e.dMin !== undefined ? f(e.dMin, 2) : esc(e.error || '-')) + '</td><td class="' + (e.pass ? 'pass' : 'fail') + '">' + (e.pass ? 'PASS' : 'FAIL') + '</td></tr>';
     });
     h += '</tbody></table></div>';
+    if (V.blind) {
+      h += '<h3>Blind test: new random cases fetched fresh from JPL Horizons</h3><p class="hint">' + esc(V.blind.selection) + '. Chosen on ' + esc(V.blind.generated.slice(0, 10)) + '. Result: <b class="' + (V.blind.pass ? 'pass' : 'fail') + '">' + (V.blind.pass ? 'PASS' : 'FAIL') + '</b>, elevation error max ' + f(V.blind.el.max, 4) + '°, azimuth error max ' + f(V.blind.az.max, 4) + '°. VERIFY_YOURSELF.md shows how to repeat one case in a browser.</p>';
+      h += '<div class="tablewrap"><table><thead><tr><th>Site</th><th>UTC</th><th>Body</th><th class="num">Az ours</th><th class="num">Az Horizons</th><th class="num">El ours</th><th class="num">El Horizons</th><th>Pass</th></tr></thead><tbody>';
+      V.blind.rows.forEach(function (c) { h += '<tr><td>' + esc(c.name) + '</td><td>' + esc(c.date) + '</td><td>' + c.body + '</td><td class="num">' + f(c.oursAz, 4) + '</td><td class="num">' + f(c.hzAz, 4) + '</td><td class="num">' + f(c.oursEl, 4) + '</td><td class="num">' + f(c.hzEl, 4) + '</td><td class="' + (c.pass ? 'pass' : 'fail') + '">' + (c.pass ? 'PASS' : 'FAIL') + '</td></tr>'; });
+      h += '</tbody></table></div>';
+    }
     h += '<h3>Physics sanity tests</h3><div class="tablewrap"><table><thead><tr><th>Test</th><th>Result</th><th>Pass</th></tr></thead><tbody>';
     V.sanity.tests.forEach(function (t) { h += '<tr><td>' + esc(t.name) + '</td><td>' + esc(t.value) + '</td><td class="' + (t.pass ? 'pass' : 'fail') + '">' + (t.pass ? 'PASS' : 'FAIL') + '</td></tr>'; });
     h += '</tbody></table></div>';

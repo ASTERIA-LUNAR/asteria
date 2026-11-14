@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T10:43:25.255Z by `node tests/validate.js`.
+Generated 2026-11-14T10:50:39.634Z by `node tests/validate.js`.
 
 ## Overall: **PASS**
 
@@ -9,6 +9,7 @@ Generated 2026-11-14T10:43:25.255Z by `node tests/validate.js`.
 | A. Angles vs JPL Horizons (52 comparisons) | PASS | elevation max 0.0038 deg / mean 0.0009 deg; azimuth max 0.0554 deg / mean 0.0025 deg |
 | A. Event times vs Horizons (4 events) | PASS | max 0.76 min / mean 0.42 min |
 | B. Physics sanity tests (4) | PASS | see below |
+| C. Blind test vs JPL Horizons (5 new random cases, 10 comparisons, fetched fresh) | PASS | elevation max 0.0029 deg; azimuth max 0.0038 deg |
 
 ## Method
 
@@ -96,6 +97,25 @@ Period: 2027-01-01 to 2028-01-01 UTC, 10-minute steps. Smooth-Moon horizon (0 de
 | Apollo 11: Earth above smooth horizon 100% of the year | 100.000% (min Earth el 57.96 deg) | PASS |
 | Chang'e-4 (far side): Earth below smooth horizon 100% of the year | Earth up 0.000% (max Earth el -37.72 deg) | PASS |
 | Equatorial near-side (0, 0): Sun above smooth horizon 45-55% of the year | 48.62% | PASS |
+
+## C. Blind test
+
+Cases chosen by `node tests/blind_test.js --new` on 2026-11-14: crypto.randomInt: site uniformly from the curated south-pole sites with terrain horizons; time uniformly over whole minutes 2026-01-01..2030-12-31 UTC; queries already in tests/horizons_cache were rejected; every response fetched fresh from the Horizons API. Same settings and tolerances as part A. The raw responses are in the cache files listed (first line = exact query URL).
+
+| Site | lat | E-lon | UTC | Body | Az ours | Az Horizons | dAz | El ours | El Horizons | dEl | Pass | Cache file |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Nobile Rim 2 (site DM2) | -84.20156 | 60.69989 | 2027-05-04T01:21Z | Sun | 143.6896 | 143.6899 | -0.0003 | -6.2107 | -6.2123 | 0.0016 | PASS | `tests/horizons_cache/76e31aba2551196c.txt` |
+| Nobile Rim 2 (site DM2) | -84.20156 | 60.69989 | 2027-05-04T01:21Z | Earth | 292.6258 | 292.6253 | 0.0005 | 7.4585 | 7.4597 | -0.0012 | PASS | `tests/horizons_cache/d015dcad431ecbd7.txt` |
+| Nobile Rim 2 (site DM2) | -84.20156 | 60.69989 | 2027-05-16T04:22Z | Sun | 355.6949 | 355.6945 | 0.0004 | 4.2602 | 4.2600 | 0.0001 | PASS | `tests/horizons_cache/46222a10e9afa01c.txt` |
+| Nobile Rim 2 (site DM2) | -84.20156 | 60.69989 | 2027-05-16T04:22Z | Earth | 304.1752 | 304.1746 | 0.0007 | -1.9037 | -1.9044 | 0.0007 | PASS | `tests/horizons_cache/f2fdb0da4ef536c5.txt` |
+| Mons Mouton (landform centre) | -84.6 | 31 | 2026-08-22T03:13Z | Sun | 38.2186 | 38.2223 | -0.0038 | 4.2022 | 4.2043 | -0.0021 | PASS | `tests/horizons_cache/63016d419738240c.txt` |
+| Mons Mouton (landform centre) | -84.6 | 31 | 2026-08-22T03:13Z | Earth | 330.6218 | 330.6246 | -0.0029 | -1.9357 | -1.9328 | -0.0029 | PASS | `tests/horizons_cache/4c1a55c8238ef9b1.txt` |
+| Peak near Shackleton (illuminated area) | -88.79 | 124.5 | 2026-12-04T00:50Z | Sun | 118.6532 | 118.6563 | -0.0030 | 0.8774 | 0.8773 | 0.0002 | PASS | `tests/horizons_cache/2306b5fbfb0e6179.txt` |
+| Peak near Shackleton (illuminated area) | -88.79 | 124.5 | 2026-12-04T00:50Z | Earth | 242.0814 | 242.0837 | -0.0023 | -6.0020 | -6.0028 | 0.0008 | PASS | `tests/horizons_cache/c3c02fe117b4120d.txt` |
+| IM-1 Odysseus | -80.13 | 1.44 | 2028-10-19T21:25Z | Sun | 159.3497 | 159.3519 | -0.0023 | -7.7581 | -7.7577 | -0.0004 | PASS | `tests/horizons_cache/d2807b43ac162334.txt` |
+| IM-1 Odysseus | -80.13 | 1.44 | 2028-10-19T21:25Z | Earth | 4.1841 | 4.1853 | -0.0011 | 4.1565 | 4.1563 | 0.0002 | PASS | `tests/horizons_cache/3eacde9ba84abfb7.txt` |
+
+Fetch times (UTC): 2026-11-14T10:50:04.389Z, 2026-11-14T10:50:05.748Z, 2026-11-14T10:50:07.060Z, 2026-11-14T10:50:08.423Z, 2026-11-14T10:50:09.754Z. How to repeat one case by hand: VERIFY_YOURSELF.md.
 
 ## Test sites
 

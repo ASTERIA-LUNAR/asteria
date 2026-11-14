@@ -218,6 +218,14 @@ const path = require('path'), fs = require('fs'), url = require('url');
     await page.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.site && AsteriaApp.state.site.lat === -89.9 && !AsteriaApp.state.computing, null, { timeout: 30000 }); await ready(page);
     const st2 = await page.evaluate(() => ({ lat: AsteriaApp.state.site.lat, lon: AsteriaApp.state.site.lon, id: AsteriaApp.state.site.id, w: AsteriaApp.state.windowDays, hz: !!AsteriaApp.state.site.hz }));
     expect(`${tag} URL hash restores custom coordinates (terrain recomputed from 240 m data)`, st2.lat === -89.9 && st2.lon === 45 && st2.id === null && st2.w === 7 && st2.hz, JSON.stringify(st2));
+    // ---- VERIFY_YOURSELF.md section 1: the share link shows Horizons' blind-test values in Expert view
+    await page.goto('about:blank'); await page.goto(base + '#site=peak_shackleton&t=2026-12-04T00:50Z&w=7');
+    await page.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series && AsteriaApp.state.site.id === 'peak_shackleton', null, { timeout: 30000 }); await ready(page);
+    await page.check('#expertToggle'); await page.waitForTimeout(150);
+    const vy = await page.evaluate(() => ({ cur: document.getElementById('curUtc').textContent, sEl: document.getElementById('vSunEl').textContent, sAz: document.getElementById('vSunAz').textContent, eEl: document.getElementById('vEarthEl').textContent, eAz: document.getElementById('vEarthAz').textContent }));
+    const num = s => parseFloat(s.replace('−', '-'));
+    expect(`${tag} VERIFY_YOURSELF share link: Expert view matches JPL Horizons within 0.01 deg`, /2026-12-04 00:50/.test(vy.cur) && Math.abs(num(vy.sEl) - 0.877258) < 0.01 && Math.abs(num(vy.sAz) - 118.656263) < 0.01 && Math.abs(num(vy.eEl) + 6.0028) < 0.01 && Math.abs(num(vy.eAz) - 242.0837) < 0.01, JSON.stringify(vy));
+    await page.uncheck('#expertToggle');
     // ---- horizontal overflow (phone layout)
     await page.goto(base); await page.waitForTimeout(1200);
     const ov = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

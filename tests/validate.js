@@ -4,6 +4,8 @@
  *  A) Angles vs JPL Horizons (observer on the Moon, airless apparent az/el).
  *  A2) Event times (sunset / Earthset, smooth Moon) vs Horizons 1-minute tables.
  *  B) Physics sanity tests over one year.
+ *  C) Blind test: random cases chosen and fetched fresh by tests/blind_test.js --new (data/blind_test.js),
+ *     recomputed here from the cached raw responses.
  * Writes VALIDATION_REPORT.md and data/validation.js (for the app's Validation page).
  * Horizons responses are cached in tests/horizons_cache/ so the test reruns offline.
  *
@@ -12,13 +14,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const E = require('../js/engine.js');
 
 const ROOT = path.join(__dirname, '..');
-const CACHE = path.join(__dirname, 'horizons_cache');
-fs.mkdirSync(CACHE, { recursive: true });
-const API = 'https://ssd.jpl.nasa.gov/api/horizons.api';
+const { API, fmtH, siteCoord, horizons, parseRows, azDiff } = require('./horizons_api.js');
 
 // ---------------------------------------------------------------- test sites
 // Test coordinates. Named mission sites use the same sourced values as data/sites.js.
@@ -38,48 +37,6 @@ const EXTRA = [
 ];
 
 const TOL_EL = 0.1, TOL_AZ = 0.2, TOL_EVENT_MIN = 2;
-
-// --------------------------------------------------------------- Horizons IO
-function fmtH(d) { // 'YYYY-MM-DD HH:MM'
-  return d.toISOString().slice(0, 16).replace('T', ' ');
-}
-async function horizons(params) {
-  const base = {
-    format: 'text', OBJ_DATA: "'NO'", MAKE_EPHEM: "'YES'", EPHEM_TYPE: "'OBSERVER'",
-    CENTER: "'coord@301'", COORD_TYPE: "'GEODETIC'", QUANTITIES: "'4'", APPARENT: "'AIRLESS'",
-    ANG_FORMAT: "'DEG'", EXTRA_PREC: "'YES'", CSV_FORMAT: "'YES'", TIME_TYPE: "'UT'"
-  };
-  const all = Object.assign(base, params);
-  const qs = new URLSearchParams(all).toString();
-  const key = crypto.createHash('sha1').update(qs).digest('hex').slice(0, 16);
-  const file = path.join(CACHE, key + '.txt');
-  if (fs.existsSync(file)) return { text: fs.readFileSync(file, 'utf8'), cached: true, url: API + '?' + qs };
-  let lastErr;
-  for (let attempt = 0; attempt < 4; attempt++) {
-    try {
-      const res = await fetch(API + '?' + qs);
-      const text = await res.text();
-      if (!res.ok || !text.includes('$$SOE')) throw new Error('Horizons error: ' + text.slice(0, 400));
-      fs.writeFileSync(file, '# ' + API + '?' + qs + '\n' + text);
-      await new Promise(r => setTimeout(r, 300));
-      return { text, cached: false, url: API + '?' + qs };
-    } catch (e) { lastErr = e; await new Promise(r => setTimeout(r, 1500)); }
-  }
-  throw lastErr;
-}
-function parseRows(text) {
-  const block = text.split('$$SOE')[1].split('$$EOE')[0];
-  const MON = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
-  return block.trim().split(/\r?\n/).map(line => {
-    const f = line.split(',').map(s => s.trim());
-    const m = f[0].match(/(\d+)-(\w+)-(\d+) (\d+):(\d+):?([\d.]*)/);
-    const t = Date.UTC(+m[1], MON[m[2]], +m[3], +m[4], +m[5], m[6] ? parseFloat(m[6]) : 0);
-    const nums = f.filter(s => /^-?\d+(\.\d+)?$/.test(s)).map(Number);
-    return { t, az: nums[nums.length - 2], el: nums[nums.length - 1] };
-  });
-}
-function siteCoord(s) { return `'${s.lon},${s.lat},0'`; }
-function azDiff(a, b) { let d = a - b; d = ((d + 540) % 360) - 180; return d; }
 
 // -------------------------------------------------------------------- tests
 async function angleTests() {
@@ -181,6 +138,9 @@ function stat(arr) {
   const events = await eventTests();
   console.log('Running physics sanity tests (one year, 10-min steps) ...');
   const sanity = sanityTests();
+  const BT = require('./blind_test.js'), bcases = BT.loadCases();
+  const blind = bcases ? { generated: bcases.generated, selection: bcases.selection, cases: bcases.cases, rows: await BT.evaluate(bcases.cases) } : null;
+  if (blind) { blind.pass = blind.rows.every(r => r.pass); blind.el = stat(blind.rows.map(r => r.dEl)); blind.az = stat(blind.rows.map(r => r.dAz)); }
 
   const elS = stat(angles.map(c => c.dEl));
   const azS = stat(angles.map(c => c.dAz));
@@ -188,14 +148,14 @@ function stat(arr) {
   const anglePass = angles.every(c => c.pass);
   const eventPass = events.every(e => e.pass);
   const sanityPass = sanity.tests.every(t => t.pass);
-  const overall = anglePass && eventPass && sanityPass;
+  const overall = anglePass && eventPass && sanityPass && (!blind || blind.pass);
   const maxSunEl = Math.max(...angles.filter(c => c.body === 'Sun').map(c => c.hzEl));
 
   const result = {
     generated: new Date().toISOString(), overall, anglePass, eventPass, sanityPass,
     tolerances: { elDeg: TOL_EL, azDeg: TOL_AZ, eventMin: TOL_EVENT_MIN },
     angleStats: { el: elS, az: azS }, eventStats: evS, maxSunElTested: maxSunEl,
-    angles, events, sanity
+    angles, events, sanity, blind
   };
   fs.writeFileSync(path.join(ROOT, 'data', 'validation.js'),
     '// Generated by tests/validate.js - do not edit\nwindow.LUNA_VALIDATION = ' + JSON.stringify(result, null, 1) + ';\n');
@@ -219,7 +179,9 @@ function report(r) {
   md += `| Part | Result | Detail |\n|---|---|---|\n`;
   md += `| A. Angles vs JPL Horizons (${r.angles.length} comparisons) | ${r.anglePass ? 'PASS' : 'FAIL'} | elevation max ${f(r.angleStats.el.max, 4)} deg / mean ${f(r.angleStats.el.mean, 4)} deg; azimuth max ${f(r.angleStats.az.max, 4)} deg / mean ${f(r.angleStats.az.mean, 4)} deg |\n`;
   md += `| A. Event times vs Horizons (${r.events.length} events) | ${r.eventPass ? 'PASS' : 'FAIL'} | max ${f(r.eventStats.max, 2)} min / mean ${f(r.eventStats.mean, 2)} min |\n`;
-  md += `| B. Physics sanity tests (${r.sanity.tests.length}) | ${r.sanityPass ? 'PASS' : 'FAIL'} | see below |\n\n`;
+  md += `| B. Physics sanity tests (${r.sanity.tests.length}) | ${r.sanityPass ? 'PASS' : 'FAIL'} | see below |\n`;
+  if (r.blind) md += `| C. Blind test vs JPL Horizons (${r.blind.cases.length} new random cases, ${r.blind.rows.length} comparisons, fetched fresh) | ${r.blind.pass ? 'PASS' : 'FAIL'} | elevation max ${f(r.blind.el.max, 4)} deg; azimuth max ${f(r.blind.az.max, 4)} deg |\n`;
+  md += `\n`;
   md += `## Method\n\n`;
   md += `* **Our engine** (\`js/engine.js\`): Astronomy Engine 2.1.19 (VSOP87 Earth + Chapront lunar theory) for positions; IAU/WGCCRE Moon orientation model (\`Astronomy.RotationAxis(Body.Moon)\`) for the body-fixed frame; spherical Moon, R = 1737.4 km; site height 0 km; light-time correction (target at retarded time); first-order stellar aberration with the Moon's heliocentric velocity; no refraction. Elevation is measured from the plane perpendicular to the radial (local vertical) direction.\n`;
   md += `* **Reference**: JPL Horizons API (\`${API}\`), \`CENTER='coord@301'\`, \`COORD_TYPE='GEODETIC'\`, \`SITE_COORD='E-lon,lat,0'\`, targets Sun (10) and Earth (399), \`QUANTITIES='4'\` (apparent azimuth/elevation), \`APPARENT='AIRLESS'\`, \`TIME_TYPE='UT'\`, \`EXTRA_PREC='YES'\`. Horizons reports the lunar frame as MEAN_ME (high precision, DE-based) with radii 1737.4 km. Horizons' quantity 4 also includes gravitational light deflection, which we omit (milli-arcsecond effect).\n`;
@@ -232,6 +194,11 @@ function report(r) {
   for (const e of r.events) md += `| ${e.label} | ${e.lat} | ${e.lon} | ${e.ours || '-'} | ${e.horizons || '-'} | ${e.dMin !== undefined ? f(e.dMin, 2) : (e.error || '-')} | ${e.pass ? 'PASS' : '**FAIL**'} |\n`;
   md += `\n## B. Physics sanity tests\n\nPeriod: ${r.sanity.period}. Smooth-Moon horizon (0 deg everywhere).\n\n| Test | Result | Pass |\n|---|---|---|\n`;
   for (const t of r.sanity.tests) md += `| ${t.name} | ${t.value} | ${t.pass ? 'PASS' : '**FAIL**'} |\n`;
+  if (r.blind) {
+    md += `\n## C. Blind test\n\nCases chosen by \`node tests/blind_test.js --new\` on ${r.blind.generated.slice(0, 10)}: ${r.blind.selection}. Same settings and tolerances as part A. The raw responses are in the cache files listed (first line = exact query URL).\n\n| Site | lat | E-lon | UTC | Body | Az ours | Az Horizons | dAz | El ours | El Horizons | dEl | Pass | Cache file |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|\n`;
+    for (const c of r.blind.rows) md += `| ${c.name} | ${c.lat} | ${c.lon} | ${c.date} | ${c.body} | ${f(c.oursAz, 4)} | ${f(c.hzAz, 4)} | ${f(c.dAz, 4)} | ${f(c.oursEl, 4)} | ${f(c.hzEl, 4)} | ${f(c.dEl, 4)} | ${c.pass ? 'PASS' : '**FAIL**'} | \`${c.cacheFile}\` |\n`;
+    md += `\nFetch times (UTC): ${r.blind.cases.map(c => c.fetchedAt).join(', ')}. How to repeat one case by hand: VERIFY_YOURSELF.md.\n`;
+  }
   md += `\n## Test sites\n\n| Site | lat | E-lon | Source |\n|---|---|---|---|\n`;
   for (const s of SITES) md += `| ${s.name} | ${s.lat} | ${s.lon} | ${s.src} |\n`;
   md += `\nNotes: "Synthetic test coordinate" points are not landing sites; they were chosen to exercise geometry (near-pole Sun skimming, Earth near the east limb).\n`;
