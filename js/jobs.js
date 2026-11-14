@@ -100,6 +100,34 @@ window.ASTERIA_JOBS = function (E) {
     // 360-azimuth terrain horizon at a clicked point from the downsampled DEM.
     horizon: function (a) { if (!DEM) throw new Error('downsampled DEM not loaded'); return terrainHorizon(DEM, a.lat, a.lon, a.obsH); },
 
+    // Start of the next window of sunlight ('sun'), Earth view ('earth', with the minimum link elevation) or both,
+    // after time a.from, searching a.days days in a.step-minute steps (the same 60-minute steps as the search after the
+    // window); the crossing is refined to 1 minute with findEvents. Returns { time: ms } or { time: null }.
+    nextStart: function (a) {
+      var em = earthMaskFor(a.mask, a.minEl), step = (a.step || 60) * 60000, end = a.from + a.days * DAY;
+      var up = function (r, b) { return b === 'sun' ? r.sun.el > E.maskAt(a.mask, r.sun.az) : r.earth.el > E.maskAt(em, r.earth.az); };
+      var flags = function (t) { var r = E.sunEarthAt(a.site, new Date(t)); return { sun: up(r, 'sun'), earth: up(r, 'earth') }; };
+      var cond = function (f) { return a.kind === 'both' ? f.sun && f.earth : f[a.kind]; };
+      var ta = a.from, fa = flags(ta);
+      for (var tb = ta + step; tb <= end; tb += step) {
+        var fb = flags(tb);
+        if (cond(fb) && !cond(fa)) {
+          // refine each body that rose between ta and tb; the window starts when the last of them rises
+          var t = ta;
+          ['sun', 'earth'].forEach(function (b) {
+            if ((a.kind === b || a.kind === 'both') && !fa[b] && fb[b]) {
+              var ev = E.findEvents(a.site, b, new Date(ta), new Date(tb), b === 'sun' ? a.mask : em, 1).events.filter(function (e) { return e.type === 'rise'; });
+              var tr = ev.length ? ev[ev.length - 1].time.getTime() : tb;
+              if (tr > t) t = tr;
+            }
+          });
+          return { time: t };
+        }
+        ta = tb; fa = fb;
+      }
+      return { time: null };
+    },
+
     // Explorer window: series, refined events, stats, and the first event after the window.
     explorer: function (a) {
       var start = new Date(a.start), end = new Date(a.end);

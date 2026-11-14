@@ -75,7 +75,7 @@ window.AsteriaView3D = (function () {
       '    <div class="v3d-hudtxt"><div id="v3dHeading">-</div><div class="v3d-scale"><i id="v3dScaleBar"></i><span id="v3dScaleTxt">-</span></div><div id="v3dDist">-</div></div></div>' +
       '  <figure class="v3d-mini" id="v3dMini"><canvas id="v3dMiniCv" width="320" height="320" aria-label="Top-view map of the terrain around the site with your position"></canvas><figcaption id="v3dMiniCap">Top view, north up</figcaption></figure>' +
       '  <div class="v3d-msgs"><div class="v3d-banner" id="v3dBanner" hidden></div>' +
-      '  <div class="v3d-tip" id="v3dTip" hidden>The site is in shadow, so the ground looks almost black. <button class="btn small" id="v3dTipBtn">Light up</button> <span class="fineprint">(display brightness only)</span></div></div>' +
+      '  <div class="v3d-tip" id="v3dTip" hidden>The site is in shadow, so the ground looks almost black. <button class="btn small" id="v3dTipBtn">Light up</button> <span class="fineprint">(display brightness only)</span> <button class="btn small jump-sun" id="v3dTipJump" type="button" data-jump="sun">Jump to next sunlight</button></div></div>' +
       '  <div class="v3d-qnote" id="v3dQNote" hidden></div>' +
       '  <p class="v3d-shadownote">Near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model.</p>' +
       '  <div class="v3d-pad" id="v3dPad" hidden><button data-k="fwd" aria-label="Forward">&#9650;</button><button data-k="left" aria-label="Turn left">&#9664;</button><button data-k="back" aria-label="Back">&#9660;</button><button data-k="right" aria-label="Turn right">&#9654;</button></div>' +
@@ -90,6 +90,7 @@ window.AsteriaView3D = (function () {
       '    <div class="tile" id="v3dTileSun"><div class="tlabel">Sunlight at the site marker</div><div class="tstate" id="v3dSun">-</div><div class="tx x-only mono" id="v3dSunX"></div></div>' +
       '    <div class="tile" id="v3dTileEarth"><div class="tlabel">Earth link at the site marker</div><div class="tstate" id="v3dEarth">-</div><div class="tx x-only mono" id="v3dEarthX"></div></div>' +
       '  </div>' +
+      '  <div class="jumprow v3d-jump"><button class="btn small jump-sun" type="button" data-jump="sun">Jump to next sunlight</button><button class="btn small jump-earth" type="button" data-jump="earth">Jump to next Earth view</button><button class="btn small jump-both" type="button" data-jump="both">Jump to next both</button><div class="hint" id="v3dJumpMsg" role="status" aria-live="polite"></div></div>' +
       '  <p class="fineprint">Status from the validated horizon model (same as the main view), not from the 3D rendering.</p>' +
       '  <p class="fineprint" id="v3dEarthNote">Earth: continents from NASA Blue Marble (cloud-free composite); clouds not shown; orientation computed for this time.</p>' +
       '  <div class="v3d-ctl v3d-disp">' +
@@ -774,6 +775,7 @@ window.AsteriaView3D = (function () {
     add($('v3dBright'), 'input', function () { v.lightUpAuto = false; setBrightness(v, +this.value); });
     add($('v3dLightUp'), 'click', function () { if (v.bright >= LIGHT_UP - 0.01) lightUpOff(v); else lightUp(v); });
     add($('v3dTipBtn'), 'click', function () { lightUp(v); });
+    v.el.querySelectorAll('[data-jump]').forEach(function (b) { add(b, 'click', function () { if (v.app.jump) v.app.jump(b.dataset.jump); }); });
     add($('v3dFeatOn'), 'change', function () { v.dirty = true; });
     add($('v3dMiniOn'), 'change', function () { $('v3dMini').hidden = !this.checked; v.dirty = true; });
     add($('v3dRings'), 'change', function () { v.s.distRings.visible = this.checked && v.ctl.mode !== 'orbit'; v.dirty = true; });
@@ -1095,7 +1097,8 @@ window.AsteriaView3D = (function () {
   }
   function updateTip(v) {
     var tip = $('v3dTip'); if (!tip) return;
-    tip.hidden = !(v.inst && !v.inst.sunUp) || v.bright >= LIGHT_UP - 0.01;
+    tip.hidden = !(v.inst && !v.inst.sunUp);
+    $('v3dTipBtn').hidden = v.bright >= LIGHT_UP - 0.01;
   }
   // Rebuild the view at another quality level (renderer options such as antialiasing need a new context),
   // keeping the camera, mode, time and toggles.

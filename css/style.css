@@ -433,3 +433,11 @@ body.v3d-open { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .intro { transition: none; } }
 
 .nowrap { white-space: nowrap; }
+
+/* round 5: jump to the next window (Site Card and 3D panel) */
+.jumprow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0 2px; }
+.jumprow .hint { flex-basis: 100%; margin: 2px 0 0; min-height: 1em; }
+.btn.jump-sun { border-color: var(--sun); }
+.btn.jump-earth { border-color: var(--earth); }
+.btn.jump-both { border-color: var(--both); }
+.v3d-jump { margin: 8px 0; }

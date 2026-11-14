@@ -107,6 +107,57 @@ function loadData(file, name) { const w = {}; new Function('window', fs.readFile
     expect(`${tag} 3D "Light up" is not remembered and switches off when the Sun is up at the site`, lu.b1 === 3 && lu.ls1 === lu.ls0 && (lu.i < 0 || (lu.b2 < 3 && /switched off/.test(lu.note))), JSON.stringify(lu));
     await page.evaluate(() => AsteriaView3D.close(true));
 
+    // ---- Part 4: jump to the next sunlight / Earth view / both
+    const jump = async (sel, msgId) => {
+      await page.click(sel);
+      await page.waitForFunction(id => { const t = document.getElementById(id).textContent; return t && t !== 'Searching…'; }, msgId, { timeout: 60000 });
+      await page.evaluate(() => AsteriaApp.ready());
+      return page.evaluate(id => {
+        const S = AsteriaApp.state, i = S.idx, s = S.series, t = s.t[i], E = window.LunaEngine;
+        const site = { lat: S.site.lat, lon: S.site.lon }, mask = window.LUNA_HORIZONS[S.site.id] && S.useTerrain ? window.LUNA_HORIZONS[S.site.id].elevations : null;
+        const r = E.sunEarthAt(site, new Date(t));
+        return { t, msg: document.getElementById(id).textContent, sunUp: s.sunUp[i], earthUp: s.earthUp[i],
+          sunCheck: r.sun.el > E.maskAt(mask, r.sun.az), earthCheck: r.earth.el > E.maskAt(mask, r.earth.az) + S.minEl, minEl: S.minEl,
+          tiles: [document.getElementById('sunState').textContent, document.getElementById('earthState').textContent] };
+      }, msgId);
+    };
+    await page.goto('about:blank'); await open('site=peak_shackleton&w=30');
+    for (const k of ['sun', 'earth', 'both']) {
+      const t0 = await page.evaluate(() => AsteriaApp.state.series.t[AsteriaApp.state.idx]);
+      const r = await jump(`#jumpRow [data-jump=${k}]`, 'jumpMsg');
+      const ok = /Not within the next \d+ days \(search limit\)/.test(r.msg) ? true :
+        r.t > t0 && /^Next .* starts/.test(r.msg) && (k === 'sun' ? r.sunUp && r.sunCheck && r.tiles[0] === 'Sun up' : k === 'earth' ? r.earthUp && r.earthCheck && r.tiles[1] === 'Earth in view' : r.sunUp && r.earthUp && r.sunCheck && r.earthCheck);
+      expect(`${tag} Jump to next ${k}: lands on a later time where the series (and a fresh engine check) say the status is true; tiles updated`, ok, JSON.stringify(r));
+    }
+    // minimum link elevation respected
+    await page.fill('#minEl', '1'); await page.dispatchEvent('#minEl', 'change'); await page.evaluate(() => AsteriaApp.ready());
+    const rm = await jump('#jumpRow [data-jump=earth]', 'jumpMsg');
+    expect(`${tag} Jump to next Earth view respects the minimum link elevation (1°)`, rm.minEl === 1 && rm.earthUp && rm.earthCheck, JSON.stringify(rm));
+    await page.fill('#minEl', '0'); await page.dispatchEvent('#minEl', 'change'); await page.evaluate(() => AsteriaApp.ready());
+    // not found: Shackleton crater floor never sees the Sun
+    await page.goto('about:blank'); await open('site=shackleton_centre&w=30');
+    const tS = await page.evaluate(() => AsteriaApp.state.series.t[AsteriaApp.state.idx]);
+    const rn = await jump('#jumpRow [data-jump=sun]', 'jumpMsg');
+    expect(`${tag} Jump to next sunlight at the Shackleton crater floor: "Not within the next N days (search limit)", time unchanged`, /^Next sunlight: Not within the next \d+ days \(search limit\)\.$/.test(rn.msg) && rn.t === tS, rn.msg);
+    // 3D: hint next to "Light up" when the Sun is hidden, and the jump buttons work in the 3D panel
+    await page.evaluate(() => AsteriaApp.openDeploy());
+    await page.waitForFunction(() => window.AsteriaView3D && AsteriaView3D.debug().open, null, { timeout: 30000 });
+    const tip = await page.evaluate(() => ({ tip: !document.getElementById('v3dTip').hidden, btn: document.getElementById('v3dTipJump').textContent, lu: document.getElementById('v3dTipBtn').textContent }));
+    expect(`${tag} 3D: Sun hidden -> tip offers "Jump to next sunlight" next to "Light up"`, tip.tip && tip.btn === 'Jump to next sunlight' && tip.lu === 'Light up', JSON.stringify(tip));
+    const r3n = await jump('#v3dTipJump', 'v3dJumpMsg');
+    expect(`${tag} 3D: Jump to next sunlight from the tip, not found at the crater floor (same search-limit message)`, /Not within the next \d+ days \(search limit\)/.test(r3n.msg), r3n.msg);
+    await page.evaluate(() => AsteriaView3D.close(true));
+    await page.goto('about:blank'); await open('site=mons_mouton&w=30');
+    await page.evaluate(() => AsteriaApp.openDeploy());
+    await page.waitForFunction(() => window.AsteriaView3D && AsteriaView3D.debug().open, null, { timeout: 30000 });
+    for (const k of ['earth', 'sun']) {
+      const r = await jump(`.v3d-jump [data-jump=${k}]`, 'v3dJumpMsg');
+      const d = await page.evaluate(() => { const d = AsteriaView3D.debug(); return { t: d.instant.t, sunUp: d.instant.sunUp, earthUp: d.instant.earthUp, sun: document.getElementById('v3dSun').textContent, earth: document.getElementById('v3dEarth').textContent }; });
+      const ok = /Not within/.test(r.msg) || (d.t === r.t && (k === 'sun' ? d.sunUp && d.sun === 'Sun up' && r.sunCheck : d.earthUp && d.earth === 'Earth in view' && r.earthCheck));
+      expect(`${tag} 3D: Jump to next ${k} in the 3D panel moves the time (3D tiles, slider and main view agree)`, ok, JSON.stringify({ r: r.msg, d }));
+    }
+    await page.evaluate(() => AsteriaView3D.close(true));
+
     await ctx.close();
   }
 

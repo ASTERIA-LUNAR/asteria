@@ -366,6 +366,34 @@
       INSTANT_FNS.slice().forEach(function (fn) { fn(inst); });
     }
   }
+  // ---------------------------------------------------- jump to the next window (round 5)
+  // Moves the selected time to the start of the next window of sunlight, Earth view (with the minimum link elevation)
+  // or both. Inside the computed window: the first sample where the status becomes true (the series is what every
+  // tile shows). Beyond it: the same search as the countdowns (60-minute steps, SEARCH_DAYS_AFTER days after the
+  // window, refined to 1 minute), then the window is moved to start just after that moment.
+  var JUMP_NAME = { sun: 'sunlight', earth: 'Earth view', both: 'sunlight and Earth view together' };
+  function condAt(kind, i) { var s = S.series; return kind === 'both' ? s.sunUp[i] && s.earthUp[i] : kind === 'sun' ? s.sunUp[i] : s.earthUp[i]; }
+  function jumpMsg(text) { $('jumpMsg').textContent = text; var m = document.getElementById('v3dJumpMsg'); if (m) m.textContent = text; }
+  function jumpNext(kind) {
+    if (!S.series || !JUMP_NAME[kind]) return Promise.resolve({ found: false });
+    var s = S.series, n = s.t.length, t = s.t[S.idx], site = S.site;
+    var found = function (ms) { var txt = 'Next ' + JUMP_NAME[kind] + ' starts ' + fmtUTC(new Date(ms)) + ' UTC (selected).'; jumpMsg(txt); return { found: true, t: ms, text: txt }; };
+    for (var k = S.idx + 1; k < n; k++) if (condAt(kind, k) && !condAt(kind, k - 1)) { setIdx(k); return Promise.resolve(found(s.t[k])); }
+    var days = searchDaysAhead(t);
+    jumpMsg('Searching…');
+    var p = Jobs.run('nextStart', { site: siteObj(), mask: maskFor(S.site, S.useTerrain), minEl: S.minEl, kind: kind, from: s.t[n - 1], days: Jobs.local().SEARCH_DAYS_AFTER, step: 60 }).then(function (r) {
+      if (S.site !== site) return { found: false, stale: true };
+      if (r.time === null) { var txt = 'Next ' + JUMP_NAME[kind] + ': ' + notWithinText(days) + '.'; jumpMsg(txt); return { found: false, text: txt, days: days }; }
+      var st = new Date(Math.ceil(r.time / 60000) * 60000 + 60000);   // first whole minute after the refined start
+      S.start = st; S.idx = 0; $('startInput').value = toInput(st);
+      return recompute().then(function () {
+        var k2 = 0; while (k2 < S.series.t.length - 1 && !condAt(kind, k2)) k2++;
+        if (k2) setIdx(k2);
+        return found(S.series.t[S.idx]);
+      });
+    });
+    return Loader.track(p, 'Searching for the next ' + JUMP_NAME[kind] + '…');
+  }
   function tile(id, cls, stateEl, text) { $(id).className = 'tile ' + cls; stateEl.textContent = text; }
   // Days ahead of time t that the next-event search covers: the rest of the window, then SEARCH_DAYS_AFTER more.
   function searchDaysAhead(t) { return Math.round((S.series.t[S.series.t.length - 1] - t) / DAY) + Jobs.local().SEARCH_DAYS_AFTER; }
@@ -1422,7 +1450,7 @@
     return window.AsteriaView3D.open({
       site: site, tile: window.ASTERIA_TERRAIN3D[site.id], mask: maskFor(site, true),
       app: {
-        instant: currentInstant, setIdx: setIdx, setPlaying: setPlaying, playing: function () { return S.playing; },
+        instant: currentInstant, setIdx: setIdx, setPlaying: setPlaying, playing: function () { return S.playing; }, jump: jumpNext,
         onInstant: function (fn) { INSTANT_FNS.push(fn); return function () { var k = INSTANT_FNS.indexOf(fn); if (k >= 0) INSTANT_FNS.splice(k, 1); }; },
         onClose: function () { setTimeout(function () { btn.focus({ preventScroll: true }); }, 0); }
       }
@@ -1622,6 +1650,7 @@
     $('siteList').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { var it = ev.target.closest('.siteitem'); if (it) selectSite(siteById(it.dataset.id)); } });
     $('customGo').addEventListener('click', function () { useCustom(); });
     $('deployBtn').addEventListener('click', function () { openDeploy(); });
+    $('jumpRow').addEventListener('click', function (ev) { var b = ev.target.closest('[data-jump]'); if (b) jumpNext(b.dataset.jump); });
     $('fullSky').addEventListener('change', function () { S.fullSky = this.checked; renderInstant(); });
     $('startInput').addEventListener('change', function () { var d = fromInput(this.value); if (d) { S.start = d; S.idx = 0; recompute(); } });
     $('nowBtn').addEventListener('click', function () { var d = new Date(); d.setUTCSeconds(0, 0); S.start = d; S.idx = 0; $('startInput').value = toInput(d); recompute(); });
@@ -1705,7 +1734,7 @@
     windows: function (body) { return WIN[body]; },
     jobsMode: function () { return Jobs.mode(); },
     selectSiteById: function (id) { return selectSite(siteById(id)); },
-    setIdx: setIdx, openDeploy: openDeploy, has3D: function () { return has3D(S.site); },
+    setIdx: setIdx, openDeploy: openDeploy, jumpNext: jumpNext, has3D: function () { return has3D(S.site); },
     tour: { start: function () { tourShow(0); }, step: function () { return TOUR.i; } }
   };
   window.AsteriaApp = window.LunaApp;   // product name alias (internal LunaApp kept for compatibility)
