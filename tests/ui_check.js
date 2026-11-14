@@ -68,9 +68,13 @@ const path = require('path'), fs = require('fs'), url = require('url');
 
     // ---- picker: Artemis features, reference site outside the pole
     const pickSite = async id => { await page.click('#pickBtn'); await page.click(`.siteitem[data-id="${id}"]`); await ready(page); await page.waitForTimeout(250); };
-    await pickSite('haworth');
+    await page.click('#pickBtn');
+    const pk = await page.evaluate(() => ({ ids: [...document.querySelectorAll('.siteitem')].map(e => e.dataset.id), names: (document.querySelector('.regionnames') || {}).textContent || '', link: !!document.querySelector('.regionnames a[href*="nasa.gov"]') }));
+    expect(`${tag} unplotted Artemis III regions listed by name only (no point), with the NASA link`, ['haworth', 'cabeus_b', 'nobile', 'de_gerlache', 'slater', 'change7'].every(id => !pk.ids.includes(id)) && ['Peak near Cabeus B', 'Haworth', 'Mons Mouton Plateau', 'Nobile Rim 1', 'de Gerlache Rim 2', 'Slater Plain'].every(n => pk.names.includes(n)) && /not plotted, no values computed/.test(pk.names) && pk.link, JSON.stringify(pk).slice(0, 300));
+    await page.click('#pickBtn');
+    await pickSite('mons_malapert');
     const hw = await page.evaluate(() => ({ kind: document.getElementById('siteKind').textContent, badge: document.getElementById('horizonBadge').textContent, warn: !!document.querySelector('.warnline') }));
-    expect(`${tag} Artemis region feature labelled "named feature in/near this region (not a landing point)" with terrain`, /Haworth/.test(hw.kind) && /not a landing point/.test(hw.kind) && /Terrain/.test(hw.badge) && hw.warn, JSON.stringify(hw));
+    expect(`${tag} Artemis landform centre labelled "centre of the named landform; region boundary not plotted" with terrain`, /Malapert Massif/.test(hw.kind) && /centre of the named landform; region boundary not plotted/.test(hw.kind) && /Terrain/.test(hw.badge) && hw.warn, JSON.stringify(hw));
     await pickSite('apollo11');
     const ap = await page.evaluate(() => ({ note: document.getElementById('mapNote').hidden ? '' : document.getElementById('mapNote').textContent, badge: document.getElementById('horizonBadge').textContent }));
     expect(`${tag} reference site outside the pole: map note + "smooth horizon, terrain not included"`, /outside this south-pole map/.test(ap.note) && /terrain not included/.test(ap.badge) && /terrain not included/.test(ap.note), JSON.stringify(ap));
@@ -161,7 +165,7 @@ const path = require('path'), fs = require('fs'), url = require('url');
     await shot(page, vp.name + '_8_compare');
     await page.click('.tab[data-page="validation"]'); await page.waitForTimeout(200);
     const vt = await page.textContent('#validationContent');
-    expect(`${tag} Validation lists the Artemis features in the cross-check`, /Overall: PASS/.test(vt) && /Haworth \(feature\)/.test(vt) && /Mons Malapert/.test(vt));
+    expect(`${tag} Validation cross-check lists the landform centres and no removed crater-centre points`, /Overall: PASS/.test(vt) && /Mons Malapert \(landform centre\)/.test(vt) && !/Haworth \(feature\)|Cabeus B|Slater \(|de Gerlache \(/.test(vt));
     await shot(page, vp.name + '_9_validation');
     await page.click('.tab[data-page="about"]'); await page.waitForTimeout(200);
     const ab = await page.textContent('#aboutContent');

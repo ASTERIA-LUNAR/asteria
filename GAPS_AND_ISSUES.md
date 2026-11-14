@@ -7,15 +7,14 @@ Status as of 2026-11-14 (third development round: ASTERIA rename, south-pole map
 * **25 sites** in total:
   * **14 south-pole sites** with LOLA terrain horizons.
   * **11 reference sites** outside the south pole (Apollo 11-17 and robotic landers), shown as "Reference sites (outside the south pole)" with a smooth horizon (terrain not included).
-* **NASA Artemis III regions** (28 Oct 2024 list of nine; the names were confirmed from the NASA release).
-  * NASA publishes **no numeric coordinates** for the regions, only images.
-  * Each region is represented by the **IAU Gazetteer centre of the feature it is named after**, labelled "named feature in/near this region (not a landing point)".
-  * Gazetteer coordinates are "Planetographic, +East, -180 - 180". For the spherical Moon reference, planetographic and planetocentric latitudes are the same.
-  * Limitations:
-    * **Haworth, de Gerlache and Slater** are crater centres in permanent shadow: 0 % sunlight in our model and in the published map. Cabeus B's centre gets 8 %. These numbers describe the crater floors, **not** the landing regions on rims, peaks or plains. The app warns about this on each such site.
-    * **"Malapert Massif"** is not an IAU name. It is represented by **Mons Malapert** (IAU feature 16338, adopted 26 Aug 2024, "named for nearby crater, Malapert").
-    * **"Mons Mouton" and "Mons Mouton Plateau"** are two NASA regions, both represented by the single Mons Mouton feature (16070).
-    * **"Nobile Rim 1" and "Nobile Rim 2"** are both represented by the Nobile crater centre (4321). Nobile Rim 2 also keeps the published point DM2 (Peña-Asensio et al., arXiv 2406.19863, an independent study, not a NASA selection).
+* **NASA Artemis III regions** (28 Oct 2024 list of nine; names confirmed from the NASA release).
+  * NASA publishes the region boundaries **only as images**, with no numeric coordinates.
+  * Plotted (with terrain horizon and computed values) only where a point is genuinely inside the region:
+    * **Malapert Massif**: centre of the named landform Mons Malapert (IAU 16338). "Malapert Massif" is not an IAU name.
+    * **Mons Mouton**: centre of the named landform (IAU 16070).
+    * **Nobile Rim 2**: published point DM2 (Peña-Asensio et al., arXiv 2406.19863; an independent study, not a NASA selection).
+    * The two landform centres were checked to lie inside the IAU Gazetteer outline (WKT polygon) of the landform. They are single points on 67-130 km mountains, so other parts of the region can differ a lot. Region boundaries are not plotted.
+  * **Not plotted, no values computed** (listed by name with a link to the NASA announcement): Peak near Cabeus B, Haworth, Mons Mouton Plateau, Nobile Rim 1, de Gerlache Rim 2, Slater Plain. Earlier rounds showed crater centres for these (Cabeus B, Haworth, Nobile, de Gerlache, Slater); those points were outside the rim/peak/plain regions and were removed, with their horizons and metrics.
 * **Peak near Shackleton**: two entries.
   * The published coordinate (Mahanti et al. 2024).
   * A clearly labelled **derived** "best-supported point": the 50 m grid point within 500 m where our model and the published map agree it is best lit. This point is the app's default view. It is an illustration, not a landing recommendation.

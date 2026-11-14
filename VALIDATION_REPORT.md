@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T09:11:48.559Z by `node tests/validate.js`.
+Generated 2026-11-14T10:29:35.614Z by `node tests/validate.js`.
 
 ## Overall: **PASS**
 
@@ -140,7 +140,7 @@ Peak near Shackleton (-88.79, 124.5) vs the published "approximately 80%" figure
 
 Best point supported by both models (maximum of min(ours at 2 m, published map)): **-88.78505, 124.3438**, ours 59.8%, published map 59.2%. Added to the app as a clearly labelled derived point; the original published coordinate is kept.
 
-**All south-pole sites with terrain horizons vs the published map** (observer 2 m, 18.6 years). "(feature)" = IAU named-feature centre standing in for a NASA Artemis III region (not a landing point; often a crater floor). The published map covers ~85°S-90°S only; "outside map" = not covered:
+**All south-pole sites with terrain horizons vs the published map** (observer 2 m, 18.6 years). "(landform centre)" = IAU Gazetteer centre of a landform that is itself a NASA Artemis III region (one point, not a landing site; region boundary not plotted). The published map covers ~85°S-90°S only; "outside map" = not covered:
 
 | Site | lat | E-lon | (1) Avg disk fraction | (2) Sun centre up | (3) Any part up | Published map | Difference (1) - map |
 |---|---|---|---|---|---|---|---|
@@ -150,16 +150,11 @@ Best point supported by both models (maximum of min(ours at 2 m, published map))
 | Peak near Shackleton (illuminated area) | -88.79 | 124.5 | 48.1% | 48.1% | 49.8% | 45.4% | 2.8 pts |
 | Peak near Shackleton - best-lit point (derived) | -88.7851 | 124.3438 | 59.8% | 59.8% | 61.4% | 59.1% | 0.7 pts |
 | Nobile Rim 2 (site DM2) | -84.20156 | 60.69989 | 32.8% | 32.8% | 34.2% | outside map | n/a |
-| Mons Mouton (feature) | -84.6 | 31 | 30.1% | 30.1% | 33.1% | 32.8% | -2.8 pts |
-| Cabeus B (feature) | -82.26 | -54.58 | 8.2% | 8.2% | 10.5% | outside map | n/a |
-| Haworth (feature) | -87.45 | -5.17 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0 pts |
-| Mons Malapert (feature) | -85.98 | -1.67 | 33.9% | 33.9% | 34.6% | 39.0% | -5.1 pts |
-| Nobile (feature) | -85.28 | 53.27 | 34.4% | 34.4% | 35.6% | 35.6% | -1.2 pts |
-| de Gerlache (feature) | -88.48 | -88.34 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0 pts |
-| Slater (feature) | -88.08 | 111.29 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0 pts |
+| Mons Mouton (landform centre) | -84.6 | 31 | 30.1% | 30.1% | 33.1% | 32.8% | -2.8 pts |
+| Mons Malapert (landform centre) | -85.98 | -1.67 | 33.9% | 33.9% | 34.6% | 39.0% | -5.1 pts |
 | Shackleton crater centre (floor) | -89.67 | 129.78 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0 pts |
 
-Covered sites (excluding the derived point, which was chosen using the map): 10; |difference| mean 1.9 pts, max 6.1 pts.
+Covered sites (excluding the derived point, which was chosen using the map): 6; |difference| mean 2.9 pts, max 6.1 pts.
 
 **Finding.** At the published coordinate, the published 60 m map itself gives 45.4%, and our model gives 48.1% (2 m, 18.6 years). Both are well below "approximately 80%". The ~80% figure is therefore not reproduced by the public map product at that coordinate. Possible reasons: the 2011 analysis used 240 m topography and different heights or periods, the coordinate is rounded to 0.01° (about ±150 m), and illumination changes a lot over a few hundred metres. We report this as-is. With the observer 10 m above the surface (the Mazarico et al. abstract notes that ~10 m height gains can greatly improve illumination), the best point within 500 m reaches 79.2% in our model; the published map at that point gives 58.1% (the map does not state its observer height).
 

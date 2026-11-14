@@ -336,3 +336,7 @@ body.computing .tiles, body.computing #metrics { opacity: .6; transition: opacit
   .spinner { animation: spin 2s linear infinite !important; }
 }
 body.expert div.metricx.x-only { display: contents !important; }
+/* Artemis III regions listed by name only (no point, no values) */
+.regionnames { padding: 4px 10px 10px; }
+.regionnames .sub { font-size: .78rem; color: var(--muted); line-height: 1.45; }
+.regionnames a { color: #9cc9ff; }

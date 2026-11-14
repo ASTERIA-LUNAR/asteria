@@ -74,7 +74,7 @@
     return 'polar';
   }
   var GROUPS = [
-    ['artemis', 'NASA Artemis III candidate regions (Oct 2024)', 'Each shown at the IAU named feature it is named after - not a landing point.'],
+    ['artemis', 'NASA Artemis III candidate regions (Oct 2024)', 'A region is plotted only where a point is genuinely inside it (the centre of the named landform, or a published point). Region boundaries are not plotted.'],
     ['polar', 'South pole: missions, targets and published points', ''],
     ['polarref', 'South pole: reference feature', ''],
     ['outside', 'Reference sites (outside the south pole)', 'Smooth horizon, terrain not included. For comparison and education.']
@@ -86,13 +86,13 @@
   function siteOrder(a, b) {
     var d = (a.id === DEFAULT_SITE ? -1 : 0) - (b.id === DEFAULT_SITE ? -1 : 0);
     if (d) return d;
-    if (a.artemisRegions && b.artemisRegions) return regionIndex(a) - regionIndex(b) || (a.featureOnly ? -1 : 1);
+    if (a.artemisRegions && b.artemisRegions) return regionIndex(a) - regionIndex(b);
     return 0;
   }
   function kindText(s) {
     if (!s.id) return isPolar(s) ? 'Custom point · smooth horizon (terrain is not computed for custom points)' : 'Custom point · smooth horizon, terrain not included';
-    if (s.artemisRegions && s.featureOnly) return 'Artemis III region: ' + s.artemisRegions.join(' / ') + ' · named feature in/near this region (not a landing point)';
-    if (s.regionPoint) return 'Artemis III region: ' + s.artemisRegions.join(' / ') + ' · published point from an independent study';
+    if (s.artemisRegions && s.landformCentre) return 'Artemis III region: ' + s.artemisRegions.join(' / ') + ' · centre of the named landform; region boundary not plotted';
+    if (s.regionPoint) return 'Artemis III region: ' + s.artemisRegions.join(' / ') + ' · published point inside the region (independent study); region boundary not plotted';
     if (/^DERIVED/.test(s.coordKind)) return 'Derived by ASTERIA: best-supported point near Peak near Shackleton (not a published coordinate)';
     if (!isPolar(s)) return 'Reference site (outside the south pole) · smooth horizon, terrain not included';
     return s.coordKind;
@@ -136,7 +136,8 @@
         if (!qv) return true;
         return (s.name + ' ' + s.mission + ' ' + s.agency + ' ' + (s.artemisRegions || []).join(' ') + ' ' + s.notes).toLowerCase().indexOf(qv) >= 0;
       }).sort(siteOrder);
-      if (!items.length) return;
+      var unplotted = g[0] !== 'artemis' ? [] : REG.regions.filter(function (r) { return !r.sites.length && (!qv || r.name.toLowerCase().indexOf(qv) >= 0 || 'artemis'.indexOf(qv) >= 0); });
+      if (!items.length && !unplotted.length) return;
       html += '<div class="sitegroup">' + g[1] + (g[2] ? '<span>' + g[2] + '</span>' : '') + '</div>';
       items.forEach(function (s) {
         var sel = S.site && S.site.id === s.id ? ' sel' : '';
@@ -145,6 +146,8 @@
           '</div><div class="sub">' + esc(sub) + ' · ' + s.lat.toFixed(2) + '°, ' + s.lon.toFixed(2) + '°E</div></div>' +
           (hasTerrain(s) ? '<span class="tag">terrain</span>' : '<span class="tag smooth">smooth</span>') + '</div>';
       });
+      if (unplotted.length) html += '<div class="regionnames"><div class="sub">Not plotted (' + unplotted.length + '): ' + unplotted.map(function (r) { return esc(r.name); }).join(', ') +
+        '.<br>' + esc(REG.notPlottedNote) + ' <a href="' + esc(REG.source) + '" target="_blank" rel="noopener">NASA announcement</a></div></div>';
     });
     $('siteList').innerHTML = html || '<div class="sitegroup">No matches</div>';
   }
@@ -176,7 +179,7 @@
       m += '<div class="x-only"><b>Coordinate:</b> ' + esc(s.coordKind) + '. ' + esc(s.notes) + '<br>Mission/region: ' + esc(s.mission) + ' · ' + esc(s.agency) + ' · ' + esc(s.status) + (s.year ? ' (' + s.year + ')' : '') +
         '<br>Sources: ' + s.sources.map(function (u) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(u.replace(/^https?:\/\//, '').slice(0, 64)) + '</a>'; }).join(' · ') +
         (hasTerrain(s) ? '<br>Terrain: LOLA, site height ' + HZ[s.id].siteHeight_m.toFixed(0) + ' m above the 1737.4 km sphere; observer 2 m above ground; horizon from ' + fmtDeg(minMax(HZ[s.id].elevations)[0], 1) + ' to ' + fmtDeg(minMax(HZ[s.id].elevations)[1], 1) + '; rays to ' + HZ[s.id].minReach_km.toFixed(0) + '-300 km.' : '') + '</div>';
-      if (s.featureOnly) m += '<div class="warnline">This is the centre of the named feature, not a landing point: conditions here (often a crater floor) can be very different from the region\'s rim or peak sites.</div>';
+      if (s.landformCentre) m += '<div class="warnline">One point at the centre of a large landform, not a landing site. NASA\'s region boundary is not plotted; conditions elsewhere in the region can be very different.</div>';
     }
     $('siteMeta').innerHTML = m;
     renderBadge();
@@ -214,7 +217,7 @@
     } else {
       h = '<div class="lgtitle">Terrain ' + q('overlay_none') + '</div><div class="lgnote">Hillshade from LOLA elevation data - synthetic lighting, not real illumination. Up to 18.6 m/px inside ~85°S.</div>';
     }
-    h += '<div class="lgmk"><span><i class="mk mk-feature"></i>Artemis III region feature</span><span><i class="mk mk-point"></i>Mission / published point</span><span><i class="mk mk-derived"></i>Derived</span><span><i class="mk mk-reference"></i>Reference</span><span><i class="mk mk-group"><b>2</b></i>Overlapping</span></div>';
+    h += '<div class="lgmk"><span><i class="mk mk-feature"></i>Point inside an Artemis III region</span><span><i class="mk mk-point"></i>Mission / published point</span><span><i class="mk mk-derived"></i>Derived</span><span><i class="mk mk-reference"></i>Reference</span><span><i class="mk mk-group"><b>2</b></i>Overlapping</span></div>';
     el.innerHTML = h;
     initQ(el);
   }
@@ -728,7 +731,7 @@
     h += '</tbody></table></div>';
     var I = window.LUNA_ILLUMINATION;
     if (I) {
-      h += '<h3>Terrain illumination and Earth visibility (one year, LOLA horizons)</h3><p class="hint">' + esc(I.period) + ', ' + I.stepMin + '-minute steps, Sun/Earth centre vs horizon (Earth minimum elevation 0°), observer ' + I.observerHeight_m + ' m above ground. Artemis region features are feature centres, not landing points.</p>';
+      h += '<h3>Terrain illumination and Earth visibility (one year, LOLA horizons)</h3><p class="hint">' + esc(I.period) + ', ' + I.stepMin + '-minute steps, Sun/Earth centre vs horizon (Earth minimum elevation 0°), observer ' + I.observerHeight_m + ' m above ground. Artemis III points are landform centres or a published point inside a region, not landing sites.</p>';
       h += '<div class="tablewrap"><table><thead><tr><th>Site</th><th class="num">Height (m)</th><th class="num">Sunlit % terrain</th><th class="num">Sunlit % smooth</th><th class="num">Earth % terrain</th><th class="num">Both %</th><th class="num">Longest dark</th><th class="num">Longest Earth blackout</th></tr></thead><tbody>';
       I.rows.forEach(function (r) {
         h += '<tr><td>' + esc(r.name) + '</td><td class="num">' + r.siteHeight_m.toFixed(0) + '</td><td class="num">' + r.sunTerrain.toFixed(1) + '</td><td class="num">' + r.sunSmooth.toFixed(1) + '</td><td class="num">' + r.earthTerrain.toFixed(1) + '</td><td class="num">' + r.bothTerrain.toFixed(1) + '</td><td class="num">' + fmtHours(r.longestDarkH) + '</td><td class="num">' + fmtHours(r.longestBlackoutH) + '</td></tr>';
@@ -857,7 +860,7 @@
     var key = $('slipMetric').value, M = SLIP_METRICS[key];
     var bySite = R.sites.length > 1;
     var w = c.clientWidth, narrow = w < 560;
-    var rows = bySite ? R.sites.map(function (s) { return { label: s.name.replace(' (feature)', '').replace(' - best-lit point (derived)', ' (derived)'), site: s, key: key }; })
+    var rows = bySite ? R.sites.map(function (s) { return { label: s.name.replace(' (landform centre)', '').replace(' - best-lit point (derived)', ' (derived)'), site: s, key: key }; })
       : SLIP_KEYS.map(function (k) { return { label: narrow ? SLIP_METRICS[k].short : SLIP_METRICS[k].label, site: R.sites[0], key: k }; });
     var nS = R.sites[0].scan.rows.length;
     var labW = narrow ? Math.max(84, Math.min(120, w * 0.3)) : Math.min(230, Math.max(90, w * 0.24)), rowH = narrow ? 22 : 26, top = 6, bottom = 24;
@@ -1111,7 +1114,7 @@
   // ======================================================= FIRST-VISIT HINT
   var HINT_KEY = 'asteria.hintDismissed';
   var HINTS = [
-    ['mapPanel', '<b>1. The south-pole map.</b> Click a marker to open a site (violet diamonds are NASA\'s Artemis III candidate regions), or click anywhere to test your own point. Drag to pan, scroll or pinch to zoom.'],
+    ['mapPanel', '<b>1. The south-pole map.</b> Click a marker to open a site (violet diamonds are points inside NASA\'s Artemis III candidate regions), or click anywhere to test your own point. Drag to pan, scroll or pinch to zoom.'],
     ['siteCard', '<b>2. Three status tiles.</b> <span class="c-sun">Sunlight</span>, <span class="c-earth">Earth link</span> and <span class="c-both">mission status</span> at the selected time, each with a countdown to the next change.'],
     ['skyPanel', '<b>3. Go deeper.</b> Press play in the Sky view, switch on <b>Expert view</b> for all technical values, tap <b>?</b> for explanations, or take the <b>Tour</b>.']
   ];
@@ -1145,7 +1148,7 @@
       p.then(function () {
         showPage('explorer'); Map.home(true);
         var sEl = minMax(S.series.sunEl);
-        done('mapPanel', 'This is the lunar <b>south pole</b>, from about 80°S to 90°S, built from NASA LOLA elevation data. ASTERIA has <b>' + nTerrainSites() + '</b> south-pole sites with computed terrain horizons, covering all <b>' + REG.regions.length + '</b> NASA Artemis III candidate regions (Oct 2024), each shown at the IAU feature it is named after. Why the pole? Its permanently shadowed craters may hold water ice, and nearby peaks get long periods of sunlight. The Sun stays low here: at the selected site its centre moves between ' + fmtDeg(sEl[0], 1) + ' and ' + fmtDeg(sEl[1], 1) + ' over the next 30 days.');
+        done('mapPanel', 'This is the lunar <b>south pole</b>, from about 80°S to 90°S, built from NASA LOLA elevation data. ASTERIA has <b>' + nTerrainSites() + '</b> south-pole sites with computed terrain horizons. Of NASA\'s <b>' + REG.regions.length + '</b> Artemis III candidate regions (Oct 2024), <b>' + REG.regions.filter(function (r) { return r.sites.length; }).length + '</b> have a plotted point inside them; the others are listed by name only, because their boundaries are published only as images. Why the pole? Its permanently shadowed craters may hold water ice, and nearby peaks get long periods of sunlight. The Sun stays low here: at the selected site its centre moves between ' + fmtDeg(sEl[0], 1) + ' and ' + fmtDeg(sEl[1], 1) + ' over the next 30 days.');
       });
     },
     function (done) { // 2. the selected polar site: Sun skims, terrain blocks; contrast with an equatorial site
@@ -1230,9 +1233,10 @@
     document.querySelectorAll('input[name=ovl]').forEach(function (r) { r.addEventListener('change', function () { Map.setOverlay(this.value); renderLegend(this.value); }); });
     $('markersToggle').addEventListener('change', function () { Map.setMarkersVisible(this.checked); });
     $('homeBtn').addEventListener('click', function () { Map.home(true); });
-    $('aboutRegions').innerHTML = 'NASA\'s 28 October 2024 update lists nine candidate regions and publishes no numeric coordinates for them: ' + REG.regions.map(function (r) {
-      return '<b>' + esc(r.name) + '</b> (' + r.sites.map(function (id) { var s = siteById(id); return esc(s.name) + ' ' + s.lat.toFixed(2) + '°, ' + s.lon.toFixed(2) + '°E'; }).join('; ') + ')';
-    }).join(', ') + '. Each region is represented by the IAU Gazetteer coordinate of the named feature it is named after, labelled "named feature in/near this region (not a landing point)"; for Nobile Rim 2 a published point from an independent study (site DM2, Peña-Asensio et al.) is also shown. "Malapert Massif" is represented by Mons Malapert, the IAU name of the massif. <a href="' + esc(REG.source) + '" target="_blank" rel="noopener">NASA release</a>.';
+    $('aboutRegions').innerHTML = 'NASA\'s 28 October 2024 update lists nine candidate regions. Their boundaries are published only as images, with no numeric coordinates. ASTERIA plots a region only where a point is genuinely inside it:<ul>' +
+      REG.regions.map(function (r) {
+        return '<li><b>' + esc(r.name) + '</b>: ' + (r.sites.length ? r.sites.map(function (id) { var s = siteById(id); return esc(s.name) + ' (' + s.lat.toFixed(2) + '°, ' + s.lon.toFixed(2) + '°E)'; }).join('; ') + ' - ' + esc(r.how) : 'not plotted. ' + esc(REG.notPlottedNote)) + '</li>';
+      }).join('') + '</ul><a href="' + esc(REG.source) + '" target="_blank" rel="noopener">NASA announcement (28 Oct 2024)</a>.';
 
     $('pickBtn').addEventListener('click', function () { togglePicker(); });
     $('siteSearch').addEventListener('input', renderSiteList);

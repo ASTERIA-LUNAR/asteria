@@ -44,7 +44,7 @@ window.AsteriaMap = (function () {
   }
 
   function markerKind(s) {
-    if (s.artemisRegions && s.featureOnly) return 'feature';
+    if (s.artemisRegions) return 'feature';
     if (/^DERIVED/.test(s.coordKind || '')) return 'derived';
     if (s.status === 'reference') return 'reference';
     return 'point';

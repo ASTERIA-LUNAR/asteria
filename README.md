@@ -61,20 +61,16 @@ Double-click **`index.html`**. It runs offline in any modern browser, with no se
 
 There are 14 south-pole sites with LOLA terrain horizons, plus 11 reference sites outside the south pole. The reference sites use a smooth horizon (terrain not included) and are kept for comparison and education. Every site has source links and a note on exactly what its coordinate is (`data/sites.js`).
 
-**NASA Artemis III candidate regions.** NASA's 28 Oct 2024 list of nine regions publishes no coordinates (confirmed from the release). Each region is therefore shown at the IAU Gazetteer coordinate of the feature it is named after, labelled **"named feature in/near this region (not a landing point)"**:
+**NASA Artemis III candidate regions.** NASA's 28 Oct 2024 list of nine regions publishes the region boundaries only as images, with no coordinates. A region is plotted (with sunlight and Earth calculations) **only** where a point is genuinely inside it:
 
-| Region (NASA) | Represented by (IAU Gazetteer feature) | Lat, E-lon |
+| Region (NASA) | Plotted point | Lat, E-lon |
 |---|---|---|
-| Peak near Cabeus B | Cabeus B (crater, feature 8058) | -82.26, -54.58 |
-| Haworth | Haworth (crater, 14502) | -87.45, -5.17 |
-| Malapert Massif | Mons Malapert (mons, 16338; "Malapert Massif" is not an IAU name) | -85.98, -1.67 |
-| Mons Mouton Plateau, Mons Mouton | Mons Mouton (mons, 16070) | -84.60, 31.00 |
-| Nobile Rim 1, Nobile Rim 2 | Nobile (crater, 4321) | -85.28, 53.27 |
-| Nobile Rim 2 (also) | Site DM2, published point from Peña-Asensio et al., arXiv 2406.19863 | -84.20156, 60.69989 |
-| de Gerlache Rim 2 | de Gerlache (crater, 1439) | -88.48, -88.34 |
-| Slater Plain | Slater (crater, 15325) | -88.08, 111.29 |
+| Malapert Massif | Mons Malapert, centre of the named landform (IAU 16338; "Malapert Massif" is not an IAU name); region boundary not plotted | -85.98, -1.67 |
+| Mons Mouton | Mons Mouton, centre of the named landform (IAU 16070); region boundary not plotted | -84.60, 31.00 |
+| Nobile Rim 2 | Site DM2, published point inside the region (Peña-Asensio et al., arXiv 2406.19863, accepted in Acta Astronautica) | -84.20156, 60.69989 |
+| Peak near Cabeus B, Haworth, Mons Mouton Plateau, Nobile Rim 1, de Gerlache Rim 2, Slater Plain | none: listed by name only. "Official boundaries published only as images; not plotted, no values computed." | - |
 
-Several of these are crater centres: permanently shadowed floors that do **not** represent the rim or plain landing areas. The app warns about this on each of them.
+Both landform centres were checked to lie inside the IAU Gazetteer outline of the landform. Earlier versions showed crater centres (Cabeus B, Haworth, Nobile, de Gerlache, Slater) for these regions; they were removed because a crater centre is not inside a rim, peak or plain region.
 
 Other south-pole sites:
 
