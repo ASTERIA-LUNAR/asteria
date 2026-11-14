@@ -1,4 +1,4 @@
-Status as of 2026-11-14 (round 4: faster, clearer and more realistic 3D view, beginner Sky view - section 9; round 3: 3D terrain view "Deploy", rover, AI disclosure and branding check, submission links, first-visit intro; builds on rounds 2B and 2C). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
+Status as of 2026-11-14 (round 5: independent instant-status and 3D accuracy checks, ground detail, jump buttons, UI polish, proof for judges, tag v1-stable - section 10; round 4: faster, clearer and more realistic 3D view, beginner Sky view - section 9; round 3: 3D terrain view "Deploy", rover, AI disclosure and branding check, submission links, first-visit intro; builds on rounds 2B and 2C). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
 
 ## 1. Sites and coordinates
 
@@ -213,3 +213,45 @@ The full table is in README.md ("3D terrain view"). Summary of the limits:
 * Two-finger gestures are implemented but not covered by the automated test (no multi-touch in Playwright), as before.
 * The CDS file server for the star catalogue did not answer; the identical file was taken from the Harvard-Smithsonian CfA mirror (http only). The Lucey et al. DOI blocks scripted link checks (HTTP 403) but resolves in a browser.
 * Working copies on this computer use CRLF line endings (git `core.autocrlf`); the repository stores LF. `tests/features_test.js` now reads SUBMISSION_LINKS.md with either.
+
+## 10. Round 5: independent checks, ground detail, jump buttons, polish, proof
+
+`js/engine.js` was not changed (no check revealed an engine bug). One real disagreement was found and fixed (the rover's slope readout, below). Tag `v1-stable` marks the final commit of this round (local only; see README "Stable snapshot").
+
+### Instant status check (Part 1)
+* `tests/instant_status_check.js`: for the 8 curated south-pole sites, at the time the cases were chosen (2026-11-14 19:11 UTC) and at 20 random whole-minute times per site in 2026-2028 (seeded), Sun and Earth apparent azimuth/elevation were taken directly from the JPL Horizons API (one TLIST query per site and body, cached), and the terrain horizon at exactly those azimuths was computed by `tools/terrain.py horizon_at` from the LOLA DEMs (not from the app's JavaScript or the stored masks).
+* **336 of 336** Sun-up / Earth-visible decisions agree with the app. **On the edge** (body within 0.05° of the horizon): 3 cases (IM-2 Sun, Peak near Shackleton derived point Earth, Mons Mouton Earth), all agree. Disagreements outside the edge: 0, so no bug was found. App vs Horizons: elevation within 0.0028°; the app's 1° mask vs the exact-azimuth Python horizon: within 0.050° (mean 0.005°).
+* **Sunlit at 2026-11-14 19:11 UTC: 3 of 8 sites** (both Peak near Shackleton points and Nobile Rim 2 / DM2). The Sun stood between −2.7° and +4.8° above the flat horizon at the sites; at the two Peak near Shackleton points the terrain in the Sun's direction is below the flat horizon (−2.7°), so the Sun at +2.8° is clear; at DM2 the Sun (+4.8°) clears a +1.1° horizon. IM-2 (+1.8° vs +2.9°), Mons Mouton (+1.9° vs +8.3°) and the Shackleton floor (+1.9° vs +20.1°) are shadowed by terrain; at IM-1 and Mons Malapert the Sun is below the flat horizon as well. The paragraph and table are rebuilt from `data/instant_status.js` (VALIDATION_REPORT.md section F, Validation page).
+* "Now" is fixed at the moment the cases were chosen; `--new` chooses new cases and fetches them.
+
+### 3D terrain accuracy (Part 2)
+* Heights: all 3,444,523 grid points of the 8 tiles, 16 rings and 3 five-metre patches vs direct bilinear samples of the named LOLA DEM (Python, independent node positions): max 0.10 m (ring B, 0.2 m storage step), mean 0.03 m.
+* **Bug fixed - rover slope**: the readout used the gradient of the bilinear surface inside one cell (one-sided differences), while the 3D slope shading used central differences. Against a Python central-difference slope from the DEM at the same spacing it differed by up to 15.9° (mean 1.1°) on the tiles and 7.8° on the 5 m patches. `js/view3d_math.js` slopeAt now uses central differences over one grid spacing: max 0.17° (20/80 m) and 0.53° (5 m), within the bound the 0.1 m height storage step allows (0.20° at 20 m, 0.81° at 5 m); slope shading and readout are now identical.
+* The 2D map's slope layer is correct for its own pixels (200/200 classes reproduced in Python: 37 m central differences averaged to 74 m). It differs from the 20 m 3D readout by 1.0° on average (up to 8°) because of the pixel size; 155 of 200 readouts fall in the map pixel's class. The map legend states its pixel size.
+* Positions: 20 random rover positions (6 inside 5 m patches): the displayed latitude/longitude (4 decimals) projected with the 2D map's projection lands within 1.4 m of the true position (limit one DEM cell, 5-80 m); the displayed elevation is within 0.43 m of LOLA there (limit 1 m).
+
+### Ground detail in Walk and Rover (Part 3)
+Measured with `tests/ground_detail.js` (same site, time and camera; the round-3 build, the build before the fix, and after; `docs/ground_detail/`):
+* Geometry and normals did **not** lose detail since round 3: switching the current build to plain Lambert shading reproduces the round-3 picture numerically. Fitting the shadow camera to the 6 km tile only (round-3 texel size) changed nothing measurable.
+* Causes of the flatter look: (1) **"Light up" (3×) was remembered** across visits and sites; at sunlit sites it clips the ground to pure white (foreground 255/255, no contrast). (2) **Lommel-Seeliger** shading (round 4) at the grazing views of Walk/Rover gives slopes facing toward and away from the low Sun nearly the same bright tone. (3) At **Low** quality the tile was drawn every second node (40 m) and the **5 m patch** was used only at High (a small effect in the measured views).
+* Fix: "Relief shading" display option (default on in Walk and Rover, toggle in the panel, labelled "Relief shading: display contrast only; heights and slopes are the LOLA data."): 70 % Lommel-Seeliger plus the sunlight difference between the DEM normal and a smoothed DEM normal (±4 cells). Walk/Rover on laptops use the full tile and the 5 m patch at every quality (phones unchanged for speed). Light up is session-only and switches itself off when the validated status says the Sun is up. Walk detail (mean neighbouring-pixel difference): Peak near Shackleton 0.87 → 2.94, Mons Mouton 4.11 → 6.94; Rover at Peak near Shackleton 0.06 → 0.27. Where the 20 m DEM is itself smooth (the Mons Mouton rover view) the picture stays smooth: nothing is invented.
+* Unchanged and tested: heights, slopes, rover readouts, light direction, status tiles, shadows (`tests/shading_consistency.js`: Low 97.8 %, Medium 99.0 %, High 99.8 %, as before).
+* Limitation: relief shading is a display aid, not photometry; in shadow only the uniform fill light reaches the ground, so shadowed ground stays flat.
+
+### Jump buttons (Part 4)
+* Inside the selected window the jump lands on the first computed sample where the status turns true (up to one sampling step after the actual start). Beyond the window, the 60-minute search (the same as the countdowns) can miss windows shorter than one hour.
+* "Both": the start is the later of the Sun and Earth rises in that 60-minute step, each refined to 1 minute.
+* Not found within the search limit (rest of the window + 400 days): "Not within the next N days (search limit)", e.g. sunlight on the Shackleton crater floor.
+
+### UI polish (Part 5)
+* Tour spotlight after a completed Getting started (once; not in automated browsers unless opted in; no pulse with reduced motion; not after an early skip).
+* Deploy icon "»"; the only remaining ▲ is the "forward" key of the 3D arrow pad (next to three other arrows; aria-labelled).
+* 3D labels are kept inside the picture and off panels and each other; on small screens some feature names are hidden for that frame instead of overlapping (they remain listed in the notes). The mini-map caption is hidden in windows under 620 px high (its content is in the notes).
+
+### Proof for judges (Part 6)
+* "Verify with NASA" opens the Horizons API's text output (a technical table, not a web page). The URL is the one the validation tests use; it needs an internet connection, the rest of the app does not.
+* The Verified card and "How we know the numbers are right" read their numbers from `data/validation.js`, `data/instant_status.js`, `data/illum_crosscheck.js` and `data/accuracy3d.js`. The illumination line averages the 5 sites inside NASA's 60 m map, excluding the derived point (chosen using that map), as in the report.
+* "Download VALIDATION_REPORT.md": under file:// some browsers open the file instead of downloading it.
+
+### Testing
+* All Node suites, the Python DEM checks, `tests/ui_check.js` and `tests/ui_round5.js` (laptop + phone, no console errors) pass. As before, phones are emulated (screen size and touch on the laptop GPU); Chromium only.

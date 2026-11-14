@@ -42,14 +42,17 @@ Double-click **`index.html`**. It runs offline in any modern browser, with no se
   * Average illumination and horizon heights.
   * Sampling, methods and full sources.
 * **Explain mode**: a "?" next to each metric says what it is and why it matters.
-* **Getting started**: a 3-step hint on the first visit. It can be dismissed, and the dismissal is remembered.
+* **Getting started**: a 3-step hint on the first visit. It can be dismissed, and the dismissal is remembered. When it is completed with **Done** (not when skipped), the page is dimmed except the glowing **Tour** button, with "Take the 60-second tour" (**Start tour** / **Not now**); shown once, not in automated browsers unless a test opts in, no pulsing with reduced motion.
+* **Jump to next sunlight / Earth view / both** (Site Card and 3D panel): moves the selected time to the start of the next such window (inside the window: the first computed sample where the status turns true; after it: the countdown search, 60-minute steps refined to 1 minute, then the window moves). Respects the minimum link elevation. If nothing is found: "Not within the next N days (search limit)".
+* **Verified** card (Explore, under the Site Card): one line per independent check, every number read live from the result files; a click opens the Validation page.
+* **Verify with NASA** (Site Card in Expert view, and the Validation page): ASTERIA's Sun and Earth azimuth/elevation for the site and minute shown, next to two links that open the exact JPL Horizons API query (same parameters as the validation tests) in a new tab; expected agreement about 0.01°.
 
 **Tabs**
 
 * **Launch slip**: a heatmap of the surface-mission metrics for landing slips of 0-60 days. Rows are either the metrics for one site or all 8 south-pole sites with terrain horizons. Click a cell to open that date.
 * **Power**: a first-order solar power and battery estimate.
 * **Compare**: up to 4 site and date scenarios, with sunlight and Earth-link metrics side by side.
-* **Validation**: JPL Horizons comparison, sanity tests, and the terrain illumination cross-check against NASA's published map.
+* **Validation**: "How we know the numbers are right" (plain language), Verify with NASA, "Methods and formulas" (with links to the source files), "Reproduce it yourself", download of VALIDATION_REPORT.md; then the JPL Horizons comparison, sanity tests, the instant status check, 3D terrain accuracy and the terrain illumination cross-check against NASA's published map.
 * **About**: methods, what is computed vs estimated, limitations, credits.
 
 **Tour** (5 steps, all numbers read live from the app):
@@ -68,22 +71,24 @@ Double-click **`index.html`**. It runs offline in any modern browser, with no se
 
 ### 3D terrain view ("Deploy")
 
-For each of the 8 curated south-pole sites, the Site Card shows **Deploy: 3D terrain view**. Nothing of the 3D view is loaded before that click: Three.js (`lib/three/`, r149, MIT), `js/view3d*.js` and the site's terrain are added on demand. Deploy waits only for the selected window's series (not for the slower search beyond the window), shows a coarse mesh first and refines it, then adds the extended terrain. Close or Escape returns to the app. Opening takes 0.2-0.9 s on the development laptop at every quality level (PERFORMANCE.md).
+For each of the 8 curated south-pole sites, the Site Card shows **» Deploy: 3D terrain view**. Nothing of the 3D view is loaded before that click: Three.js (`lib/three/`, r149, MIT), `js/view3d*.js` and the site's terrain are added on demand. Deploy waits only for the selected window's series (not for the slower search beyond the window), shows a coarse mesh first and refines it, then adds the extended terrain. Close or Escape returns to the app. Opening takes 0.2-0.9 s on the development laptop at every quality level (PERFORMANCE.md).
 
 * **Quality** Low / Medium / High (selector in the panel): mesh resolution, extended-terrain size, shadow map, pixel ratio, antialiasing, number of stars, Earth texture size. Chosen automatically from device hints (touch screen or small window, memory and cores, the GPU name when the browser gives it), then a 1.5 s frame-rate probe steps down one level if the average stays below 30 frames/s (with a note). A choice made in the selector is remembered.
 * **Terrain**: the 6 km LOLA tile (20 m or 80 m) centred on the site, surrounded by **real LOLA terrain to 16 km** (LDEM_80S_80M, 100 m grid; 200 m at Low) and, at High, **to 40 km** (LDEM_75S_120M, 200 m grid). From the Shackleton floor this includes the whole crater rim. At High, the three sites inside 87.5°S (both Peak near Shackleton points, Shackleton crater centre) get a **2 km × 2 km patch at 5 m** from LDEM_875S_5M. The meshes share their edge vertices (no gaps; tested) and short skirts hide the T-junctions. True scale by default (vertical exaggeration 1×, 2×, 3×, 5×, always shown on screen).
 * **Shadows**: on Medium and High all drawn terrain casts shadows on the tile and on the 16 km ring (shadow camera fitted to them), so a site in the shadow of a crater wall looks shadowed. Checked against the validated model (below).
 * **Surface**: the same grey, shaded with the Lommel-Seeliger law used for regolith, with normals from the DEM at full resolution. Uniform albedo: no public LOLA albedo map at 250 m/pixel or finer was found. Optional **contour lines** (interval selectable, labelled) and **slope shading** from the DEM. No synthetic rocks, craters or textures.
-* **Brightness** slider and **Light up** button: display exposure and the fill light only ("Display brightness only (like camera exposure). Real polar shadows are almost black; this does not change the computed lighting."). When the validated model says the site is in shadow, a tip suggests Light up. Remembered.
+* **Relief shading** (round 5; on by default in Walk and Rover, off in Orbit, toggle in the panel): "Relief shading: display contrast only; heights and slopes are the LOLA data." 70 % of the Lommel-Seeliger brightness plus the difference in sunlight between the DEM normal and a smoothed DEM normal (±4 grid cells). In Walk and Rover on laptops the 6 km tile is drawn at full resolution and the 5 m patch is used where it exists, at every quality level. Why: [docs/ground_detail/README.md](docs/ground_detail/README.md).
+* **Brightness** slider and **Light up** button: display exposure and the fill light only ("Display brightness only (like camera exposure). Real polar shadows are almost black; this does not change the computed lighting."). When the validated model says the site is in shadow, a tip suggests Light up and **Jump to next sunlight**. The slider is remembered; Light up (3×) is for this visit only and switches itself off when the Sun is up at the site (at 3× sunlit ground clips to white).
 * **Sun**: light direction and disk at the engine's azimuth/elevation and angular size; optional faint glare labelled "camera glare (display effect); there is no atmosphere on the Moon". **Earth**: NASA Blue Marble Next Generation (cloud-free), rotated for the time (sub-observer point within 0.2° of JPL Horizons), lit from the computed Sun direction (so its phase is right even when the Sun is below the site's horizon). Labels say "(below horizon)" or "(hidden by terrain)" when that is the validated status; when Sun or Earth is outside the picture, its label sits at the screen edge with an arrow.
 * **Stars** (optional): Yale Bright Star Catalogue to magnitude 5.0 (4.5 at Medium, 3.5 at Low) at their true directions for the selected time (engine's Moon orientation), sized by magnitude, with the note "Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view."
 * **Distant skyline**: the site's horizon mask drawn as a ring 60 km away (exact from the site marker).
 * **Finding your way**: oblique default view with the Sun in the picture (crater floors are framed from 26 km so the walls show), compass, scale bar, distance from the site, top-view mini-map (LOLA heights, the tile, your position and heading, Sun/Earth directions), rover track, optional 500 m distance rings in Walk/Rover, and up to 5 named features per site from the IAU Gazetteer (on the terrain, or on the skyline in their direction when farther away).
-* **Panel**: time, Sunlight and Earth-link tiles at the site marker (validated model), Expert values, time slider and play synced with the main app; Orbit, Walk (eye 2 m above the ground), Rover (position, DEM elevation, slope, slope warning, near-field Sun estimate).
+* **Panel**: time, Sunlight and Earth-link tiles at the site marker (validated model), Jump to next sunlight / Earth view / both, Expert values, time slider and play synced with the main app; Orbit, Walk (eye 2 m above the ground), Rover (position, DEM elevation, slope, slope warning, near-field Sun estimate).
+* **Labels** (Sun, Earth, site, rover, feature names) are kept inside the picture and off the mini-map, compass box, buttons and each other; a feature name that cannot be placed is hidden rather than drawn over something.
 
 | 3D view | Accurate (tested) | Approximate / not modelled |
 |---|---|---|
-| Terrain heights | Tile, rings and 5 m patch = bilinear LOLA samples; within 0.1 m of direct DEM samples at stored check points (`tools/terrain3d.py check`, `tools/terrain3d_ext.py check`, `tests/view3d_test.js`) | Grid 5 / 20 / 80 / 100 / 200 m depending on the area and quality; boulders, sub-grid relief and the lander are not represented. LDEM_875S_5M is labelled "preliminary LOLA data" by its producers |
+| Terrain heights | Tile, rings and 5 m patch = bilinear LOLA samples; **all 3,444,523 grid points** within 0.10 m of direct DEM samples by an independent Python path (`node tests/accuracy3d.js`, round 5), and the stored check points (`tools/terrain3d.py check`, `tools/terrain3d_ext.py check`, `tests/view3d_test.js`) | Grid 5 / 20 / 80 / 100 / 200 m depending on the area and quality; boulders, sub-grid relief and the lander are not represented. LDEM_875S_5M is labelled "preliminary LOLA data" by its producers |
 | Joins between meshes | Edge vertices identical to the finer mesh (9,712 vertices tested, 0 m difference) | Short skirts hide T-junctions; a slight change of detail is visible where the grid changes |
 | Geometry | Exact site-centred ENU positions including lunar curvature (460 m drop at 40 km) | Spherical Moon (R = 1737.4 km), as in the rest of the app |
 | Sun | Light direction = engine az/el (worst 1.7e-6°); disk size from the engine | Glare halo is a display effect (optional, labelled) |
@@ -91,11 +96,11 @@ For each of the 8 curated south-pole sites, the Site Card shows **Deploy: 3D ter
 | Stars | Directions vs an independent IAU/WGCCRE 2009 computation: worst 0.0012° (72 cases) | Annual aberration (< 0.006°) not applied; point sizes are a display choice |
 | Shadows | Shading consistency with the validated "Sun up" at the site marker, 50 times per site over a year: Low 97.8 %, Medium 99.0 %, High 99.8 %; every disagreement is the Sun blocked by terrain beyond the shadow-casting range | Shadow map texel 7-22 m; terrain beyond 3 km (Low), 16 km (Medium) or 40 km (High) casts no shadows; the 16-40 km ring is shaded but receives no shadows |
 | Status tiles, labels | From the validated horizon model (same as the main app) | - |
-| Surface shading | Normals from the DEM at full resolution | Lommel-Seeliger law with a uniform albedo (no albedo map); faint uniform fill light (not physical); brightness slider is display only |
-| Contours, slope | From the same DEM heights (true heights) | Slope over one DEM cell; real slopes over a few metres can be steeper |
+| Surface shading | Normals from the DEM at full resolution | Lommel-Seeliger law with a uniform albedo (no albedo map); relief shading (Walk/Rover default) is a display contrast only; faint uniform fill light (not physical); brightness slider is display only |
+| Contours, slope | From the same DEM heights (true heights); slope by central differences over one grid spacing, same formula as the rover readout | Real slopes over a few metres can be steeper |
 | Feature names | IAU Gazetteer centre coordinates | Labels at the feature centre (a crater name sits on its floor); beyond the drawn terrain they show a direction only |
 | Distant skyline | Exact horizon mask from the site marker | Ring 60 km away: exact only from the site marker; between the drawn terrain and the ring nothing is drawn |
-| Rover | DEM elevation and slope at the DEM's resolution | Near-field Sun estimate uses the tile only; the rover model and speed are illustrative |
+| Rover | DEM elevation (20 positions: within 0.43 m of LOLA at the displayed lat/lon, which maps back within 1.4 m on the 2D map's projection) and slope (central differences; 242 points within the 0.1 m storage-step bound of an independent Python slope; fixed in round 5, was a one-sided in-cell gradient up to 16° off) | Near-field Sun estimate uses the tile only; the rover model and speed are illustrative |
 
 ## Sites
 
@@ -144,6 +149,8 @@ Other south-pole sites:
 
 ## Validation summary - **PASS**
 
+The Validation page starts with "How we know the numbers are right" and a "Verify with NASA" box; the Explore page shows a compact "Verified" card. All their numbers are read from the result files below.
+
 | Test | Result |
 |---|---|
 | `node tests/validate.js`: 52 angle comparisons vs JPL Horizons | elevation error max 0.0038°, azimuth max 0.055° (Sun at 89° elevation) |
@@ -153,6 +160,9 @@ Other south-pole sites:
 | **Custom point, one-year check** (`node tests/one_year_check.js`): (-70.9457, 67.9235 E), smooth horizon, Earth and Sun every hour 2026-11-14 to 2027-11-14 vs fresh Horizons fetches (8,761 rows each) | elevation max 0.0028°, azimuth max 0.0039°; Horizons' lowest Earth elevation 1.634° (2026-12-08 05:31 UTC), so Earth never sets there that year, and the app shows no Earthset either; 24/24 sunrises/sunsets within 1.42 min |
 | **Blind test** (`node tests/blind_test.js --new`): 5 new random south-pole site/time cases in 2026-2030, fetched fresh from Horizons, 10 comparisons | 10/10 pass; elevation max 0.0029°, azimuth max 0.0038° |
 | **Terrain for clicked points** (`node tests/coarse_validation.js`), 240 m data | curated sites: % sunlit differs from the 20 m horizons by 2.0 points on average, 6.9 at most (limits 5 / 10); 50 random points in 85-90°S vs NASA's map: 1.5 points on average (limit 5) -> PASS, shipped |
+| **Instant status check** (`node tests/instant_status_check.js`, round 5): 8 south-pole sites × 21 times (the time the cases were chosen + 20 random in 2026-2028) × Sun and Earth; angles straight from JPL Horizons, terrain horizon at the exact azimuth from `tools/terrain.py horizon_at` (Python, DEM) | 336/336 agree with the app; 3 "on the edge" (body within 0.05° of the horizon), all agree; no bug found |
+| **3D terrain accuracy** (`node tests/accuracy3d.js` + `tools/accuracy3d.py`, round 5) | heights: every grid point (3.44 million) within 0.10 m of LOLA; slopes: rover readout vs Python central differences within 0.17° (20/80 m) and 0.53° (5 m), the storage-step bound; 2D map slope layer reproduced at 200/200 points; 20 rover positions within 1.4 m and 0.43 m |
+| `node tests/ui_round5.js` | browser: instant status at stored case times = independent status, rover readout = verified values, relief shading changes no height/slope/light/status, Light up auto-off, jump buttons (series-checked, 3D, minimum elevation, Shackleton floor not found), tour spotlight, Deploy icon, 3D labels inside and not overlapping, Verify with NASA URL = cached validation query, Verified card numbers, Validation sections and report download; laptop + phone, no console errors |
 | `node tests/view3d_test.js` | 3D geometry: Sun and Earth direction vectors vs the engine's raw apparent vectors (96 site/time cases, worst 1.7e-6°), tile decoder vs DEM check points (0.05 m), curvature, world-to-grid inverse, slope, near-field Sun, Earth phase, lazy loading |
 | `node tests/view3d_test.js` (round 4 additions) | extended rings vs stored DEM samples (worst 0.097 m), 5 m patch (0.047 m), seams (9,712 shared edge vertices, 0 m), DEM normals (10° plane), star directions vs an independent IAU 2009 computation (worst 0.0012°) |
 | `node tests/earth_orientation.js` | Earth sub-observer point vs JPL Horizons quantity 14, 12 cases: worst 0.155° (limit 1°) |
@@ -241,6 +251,10 @@ tests/illumination.js    one-year terrain statistics
 tests/features_test.js   unit tests
 tests/view3d_test.js     3D geometry unit tests
 tests/ui_check.js        headless browser check (Playwright), laptop + phone, file://
+tests/ui_round5.js       headless browser checks for round 5 (laptop + phone)
+tests/instant_status_check.js   instant status vs Horizons + Python terrain -> data/instant_status.js (tests/instant_terrain.json caches the Python result)
+tests/accuracy3d.js, tools/accuracy3d.py   3D heights, slopes, rover positions vs LOLA -> data/accuracy3d.js (tests/accuracy3d_python.json)
+tests/ground_detail.js   Walk/Rover ground-detail measurement (docs/ground_detail/)
 tools/terrain.py         DEM reading, horizon masks
 tools/terrain3d.py       6 km terrain tiles for the 3D view (build / check) -> data/terrain3d/
 tools/terrain3d_ext.py   extended rings and 5 m patches (build / check);  tools/fetch_round4.py  their downloads
@@ -288,6 +302,20 @@ npx playwright install chromium; node tests/ui_check.js
 node tests/earth_orientation.js              # Earth orientation vs JPL Horizons (cached)
 node tests/shading_consistency.js            # rendered shadows vs the validated model, 3 quality levels
 node tests/perf3d.js --phone --quality low,medium,high
+node tests/instant_status_check.js           # --new: choose new cases (now + 20 random times) and fetch them
+node tests/accuracy3d.js                     # --python: rerun the Python side (needs the DEMs)
+node tests/ui_round5.js                      # --shots: also screenshots
+node tests/ground_detail.js --other round3=<checkout of 46b0fa8> --tag after
+```
+
+## Stable snapshot
+
+The commit tagged **`v1-stable`** (local tag, round 5) is the tested state described here. To return to it:
+
+```powershell
+git checkout v1-stable          # look at it (detached HEAD)
+git switch -c from-v1 v1-stable # or start a branch from it
+git reset --hard v1-stable      # or move the current branch back to it (discards later commits on that branch)
 ```
 
 ## Credits

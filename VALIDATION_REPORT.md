@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T19:19:17.518Z by `node tests/validate.js`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)
+Generated 2026-11-14T20:45:20.485Z by `node tests/validate.js`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)
 
 ## Overall: **PASS**
 
@@ -243,7 +243,7 @@ Per site (all 21 times):
 
 ## G. 3D terrain accuracy: **PASS**
 
-Run with `node tests/accuracy3d.js` (the app's own 3D code in Node) and `.venv\Scripts\python -I tools\accuracy3d.py` (independent, from the LOLA DEMs); results of 2026-11-14 19:18 UTC.
+Run with `node tests/accuracy3d.js` (the app's own 3D code in Node) and `.venv\Scripts\python -I tools\accuracy3d.py` (independent, from the LOLA DEMs); results of 2026-11-14 20:40 UTC.
 
 **Heights.** Every stored grid point of every 3D terrain product (the 6 km tile of each of the 8 sites, ring A to 16 km, ring B to 40 km, and the three 5 m patches): its geographic position is computed independently (site up vector rotated by the ground distance; not the great-circle routine the generators use), and the LOLA DEM the product names is sampled there directly (bilinear, raw PDS array). Differences come from the 0.1 m (0.2 m where the relief is larger) storage step.
 
@@ -454,4 +454,6 @@ Result: shipped. Clicked or typed points inside the map get this horizon, labell
 * `.venv/Scripts/python -I tools/tiles.py check`: tile georeference - for 5 sites the tile pixel containing the site has the DEM height of the site, and the Shackleton IAU centre is a ~3.5 km-deep bowl relative to a 10 km ring.
 * `node tests/ui_check.js`: the app opened via file:// at laptop and phone sizes (all features, tour, Blob Web Worker, loader, reduced motion, map coverage limits, clicked-point terrain, outside-click message, the VERIFY_YOURSELF.md share link), no console errors.
 * `node tests/coarse_validation.js`: section D above. `node tests/blind_test.js`: section C (offline re-check from the cache).
+* `node tests/instant_status_check.js`: section F (also run by this script from the caches). `node tests/accuracy3d.js`: section G (its Python side, `tools/accuracy3d.py`, needs the DEMs; the result is cached).
+* `node tests/ui_round5.js`: in the browser, the instant status at stored case times equals the independent status, the rover readout equals the verified values, relief shading changes no height, slope, light direction or status, the jump buttons land on times where the status is true, and the "Verify with NASA" URL is identical to the cached validation query.
 * `node tests/features_test.js` also checks: every site has a primary/secondary source type and no Wikipedia source; the removed points have no site, horizon or computed rows; Artemis III regions are plotted only through landform centres or a published point; the downsampled DEM is <= 15 MB, decodes correctly and, with the shipped worker code, reproduces the stored validation; terrain for clicked points is gated on the validation result.

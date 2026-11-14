@@ -261,6 +261,8 @@ function report(r) {
     '* `.venv/Scripts/python -I tools/tiles.py check`: tile georeference - for 5 sites the tile pixel containing the site has the DEM height of the site, and the Shackleton IAU centre is a ~3.5 km-deep bowl relative to a 10 km ring.\n' +
     '* `node tests/ui_check.js`: the app opened via file:// at laptop and phone sizes (all features, tour, Blob Web Worker, loader, reduced motion, map coverage limits, clicked-point terrain, outside-click message, the VERIFY_YOURSELF.md share link), no console errors.\n' +
     '* `node tests/coarse_validation.js`: section D above. `node tests/blind_test.js`: section C (offline re-check from the cache).\n' +
+    '* `node tests/instant_status_check.js`: section F (also run by this script from the caches). `node tests/accuracy3d.js`: section G (its Python side, `tools/accuracy3d.py`, needs the DEMs; the result is cached).\n' +
+    '* `node tests/ui_round5.js`: in the browser, the instant status at stored case times equals the independent status, the rover readout equals the verified values, relief shading changes no height, slope, light direction or status, the jump buttons land on times where the status is true, and the "Verify with NASA" URL is identical to the cached validation query.\n' +
     '* `node tests/features_test.js` also checks: every site has a primary/secondary source type and no Wikipedia source; the removed points have no site, horizon or computed rows; Artemis III regions are plotted only through landform centres or a published point; the downsampled DEM is <= 15 MB, decodes correctly and, with the shipped worker code, reproduces the stored validation; terrain for clicked points is gated on the validation result.\n';
   return md;
 }

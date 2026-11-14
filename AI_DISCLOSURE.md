@@ -75,3 +75,11 @@ Searched all project files (HTML, CSS, JS, Markdown, and every image file outsid
 
 * Removed: the "AI-generated pixel art" label under the loader's pixel-art rocket and on the intro title card; the "AI-generated illustration" tag on the 3D rover label; "AI-generated illustration (drawn in code by Claude Code...)" in the 3D Rover note (now "Rover model, speed and tilt are illustrative."); the About page "How this was made" section and the Claude Code mention in the development-tools credit (replaced by the single credit line). The graphics are unchanged.
 * Two non-AI uses of the word "generated" in the UI were reworded so the automated search stays exact: "Energy generated" -> "Energy produced" (Power), "Generated <date> by node tests/validate.js" -> "Computed <date> ..." (Validation), "tiles generated locally" -> "tiles made locally" (About). No calculation or data changed.
+
+## Round 5 (independent checks, ground detail, jump buttons, polish, proof)
+
+* The in-app disclosure is unchanged: the About credit line and the 3D "Graphics:" line only (`tests/ui_check.js` still enforces it; the new texts were checked the same way).
+* New AI-written files (same header): `tests/instant_status_check.js`, `tests/accuracy3d.js`, `tools/accuracy3d.py`, `tests/ui_round5.js`, `tests/ground_detail.js`, `docs/ground_detail/README.md`. Changed: `js/app.js`, `js/view3d.js`, `js/view3d_math.js`, `js/jobs.js`, `js/explain.js`, `index.html`, `css/style.css`, `tools/terrain.py` (new `horizon_at` command), `tests/validate.js`, `tests/ui_check.js`.
+* New data computed by those scripts (not written by hand): `data/instant_status.js`, `data/accuracy3d.js`, `tests/instant_terrain.json`, `tests/accuracy3d_python.json`, new raw JPL Horizons responses in `tests/horizons_cache/`, and the screenshots and measurements in `docs/ground_detail/` (renderings of LOLA data by the app).
+* Graphics drawn in code this round: the tour spotlight (dimming and glow) and the "Verified" card mark. No image generator was used.
+* The new checks compare the app with sources that are not AI-written: NASA/JPL Horizons answers and NASA LOLA elevation data read directly by a separate Python program.

@@ -263,3 +263,26 @@ AI wording in the rendered app is now limited to two lines (checked by `tests/ui
 | Power: "Energy produced" (was "Energy generated") | definition | reworded (same value) |
 | Validation: "Computed <date> by node tests/validate.js" (was "Generated …") | data/validation.js | reworded |
 | About, Map method: "tiles made locally" (was "generated locally") | tools/tiles.py | reworded |
+
+## Round 5 (independent checks, ground detail, jump buttons, polish, proof)
+
+No AI wording was added to the interface; `tests/ui_check.js` still finds it only in the About credit line and the 3D "Graphics:" line.
+
+| Text | Basis | Status |
+|---|---|---|
+| Site Card and 3D panel: "Jump to next sunlight", "Jump to next Earth view", "Jump to next both"; result "Next sunlight starts <date> UTC (selected)." or "Next sunlight: Not within the next N days (search limit)." | app behaviour; N = rest of the window + 400 days (the existing search limit, read live) | new |
+| Explain "?" for the jump buttons (search inside the window on the samples, after it in 60-minute steps refined to 1 minute, up to the search limit) | js/jobs.js nextStart, js/app.js jumpNext | new |
+| 3D shadow tip: "… Light up (display brightness only) Jump to next sunlight" | app behaviour | extended |
+| 3D: "Relief shading" toggle and "Relief shading: display contrast only; heights and slopes are the LOLA data." | wording from the specification; tests/ui_round5.js checks heights, slopes, light direction and tiles are unchanged | new |
+| 3D notes: relief shading method (70 % Lommel-Seeliger + difference between the DEM normal and a smoothed DEM normal), full-resolution tile and 5 m patch in Walk/Rover on laptops | js/view3d.js, docs/ground_detail/README.md | new |
+| 3D notes, Rover: "Elevation = LOLA height at the rover (bilinear); slope = central differences of the LOLA heights over 5 m … / 20 m … (checked against an independent computation from the DEM; Validation page, "3D terrain accuracy")" | data/accuracy3d.js | rewritten (was "gradient of the DEM over one … cell") |
+| 3D notes, contours and slope shading: "Slope by central differences over one grid spacing …, the same formula as the rover readout" | js/view3d_math.js | rewritten |
+| 3D note: '"Light up" switched off: the Sun is up at the site, and the extra brightness would wash the sunlit ground out to white.' | validated status; tests/ground_detail.js (clipping measured) | new |
+| Tour spotlight: "Take the 60-second tour", "Start tour", "Not now" | wording from the specification (5 tour steps) | new |
+| Deploy button: "» Deploy: 3D terrain view" (was "▲ Deploy: 3D terrain view") | - | icon changed |
+| Explore: "Verified against NASA data" card: angle checks vs JPL Horizons (count, max elevation difference), blind test, one-year hourly check, instant status agreement, terrain illumination vs NASA's map (mean difference over the 60 m-map sites, derived point excluded), 3D heights vs LOLA; "How we know →" | all numbers read live from data/validation.js, data/instant_status.js, data/illum_crosscheck.js, data/accuracy3d.js | new |
+| "Verify with NASA" box (Site Card in Expert view, Validation page): ASTERIA's Sun/Earth azimuth and elevation, links "Open for the Sun" / "Open for the Earth", "Expected agreement: about 0.01° (largest elevation difference in the N validation comparisons: x°)" | engine values live; URL = tests/horizons_api.js query format (tested equal to the cached blind-test query); numbers from data/validation.js | new |
+| Validation: "How we know the numbers are right" (plain language; Horizons described as "the Solar System position service of NASA's Jet Propulsion Laboratory"; "the Sun's disk is about half a degree across") | numbers read live from the result files; the half-degree is the engine's disk diameter shown in Expert view (0.52-0.54°) | new |
+| Validation: "Methods and formulas" (10 rows, each with a source-file link) and "Reproduce it yourself" (commands) | js/engine.js, tools/terrain.py, js/view3d_math.js; README.md | new |
+| Validation: "Instant status check (independent: Horizons + Python terrain)" with the sunlit-now paragraph; "3D terrain accuracy" | data/instant_status.js, data/accuracy3d.js | new |
+| Validation: "Download VALIDATION_REPORT.md" | file in the project | new |
