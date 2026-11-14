@@ -1599,10 +1599,16 @@
   // ======================================================= FIRST-VISIT HINT
   var HINT_KEY = 'asteria.hintDismissed';
   var HINTS = [
-    ['mapPanel', '<b>1. The south-pole map.</b> Click a marker to open a site (violet diamonds are points inside NASA\'s Artemis III candidate regions), or click anywhere to test your own point. Drag to pan, scroll or pinch to zoom.'],
-    ['siteCard', '<b>2. Three status tiles.</b> <span class="c-sun">Sunlight</span>, <span class="c-earth">Earth link</span> and <span class="c-both">mission status</span> at the selected time, each with a countdown to the next change.'],
-    ['skyPanel', '<b>3. Go deeper.</b> Press play in the Sky view, switch on <b>Expert view</b> for all technical values, tap <b>?</b> for explanations, or take the <b>Tour</b>.']
+    ['mapPanel', '<b>1. The south-pole map.</b> Click a marker to open a site (violet diamonds are points inside NASA\'s Artemis III candidate regions), or click anywhere to test your own point. Drag to pan, scroll or pinch to zoom.',
+      [['Open a site: Peak near Shackleton', function () { selectSite(siteById('peak_shackleton')); }], ['Show the whole pole', function () { Map.home(true); }]]],
+    ['siteCard', '<b>2. Three status tiles.</b> <span class="c-sun">Sunlight</span>, <span class="c-earth">Earth link</span> and <span class="c-both">mission status</span> at the selected time, each with a countdown to the next change.',
+      [['Explain the Sunlight tile', function () { setExplain(true); var q = document.querySelector('#siteCard .qb[data-q="sun"]'); if (q) showQ(q); }]]],
+    ['skyPanel', '<b>3. Go deeper.</b> Press play in the Sky view, switch on <b>Expert view</b> for all technical values, tap <b>?</b> for explanations, or take the <b>Tour</b>.',
+      [['Play the Sky view', function () { if (!S.playing) setPlaying(true); }], ['Turn on Expert view', function () { setExpert(true); }],
+       ['Show ? explanations', function () { setExplain(true); var q = document.querySelector('#skyPanel .qb[data-q="sky"]'); if (q) showQ(q); }], ['Start the Tour', function () { tourShow(0); }]]]
   ];
+  // Round 6: each step scrolls to and highlights what it describes, and offers buttons that do what it mentions.
+  var REDUCE_HINT = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var hintI = 0, hintHl = null;
   function hintShow(i) {
     hintI = i;
@@ -1612,6 +1618,14 @@
     $('hint').hidden = false;
     if (hintHl) hintHl.classList.remove('tour-hl');
     hintHl = $(HINTS[i][0]); if (hintHl) hintHl.classList.add('tour-hl');
+    if (hintHl && hintHl.scrollIntoView) hintHl.scrollIntoView({ block: 'center', behavior: REDUCE_HINT ? 'auto' : 'smooth' });
+    var box = $('hintActions'); box.innerHTML = '';
+    (HINTS[i][2] || []).forEach(function (a) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'btn small'; b.textContent = a[0];
+      b.addEventListener('click', function (ev) { ev.stopPropagation(); a[1](); });   // (the page's click-outside handler would close a ? explanation at once)
+      box.appendChild(b);
+    });
+    box.hidden = !box.children.length;
   }
   function hintClose() {
     $('hint').hidden = true; if (hintHl) hintHl.classList.remove('tour-hl'); hintHl = null;

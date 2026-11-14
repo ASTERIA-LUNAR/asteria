@@ -479,3 +479,7 @@ pre.repro { background: var(--bg2); border: 1px solid var(--line); border-radius
 .v3d-presets { flex-wrap: wrap; gap: 6px; align-items: center; } .v3d-presets .lbl { font-size: .8rem; color: #9fb0cf; }
 .mk-3d { display: block; width: 22px; height: 22px; border-radius: 50%; border: 3px solid #ff5c8a; background: rgba(255,92,138,.25); box-shadow: 0 0 0 2px #000; }
 .leaflet-tooltip.tip3d { background: #1b2236; color: #fff; border-color: #ff5c8a; }
+.hintactions { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+.mapscale { background: rgba(10,14,24,.78); color: #e8eefc; border-radius: 6px; padding: 3px 7px 4px; font-size: .72rem; line-height: 1.2; }
+.mapscale .bar { height: 6px; border: 2px solid #e8eefc; border-top: none; margin-bottom: 2px; }
+.dd { margin: 4px 0; } .dd summary { cursor: pointer; color: var(--accent); font-weight: 600; } .dd p { margin: 6px 0 6px 14px; }

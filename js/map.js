@@ -145,6 +145,14 @@ window.AsteriaMap = (function () {
     // readout box
     var Rd = L.Control.extend({ options: { position: 'bottomleft' }, onAdd: function () { var d = L.DomUtil.create('div', 'mapreadout'); d.textContent = 'Click the map to pick a point'; readout = d; return d; } });
     map.addControl(new Rd());
+    // Round 6: dynamic scale bar. Ground metres per screen pixel at the map centre = (projected metres per pixel) / k,
+    // k = 2 / (1 + sin|lat|) = the south polar stereographic scale factor on the 1737.4 km sphere (1 at the pole,
+    // 1.0076 at 80 S): the scale varies slightly across the map, so the bar is labelled "scale at map centre".
+    var Sc = L.Control.extend({ options: { position: 'bottomright' }, onAdd: function () {
+      var d = L.DomUtil.create('div', 'mapscale'); d.innerHTML = '<div class="bar"></div><div class="txt"></div>'; scaleEl = d; return d; } });
+    map.addControl(new Sc());
+    map.on('zoom move zoomend moveend resize', updateScale);
+    updateScale();
     fitMinZoom();
     map.on('resize', fitMinZoom);
     // The panel can change size without a window resize (layout, fonts): keep Leaflet's size in step.
@@ -204,6 +212,23 @@ window.AsteriaMap = (function () {
   }
   function setMarkersVisible(v) { if (!map) return; if (v) markerLayer.addTo(map); else map.removeLayer(markerLayer); }
   function invalidate() { if (map) { map.invalidateSize(); fitMinZoom(); renderMarkers(); } }
+  var scaleEl = null, scaleState = null;
+  function niceLen(m) { var p = Math.pow(10, Math.floor(Math.log10(m))), f = m / p; return (f >= 5 ? 5 : f >= 2 ? 2 : 1) * p; }
+  function scaleInfo() {
+    if (!map || !map._loaded) return null;   // before the first setView
+    var c = map.getCenter(), lat = Math.max(-90, Math.min(-1e-9, c.lat)), z = map.getZoom(), H = TM.halfExtent_m;
+    var projPerPx = 2 * H / (256 * Math.pow(2, z)), k = 2 / (1 + Math.sin(Math.abs(lat) * DEG)), mPerPx = projPerPx / k;
+    var len = niceLen(mPerPx * 110), px = len / mPerPx;
+    return { lat: c.lat, lon: c.lng, zoom: z, k: k, projPerPx: projPerPx, mPerPx: mPerPx, len_m: len, px: px, text: (len >= 1000 ? (len / 1000) + ' km' : len + ' m') + ' (scale at map centre)' };
+  }
+  function updateScale() {
+    if (!scaleEl) return;
+    var q = scaleInfo(); if (!q) return;
+    scaleState = q;
+    scaleEl.querySelector('.bar').style.width = q.px.toFixed(1) + 'px';
+    scaleEl.querySelector('.txt').textContent = q.text;
+    scaleEl.title = 'Distance on the ground for the bar length, from the polar stereographic scale factor at the map centre (k = ' + q.k.toFixed(4) + '); the scale changes slightly across the map.';
+  }
   // Round 6: "Show on 2D map" from the 3D view - centre the map on that ground point with a marker (kept until the next one).
   var point3d = null;
   function showPoint(lat, lon) {
@@ -216,7 +241,7 @@ window.AsteriaMap = (function () {
   }
   return {
     init: init, setSites: setSites, select: select, setOverlay: setOverlay, setMarkersVisible: setMarkersVisible,
-    invalidate: invalidate, home: home, showPoint: showPoint, margins: margins, project: project, unproject: unproject, inData: inData,
+    invalidate: invalidate, home: home, showPoint: showPoint, scaleInfo: scaleInfo, scaleState: function () { return scaleState; }, margins: margins, project: project, unproject: unproject, inData: inData,
     leaflet: function () { return map; }
   };
 })();

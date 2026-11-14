@@ -147,19 +147,19 @@ Status as of 2026-11-14 (round 5: independent instant-status and 3D accuracy che
 
 **Isolation from the existing app**: index.html loads only the 8-entry list `data/terrain3d/index.js`. Three.js, `js/view3d.js`, `js/view3d_math.js` and the tile are injected only when Deploy is clicked (the UI test checks that `THREE` is undefined before). The only changes to `js/app.js` are the Deploy button, the lazy loader and a listener hook at the end of `renderInstant()`. All earlier tests pass unchanged.
 
-| 3D view | Accurate (tested) | Approximate / not modelled |
-|---|---|---|
-| Terrain heights | Bilinear LOLA samples; within 0.05 m of direct DEM samples at the centre and 3 random nodes per site (`tools/terrain3d.py check`, limit 1 m) | 20 m or 80 m grid; boulders, sub-grid relief and the lander are not represented; 0.1 m storage step |
-| Geometry | Site-centred ENU with exact lunar curvature (corner drop 5.2 m on 20 m tiles); nodes placed by true ground distance, so the polar-stereographic scale factor (1.0000-1.0075 at these sites) is handled | Spherical Moon (1737.4 km), as everywhere in the app |
-| Sun | Light direction = engine az/el (worst 1.7e-6° in `tests/view3d_test.js` against the engine's raw apparent vector; < 0.01° in the browser); disk angular size from the engine | - |
-| Earth | Engine az/el (< 0.01°) and angular size; phase from the engine's Sun and Earth vectors (the lighting direction is the Sun direction from the site, which differs from the direction at Earth by at most about 0.15°) | Plain blue sphere, no surface features; unlit side faintly visible so it can be found |
-| Status at the site marker | Sunlight / Earth link from the validated horizon model (same series as the main view) | - |
-| Shadows | Shadow mapping of the tile's own terrain | Visual approximation (2048 px shadow map on laptops, 1024 on phones); **shadows from terrain outside the tile are not rendered**. A banner appears when the validated model says the Sun is behind terrain at the site |
-| Distant skyline | Exact horizon mask from the site marker (`data/horizons`, rays to 300 km) | Ring 60 km away: exact only from the site marker; the ground between the tile edge and the ring is not drawn (dark wall) |
-| Lighting | - | Faint uniform fill light (not physical); no reflected light from terrain, no Earthshine |
-| Vertical exaggeration | Default 1× (true scale), shown in a badge | At 2-5× heights, shadows and the look of slopes are stretched (the badge says so); the skyline ring is never exaggerated |
-| Rover | Position, DEM elevation, slope over one DEM cell (20 or 80 m) | "Sun over the tile terrain" is a near-field estimate (tile only, Sun centre, 2 m eye height); the rover model, its tilt and speed are illustrative; no rover-scale slopes (< 20 m) |
-| Stars | - | Off by default; decorative random points, not a catalogue |
+| 3D view | Classification | Accurate (tested) | Approximate / not modelled |
+|---|---|---|---|
+| Terrain heights | Measured | Bilinear LOLA samples; within 0.05 m of direct DEM samples at the centre and 3 random nodes per site (`tools/terrain3d.py check`, limit 1 m) | 20 m or 80 m grid; boulders, sub-grid relief and the lander are not represented; 0.1 m storage step |
+| Geometry | Calculated | Site-centred ENU with exact lunar curvature (corner drop 5.2 m on 20 m tiles); nodes placed by true ground distance, so the polar-stereographic scale factor (1.0000-1.0075 at these sites) is handled | Spherical Moon (1737.4 km), as everywhere in the app |
+| Sun | Calculated | Light direction = engine az/el (worst 1.7e-6° in `tests/view3d_test.js` against the engine's raw apparent vector; < 0.01° in the browser); disk angular size from the engine | - |
+| Earth | Calculated (position, phase, orientation); Measured (Blue Marble imagery) | Engine az/el (< 0.01°) and angular size; phase from the engine's Sun and Earth vectors (the lighting direction is the Sun direction from the site, which differs from the direction at Earth by at most about 0.15°) | Plain blue sphere, no surface features; unlit side faintly visible so it can be found |
+| Status at the site marker | Calculated | Sunlight / Earth link from the validated horizon model (same series as the main view) | - |
+| Shadows | Approximate | Shadow mapping of the tile's own terrain | Visual approximation (2048 px shadow map on laptops, 1024 on phones); **shadows from terrain outside the tile are not rendered**. A banner appears when the validated model says the Sun is behind terrain at the site |
+| Distant skyline | Calculated | Exact horizon mask from the site marker (`data/horizons`, rays to 300 km) | Ring 60 km away: exact only from the site marker; the ground between the tile edge and the ring is not drawn (dark wall) |
+| Lighting | Illustrative (fill light) | - | Faint uniform fill light (not physical); no reflected light from terrain, no Earthshine |
+| Vertical exaggeration | Illustrative | Default 1× (true scale), shown in a badge | At 2-5× heights, shadows and the look of slopes are stretched (the badge says so); the skyline ring is never exaggerated |
+| Rover | Calculated (elevation, slope, tilt) / Illustrative (model, driving) | Position, DEM elevation, slope over one DEM cell (20 or 80 m) | "Sun over the tile terrain" is a near-field estimate (tile only, Sun centre, 2 m eye height); the rover model, its tilt and speed are illustrative; no rover-scale slopes (< 20 m) |
+| Stars | Measured (catalogue) / Calculated (directions) | - | Off by default; decorative random points, not a catalogue |
 
 **Performance (Part D)**: the view renders only when something changes (camera movement, keys held, time change), not every frame. Phones (coarse pointer or < 700 px wide) draw every second node (22,801 instead of 90,601 vertices), use a 1024 px shadow map, no antialiasing and a pixel ratio of at most 1.5. Closing the view disposes every geometry, material, texture and the shadow map, the render lists and the WebGL context (`renderer.info.memory` reports 0 geometries and 0 textures after disposal in the UI test) and removes the DOM. Measured in headless Chromium on the development laptop (GPU via ANGLE/D3D11): opening takes 0.2-0.4 s including loading Three.js (0.6 MB) and the tile (0.24 MB); orbiting renders at 60 frames/s at laptop and phone sizes. **Not measured on a real phone**: the phone test emulates the screen size and touch but runs on the laptop GPU.
 

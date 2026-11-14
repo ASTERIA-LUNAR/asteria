@@ -166,3 +166,23 @@ Note for the owner: the science.nasa.gov VIPER page (updated 21 Sep 2026) still 
 **Remaining limitations**: inspection uses the drawn mesh to find the point under the pointer (at grazing views a point can be a few metres off where the mesh is coarser than the data grid); the 2D marker stays until the next "Show on 2D map"; hover inspection is mouse-only (touch: tap).
 
 **Classification**: presets - Calculated (directions from the validated engine); inspection values - Calculated (from LOLA); hazard view - Calculated (DEM slope vs a user threshold; not a traversability prediction); camera wedge and 2D link - Illustrative (navigation aids).
+
+## Part 4 - Usability and explanation - DONE
+
+**What changed**
+* **Getting started** (`js/app.js`, `index.html`): every step now scrolls to and highlights what it describes and offers buttons that do what it mentions. Step 1 (map): "Open a site: Peak near Shackleton", "Show the whole pole". Step 2 (status tiles): "Explain the Sunlight tile" (opens its ? explanation). Step 3 (Go deeper, Sky view): "Play the Sky view", "Turn on Expert view", "Show ? explanations" (turns Explain on and opens the Sky view's explanation), "Start the Tour". Smooth scrolling is skipped with reduced motion.
+* **Dynamic scale bar** on the 2D south-pole map (`js/map.js`): updates on zoom and pan; round lengths (1, 2, 5 × 10ⁿ m/km); ground metres per pixel = projected metres per pixel / k with k = 2 / (1 + sin|lat|), the polar stereographic scale factor on the 1737.4 km sphere at the **map centre**; labelled "(scale at map centre)" with a tooltip that the scale varies slightly across the map.
+* **Design decisions**: new `DESIGN_DECISIONS.md` and the same 12 entries on the About page (expandable): Astronomy Engine + IAU orientation vs SPICE; 2 m observer; Sun-centre vs disk-fraction; 1° mask and 300 km rays; DEM products; 240 m data and its validation gate; 10/60-minute sampling with 1-minute refinement; test tolerances; power model; 3D levels of detail and normal maps; rover as illustrative; earthshine. Plain language first, then alternatives and validation. (While writing it, one figure was corrected before commit: the angle tolerance is 0.1° elevation / 0.2° azimuth.)
+* **Classification**: every item of the 3D "What is accurate, what is approximate" list now starts with a Measured / Calculated / Approximate / Illustrative label (the "Graphics:" disclosure line is unchanged, as required); new item for inspection, hazard view and presets. README and GAPS 3D tables have a Classification column; README's table has new rows for the round-6 features.
+
+**Files changed**: `js/app.js`, `js/map.js`, `js/view3d.js` (notes), `index.html` (hint actions, About "Design decisions"), `css/style.css`, `DESIGN_DECISIONS.md` (new), `README.md`, `GAPS_AND_ISSUES.md` (tables), `tests/ui_round6.js`.
+
+**Scientific data used**: none new.
+
+**Existing calculations affected**: none.
+
+**Tests** (`node tests/ui_round6.js`, laptop + phone, ALL PASS): fresh visitor - step 1/2/3 each highlight their panel and bring it into view; every button does what it says (site opened, ? explanation of the Sunlight tile shown, Sky view playing, Expert view on, Explain on with the Sky view explanation, Tour started); scale bar at zoom 4, 6 and 8 and at 89°S and 85°S: metres per pixel agree with an independent great-circle measurement within 0.2 % (observed < 0.01 %), k equals 2/(1 + sin|lat|), the bar's ground length equals its round label within 0.5 %, label "(scale at map centre)". `node tests/ui_check.js` PASS (AI wording only in the two allowed lines; classification labels added no AI wording), `node tests/features_test.js` PASS.
+
+**Remaining limitations**: the scale bar is exact at the map centre only (stated); Design decisions are text, not interactive.
+
+**Classification**: Getting started and Design decisions - presentation (no physical prediction); scale bar - Calculated.
