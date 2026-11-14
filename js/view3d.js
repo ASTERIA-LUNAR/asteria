@@ -87,6 +87,7 @@ window.AsteriaView3D = (function () {
       '    <div class="tile" id="v3dTileEarth"><div class="tlabel">Earth link at the site marker</div><div class="tstate" id="v3dEarth">-</div><div class="tx x-only mono" id="v3dEarthX"></div></div>' +
       '  </div>' +
       '  <p class="fineprint">Status from the validated horizon model (same as the main view), not from the 3D rendering.</p>' +
+      '  <p class="fineprint" id="v3dEarthNote">Earth: continents from NASA Blue Marble (cloud-free composite); clouds not shown; orientation computed for this time.</p>' +
       '  <div class="v3d-ctl v3d-disp">' +
       '    <label>Quality <select id="v3dQuality"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>' +
       '    <span class="fineprint" id="v3dQWhy"></span>' +
@@ -102,6 +103,7 @@ window.AsteriaView3D = (function () {
       '    <label class="smallswitch"><input type="checkbox" id="v3dShadows" checked> shadows</label>' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dRing" checked> distant skyline</label>' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dStars"> stars</label>' +
+      '    <label class="smallswitch" title="camera glare (display effect); there is no atmosphere on the Moon"><input type="checkbox" id="v3dGlare" checked> Sun glare <span class="fineprint">(camera glare (display effect); there is no atmosphere on the Moon)</span></label>' +
       '  </div>' +
       '  <p class="fineprint" id="v3dStarNote" hidden>Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view.</p>' +
       '  <div class="v3d-ctl">' +
@@ -137,7 +139,8 @@ window.AsteriaView3D = (function () {
       '<b>Surface shading</b>: Lommel-Seeliger law (a standard photometric model for lunar regolith: brightness proportional to cos i / (cos i + cos e)), with surface normals from the DEM at full resolution. <b>Uniform albedo</b>: no public LOLA 1064 nm normal-albedo map of the south pole at 250 m/pixel or finer was found (LOLA\'s published albedo maps are about 2 km/pixel near the poles; the PDS LOLA polar products named LDRM are roughness maps), so brightness differences come from the terrain\'s shape only. No synthetic rocks, small craters or textures are added.',
       '<b>Contour lines and slope shading</b> (optional): computed from the same LOLA heights (true heights, also when the vertical scale is exaggerated). Slope over one DEM cell (5 m, 20 m, 80 m or 100-200 m depending on the area); real slopes over a few metres can be steeper.',
       '<b>Sun</b>: direction and disk size from the validated engine (the light direction matches it to better than 0.01°).',
-      '<b>Earth</b>: position and size (about ' + (2 * (v.earthRadiusDeg || 0.95)).toFixed(1) + '° across) from the engine; plain blue sphere (no clouds or continents). Its lit side is the computed phase from the Sun direction; the unlit side is drawn very faintly so Earth can be found.',
+      '<b>Earth</b>: position and size (about ' + (2 * (v.earthRadiusDeg || 0.95)).toFixed(1) + '° across) from the engine. ' + (s.earthTex ? 'Continents from NASA Blue Marble Next Generation (July 2004 cloud-free composite, public domain NASA imagery; ' + s.earthTex + ' × ' + s.earthTex / 2 + ' pixels at ' + Q.label + ' quality); clouds not shown; orientation computed for this time (Earth\'s rotation from Astronomy Engine; the point of Earth facing the site agrees with JPL Horizons within 0.2°, tests/earth_orientation.js). ' : 'Plain blue sphere until the map loads. ') + 'Its lit side is the computed phase from the Sun direction; the unlit side is drawn very faintly so Earth can be found.',
+      '<b>Sun glare</b> (on by default): a faint halo around the Sun disk, a camera glare (display effect); there is no atmosphere on the Moon. The Sun disk itself has the computed position and size.',
       '<b>Distant skyline</b>: the site\'s terrain horizon (data/horizons, rays to 300 km) drawn as the top edge of a dark ring ' + RING_M / 1000 + ' km away. It is exact only when seen from the site marker; elsewhere it is approximate. Between the edge of the drawn terrain (' + (km || 3) + ' km) and the ring nothing is drawn (dark).',
       '<b>Shadows</b>: ' + (shKm ? 'cast by all terrain drawn within ' + shKm + ' km of the site (shadow-map texel about ' + (s.shadowTexel || 0).toFixed(0) + ' m; visual approximation). Terrain farther away does not cast shadows in the picture' + (B ? '; the ring from 16 to 40 km is shaded but receives no shadows' : '') + '.' : 'cast by the 6 km tile only at ' + Q.label + ' quality (choose Medium or High for shadows from the surrounding terrain).') + ' Sunlit and Earth-visible status at the site marker always come from the validated horizon model.',
       '<b>Fill light and brightness</b>: a faint uniform light keeps unlit ground from being pure black. It is not physical (real shadows get only faint light reflected from sunlit terrain and Earthshine). The Brightness slider and "Light up" change only the display exposure and this fill light, never the Sun direction or any computed value.',
@@ -192,8 +195,25 @@ window.AsteriaView3D = (function () {
     // Sun disk and Earth (positioned relative to the camera every frame: they are at "infinity")
     var sunDisk = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), new THREE.MeshBasicMaterial({ color: 0xfff4d6 }));
     scene.add(sunDisk);
-    var earth = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 32), new THREE.MeshLambertMaterial({ color: 0x4ea8ff, emissive: 0x06101e }));
+    // Earth: own shader lit from the computed Sun direction (uSun), so it keeps its phase when the Sun is below the
+    // site's horizon (the scene's sunlight is off then). Diffuse (Lambert) day side; the night side very faint.
+    var earthMat = new THREE.ShaderMaterial({
+      uniforms: { uSun: { value: new THREE.Vector3(0, 1, 0) }, uMap: { value: null }, uHasMap: { value: 0 }, uColor: { value: new THREE.Color(0x4ea8ff) } },
+      vertexShader: 'varying vec3 vN; varying vec2 vUv;\nvoid main() { vUv = uv; vN = normalize( mat3( modelMatrix ) * normal ); gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }',
+      fragmentShader: 'uniform vec3 uSun; uniform sampler2D uMap; uniform float uHasMap; uniform vec3 uColor; varying vec3 vN; varying vec2 vUv;\n' +
+        'void main() { vec3 base = uHasMap > 0.5 ? texture2D( uMap, vUv ).rgb : uColor; float d = max( dot( normalize( vN ), normalize( uSun ) ), 0.0 );\n' +
+        '  gl_FragColor = vec4( base * ( 1.15 * d ) + base * 0.06 + vec3( 0.01, 0.015, 0.03 ), 1.0 ); }'
+    });
+    var earth = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 32), earthMat);
     scene.add(earth);
+    // camera glare around the Sun disk (display effect; the Moon has no atmosphere): a faint additive sprite
+    var gc = document.createElement('canvas'); gc.width = gc.height = 128;
+    var gx = gc.getContext('2d'), grd = gx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grd.addColorStop(0, 'rgba(255,244,214,0.55)'); grd.addColorStop(0.15, 'rgba(255,240,200,0.18)'); grd.addColorStop(1, 'rgba(255,240,200,0)');
+    gx.fillStyle = grd; gx.fillRect(0, 0, 128, 128);
+    var glareTex = new THREE.CanvasTexture(gc);
+    var glare = new THREE.Sprite(new THREE.SpriteMaterial({ map: glareTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.6 }));
+    scene.add(glare);
 
     // distant skyline ring from the horizon mask (site observer = 2 m above the ground at the centre)
     var ring = new THREE.Group();
@@ -241,7 +261,7 @@ window.AsteriaView3D = (function () {
 
     return { THREE: THREE, T: T, TM: TM, Q: Q, refinePending: true, coarse: coarse !== stride, terrainMat: terrainMat, terrainGroup: terrainGroup, layers: [], ext: {},
       renderer: renderer, scene: scene, camera: camera, terrain: terrain, geo: geo, fill: fill, sun: sun,
-      sunDisk: sunDisk, earth: earth, ring: ring, stars: stars, marker: marker, markerMat: markerMat, rover: rover };
+      sunDisk: sunDisk, earth: earth, glare: glare, ring: ring, stars: stars, marker: marker, markerMat: markerMat, rover: rover };
   }
 
   function decimate(T, stride) {
@@ -544,6 +564,9 @@ window.AsteriaView3D = (function () {
     } else b.hidden = true;
     updateTip(v);
     updateStars(v);
+    orientEarth(v);
+    sunEarthLabels(v);
+    s.glare.visible = $('v3dGlare').checked && inst.sunUp;   // no glare from a Sun the validated model says is hidden
     v.dirty = true;
   }
 
@@ -559,6 +582,7 @@ window.AsteriaView3D = (function () {
         var sd = v.sunDir, ed = v.earthDir;
         s.sunDisk.position.set(cam.position.x + sd[0] * SUN_D, cam.position.y + sd[1] * SUN_D, cam.position.z + sd[2] * SUN_D);
         s.sunDisk.scale.setScalar(SUN_D * Math.sin(r.sun.radius_deg * Math.PI / 180));
+        s.glare.position.copy(s.sunDisk.position); s.glare.scale.setScalar(SUN_D * Math.sin(r.sun.radius_deg * Math.PI / 180) * 12);
         s.earth.position.set(cam.position.x + ed[0] * EARTH_D, cam.position.y + ed[1] * EARTH_D, cam.position.z + ed[2] * EARTH_D);
         s.earth.scale.setScalar(EARTH_D * Math.sin(r.earth.radius_deg * Math.PI / 180));
       }
@@ -570,6 +594,16 @@ window.AsteriaView3D = (function () {
       v.frames++;
     }
     v.raf = requestAnimationFrame(function (t) { frame(v, t); });
+  }
+  // Sun / Earth label text from the validated status (never looks visible when it is not).
+  function sunEarthLabels(v) {
+    var i = v.inst; if (!i) return;
+    var r = i.r, sunTxt = 'Sun', earthTxt = 'Earth';
+    if (!i.sunUp) sunTxt += r.sun.el < 0 ? ' (below horizon)' : ' (hidden by terrain)';
+    if (!i.earthUp) earthTxt += r.earth.el < 0 ? ' (below horizon)' : r.earth.el <= i.hzEarth ? ' (hidden by terrain)' : ' (below your minimum link elevation)';
+    var a = $('v3dLblSun'), b = $('v3dLblEarth');
+    a.textContent = sunTxt; a.classList.toggle('hid', !i.sunUp);
+    b.textContent = earthTxt; b.classList.toggle('hid', !i.earthUp);
   }
   function labels(v) {
     var s = v.s, cam = s.camera, w = v.stage.clientWidth, h = v.stage.clientHeight, THREE = s.THREE, p = new THREE.Vector3();
@@ -663,6 +697,7 @@ window.AsteriaView3D = (function () {
     add($('v3dContourInt'), 'change', function () { overlays(v); });
     add($('v3dSlope'), 'change', function () { overlays(v); });
     add($('v3dRing'), 'change', function () { v.s.ring.visible = this.checked; v.dirty = true; });
+    add($('v3dGlare'), 'change', function () { v.s.glare.visible = this.checked && !!(v.inst && v.inst.sunUp); v.dirty = true; });
     add($('v3dStars'), 'change', function () {
       var on = this.checked; $('v3dStarNote').hidden = !on;
       if (on) ensureStars(v).then(function () { if (V === v) { v.s.stars.visible = $('v3dStars').checked; v.dirty = true; } });
@@ -701,6 +736,33 @@ window.AsteriaView3D = (function () {
     v.s.renderer.setSize(w, h, false);
     v.s.camera.aspect = w / h; v.s.camera.updateProjectionMatrix();
     v.dirty = true;
+  }
+
+  // ------------------------------------------------------------ Earth (Blue Marble)
+  // NASA Blue Marble Next Generation (July 2004, cloud-free; public domain) at the quality's size, rotated for the time
+  // the light left Earth (Earth's rotation and the Moon frame: js/view3d_math.js earthAxes; sub-observer point checked
+  // against JPL Horizons in tests/earth_orientation.js). Lit by the same Sun direction, so the phase is unchanged.
+  function loadEarth(v) {
+    var s = v.s, w = s.Q.earthTex, key = w;
+    var have = window.ASTERIA_EARTH_TEX && window.ASTERIA_EARTH_TEX[key];
+    return (have ? Promise.resolve() : loadExtScript('data/earth/earth_' + w + '.js')).then(function () {
+      if (V !== v) return;
+      new s.THREE.TextureLoader().load(window.ASTERIA_EARTH_TEX[key], function (tex) {
+        if (V !== v) { tex.dispose(); return; }
+        tex.anisotropy = 4;
+        var U = s.earth.material.uniforms; U.uMap.value = tex; U.uHasMap.value = 1;
+        s.earthTex = w; v.dirty = true; notes(v);
+      });
+    }, function (e) { console.warn('Earth texture not loaded: ' + (e && e.message || e)); });
+  }
+  function orientEarth(v) {
+    var s = v.s, r = v.inst && v.inst.r; if (!r || !window.Astronomy) return;
+    var tl = new Date(v.inst.t - (r.earth.lightTime_s || 0) * 1000), ax = M.earthAxes(window.Astronomy, tl, window.LunaEngine._moonFrame(new Date(v.inst.t)), v.site.lat, v.site.lon);
+    var THREE = s.THREE, bx = new THREE.Vector3().fromArray(ax.x), by = new THREE.Vector3().fromArray(ax.z), bz = new THREE.Vector3().fromArray(ax.y).negate();
+    s.earth.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(bx, by, bz));   // SphereGeometry: +x = 0 deg E, +y = north, -z = 90 deg E
+    s.earthAxes = ax;
+    s.earth.material.uniforms.uSun.value.set(v.sunDir[0], v.sunDir[1], v.sunDir[2]);   // Sun direction (parallel light; phase from the real geometry)
+    v.subObs = M.subObserver(ax, v.earthDir);
   }
 
   // ------------------------------------------------------------ real stars
@@ -867,6 +929,7 @@ window.AsteriaView3D = (function () {
       if (v.frames < 1) return setTimeout(waitFirst, 16);
       refine(v);
       loadExtended(v);
+      loadEarth(v);
       if (!v.userQuality && !(o.keep && o.keep.probed) && !window.ASTERIA_V3D_NOPROBE) setTimeout(function () { probe(v); }, 100);
     };
     setTimeout(waitFirst, 16);
@@ -883,7 +946,14 @@ window.AsteriaView3D = (function () {
     s.scene.traverse(function (obj) {
       if (obj.geometry && seen.indexOf(obj.geometry) < 0) { seen.push(obj.geometry); obj.geometry.dispose(); }
       var mats = obj.material ? (Array.isArray(obj.material) ? obj.material : [obj.material]) : [];
-      mats.forEach(function (m) { if (seen.indexOf(m) < 0) { seen.push(m); for (var key in m) if (m[key] && m[key].isTexture) m[key].dispose(); m.dispose(); } });
+      mats.forEach(function (m) {
+        if (seen.indexOf(m) < 0) {
+          seen.push(m);
+          for (var key in m) if (m[key] && m[key].isTexture) m[key].dispose();
+          if (m.uniforms) for (var u in m.uniforms) { var val = m.uniforms[u] && m.uniforms[u].value; if (val && val.isTexture) val.dispose(); }   // shader materials (Earth)
+          m.dispose();
+        }
+      });
     });
     if (s.sun.shadow && s.sun.shadow.map) s.sun.shadow.map.dispose();
     var mem = { geometries: s.renderer.info.memory.geometries, textures: s.renderer.info.memory.textures };
@@ -919,8 +989,9 @@ window.AsteriaView3D = (function () {
       stars: s.starRows ? { n: s.starRows.length, magLimit: s.Q.starMag, visible: s.stars.visible, time: s.starTime } : null,
       overlays: { contour: s.terrainMat.userData.uniforms.uContour.value, slope: s.terrainMat.userData.uniforms.uSlope.value }, shadowMapSize: s.sun.shadow.mapSize.x, pixelRatio: s.renderer.getPixelRatio(), brightness: v.bright, fillIntensity: s.fill.intensity, exposure: s.renderer.toneMappingExposure, mode: v.ctl.mode, stride: v.stride, phone: v.phone, exaggeration: s.T.k,
       sunLightDir: [lp.x, lp.y, lp.z], sunLight: M.azElFromDir([lp.x, lp.y, lp.z]), sunDiskRadiusDeg: Math.asin(s.sunDisk.scale.x / SUN_D) / DEG,
-      earthDir: [ep.x, ep.y, ep.z], earthAzEl: M.azElFromDir([ep.x, ep.y, ep.z]), earthRadiusDeg: Math.asin(s.earth.scale.x / EARTH_D) / DEG,
-      sunIntensity: s.sun.intensity, earthPhase: v.phase, instant: v.inst && { idx: v.inst.idx, t: v.inst.t, sunUp: v.inst.sunUp, earthUp: v.inst.earthUp, sun: { az: v.inst.r.sun.az, el: v.inst.r.sun.el, radius_deg: v.inst.r.sun.radius_deg }, earth: { az: v.inst.r.earth.az, el: v.inst.r.earth.el, radius_deg: v.inst.r.earth.radius_deg } },
+      earthDir: v.earthDir, earthDirDrawn: [ep.x, ep.y, ep.z], earthAzEl: M.azElFromDir([ep.x, ep.y, ep.z]), earthRadiusDeg: Math.asin(s.earth.scale.x / EARTH_D) / DEG,
+      sunIntensity: s.sun.intensity, earthPhase: v.phase, earthTexture: s.earthTex || null, subObserver: v.subObs || null, glare: s.glare.visible,
+      labelSun: $('v3dLblSun').textContent, labelEarth: $('v3dLblEarth').textContent, instant: v.inst && { idx: v.inst.idx, t: v.inst.t, sunUp: v.inst.sunUp, earthUp: v.inst.earthUp, sun: { az: v.inst.r.sun.az, el: v.inst.r.sun.el, radius_deg: v.inst.r.sun.radius_deg }, earth: { az: v.inst.r.earth.az, el: v.inst.r.earth.el, radius_deg: v.inst.r.earth.radius_deg } },
       vertices: s.geo.attributes.position.count, triangles: s.geo.index.count / 3, extVertices: s.extVertices || 0, extError: s.extError || null,
       layers: s.layers.map(function (L) { return { name: L.name, vertices: L.vertices, cast: L.mesh.castShadow, receive: L.mesh.receiveShadow }; }),
       shadowCamera: { left: s.sun.shadow.camera.left, right: s.sun.shadow.camera.right, top: s.sun.shadow.camera.top, bottom: s.sun.shadow.camera.bottom, near: s.sun.shadow.camera.near, far: s.sun.shadow.camera.far, texel: s.shadowTexel },

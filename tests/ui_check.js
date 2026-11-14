@@ -137,6 +137,29 @@ const path = require('path'), fs = require('fs'), url = require('url');
     });
     expect(`${tag} 3D: real stars (${stv.d.n} from the Bright Star Catalogue to magnitude ${stv.d.magLimit}) drawn at their computed directions for the shown time, with the camera note`, stv.d.n > 200 && Math.abs(stv.drawn.el - stv.want.el) < 1e-3 && /Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view\./.test(stv.note) && /Yale Bright Star Catalogue/.test(stv.notes), JSON.stringify({ drawn: stv.drawn, want: stv.want }));
     await page.click('#v3dStars');
+    // Earth: Blue Marble texture; the textured mesh's point facing the site = computed sub-observer point; caption
+    await page.waitForFunction(() => AsteriaView3D.debug().earthTexture, null, { timeout: 15000 });
+    const ea = await page.evaluate(() => {
+      const s = AsteriaView3D.testScene(), d = AsteriaView3D.debug(), THREE = window.THREE;
+      const o = new THREE.Vector3().fromArray(d.earthDir).negate().applyQuaternion(s.earth.quaternion.clone().invert());   // in the sphere's own frame
+      const lat = Math.asin(o.y) * 180 / Math.PI, lon = Math.atan2(-o.z, o.x) * 180 / Math.PI;
+      return { tex: d.earthTexture, sub: d.subObserver, mesh: { lat, lon }, cap: document.getElementById('v3dEarthNote').textContent, phase: d.earthPhase.illuminated };
+    });
+    const dl = Math.max(Math.abs(ea.mesh.lat - ea.sub.lat), Math.abs(((ea.mesh.lon - ea.sub.lon + 540) % 360) - 180));
+    expect(`${tag} 3D Earth: Blue Marble ${ea.tex} px map; the textured globe faces the site at the computed sub-observer point (${ea.sub.lon.toFixed(1)}°E, ${ea.sub.lat.toFixed(1)}°; mesh ${dl.toExponential(1)}° off); caption shown`, ea.tex > 0 && dl < 0.01 && /^Earth: continents from NASA Blue Marble \(cloud-free composite\); clouds not shown; orientation computed for this time\.$/.test(ea.cap), JSON.stringify(ea));
+    // labels of Sun and Earth say when the validated model has them below the horizon or hidden by terrain
+    const lb = await page.evaluate(() => {
+      const S = AsteriaApp.state, out = [];
+      for (let i = 0; i < S.series.t.length; i += 7) {
+        AsteriaApp.setIdx(i);
+        const d = AsteriaView3D.debug();
+        out.push({ su: S.series.sunUp[i], eu: S.series.earthUp[i], sel: d.instant.sun.el, eel: d.instant.earth.el, ls: d.labelSun, le: d.labelEarth, glare: d.glare });
+      }
+      AsteriaApp.setIdx(0);
+      return out;
+    });
+    const lbOk = lb.every(x => (x.su ? x.ls === 'Sun' : x.ls === (x.sel < 0 ? 'Sun (below horizon)' : 'Sun (hidden by terrain)')) && (x.eu ? x.le === 'Earth' : /^Earth \((below horizon|hidden by terrain|below your minimum link elevation)\)$/.test(x.le)) && (!x.glare || x.su));
+    expect(`${tag} 3D: Sun/Earth labels follow the validated status at ${lb.length} times ("${[...new Set(lb.map(x => x.ls).concat(lb.map(x => x.le)))].join('", "')}"); no glare from a hidden Sun`, lbOk);
     // orbit: keyboard and mouse
     const cam0 = (await v3at()).d.camera;
     await page.evaluate(() => AsteriaView3D.testKey('ArrowLeft', true)); const tf = Date.now(), f0 = (await v3at()).d.frames;

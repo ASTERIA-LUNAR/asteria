@@ -227,6 +227,30 @@
     return out;
   }
 
+  // ------------------------------------------------------------ Earth orientation (round 4)
+  // Earth-fixed axes (x: 0 deg longitude on the equator, y: 90 deg E, z: north pole) as Three.js world directions at
+  // the site, at time 'date' (pass the time light left Earth). Earth's rotation from Astronomy Engine: Greenwich apparent
+  // sidereal time (SiderealTime) about the true pole of date, precession-nutation EQD -> EQJ (Rotation_EQD_EQJ); polar
+  // motion ignored (< 1e-4 deg). EQJ -> Moon body-fixed with the engine's frame F, then the site's East-North-Up.
+  function earthAxes(Astronomy, date, F, lat, lon) {
+    var time = Astronomy.MakeTime(date), rot = Astronomy.Rotation_EQD_EQJ(time), g = Astronomy.SiderealTime(time) * 15 * DEG;
+    var la = lat * DEG, lo = lon * DEG, cl = Math.cos(la), sl = Math.sin(la), co = Math.cos(lo), so = Math.sin(lo);
+    var up = [cl * co, cl * so, sl], east = [-so, co, 0], north = [-sl * co, -sl * so, cl];
+    var toWorld = function (v) {
+      var q = Astronomy.RotateVector(rot, new Astronomy.Vector(v[0], v[1], v[2], time)), u = [q.x, q.y, q.z];
+      var bf = [u[0] * F.x[0] + u[1] * F.x[1] + u[2] * F.x[2], u[0] * F.y[0] + u[1] * F.y[1] + u[2] * F.y[2], u[0] * F.z[0] + u[1] * F.z[1] + u[2] * F.z[2]];
+      var e = bf[0] * east[0] + bf[1] * east[1] + bf[2] * east[2], n = bf[0] * north[0] + bf[1] * north[1] + bf[2] * north[2], z = bf[0] * up[0] + bf[1] * up[1] + bf[2] * up[2];
+      return [e, z, -n];
+    };
+    return { x: toWorld([Math.cos(g), Math.sin(g), 0]), y: toWorld([-Math.sin(g), Math.cos(g), 0]), z: toWorld([0, 0, 1]) };
+  }
+  // Sub-observer point on Earth (geocentric latitude, east longitude, deg) for an observer seeing Earth in direction d.
+  function subObserver(ax, d) {
+    var o = [-d[0], -d[1], -d[2]], dot = function (a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; };
+    var lat = Math.asin(Math.max(-1, Math.min(1, dot(o, ax.z)))) / DEG, lon = Math.atan2(dot(o, ax.y), dot(o, ax.x)) / DEG;
+    return { lat: lat, lon: lon };
+  }
+
   // ------------------------------------------------------------ Earth phase
   // Illuminated fraction of Earth's disk seen from the site, from the engine's Sun and Earth vectors
   // (az, el, distance). Phase angle = angle at Earth between the directions to the Sun and to the observer.
@@ -278,7 +302,7 @@
   }
 
   return {
-    latLonAt: latLonAt, starDirs: starDirs, nodeOrMesh: nodeOrMesh, buildGridMesh: buildGridMesh, buildSkirt: buildSkirt,
+    latLonAt: latLonAt, starDirs: starDirs, earthAxes: earthAxes, subObserver: subObserver, nodeOrMesh: nodeOrMesh, buildGridMesh: buildGridMesh, buildSkirt: buildSkirt,
     decodeTile: decodeTile, enu: enu, toThree: toThree, fromThree: fromThree, dirFromAzEl: dirFromAzEl, azElFromDir: azElFromDir,
     heightAt: heightAt, meshHeightAt: meshHeightAt, slopeAt: slopeAt, gridFromWorld: gridFromWorld, groundWorld: groundWorld,
     inside: inside, buildIndex: buildIndex, buildPositions: buildPositions, earthPhase: earthPhase, nearFieldSunUp: nearFieldSunUp
