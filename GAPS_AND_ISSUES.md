@@ -1,4 +1,4 @@
-Status as of 2026-11-14 (round 5: independent instant-status and 3D accuracy checks, ground detail, jump buttons, UI polish, proof for judges, tag v1-stable - section 10; round 4: faster, clearer and more realistic 3D view, beginner Sky view - section 9; round 3: 3D terrain view "Deploy", rover, AI disclosure and branding check, submission links, first-visit intro; builds on rounds 2B and 2C). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
+Status as of 2026-11-15 (round 6 on branch `round6`, not merged: finer real terrain detail, normal maps, near-camera shadows, earthshine, VIPER-proportioned rover, inspection tools, Getting started actions, 2D scale bar, Design decisions - section 11; round 5: independent instant-status and 3D accuracy checks, ground detail, jump buttons, UI polish, proof for judges, tag v1-stable - section 10; round 4: faster, clearer and more realistic 3D view, beginner Sky view - section 9; round 3: 3D terrain view "Deploy", rover, AI disclosure and branding check, submission links, first-visit intro; builds on rounds 2B and 2C). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
 
 ## 1. Sites and coordinates
 
@@ -255,3 +255,27 @@ Measured with `tests/ground_detail.js` (same site, time and camera; the round-3 
 
 ### Testing
 * All Node suites, the Python DEM checks, `tests/ui_check.js` and `tests/ui_round5.js` (laptop + phone, no console errors) pass. As before, phones are emulated (screen size and touch on the laptop GPU); Chromium only.
+
+## 11. Round 6: simulation fidelity, rover, usability (branch `round6`, not merged)
+
+`js/engine.js`, the horizon masks, status, countdowns, power and all validated values are unchanged. Every new feature is classified (Measured / Calculated / Approximate / Illustrative) in the 3D notes and in ROUND6_REPORT.md, which also has the before/after performance table and the owner's manual checklist.
+
+| Feature | Classification | Basis / test | Limits |
+|---|---|---|---|
+| Ring A 25 m (4 sites) and ring B 100 m (7 sites) grids | Measured | LOLA LDEM_85S_20M / LDEM_80S_80M; every grid point within 0.10 m (tests/accuracy3d.js) | IM-2, Mons Mouton, Nobile Rim 2 and IM-1 have no full 20 m coverage of ring A (one DEM per grid) |
+| Normal maps, edge fade | Calculated | = DEM normals at the nodes (tests/view3d_test.js) | never finer than the grid; the tile's outer 500 m loses some 20 m detail where ring A is coarse (fade) |
+| Near-camera shadow map | Approximate | min(full, near): shading consistency unchanged, never lights more | edges of shadows from distant ridges keep the coarse map's resolution |
+| Earthshine | Approximate | albedo 0.434 (NASA Earth Fact Sheet), engine geometry, Lambert phase law | about a factor of 2; point source; no light from sunlit terrain; raised exposure stated on screen |
+| VIPER-proportioned rover | Illustrative (model) / Calculated (wheel contact, tilt) | NASA published size; wheels on the LOLA surface (tests/ui_round6.js) | other proportions approximate; tilt at DEM resolution; no mobility physics; no traversability prediction |
+| Presets, inspection, hazard view | Calculated | engine directions (0.05°); LOLA heights/slopes | real slopes over a few metres can be steeper |
+| Show on 2D map, camera wedge | Illustrative (navigation aids) | position from the 3D view (tests/ui_round6.js) | the 2D marker stays until the next use |
+| 2D scale bar | Calculated | polar stereographic k = 2/(1+sin|lat|); great-circle check within 0.5 % | exact at the map centre only (labelled) |
+| Getting started actions, Design decisions | presentation | tests/ui_round6.js; DESIGN_DECISIONS.md | - |
+
+### Known limitations and open items (round 6)
+* Geometry is not morphed between levels of detail (it would move vertices off their DEM heights); a slight change of geometric detail can still be seen at ring edges.
+* Medium keeps the round-4 ring A geometry because a 100 m sampling of the 20 m product changed 2 of 50 shading verdicts at Mons Malapert; only its lighting comes from the 25 m grid (trade-off recorded in ROUND6_REPORT.md for the owner).
+* Faint straight streaks near Peak near Shackleton are LOLA ground-track artefacts in LDEM_85S_20M (also in an independent hillshade) and are not removed.
+* Walk/Rover in sunlight look the same as before where the DEM itself is smooth: nothing below the grid resolution is shown or invented.
+* Performance numbers are from headless Chromium on the development laptop; phones were emulated (screen size and touch on the laptop GPU). Not measured on a real phone, in Firefox or in Safari. Exact GPU memory in bytes is not available in browsers.
+* The science.nasa.gov VIPER page (21 Sep 2026) and NASA's 20 Oct 2026 update differ on VIPER's status; the app quotes the newer page with its date.

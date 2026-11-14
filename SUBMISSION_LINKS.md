@@ -25,6 +25,12 @@ Every link below is a full public https:// URL (no login) that the project actua
 17. LRO LOLA LDEM_875S_5M, 5 m/pixel south-pole DEM, NASA PDS Geosciences Node (3D view: 2 km × 2 km inner patches at High quality; only the needed rows were fetched with HTTP Range requests) - https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_875s_5m.img
 18. NASA Earth Observatory, Blue Marble Next Generation (cloud-free monthly composites; 3D view Earth texture) - https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/
 19. NASA Blue Marble Next Generation, topography and bathymetry, July 2004, 5400 × 2700 (the file used for the Earth texture) - https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-topography-bathymetry/july/world.topo.bathy.200407.3x5400x2700.jpg
+20. NASA Earth Fact Sheet (NSSDC): Earth's geometric albedo 0.434 and Bond albedo 0.294 (round 6: 3D earthshine strength) - https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+21. NASA VIPER mission page (what VIPER is, 100-day mission, destination Mons Mouton; round 6 rover and "About this rover") - https://science.nasa.gov/mission/viper/
+22. NASA VIPER rover and instruments (published size 2.5 m tall, 1.5 m long and wide; four wheel modules; instruments) - https://science.nasa.gov/mission/viper/rover-and-instruments/
+23. NASA, "NASA Provides Progress Update on Moon Base Rovers" (20 Oct 2026: VIPER's current status) - https://www.nasa.gov/missions/moon-base/nasa-provides-progress-update-on-moon-base-rovers/
+24. NASA, "NASA Selects Blue Origin to Deliver VIPER Rover to Moon's South Pole" (19 Sep 2025) - https://www.nasa.gov/news-release/nasa-selects-blue-origin-to-deliver-viper-rover-to-moons-south-pole/
+25. NASA, "NASA Ends VIPER Project, Continues Moon Exploration" (17 Jul 2024) - https://www.nasa.gov/news-release/nasa-ends-viper-project-continues-moon-exploration/
 
 ## 2. Space agency partner and other data, resources and tools used
 
@@ -52,7 +58,8 @@ Every link below is a full public https:// URL (no login) that the project actua
 
 ## Notes
 
-* Counts: 19 NASA links, 21 other links (round 4 added 3 NASA and 5 other links for the 3D view).
+* Counts: 25 NASA links, 21 other links (round 4 added 3 NASA and 5 other links for the 3D view; round 6 added 6 NASA links: the Earth Fact Sheet and five VIPER pages).
+* Round 6 links were fetched on 2026-11-15 (HTTP 200). https://www.nasa.gov/mission/viper/ returned HTTP 404 and is not listed. The science.nasa.gov VIPER page (updated 21 Sep 2026) still says VIPER "was slated to land"; the app states the status from NASA's newer 20 Oct 2026 update, with its date.
 * Not listed because they were not used as a data source or tool: NASA Moon Trek and LROC Quickmap (mentioned in the app and in VERIFY_YOURSELF.md only as places where readers can check results themselves); the LROC home page.
 * Not used: Chart.js (charts are drawn directly on HTML canvas).
 * Reachability was checked on 2026-11-14 with a plain HTTP client: all URLs returned HTTP 200 except the NASA NTRS page, which did not answer that client within 60 s; the NTRS public API returned the same record (20120010094, "public use permitted") at that time. https://www.anthropic.com/claude-code redirects to Anthropic's current Claude Code page.

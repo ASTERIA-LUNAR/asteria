@@ -85,6 +85,13 @@ For each of the 8 curated south-pole sites, the Site Card shows **» Deploy: 3D 
 * **Finding your way**: oblique default view with the Sun in the picture (crater floors are framed from 26 km so the walls show), compass, scale bar, distance from the site, top-view mini-map (LOLA heights, the tile, your position and heading, Sun/Earth directions), rover track, optional 500 m distance rings in Walk/Rover, and up to 5 named features per site from the IAU Gazetteer (on the terrain, or on the skyline in their direction when farther away).
 * **Panel**: time, Sunlight and Earth-link tiles at the site marker (validated model), Jump to next sunlight / Earth view / both, Expert values, time slider and play synced with the main app; Orbit, Walk (eye 2 m above the ground), Rover (position, DEM elevation, slope, slope warning, near-field Sun estimate).
 * **Labels** (Sun, Earth, site, rover, feature names) are kept inside the picture and off the mini-map, compass box, buttons and each other; a feature name that cannot be placed is hidden rather than drawn over something.
+* **Round 6 (branch `round6`)**:
+  * **Finer real terrain**: ring A at 25 m from LDEM_85S_20M where that product covers it (both Peak near Shackleton points, Shackleton crater centre, Mons Malapert), drawn at 50 m on High; ring B at 100 m from LDEM_85S_20M or LDEM_80S_80M (7 sites), drawn at 200 m. **Normal maps** baked from the finest loaded LOLA grid give coarser meshes the lighting detail of that grid (never finer); the detail fades gradually toward a coarser neighbour instead of stepping at the ring edges (geometry is not morphed: every vertex keeps its DEM height). The 3D notes list, per area, "geometry: X m grid; lighting detail (normal map): Y m LOLA data". Medium keeps the round-4 ring A geometry (a 100 m sampling of the 20 m product changed 2 of 50 shading verdicts) with the 25 m normal map.
+  * **Sharper near shadows**: a camera-centred second Sun shadow map on Medium/High (texel 2-6 m); the picture uses the minimum of both maps, so it never lights ground the full map shadows (shading consistency unchanged).
+  * **Earthshine** (optional, Approximate): sunlight reflected by Earth from the computed Earth direction, strength = Earth's geometric albedo 0.434 (NASA Earth Fact Sheet) × (Earth radius / distance)² × the Lambert phase law at the computed phase (about 1/8,400 of sunlight at full Earth); off when Earth is below the validated terrain horizon; casts shadows on Medium/High; a site in shadow is shown with a stated raised exposure.
+  * **Rover with NASA VIPER's published proportions** (2.5 m tall, 1.5 m × 1.5 m, four wheel modules; other sizes approximate), each wheel on the LOLA surface, body pitch and roll from the wheel heights; "About this rover" with sourced facts and VIPER's status (NASA, 20 October 2026). Illustrative: not a mobility simulation; ASTERIA does not predict whether a rover can traverse a slope or surface.
+  * **Exploration**: camera presets (Overview, Site eye level 2 m, Look at Sun, Look at Earth), pointer inspection (height, slope, lat/lon, distance from the site, data resolution), hazard view (slopes above your limit), the camera and its view on the mini-map, and "Show on 2D map".
+  * Before/after pictures and measurements: [docs/ground_detail/round6/](docs/ground_detail/round6/README.md); full report: [ROUND6_REPORT.md](ROUND6_REPORT.md); design choices: [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md).
 
 | 3D view | Classification | Accurate (tested) | Approximate / not modelled |
 |---|---|---|---|
@@ -170,6 +177,7 @@ The Validation page starts with "How we know the numbers are right" and a "Verif
 | **3D terrain accuracy** (`node tests/accuracy3d.js` + `tools/accuracy3d.py`, round 5) | heights: every grid point (3.44 million) within 0.10 m of LOLA; slopes: rover readout vs Python central differences within 0.17° (20/80 m) and 0.53° (5 m), the storage-step bound; 2D map slope layer reproduced at 200/200 points; 20 rover positions within 1.4 m and 0.43 m |
 | `node tests/ui_round5.js` | browser: instant status at stored case times = independent status, rover readout = verified values, relief shading changes no height/slope/light/status, Light up auto-off, jump buttons (series-checked, 3D, minimum elevation, Shackleton floor not found), tour spotlight, Deploy icon, 3D labels inside and not overlapping, Verify with NASA URL = cached validation query, Verified card numbers, Validation sections and report download; laptop + phone, no console errors |
 | `node tests/view3d_test.js` | 3D geometry: Sun and Earth direction vectors vs the engine's raw apparent vectors (96 site/time cases, worst 1.7e-6°), tile decoder vs DEM check points (0.05 m), curvature, world-to-grid inverse, slope, near-field Sun, Earth phase, lazy loading |
+| **Round 6** `node tests/view3d_test.js`, `tests/accuracy3d.js`, `tests/shading_consistency.js`, `tests/ui_round6.js` | finer rings: every grid point (14.5 million in all products) within 0.10 m of LOLA; 5,120 new seam vertices identical; normal maps = DEM normals; earthshine formula; shading consistency unchanged (97.8 / 99.0 / 99.8 %) and the near-camera shadows never light ground the full map shadows; rover wheels on the LOLA surface; presets within 0.05° of the engine; inspection at the site within 1 m; 2D scale bar within 0.5 % of a great-circle measurement; laptop + phone, no console errors |
 | `node tests/view3d_test.js` (round 4 additions) | extended rings vs stored DEM samples (worst 0.097 m), 5 m patch (0.047 m), seams (9,712 shared edge vertices, 0 m), DEM normals (10° plane), star directions vs an independent IAU 2009 computation (worst 0.0012°) |
 | `node tests/earth_orientation.js` | Earth sub-observer point vs JPL Horizons quantity 14, 12 cases: worst 0.155° (limit 1°) |
 | `node tests/shading_consistency.js` | rendered shadow at the site marker vs validated "Sun up", 8 sites × 50 times: Low 97.8 %, Medium 99.0 %, High 99.8 %; all disagreements = Sun blocked by terrain beyond the shadow-casting range |
@@ -222,6 +230,10 @@ Every site records `sourceType` (all **primary** this round) and what its source
   * Feature names: IAU Gazetteer GIS downloads, https://planetarynames.wr.usgs.gov/GIS_Downloads ; file https://asc-planetarynames-data.s3.us-west-2.amazonaws.com/MOON_nomenclature_center_pts.zip
   * Albedo: none used. The only LOLA 1064 nm albedo maps found (Lucey et al. 2014, JGR Planets 119, https://doi.org/10.1002/2013JE004592) are about 2 km/pixel near the poles; the PDS polar LDRM products are roughness maps; PGDA products 68/90 have no albedo map.
   * Lunar rotation model for the independent star test: Archinal et al. 2011, https://doi.org/10.1007/s10569-010-9320-4
+* Round 6:
+  * Finer ring grids: LDEM_85S_20M and LDEM_80S_80M (same PDS directory as above).
+  * Earth's albedo for earthshine (geometric albedo 0.434, Bond albedo 0.294): NASA Earth Fact Sheet, https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+  * VIPER (rover proportions, facts and status): NASA VIPER mission page https://science.nasa.gov/mission/viper/ ; rover and instruments https://science.nasa.gov/mission/viper/rover-and-instruments/ ; progress update (20 Oct 2026) https://www.nasa.gov/missions/moon-base/nasa-provides-progress-update-on-moon-base-rovers/ ; Blue Origin delivery award (19 Sep 2025) https://www.nasa.gov/news-release/nasa-selects-blue-origin-to-deliver-viper-rover-to-moons-south-pole/ ; 17 Jul 2024 release https://www.nasa.gov/news-release/nasa-ends-viper-project-continues-moon-exploration/
 * Libraries: Astronomy Engine 2.1.19 (MIT), Leaflet 1.9.4 (BSD-2-Clause), Three.js r149 (MIT, https://threejs.org/, loaded only by Deploy), all in `lib/`.
 * Development tools (not shipped): Python (https://www.python.org/) with NumPy (https://numpy.org/) and Pillow (https://python-pillow.org/), Playwright (https://playwright.dev/), Claude Code (https://www.anthropic.com/claude-code).
 * All links used for the submission: [SUBMISSION_LINKS.md](SUBMISSION_LINKS.md).
@@ -238,7 +250,7 @@ js/map.js                Leaflet map, polar stereographic CRS, data-coverage lim
 js/app.js                UI;  js/loader.js pixel rocket loader;  js/explain.js "?" texts
 js/intro.js              first-visit intro (INTRO_MS at the top)
 js/view3d.js             3D view (loaded only by Deploy);  js/view3d_math.js its geometry (also used by Node tests)
-data/terrain3d/          6 km tiles; ext/<site>_a.js, _b.js (16 / 40 km rings); hi5m/<site>.js (5 m patches); features.js (IAU names)
+data/terrain3d/          6 km tiles; ext/<site>_a.js, _b.js (16 / 40 km rings), _af.js, _bf.js (finer rings, round 6; fine_index.js); hi5m/<site>.js (5 m patches); features.js (IAU names)
 data/stars.js            Bright Star Catalogue to V = 5.0 (3D stars);  data/earth/earth_<w>.js  Blue Marble textures (base64)
 data/shading_consistency.js   rendered shadows vs the validated model (tests/shading_consistency.js)
 lib/                     Astronomy Engine, Leaflet, Three.js (local copies)
@@ -258,9 +270,10 @@ tests/features_test.js   unit tests
 tests/view3d_test.js     3D geometry unit tests
 tests/ui_check.js        headless browser check (Playwright), laptop + phone, file://
 tests/ui_round5.js       headless browser checks for round 5 (laptop + phone)
+tests/ui_round6.js       headless browser checks for round 6: rover, presets, inspection, hazard, 2D link, Getting started, scale bar
 tests/instant_status_check.js   instant status vs Horizons + Python terrain -> data/instant_status.js (tests/instant_terrain.json caches the Python result)
 tests/accuracy3d.js, tools/accuracy3d.py   3D heights, slopes, rover positions vs LOLA -> data/accuracy3d.js (tests/accuracy3d_python.json)
-tests/ground_detail.js   Walk/Rover ground-detail measurement (docs/ground_detail/)
+tests/ground_detail.js   ground-detail measurement (docs/ground_detail/; --r6: Orbit/Walk/Rover before/after, docs/ground_detail/round6/)
 tools/terrain.py         DEM reading, horizon masks
 tools/terrain3d.py       6 km terrain tiles for the 3D view (build / check) -> data/terrain3d/
 tools/terrain3d_ext.py   extended rings and 5 m patches (build / check);  tools/fetch_round4.py  their downloads
@@ -271,7 +284,7 @@ tools/tiles.py           map tile pyramids + georeference check ("illum120" = ou
 tools/illum_crosscheck.py, tools/export_sun_vectors.js   illumination cross-check
 tools/build_core.js      builds js/core.js
 README.md, GAPS_AND_ISSUES.md, VALIDATION_REPORT.md, TEXT_AUDIT.md, VERIFY_YOURSELF.md,
-AI_DISCLOSURE.md, SUBMISSION_LINKS.md
+AI_DISCLOSURE.md, SUBMISSION_LINKS.md, DESIGN_DECISIONS.md, ROUND6_REPORT.md (round 6)
 ```
 
 ## Re-running everything
@@ -312,11 +325,13 @@ node tests/instant_status_check.js           # --new: choose new cases (now + 20
 node tests/accuracy3d.js                     # --python: rerun the Python side (needs the DEMs)
 node tests/ui_round5.js                      # --shots: also screenshots
 node tests/ground_detail.js --other round3=<checkout of 46b0fa8> --tag after
+node tests/ui_round6.js                      # round 6; --shots: also screenshots
+node tests/ground_detail.js --r6 --other before=<checkout of v1-stable> --tag after
 ```
 
 ## Stable snapshot
 
-The commit tagged **`v1-stable`** (local tag, round 5) is the tested state described here. To return to it:
+The commit tagged **`v1-stable`** (local tag, round 5) is the tested state of round 5; the main branch (`master`) stays there. Round 6 is on the branch **`round6`** for the owner's review (not merged; see ROUND6_REPORT.md). To return to it:
 
 ```powershell
 git checkout v1-stable          # look at it (detached HEAD)

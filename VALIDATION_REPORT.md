@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T20:45:20.485Z by `node tests/validate.js`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)
+Generated 2026-11-14T22:37:29.532Z by `node tests/validate.js`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)
 
 ## Overall: **PASS**
 
@@ -11,7 +11,7 @@ Generated 2026-11-14T20:45:20.485Z by `node tests/validate.js`. (The test code w
 | B. Physics sanity tests (5) | PASS | see below |
 | E. Custom point, one-year check vs JPL Horizons (8761 hourly rows x 2 bodies) | PASS | elevation max 0.0028 deg; azimuth max 0.0039 deg; sunrise/sunset max 1.42 min; Earth min elevation 1.63 deg |
 | F. Instant status check (independent: Horizons + Python terrain; 8 sites x 21 times x 2 bodies) | PASS | 336/336 agree; 3 on the edge (within 0.05 deg), 0 disagreements outside the edge |
-| G. 3D terrain accuracy (every grid point vs LOLA; slopes; rover positions) | PASS | heights max 0.100 m over 3,444,523 points (limit 1 m); rover slope vs Python max diff 0.534 deg; 20 rover positions within one DEM cell and 1 m |
+| G. 3D terrain accuracy (every grid point vs LOLA; slopes; rover positions) | PASS | heights max 0.100 m over 14,499,574 points (limit 1 m); rover slope vs Python max diff 0.534 deg; 20 rover positions within one DEM cell and 1 m |
 | C. Blind test vs JPL Horizons (5 new random cases, 10 comparisons, fetched fresh) | PASS | elevation max 0.0029 deg; azimuth max 0.0038 deg |
 
 ## Method
@@ -243,9 +243,9 @@ Per site (all 21 times):
 
 ## G. 3D terrain accuracy: **PASS**
 
-Run with `node tests/accuracy3d.js` (the app's own 3D code in Node) and `.venv\Scripts\python -I tools\accuracy3d.py` (independent, from the LOLA DEMs); results of 2026-11-14 20:40 UTC.
+Run with `node tests/accuracy3d.js` (the app's own 3D code in Node) and `.venv\Scripts\python -I tools\accuracy3d.py` (independent, from the LOLA DEMs); results of 2026-11-14 22:36 UTC.
 
-**Heights.** Every stored grid point of every 3D terrain product (the 6 km tile of each of the 8 sites, ring A to 16 km, ring B to 40 km, and the three 5 m patches): its geographic position is computed independently (site up vector rotated by the ground distance; not the great-circle routine the generators use), and the LOLA DEM the product names is sampled there directly (bilinear, raw PDS array). Differences come from the 0.1 m (0.2 m where the relief is larger) storage step.
+**Heights.** Every stored grid point of every 3D terrain product (the 6 km tile of each of the 8 sites, ring A to 16 km, ring B to 40 km, the three 5 m patches, and since round 6 the finer ring grids: ring A at 25 m from LDEM_85S_20M and ring B at 100 m from LDEM_85S_20M or LDEM_80S_80M): its geographic position is computed independently (site up vector rotated by the ground distance; not the great-circle routine the generators use), and the LOLA DEM the product names is sampled there directly (bilinear, raw PDS array). Differences come from the 0.1 m (0.2 m where the relief is larger) storage step.
 
 | Site | Product | DEM | Grid points | Spacing (m) | Max abs diff (m) | Mean abs diff (m) |
 |---|---|---|---|---|---|---|
@@ -255,29 +255,40 @@ Run with `node tests/accuracy3d.js` (the app's own 3D code in Node) and `.venv\S
 | IM-2 Athena | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
 | IM-2 Athena | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
 | IM-2 Athena | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.100 | 0.050 |
+| IM-2 Athena | Ring B fine, 100 m (round 6) | LDEM_80S_80M | 641,601 | 100 | 0.100 | 0.050 |
 | Peak near Shackleton (illuminated area) | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
 | Peak near Shackleton (illuminated area) | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
 | Peak near Shackleton (illuminated area) | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.050 | 0.025 |
+| Peak near Shackleton (illuminated area) | Ring A fine, 25 m (round 6) | LDEM_85S_20M | 1,640,961 | 25 | 0.050 | 0.025 |
+| Peak near Shackleton (illuminated area) | Ring B fine, 100 m (round 6) | LDEM_85S_20M | 641,601 | 100 | 0.050 | 0.025 |
 | Peak near Shackleton (illuminated area) | 5 m patch (2 km) | LDEM_875S_5M | 160,801 | 5 | 0.050 | 0.023 |
 | Peak near Shackleton - best-lit point (derived) | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
 | Peak near Shackleton - best-lit point (derived) | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
 | Peak near Shackleton - best-lit point (derived) | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.050 | 0.025 |
+| Peak near Shackleton - best-lit point (derived) | Ring A fine, 25 m (round 6) | LDEM_85S_20M | 1,640,961 | 25 | 0.050 | 0.025 |
+| Peak near Shackleton - best-lit point (derived) | Ring B fine, 100 m (round 6) | LDEM_85S_20M | 641,601 | 100 | 0.050 | 0.025 |
 | Peak near Shackleton - best-lit point (derived) | 5 m patch (2 km) | LDEM_875S_5M | 160,801 | 5 | 0.050 | 0.024 |
 | Nobile Rim 2 (site DM2) | 6 km tile | LDEM_80S_80M | 5,929 | 80 | 0.050 | 0.025 |
 | Nobile Rim 2 (site DM2) | Ring A (to 16 km) | LDEM_80S_80M | 160,801 | 80 | 0.050 | 0.025 |
 | Nobile Rim 2 (site DM2) | Ring B (to 40 km) | LDEM_75S_120M | 251,001 | 160 | 0.100 | 0.050 |
+| Nobile Rim 2 (site DM2) | Ring B fine, 100 m (round 6) | LDEM_80S_80M | 641,601 | 100 | 0.100 | 0.050 |
 | Mons Mouton (landform centre) | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
 | Mons Mouton (landform centre) | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
 | Mons Mouton (landform centre) | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.100 | 0.050 |
+| Mons Mouton (landform centre) | Ring B fine, 100 m (round 6) | LDEM_80S_80M | 641,601 | 100 | 0.100 | 0.050 |
 | Mons Malapert (landform centre) | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
 | Mons Malapert (landform centre) | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
 | Mons Malapert (landform centre) | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.100 | 0.050 |
+| Mons Malapert (landform centre) | Ring A fine, 25 m (round 6) | LDEM_85S_20M | 1,640,961 | 25 | 0.050 | 0.025 |
+| Mons Malapert (landform centre) | Ring B fine, 100 m (round 6) | LDEM_80S_80M | 641,601 | 100 | 0.100 | 0.050 |
 | Shackleton crater centre (floor) | 6 km tile | LDEM_85S_20M | 90,601 | 20 | 0.050 | 0.025 |
 | Shackleton crater centre (floor) | Ring A (to 16 km) | LDEM_80S_80M | 103,041 | 100 | 0.050 | 0.025 |
 | Shackleton crater centre (floor) | Ring B (to 40 km) | LDEM_75S_120M | 160,801 | 200 | 0.050 | 0.025 |
+| Shackleton crater centre (floor) | Ring A fine, 25 m (round 6) | LDEM_85S_20M | 1,640,961 | 25 | 0.050 | 0.025 |
+| Shackleton crater centre (floor) | Ring B fine, 100 m (round 6) | LDEM_85S_20M | 641,601 | 100 | 0.050 | 0.025 |
 | Shackleton crater centre (floor) | 5 m patch (2 km) | LDEM_875S_5M | 160,801 | 5 | 0.050 | 0.020 |
 
-All 3,444,523 grid points: max abs difference **0.100 m**, mean 0.030 m (limit 1 m) -> PASS.
+All 14,499,574 grid points: max abs difference **0.100 m**, mean 0.031 m (limit 1 m) -> PASS.
 
 **Slopes.** Same method in both: central differences over one grid spacing d of the bilinear DEM heights in the site's true ground east/north directions, dh/de = (h(e+d) - h(e-d)) / 2d, dh/dn = (h(n+d) - h(n-d)) / 2d, slope = atan(sqrt(dh/de^2 + dh/dn^2)). The 3D readout uses the stored grid (js/view3d_math.js slopeAt); Python samples the LOLA DEM directly at the geographic positions of those points (tools/accuracy3d.py). d = 20 m or 80 m (6 km tile) and 5 m (patch). The 2D map's slope layer uses the same formula on a 37 m sample grid (np.gradient), averaged over 2 x 2 samples into 74 m pixels and shown in 8 classes (tools/tiles.py).
 
@@ -457,3 +468,11 @@ Result: shipped. Clicked or typed points inside the map get this horizon, labell
 * `node tests/instant_status_check.js`: section F (also run by this script from the caches). `node tests/accuracy3d.js`: section G (its Python side, `tools/accuracy3d.py`, needs the DEMs; the result is cached).
 * `node tests/ui_round5.js`: in the browser, the instant status at stored case times equals the independent status, the rover readout equals the verified values, relief shading changes no height, slope, light direction or status, the jump buttons land on times where the status is true, and the "Verify with NASA" URL is identical to the cached validation query.
 * `node tests/features_test.js` also checks: every site has a primary/secondary source type and no Wikipedia source; the removed points have no site, horizon or computed rows; Artemis III regions are plotted only through landform centres or a published point; the downsampled DEM is <= 15 MB, decodes correctly and, with the shipped worker code, reproduces the stored validation; terrain for clicked points is gated on the validation result.
+
+### Round 6 (3D fidelity, rover, usability; branch round6)
+
+* `node tests/accuracy3d.js --python`: section G now includes the finer ring grids (ring A at 25 m from LDEM_85S_20M at 4 sites, ring B at 100 m at 7 sites): every grid point within 0.10 m of its DEM.
+* `node tests/view3d_test.js` (round 6 additions): seams of the finer rings (5,120 hole-edge vertices identical, no missing cells); normal maps = the DEM vertex normals at the grid nodes; texture coordinates on texel centres; earthshine formula (full Earth = 0.434 x (R_E/d)^2, Lambert phase law, new Earth 0); mipmap chain = 2 x 2 averages.
+* `node tests/shading_consistency.js`: unchanged from round 5 (Low 97.8 %, Medium 99.0 %, High 99.8 %); with the near-camera shadow cascade (min of both maps) agreement at the site marker is at least that of the full map on the same cases.
+* `node tests/ui_round6.js`: rover wheels on the LOLA surface, tilt vs DEM slope, VIPER size, "About this rover" (statement, dated status, NASA sources), no traversability claims; camera presets vs engine Sun/Earth directions (0.05 deg); pointer inspection at the site marker (height within 1 m); hazard view; Show on 2D map; Getting started actions; 2D scale bar vs an independent great-circle measurement (0.5 %); laptop + phone, no console errors.
+* Details and before/after numbers: ROUND6_REPORT.md; ground detail: docs/ground_detail/round6/.

@@ -286,3 +286,25 @@ No AI wording was added to the interface; `tests/ui_check.js` still finds it onl
 | Validation: "Methods and formulas" (10 rows, each with a source-file link) and "Reproduce it yourself" (commands) | js/engine.js, tools/terrain.py, js/view3d_math.js; README.md | new |
 | Validation: "Instant status check (independent: Horizons + Python terrain)" with the sunlit-now paragraph; "3D terrain accuracy" | data/instant_status.js, data/accuracy3d.js | new |
 | Validation: "Download VALIDATION_REPORT.md" | file in the project | new |
+
+## Round 6 (simulation fidelity, rover, usability)
+
+No AI wording was added to the interface (`tests/ui_check.js`, `tests/ui_round6.js`). No text claims that a rover can traverse a slope or surface (`tests/ui_round6.js` scans the whole page).
+
+| Text | Basis | Status |
+|---|---|---|
+| 3D notes: "Resolution by area (Calculated from measured LOLA heights): … geometry: X m grid; lighting detail (normal map): Y m LOLA data (product)" and how normal maps are made | js/view3d.js buildTerrain, js/view3d_math.js bakeNormalXZ; tests/view3d_test.js | new |
+| 3D notes, Shadows: "near the camera a second, finer shadow map of the same Sun direction and the same terrain, texel about N m: sharper edges, the same lit and shadowed areas" | tests/shading_consistency.js (min of both maps; agreement not decreased) | extended |
+| "Earthshine" toggle; note "Earthshine here: about 1/N of direct sunlight (Earth X % lit, Y° across; albedo 0.434). Exposure raised ×Z (like a long camera exposure) because the site is in shadow; anything in sunlight is overexposed. Approximate: Earth treated as an evenly reflecting sphere (real value within about a factor of 2)." / "Earth's centre is below the terrain horizon at the site marker …" | NASA Earth Fact Sheet; js/view3d_math.js earthshineRatio; validated horizon model | new |
+| 3D notes, Earthshine (formula, sources, limits) | as above | new |
+| Rover panel: "Body tilt (wheels on LOLA heights)" "pitch …°, roll …°" | js/view3d.js placeRover; tests/ui_round6.js | new |
+| "About this rover": required statement "Illustrative model based on NASA VIPER's published dimensions. It is not a mobility simulation: ASTERIA does not predict whether a rover can traverse a slope or surface."; what VIPER is; published facts; approximate items; current status quoted from NASA (20 Oct 2026) with earlier dates; "In this view" | NASA VIPER pages (SUBMISSION_LINKS.md 21-25) | new |
+| 3D notes, Rover: "model with NASA VIPER's published proportions …; Illustrative, not a mobility simulation …" | same | rewritten |
+| Camera presets: "Overview", "Site eye level (2 m)", "Look at Sun", "Look at Earth", "Show on 2D map"; hint "Point at (or tap) the terrain to read its height, slope, position and data resolution." | engine directions; tests/ui_round6.js | new |
+| Inspection tooltip: "Height … m (above the 1737.4 km sphere)", "Slope …° (central differences over N m)", lat/lon, "… from the site", "Data here: N m LOLA grid (product), area, drawn at M m. Calculated from LOLA; real slopes over a few metres can be steeper." | js/view3d_math.js heightAt/slopeAt/latLonAt | new |
+| Hazard view: "hazard view: slopes above N°"; legend "Hazard view: slope above N° (your limit) from the LOLA heights, by central differences over each area's grid (…). Real slopes over a few metres can be steeper. Not a traversability prediction." | same | new |
+| 2D map: "Position from the 3D view: lat, lon" marker label | js/map.js showPoint | new |
+| 2D map scale bar: "N km (scale at map centre)" with tooltip about the scale factor k | polar stereographic scale factor; tests/ui_round6.js | new |
+| Getting started buttons: "Open a site: Peak near Shackleton", "Show the whole pole", "Explain the Sunlight tile", "Play the Sky view", "Turn on Expert view", "Show ? explanations", "Start the Tour" | app actions; tests/ui_round6.js | new |
+| About: "Design decisions" (12 entries, plain language then technical) | DESIGN_DECISIONS.md (figures checked against README, VALIDATION_REPORT.md and the test code; one tolerance corrected before commit) | new |
+| 3D notes: classification labels Measured / Calculated / Approximate / Illustrative on every item except the "Graphics:" line | ROUND6_REPORT.md | new |

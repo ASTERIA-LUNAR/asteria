@@ -264,6 +264,12 @@ function report(r) {
     '* `node tests/instant_status_check.js`: section F (also run by this script from the caches). `node tests/accuracy3d.js`: section G (its Python side, `tools/accuracy3d.py`, needs the DEMs; the result is cached).\n' +
     '* `node tests/ui_round5.js`: in the browser, the instant status at stored case times equals the independent status, the rover readout equals the verified values, relief shading changes no height, slope, light direction or status, the jump buttons land on times where the status is true, and the "Verify with NASA" URL is identical to the cached validation query.\n' +
     '* `node tests/features_test.js` also checks: every site has a primary/secondary source type and no Wikipedia source; the removed points have no site, horizon or computed rows; Artemis III regions are plotted only through landform centres or a published point; the downsampled DEM is <= 15 MB, decodes correctly and, with the shipped worker code, reproduces the stored validation; terrain for clicked points is gated on the validation result.\n';
+  md += '\n### Round 6 (3D fidelity, rover, usability; branch round6)\n\n' +
+    '* `node tests/accuracy3d.js --python`: section G now includes the finer ring grids (ring A at 25 m from LDEM_85S_20M at 4 sites, ring B at 100 m at 7 sites): every grid point within 0.10 m of its DEM.\n' +
+    '* `node tests/view3d_test.js` (round 6 additions): seams of the finer rings (5,120 hole-edge vertices identical, no missing cells); normal maps = the DEM vertex normals at the grid nodes; texture coordinates on texel centres; earthshine formula (full Earth = 0.434 x (R_E/d)^2, Lambert phase law, new Earth 0); mipmap chain = 2 x 2 averages.\n' +
+    '* `node tests/shading_consistency.js`: unchanged from round 5 (Low 97.8 %, Medium 99.0 %, High 99.8 %); with the near-camera shadow cascade (min of both maps) agreement at the site marker is at least that of the full map on the same cases.\n' +
+    '* `node tests/ui_round6.js`: rover wheels on the LOLA surface, tilt vs DEM slope, VIPER size, "About this rover" (statement, dated status, NASA sources), no traversability claims; camera presets vs engine Sun/Earth directions (0.05 deg); pointer inspection at the site marker (height within 1 m); hazard view; Show on 2D map; Getting started actions; 2D scale bar vs an independent great-circle measurement (0.5 %); laptop + phone, no console errors.\n' +
+    '* Details and before/after numbers: ROUND6_REPORT.md; ground detail: docs/ground_detail/round6/.\n';
   return md;
 }
 

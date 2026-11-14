@@ -83,3 +83,10 @@ Searched all project files (HTML, CSS, JS, Markdown, and every image file outsid
 * New data computed by those scripts (not written by hand): `data/instant_status.js`, `data/accuracy3d.js`, `tests/instant_terrain.json`, `tests/accuracy3d_python.json`, new raw JPL Horizons responses in `tests/horizons_cache/`, and the screenshots and measurements in `docs/ground_detail/` (renderings of LOLA data by the app).
 * Graphics drawn in code this round: the tour spotlight (dimming and glow) and the "Verified" card mark. No image generator was used.
 * The new checks compare the app with sources that are not AI-written: NASA/JPL Horizons answers and NASA LOLA elevation data read directly by a separate Python program.
+
+## Round 6 (simulation fidelity, rover, usability; branch round6)
+
+* The in-app disclosure is unchanged: the About credit line and the 3D "Graphics:" line only (`tests/ui_check.js` and `tests/ui_round6.js` enforce it). The "Graphics:" line still describes the rover accurately: the new VIPER-proportioned rover is drawn by code written with Claude Code, from NASA's published dimensions (not from any image).
+* New AI-written files (same header): `tests/ui_round6.js`, `DESIGN_DECISIONS.md`, `ROUND6_REPORT.md`, `docs/ground_detail/round6/README.md`. Changed: `js/view3d.js`, `js/view3d_math.js`, `js/app.js`, `js/map.js`, `index.html`, `css/style.css`, `tools/terrain3d_ext.py`, `tools/accuracy3d.py`, several tests and the documents.
+* New data computed by scripts (not written by hand): `data/terrain3d/ext/*_af.js`, `*_bf.js`, `data/terrain3d/fine_index.js` (LOLA heights), regenerated result files, measurements and screenshots in `docs/ground_detail/round6/`.
+* Graphics drawn in code this round: the VIPER-proportioned rover, the camera wedge on the 3D mini-map, the 2D scale bar and the 3D-position marker. Normal maps and earthshine are computed from LOLA data and the validated engine geometry, not drawn. No image generator was used.

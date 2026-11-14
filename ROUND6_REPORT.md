@@ -186,3 +186,83 @@ Note for the owner: the science.nasa.gov VIPER page (updated 21 Sep 2026) still 
 **Remaining limitations**: the scale bar is exact at the map centre only (stated); Design decisions are text, not interactive.
 
 **Classification**: Getting started and Design decisions - presentation (no physical prediction); scale bar - Calculated.
+
+## Trade-offs for the owner (not implemented; owner to decide)
+
+1. **Medium-quality ring A geometry from the 20 m product.** Drawing ring A at Medium as a 100 m sampling of the 25 m grid (LDEM_85S_20M) instead of the round-4 100 m grid (LDEM_80S_80M) changed 2 of 50 shading-consistency verdicts at Mons Malapert (Medium 99.0 % → 98.5 %; one case where the Sun was 0.15° below the drawn terrain was then drawn lit). Not implemented. Medium gets the 25 m lighting detail through the normal map instead. Option: draw ring A at 50 m on Medium too (as on High), which had no such change at High, at the cost of about 4× more ring vertices on Medium.
+2. **Geometry morphing between levels of detail.** Blending vertex heights across ring edges would hide the remaining geometric step, but drawn vertices would no longer be at their DEM heights (the 1 m height test would fail by tens of metres in the blend band). Not implemented; only lighting detail is blended.
+3. **Mixed-product rings.** IM-2 and Mons Mouton have 92 % / 87 % of ring A inside LDEM_85S_20M. A ring with 20 m data where covered and 80 m elsewhere would show more detail there but would contain a product seam (heights from two DEMs side by side). Not implemented (one DEM per grid, as since round 3).
+4. **Near-camera shadows alone.** Used on their own (instead of min(full, near)), the finer near shadow map would be sharper at shadow edges of distant ridges, but it turned 3 of 264 grazing-Sun cases from shadow to lit at the site marker. Not implemented.
+
+## Part 5 - Quality and hand-over - DONE (no merge, no tag, no push)
+
+**Final test run** (round6 branch, development laptop, headless Chromium with the GPU via ANGLE/D3D11; laptop 1440 × 900 and emulated phone 390 × 844 for the browser suites):
+
+| Suite | Result |
+|---|---|
+| `node tests/validate.js` | OVERALL: PASS (VALIDATION_REPORT.md regenerated; round-6 lines added) |
+| `node tests/illumination.js`, `blind_test.js`, `coarse_validation.js`, `one_year_check.js`, `earth_orientation.js`, `instant_status_check.js` | all PASS, values identical to v1-stable (only timestamps changed in the result files) |
+| `node tests/accuracy3d.js` | PASS: 14,499,574 grid points within 0.10 m |
+| `node tests/view3d_test.js`, `node tests/features_test.js` | ALL PASS |
+| Python DEM checks: `tools/terrain.py check`, `tools/terrain3d.py check` (0.049 m), `tools/terrain3d_ext.py check` (0.099 m) | PASS |
+| `node tests/shading_consistency.js` | Low 97.8 %, Medium 99.0 %, High 99.8 % (unchanged); near cascade never lowers agreement |
+| `node tests/ui_check.js` (laptop + phone) | UI CHECK PASS, no console errors or warnings |
+| `node tests/ui_round5.js` (laptop + phone) | ALL PASS |
+| `node tests/ui_round6.js --shots` (laptop + phone) | ALL PASS |
+| `node tests/perf3d.js --phone --quality low,medium,high` | completed, no console errors (table below) |
+
+**Performance before/after** (`node tests/perf3d_compare.js tests/perf/round6_baseline.json tests/perf/round6_final.json`; averages over the 8 sites; raw rows in `tests/perf/round6_*.json`):
+
+| Viewport | Quality | Build | Orbit FPS (avg) | Render ms (avg of site medians) | Deploy -> first frame ms | -> final tile (LOD refine) ms | -> full terrain ms | Geometries | Textures | Draw calls | Triangles (avg) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| laptop | low | v1-stable | 60.0 | 1.3 | 253 | 284 | 369 (292-468) | 6-6 | 1-1 | 6-6 | 94,738 |
+| laptop | low | round6 | 60.0 | 0.9 | 220 | 227 | 278 (219-421) | 6-6 | 1-1 | 6-6 | 94,738 |
+| laptop | medium | v1-stable | 60.0 | 2.1 | 261 | 467 | 510 (427-593) | 6-6 | 1-1 | 6-6 | 365,872 |
+| laptop | medium | round6 | 60.0 | 3.5 | 248 | 293 | 433 (299-527) | 6-6 | 4-4 | 6-6 | 365,872 |
+| laptop | high | v1-stable | 59.4 | 2.5 | 269 | 305 | 721 (440-932) | 8-10 | 1-1 | 8-10 | 788,892 |
+| laptop | high | round6 | 59.8 | 2.9 | 223 | 229 | 561 (435-725) | 8-10 | 5-5 | 8-10 | 1,067,672 |
+| phone (emulated) | low | v1-stable | 60.0 | 1.3 | 251 | 273 | 333 (193-450) | 6-6 | 1-1 | 6-6 | 94,738 |
+| phone (emulated) | low | round6 | 60.0 | 0.8 | 199 | 207 | 252 (156-350) | 6-6 | 1-1 | 6-6 | 94,738 |
+| phone (emulated) | medium | v1-stable | 60.0 | 1.6 | 320 | 450 | 467 (343-588) | 6-6 | 1-1 | 6-6 | 365,872 |
+| phone (emulated) | medium | round6 | 60.0 | 2.7 | 263 | 282 | 421 (275-584) | 6-6 | 4-4 | 6-6 | 365,872 |
+| phone (emulated) | high | v1-stable | 59.3 | 2.3 | 236 | 297 | 679 (539-932) | 8-10 | 1-1 | 8-10 | 788,892 |
+| phone (emulated) | high | round6 | 59.9 | 2.7 | 220 | 232 | 578 (361-734) | 8-10 | 5-5 | 8-10 | 1,067,672 |
+
+Reading the table: the browser caps the frame rate at 60 frames/s, so orbiting stays at 59-60 frames/s at every level before and after; the GPU-synced render time shows the real cost: Medium +1.1-1.4 ms per frame and High +0.4 ms (extra near-shadow and earthshine maps, normal-map sampling); Low slightly faster. Loading got faster at every level (first frame 199-263 ms; full terrain on High 561 ms vs 721 ms on the laptop) although High now loads up to 4.3 MB more ring data at 4 sites, mainly because the full Sun shadow map is no longer re-rendered every frame. Textures: +3 on Medium (near shadow, earthshine shadow, ring A normal map), +4 on High (also ring B normal map); High draws about 35 % more triangles (ring A at 50 m). Exact GPU memory in bytes is not available in browsers; the new normal maps are at most 1281 × 1281 two-component float (about 13 MB with mipmaps, or half that in half-float). No scientific resolution was reduced to reach these numbers. Phones were emulated on the laptop GPU (not a real phone).
+
+**Documents updated**: README.md (3D section, data sources, layout, validation table, rerun commands, snapshot note), GAPS_AND_ISSUES.md (status line, Classification column, section 11 with a classification table), VALIDATION_REPORT.md (regenerated, round-6 lines), TEXT_AUDIT.md (round 6 table), SUBMISSION_LINKS.md (+6 NASA links: Earth Fact Sheet and 5 VIPER pages), AI_DISCLOSURE.md (round 6 note; files only, the in-app disclosure is unchanged), DESIGN_DECISIONS.md (new), `tests/perf3d_compare.js` (new).
+
+**Existing calculations affected**: none.
+
+**Classification**: no new feature in this part.
+
+## Incomplete or unverified requirements
+
+* **Walk/Rover readability in sunlight**: no measurable gain at the two test sites (their 5 m / 20 m ground is smooth in the data); the gain is in Orbit (ring A detail) and in shadow (earthshine, when Earth is up). Nothing below the DEM resolution is shown or invented.
+* **Earthshine** is checked only against its formula (unit test) and the engine geometry, not against measured earthshine brightness on the lunar surface; uncertainty about a factor of 2 (stated). Light reflected from sunlit terrain is not modelled.
+* **Finer data for IM-2, Mons Mouton, Nobile Rim 2, IM-1**: ring A not fully covered by LDEM_85S_20M, so no 25 m ring there (trade-off 3); their ring B uses the 100 m grid where LDEM_80S_80M covers it (IM-2, Mons Mouton, DM2).
+* **Square steps**: lighting steps removed (fade); small geometric steps can remain at ring edges (trade-off 2).
+* **VIPER**: mass, wheel size, mast height and solar-panel layout are not published on the NASA pages read; drawn as labelled approximations. NASA's VIPER mission page and its newer progress update disagree on the status; the app quotes the newer one with its date.
+* **Devices**: all measurements in headless Chromium on the development laptop; phones emulated (screen size and touch on the laptop GPU). Not tested on a real phone, in Firefox or Safari; two-finger gestures not automated (as before). Frame rate is capped at 60 frames/s by the browser, so the render-time column is the better before/after comparison. Exact GPU memory in bytes is not available in browsers.
+* **Hover inspection** works with a mouse; on touch screens it is tap-to-inspect.
+* Low quality is unchanged (no normal maps, no near cascade, no earthshine shadows) to keep phones fast.
+
+## Manual checks for the owner
+
+Open `index.html` from the `round6` branch (`git switch round6`, then double-click `index.html`). On the laptop:
+1. **First visit**: in a private window, wait for "Getting started". Step 1 should scroll to the map; press "Open a site: Peak near Shackleton". Next: the status tiles are highlighted; press "Explain the Sunlight tile" - an explanation opens. Next: the Sky view is highlighted; try the four buttons (Play, Expert view, ? explanations, Tour).
+2. **2D scale bar**: zoom and pan the map; the bar at the bottom right changes and reads e.g. "2 km (scale at map centre)".
+3. **3D detail**: select Peak near Shackleton, press "» Deploy", choose Quality "High". Look at the ground around the bright 6 km square: the old sharp square edge should be gone and the surrounding terrain shows craters. Open "What is accurate, what is approximate": each item starts with a coloured Measured / Calculated / Approximate / Illustrative label, and "Resolution by area" lists geometry and lighting detail per area.
+4. **Earthshine**: set the date to 2027-03-13 10:00 UTC at Mons Mouton (or use "Jump" until Sun is down and Earth is in view), open 3D, tick "Earthshine". The ground facing Earth becomes grey with relief; the note states the strength (about 1/13,000 of sunlight) and the raised exposure. Untick: back to the dark picture.
+5. **Rover**: switch to Rover and drive with W/arrow keys over a slope; the wheels stay on the ground and "Body tilt" changes. Open "About this rover": check the statement, the facts and the status date (20 October 2026) and click a NASA link.
+6. **Inspection and hazard view**: move the mouse over the terrain - a box shows height, slope, position, distance and data resolution. Tick "hazard view" and change the limit (e.g. 10°): steep slopes turn pink; the rover's slope warning uses the same number.
+7. **Presets and 2D link**: press "Look at Sun", "Look at Earth", "Site eye level (2 m)", "Overview". Press "Show on 2D map": the 3D view closes and the 2D map centres on a pink ring labelled "Position from the 3D view".
+8. **About page**: open "Design decisions" and read two or three entries.
+
+On a phone (or the browser's device emulation):
+9. Repeat steps 1, 3 (Quality stays Low or Medium), 5 and 7. Tap the terrain to inspect a point. Check that the panel scrolls, the buttons are reachable and nothing overlaps badly.
+10. Compare with `v1-stable` if anything looks worse: `git switch --detach v1-stable` (look only), then `git switch round6` to come back.
+
+## Branch state
+
+* Branch `round6` contains the commits of Parts 0-5 on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).
