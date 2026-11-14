@@ -133,7 +133,8 @@
       var az = Math.atan2(e, nn) / DEG;
       if (az < 0) az += 360;
       var el = Math.asin(Math.max(-1, Math.min(1, up))) / DEG;
-      return { az: az, el: el, dist_km: d };
+      // bf: apparent unit direction in the Moon body-fixed frame (used by offline terrain tools)
+      return { az: az, el: el, dist_km: d, bf: bf };
     }
 
     var sun = apparent(sunVec);
@@ -173,7 +174,7 @@
   // Time series. Returns arrays (fast to chart).
   function series(site, startDate, endDate, stepMin, mask) {
     stepMin = stepMin || defaultStepMin(startDate, endDate);
-    var out = { t: [], sunAz: [], sunEl: [], sunFrac: [], earthAz: [], earthEl: [], sunUp: [], earthUp: [], stepMin: stepMin };
+    var out = { t: [], sunAz: [], sunEl: [], sunFrac: [], sunDist: [], earthAz: [], earthEl: [], sunUp: [], earthUp: [], stepMin: stepMin };
     var t0 = startDate.getTime(), t1 = endDate.getTime(), dt = stepMin * 60000;
     for (var ms = t0; ms <= t1; ms += dt) {
       var r = sunEarthAt(site, new Date(ms));
@@ -181,6 +182,7 @@
       out.t.push(ms);
       out.sunAz.push(r.sun.az); out.sunEl.push(r.sun.el);
       out.sunFrac.push(diskFractionAbove(r.sun.el, r.sun.radius_deg, hs));
+      out.sunDist.push(r.sun.dist_km);
       out.earthAz.push(r.earth.az); out.earthEl.push(r.earth.el);
       out.sunUp.push(r.sun.el > hs); out.earthUp.push(r.earth.el > he);
     }
@@ -245,24 +247,84 @@
   }
 
   // Summary statistics from a series (fractions and longest runs, in hours).
-  function stats(s) {
-    var n = s.t.length, sun = 0, earth = 0, both = 0;
+  // statsRange covers samples i0..i1-1 (used by the launch-slip heatmap on sub-windows).
+  function stats(s) { return statsRange(s, 0, s.t.length); }
+  function statsRange(s, i0, i1) {
+    var n = i1 - i0, sun = 0, earth = 0, both = 0, frac = 0;
     var dark = 0, maxDark = 0, blk = 0, maxBlk = 0;
     var stepH = s.stepMin / 60;
-    for (var i = 0; i < n; i++) {
+    for (var i = i0; i < i1; i++) {
+      frac += s.sunFrac[i];
       if (s.sunUp[i]) { sun++; dark = 0; } else { dark++; if (dark > maxDark) maxDark = dark; }
       if (s.earthUp[i]) { earth++; blk = 0; } else { blk++; if (blk > maxBlk) maxBlk = blk; }
       if (s.sunUp[i] && s.earthUp[i]) both++;
     }
     return {
       pctSun: 100 * sun / n, pctEarth: 100 * earth / n, pctBoth: 100 * both / n,
+      avgSunFrac: frac / n,
       longestDarkH: maxDark * stepH, longestBlackoutH: maxBlk * stepH,
       samples: n
     };
   }
 
+  // ------------------------------------------------------- launch slip scan
+  // One series covering [nominal + slipMin, nominal + slipMax + duration] at the same step the
+  // main timeline uses for a window of 'durationDays' (10 min <= 30 d, else 60 min); each slip's
+  // mission window is an exact sub-range of samples, so slip 0 reproduces the timeline metrics.
+  function slipScan(site, nominal, durationDays, slipMin, slipMax, slipStep, mask) {
+    var stepMin = defaultStepMin(nominal, new Date(nominal.getTime() + durationDays * 86400000));
+    var perDay = 1440 / stepMin;
+    var start = new Date(nominal.getTime() + slipMin * 86400000);
+    var end = new Date(nominal.getTime() + (slipMax + durationDays) * 86400000);
+    var s = series(site, start, end, stepMin, mask);
+    var nWin = Math.round(durationDays * perDay) + 1;
+    var rows = [];
+    for (var slip = slipMin; slip <= slipMax + 1e-9; slip += slipStep) {
+      var i0 = Math.round((slip - slipMin) * perDay);
+      if (i0 + nWin > s.t.length) break;
+      var st = statsRange(s, i0, i0 + nWin);
+      var toSet;
+      if (!s.sunUp[i0]) toSet = 0;
+      else {
+        toSet = null; // null = Sun does not set within the mission window
+        for (var j = i0 + 1; j < i0 + nWin; j++) if (!s.sunUp[j]) { toSet = (j - i0) * stepMin / 60; break; }
+      }
+      st.slip = slip; st.landing = new Date(s.t[i0]); st.hoursToFirstSunset = toSet;
+      rows.push(st);
+    }
+    return { stepMin: stepMin, rows: rows, series: s, nWin: nWin, perDay: perDay };
+  }
+
+  // ---------------------------------------------------------------- power
+  // Solar constant: IAU 2015 Resolution B3 nominal total solar irradiance, exactly 1361 W/m^2
+  // (Prsa et al. 2016, AJ 152, 41, arXiv:1510.07674), scaled by (1 AU / Sun distance)^2.
+  var SOLAR_CONSTANT_W_M2 = 1361;
+  // Cosine of the incidence angle between the Sun direction and the panel normal (clamped >= 0).
+  // mode 'track': vertical panel rotating in azimuth to face the Sun -> cos(el)
+  // mode 'horizontal': panel facing straight up -> sin(el)
+  // mode 'fixed': vertical panel facing azimuth faceAz -> cos(el) * cos(az - faceAz)
+  function panelCosIncidence(mode, sunAz, sunEl, faceAz) {
+    var el = sunEl * DEG, c;
+    if (mode === 'horizontal') c = Math.sin(el);
+    else if (mode === 'fixed') c = Math.cos(el) * Math.cos((sunAz - (faceAz || 0)) * DEG);
+    else c = Math.cos(el);
+    return c > 0 ? c : 0;
+  }
+  // Electrical power (W): S0 * (AU/d)^2 * area * efficiency * cos(incidence) * visible disk fraction.
+  function panelPower(opts, sunAz, sunEl, sunDistKm, diskFrac) {
+    var au = KM_PER_AU / sunDistKm;
+    return SOLAR_CONSTANT_W_M2 * au * au * opts.area * opts.eff *
+      panelCosIncidence(opts.mode, sunAz, sunEl, opts.faceAz) * diskFrac;
+  }
+
   return {
     MOON_RADIUS_KM: MOON_RADIUS_KM,
+    SOLAR_CONSTANT_W_M2: SOLAR_CONSTANT_W_M2,
+    KM_PER_AU: KM_PER_AU,
+    panelCosIncidence: panelCosIncidence,
+    panelPower: panelPower,
+    statsRange: statsRange,
+    slipScan: slipScan,
     SUN_RADIUS_KM: SUN_RADIUS_KM,
     sunEarthAt: sunEarthAt,
     maskAt: maskAt,

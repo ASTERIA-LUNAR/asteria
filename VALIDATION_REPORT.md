@@ -1,6 +1,6 @@
 # LunaWindow - Validation Report
 
-Generated 2026-11-14T06:23:50.914Z by `node tests/validate.js`.
+Generated 2026-11-14T06:58:38.902Z by `node tests/validate.js`.
 
 ## Overall: **PASS**
 
@@ -109,3 +109,46 @@ Period: 2027-01-01 to 2028-01-01 UTC, 10-minute steps. Smooth-Moon horizon (0 de
 | East limb test point (Earth near horizon) | 0 | 88 | Synthetic test coordinate |
 
 Notes: "Synthetic test coordinate" points are not landing sites; they were chosen to exercise geometry (near-pole Sun skimming, Earth near the east limb). The Chang'e-7 coordinate comes from a Wikipedia infobox (which itself cites a social-media post) and is used only as a test geometry.
+
+## Terrain illumination cross-check
+
+Peak near Shackleton (-88.79, 124.5) vs the published "approximately 80%" figure. Do-not-tune policy: nothing in the model was adjusted to match.
+
+**Sources and definitions**
+
+* Published claim: Mahanti et al. 2024 (PSJ 5, 62): "a small area (−88.79, 124.5) receives persistent solar illumination (approximately 80% of the time; Mazarico et al. 2011)." (https://iopscience.iop.org/article/10.3847/PSJ/ad1b50)
+* Original method (abstract): Mazarico et al. 2011, Icarus 211: horizons from "240 m-resolution polar digital elevation models"; "simulations over long periods (several 18.6-years lunar precession cycles) with a high temporal resolution (6 h)". Observer height is not stated in the abstract; the full paper (Elsevier) was not accessible. (https://ntrs.nasa.gov/citations/20120010094)
+* Published map product: NASA PGDA product 69: "Maps of the solar illumination, averaged over hourly timesteps spanning 18.6 years" (no start year given). Map AVGVISIB_85S_060M_201608 (60 m/px, based on LDEM_85S_060M), label: "average illumination by the solar disc ... indicate the percentage of timesteps where each pixel was sunlit (by any fraction of the solar disc)"; the same label's image description says "its average solar disc visibility". The two wordings differ, so we compute both definitions. (https://pgda.gsfc.nasa.gov/products/69)
+
+**Method.** Sun directions from the validated LunaWindow engine (hourly, 2027-01-01 to 2045-08-08, 163057 steps = one 18.6-year nodal cycle; "2027" = calendar year 2027). Terrain horizons from LOLA LDEM_85S_20M/80S_80M/75S_120M (20 m/px near the site), 360 azimuths, rays to 300 km, at observer heights 2 m and 10 m above the surface. Three definitions: (1) average visible fraction of the solar disk, (2) % of time the Sun centre is above the horizon, (3) % of time any part of the disk is above the horizon. The published map (AVGVISIB_85S_060M_201608) is sampled at the same points (bilinear; nearest-pixel in brackets).
+
+| Observer height | Period | (1) Avg disk fraction | (2) Sun centre up | (3) Any part of disk up |
+|---|---|---|---|---|
+| 2 m | 2027 | 49.6% | 49.6% | 51.3% |
+| 2 m | 18.6 yr | 48.1% | 48.1% | 49.8% |
+| 10 m | 2027 | 60.9% | 60.9% | 62.7% |
+| 10 m | 18.6 yr | 59.6% | 59.6% | 61.5% |
+| Published map AVGVISIB_85S_060M_201608 at the same point | 18.6 yr | 45.4% (nearest pixel 42.8%) | | |
+| Published text (Mahanti et al. 2024) | not stated | ~80% | | |
+
+**Neighbourhood scan** (all points within 500 m of the published coordinate on a 50 m grid, 18.6-year span):
+
+| Height | Points | Best point (ours) | Ours there (1)/(2)/(3) | Published map there | Max of published map in the area | Correlation ours vs map |
+|---|---|---|---|---|---|---|
+| 2.0 m | 317 | -88.79495, 123.7972 (-150 m N, -450 m E) | 62.1% / 62.1% / 63.6% | 38.0% | 59.2% at -88.78505, 124.3438 | r = 0.84 |
+| 10.0 m | 317 | -88.80154, 123.9534 (-350 m N, -350 m E) | 79.2% / 79.2% / 82.1% | 58.1% | 59.2% at -88.78505, 124.3438 | r = 0.68 |
+
+Best point supported by both models (maximum of min(ours at 2 m, published map)): **-88.78505, 124.3438**, ours 59.8%, published map 59.2%. Added to the app as a clearly labelled derived point; the original published coordinate is kept.
+
+**Other curated sites vs the published map** (observer 2 m, 18.6 years):
+
+| Site | lat | E-lon | (1) Avg disk fraction | (2) Sun centre up | (3) Any part up | Published map | Difference (1) - map |
+|---|---|---|---|---|---|---|---|
+| im2 | -84.7906 | 29.1957 | 45.0% | 45.0% | 46.7% | 46.0% | -1.0 pts |
+| change7 | -88.8 | 123.4 | 55.1% | 55.1% | 57.1% | 49.0% | 6.1 pts |
+| peak_shackleton | -88.79 | 124.5 | 48.1% | 48.1% | 49.8% | 45.4% | 2.8 pts |
+| nobile_rim2_dm2 | -84.20156 | 60.69989 | 32.8% | 32.8% | 34.2% | n/a | n/a |
+| mons_mouton | -84.6 | 31 | 30.1% | 30.1% | 33.1% | 32.8% | -2.8 pts |
+| shackleton_centre | -89.67 | 129.78 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0 pts |
+
+**Finding.** At the published coordinate, the published 60 m map itself gives 45.4%, and our model gives 48.1% (2 m, 18.6 years). Both are well below "approximately 80%". The ~80% figure is therefore not reproduced by the public map product at that coordinate. Possible reasons: the 2011 analysis used 240 m topography and different heights or periods, the coordinate is rounded to 0.01° (about ±150 m), and illumination changes a lot over a few hundred metres. We report this as-is. With the observer 10 m above the surface (the Mazarico et al. abstract notes that ~10 m height gains can greatly improve illumination), the best point within 500 m reaches 79.2% in our model; the published map at that point gives 58.1% (the map does not state its observer height).

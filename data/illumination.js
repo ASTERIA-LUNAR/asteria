@@ -61,6 +61,20 @@ window.LUNA_ILLUMINATION = {
    "longestBlackoutH": 559
   },
   {
+   "id": "peak_shackleton_lw",
+   "name": "Peak near Shackleton - best-lit point (derived)",
+   "lat": -88.7851,
+   "lon": 124.3438,
+   "siteHeight_m": 1602.4,
+   "sunTerrain": 61.006791849780264,
+   "sunSmooth": 50.904628731236805,
+   "earthTerrain": 27.760972547229038,
+   "earthSmooth": 43.73608812282404,
+   "bothTerrain": 17.196507048684435,
+   "longestDarkH": 333.5,
+   "longestBlackoutH": 473.5
+  },
+  {
    "id": "nobile_rim2_dm2",
    "name": "Nobile Rim 2 (site DM2)",
    "lat": -84.20156,
