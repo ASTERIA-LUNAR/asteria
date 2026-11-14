@@ -4,139 +4,173 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ASTERIA - Lunar South Pole Landing Site Navigator</title>
-<meta name="description" content="Compare lunar landing sites and dates: Sun and Earth above the horizon, power and direct-to-Earth communication windows, with LOLA terrain horizons at the south pole.">
+<meta name="description" content="When is the Sun up and the Earth in view at lunar south-pole landing sites? LOLA terrain horizons, NASA Artemis III candidate regions, power and direct-to-Earth link windows, ephemeris validated against JPL Horizons.">
 <meta name="application-name" content="ASTERIA">
+<meta name="theme-color" content="#070b14">
 <meta property="og:title" content="ASTERIA - Lunar South Pole Landing Site Navigator">
-<meta property="og:description" content="When is the Sun up and Earth in view at lunar south-pole landing sites? LOLA terrain horizons, ephemeris validated against JPL Horizons. Not endorsed by NASA.">
+<meta property="og:description" content="When is the Sun up and the Earth in view at lunar south-pole landing sites? LOLA terrain horizons, ephemeris validated against JPL Horizons. Not endorsed by NASA.">
+<link rel="stylesheet" href="lib/leaflet/leaflet.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="explain-on">
 <header class="topbar">
   <div class="brand">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 19 Q16 12 29 19" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="22" cy="10" r="3" fill="var(--sun)"/></svg>
     <div><div class="brand-name">ASTERIA</div><div class="brand-sub">Lunar South Pole Landing Site Navigator</div></div>
   </div>
-  <nav class="tabs" role="tablist">
-    <button class="tab active" data-page="explorer" role="tab">Explorer</button>
-    <button class="tab" data-page="compare" role="tab">Compare</button>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab active" data-page="explorer" role="tab">Explore</button>
     <button class="tab" data-page="slip" role="tab">Launch slip</button>
     <button class="tab" data-page="power" role="tab">Power</button>
+    <button class="tab" data-page="compare" role="tab">Compare</button>
     <button class="tab" data-page="validation" role="tab">Validation</button>
     <button class="tab" data-page="about" role="tab">About</button>
   </nav>
-  <button id="tourBtn" class="btn primary tourbtn">&#9654; Take the 60-second tour</button>
-  <button id="shareBtn" class="btn ghost" title="Copy a link that reopens this exact view">Copy link</button>
-  <label class="switch" title="Show plain-language explanations">
-    <input type="checkbox" id="explainToggle"> <span>Explain mode</span>
-  </label>
+  <div class="topctl">
+    <label class="switch" title="Show every technical value (elevations, azimuths, horizon heights, sampling, sources)"><input type="checkbox" id="expertToggle"> <span>Expert view</span></label>
+    <label class="switch" title="Show ? buttons with plain-language explanations"><input type="checkbox" id="explainToggle" checked> <span>Explain</span></label>
+    <button id="tourBtn" class="btn primary">&#9654; Tour</button>
+    <button id="shareBtn" class="btn ghost" title="Copy a link that reopens this exact view">Copy link</button>
+  </div>
 </header>
 
 <main>
-<!-- =============================================================== EXPLORER -->
+<!-- =============================================================== EXPLORE -->
 <section id="page-explorer" class="page active">
-  <div class="layout">
-    <aside class="panel sitepanel">
-      <h2>Site</h2>
-      <input id="siteSearch" type="search" placeholder="Search sites, missions, agencies..." aria-label="Search sites">
-      <div id="siteList" class="sitelist" role="listbox"></div>
-      <div class="mapwrap">
-        <canvas id="map" width="600" height="600" aria-label="South pole map"></canvas>
-        <div class="mapcap">South pole, ~85&deg;S&ndash;90&deg;S. LOLA hillshade (synthetic lighting). Tap the map to pick a custom point.</div>
+  <div class="hero">
+    <div class="panel mappanel" id="mapPanel">
+      <div class="maphead">
+        <h2>South pole map <span class="q" data-q="map"></span></h2>
+        <div class="layerbar" role="radiogroup" aria-label="Map layer">
+          <label><input type="radio" name="ovl" value="none" checked> Terrain</label>
+          <label><input type="radio" name="ovl" value="slope"> Slope</label>
+          <label><input type="radio" name="ovl" value="illum"> Avg. illumination</label>
+          <label class="mkt"><input type="checkbox" id="markersToggle" checked> Sites</label>
+          <button id="homeBtn" class="btn ghost small" title="Show the whole map">Whole pole</button>
+        </div>
       </div>
-      <details class="custom" open>
-        <summary>Custom coordinates</summary>
-        <div class="row">
+      <div id="lmap" class="lmap" aria-label="Pannable, zoomable map of the lunar south pole"></div>
+      <div id="mapNote" class="mapnote" hidden></div>
+      <div id="mapLegend" class="maplegend"></div>
+    </div>
+
+    <aside class="panel sitecard" id="siteCard">
+      <div class="pickrow">
+        <button id="pickBtn" class="btn pickbtn" aria-expanded="false" aria-controls="pickPanel">Choose a site &#9662;</button>
+        <span id="horizonBadge" class="badge"></span>
+      </div>
+      <div id="pickPanel" class="pickpanel" hidden>
+        <input id="siteSearch" type="search" placeholder="Search sites, regions, missions..." aria-label="Search sites">
+        <div id="siteList" class="sitelist" role="listbox"></div>
+        <div class="customrow">
           <label>Lat (&deg;N) <input id="customLat" type="number" step="0.0001" min="-90" max="90" value="-89.5"></label>
           <label>Lon (&deg;E) <input id="customLon" type="number" step="0.0001" min="-360" max="360" value="0"></label>
-          <button id="customGo" class="btn">Use</button>
+          <button id="customGo" class="btn">Use point</button>
         </div>
-        <p class="hint">Custom points use a smooth-Moon horizon (terrain not included).</p>
-      </details>
-      <div class="unplotted" id="unplotted"></div>
-    </aside>
-
-    <div class="maincol">
-      <div class="panel siteheader">
-        <div>
-          <h1 id="siteName">-</h1>
-          <div id="siteMeta" class="meta"></div>
-        </div>
-        <div class="horizonmode">
-          <span id="horizonBadge" class="badge"></span>
-          <label class="smallswitch"><input type="checkbox" id="terrainToggle" checked> use terrain</label>
-        </div>
+        <p class="hint">Custom points (typed or clicked on the map) use a smooth-Moon horizon: terrain is not computed for them.</p>
       </div>
+      <h1 id="siteName">-</h1>
+      <div id="siteKind" class="sitekind"></div>
+      <div id="siteMeta" class="meta"></div>
 
-      <div class="panel timepanel">
-        <div class="row wrap">
+      <div class="whenrow">
+        <div class="when"><span class="lbl">Showing</span> <span id="curUtc" class="mono">-</span> <span class="x-only hint" id="curRiyadh"></span></div>
+        <div class="row wrap timectl">
           <label>Start (UTC) <input id="startInput" type="datetime-local" step="60"></label>
           <button id="nowBtn" class="btn">Now</button>
-          <label>Window
-            <select id="windowSel"><option value="7">7 days</option><option value="14">14 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="365">365 days</option></select>
-          </label>
-          <span class="stepnote" id="stepNote"></span>
-        </div>
-        <div class="row wrap slider-row">
-          <button id="playBtn" class="btn play" aria-label="Play">&#9654;</button>
-          <input id="timeSlider" type="range" min="0" max="100" value="0" aria-label="Time within window">
-          <select id="speedSel" aria-label="Animation speed"><option value="1">1&times;</option><option value="4" selected>4&times;</option><option value="16">16&times;</option></select>
-        </div>
-        <div class="clock">
-          <div><span class="lbl">Selected time (UTC)</span><span id="curUtc" class="mono">-</span></div>
-          <div><span class="lbl">Riyadh (UTC+3)</span><span id="curRiyadh" class="mono">-</span></div>
+          <label>Window <select id="windowSel"><option value="7">7 days</option><option value="14">14 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="365">365 days</option></select></label>
         </div>
       </div>
 
-      <div class="cards">
-        <div class="card big" id="sunCard">
-          <div class="cardlbl" id="sunCountLbl">Next sunset</div>
-          <div class="count mono" id="sunCount">-</div>
-          <div class="cardsub" id="sunCountSub"></div>
+      <div class="tiles">
+        <div class="tile" id="tileSun">
+          <div class="tlabel">Sunlight <span class="q" data-q="sun"></span></div>
+          <div class="tstate" id="sunState">-</div>
+          <div class="tcount"><span id="sunCountLbl">-</span> <b class="mono" id="sunCount">-</b></div>
+          <div class="twhy">Why it matters: solar power and heat.</div>
+          <div class="tx x-only mono" id="sunExpert"></div>
         </div>
-        <div class="card big" id="earthCard">
-          <div class="cardlbl" id="earthCountLbl">Next Earthset</div>
-          <div class="count mono" id="earthCount">-</div>
-          <div class="cardsub" id="earthCountSub"></div>
+        <div class="tile" id="tileEarth">
+          <div class="tlabel">Earth link <span class="q" data-q="earth"></span></div>
+          <div class="tstate" id="earthState">-</div>
+          <div class="tcount"><span id="earthCountLbl">-</span> <b class="mono" id="earthCount">-</b></div>
+          <div class="twhy">Why it matters: direct radio contact with Earth.</div>
+          <div class="tx x-only mono" id="earthExpert"></div>
+        </div>
+        <div class="tile" id="tileMission">
+          <div class="tlabel">Mission status <span class="q" data-q="mission"></span></div>
+          <div class="tstate" id="missionState">-</div>
+          <div class="tcount"><span id="missionCountLbl">-</span> <b class="mono" id="missionCount">-</b></div>
+          <div class="twhy" id="missionWhy">Both at once = charge batteries and talk to Earth.</div>
         </div>
       </div>
-      <p class="explain">Countdowns are measured from the selected time. "Sunset" means the Sun's centre drops below the horizon (terrain or smooth). At the poles the Sun can stay up, or down, for weeks or months, so these numbers can be very long.</p>
+    </aside>
+  </div>
 
-      <div class="cards small">
-        <div class="card"><div class="cardlbl">Sun elevation</div><div class="val mono" id="vSunEl">-</div></div>
-        <div class="card"><div class="cardlbl">Sun azimuth</div><div class="val mono" id="vSunAz">-</div></div>
-        <div class="card"><div class="cardlbl">Solar disk visible</div><div class="val mono" id="vSunFrac">-</div></div>
-        <div class="card"><div class="cardlbl">Earth elevation</div><div class="val mono" id="vEarthEl">-</div></div>
-        <div class="card"><div class="cardlbl">Earth azimuth</div><div class="val mono" id="vEarthAz">-</div></div>
-        <div class="card"><div class="cardlbl">Horizon at Sun / Earth az</div><div class="val mono" id="vHz">-</div></div>
-      </div>
-
-      <div class="panel">
-        <div class="panelhead"><h2>Sky view</h2>
-          <div class="legend"><span class="lg sun"></span>Sun <span class="lg earth"></span>Earth <span class="lg terrain"></span>Terrain horizon</div>
-          <label class="smallswitch"><input type="checkbox" id="fullSky"> full sky</label>
-        </div>
-        <canvas id="sky" width="1200" height="360" aria-label="Horizon panorama"></canvas>
-        <p class="caption" id="skyCaption"></p>
-        <p class="explain">This is a 360&deg; panorama of the horizon as seen by a person standing at the site. Left to right is compass direction (0&deg; = toward the lunar north pole, 90&deg; = east). The dotted lines are the paths of the Sun and Earth over the window. <b>Why does the Sun skim the horizon at the pole?</b> The Moon's spin axis is tilted only about 1.5&deg; from perpendicular to its orbit around the Sun, so at the pole the Sun circles around the horizon once a month, rising or sinking by at most about 1.5&deg; over the year. A few metres of hill can decide between sunlight and darkness.</p>
-      </div>
-
-      <div class="panel">
-        <div class="panelhead"><h2>Timeline</h2>
-          <div class="legend"><span class="lg sun"></span>Sun visible <span class="lg earth"></span>Earth visible <span class="lg both"></span>Both (power + DTE)</div>
-        </div>
-        <canvas id="timeline" width="1200" height="170" aria-label="Visibility timeline"></canvas>
-        <div class="metrics" id="metrics"></div>
-        <p class="explain"><b>Why does the Earth bob up and down?</b> The Moon always keeps roughly the same face toward Earth, but not exactly: its slightly elliptical, tilted orbit makes Earth appear to wobble by up to about 8&deg; east-west and 7&deg; north-south in the lunar sky (this is called libration). Near the limb of the visible face, or at the poles, that wobble moves Earth above and below the horizon, opening and closing direct-to-Earth (DTE) radio windows.</p>
-      </div>
+  <div class="panel" id="skyPanel">
+    <div class="panelhead"><h2>Sky view <span class="q" data-q="sky"></span></h2>
+      <div class="legend"><span class="lg sun"></span>Sun <span class="lg earth"></span>Earth <span class="lg terrain"></span>Terrain skyline</div>
+      <label class="smallswitch"><input type="checkbox" id="fullSky"> full sky</label>
     </div>
+    <div class="row slider-row">
+      <button id="playBtn" class="btn play" aria-label="Play">&#9654;</button>
+      <input id="timeSlider" type="range" min="0" max="100" value="0" aria-label="Time within window">
+      <select id="speedSel" aria-label="Animation speed"><option value="1">1&times;</option><option value="4" selected>4&times;</option><option value="16">16&times;</option></select>
+    </div>
+    <canvas id="sky" aria-label="Horizon panorama with the Sun, the Earth and the terrain skyline"></canvas>
+    <p class="caption" id="skyCaption"></p>
+  </div>
+
+  <div class="panel" id="timelinePanel">
+    <div class="panelhead"><h2>Timeline <span class="q" data-q="timeline"></span></h2>
+      <div class="legend"><span class="lg sun"></span>Sunlight <span class="lg earth"></span>Earth link <span class="lg both"></span>Both <span class="lg neither"></span>Neither</div>
+    </div>
+    <canvas id="timeline" aria-label="Visibility timeline"></canvas>
+    <div class="metrics" id="metrics"></div>
+    <p class="hint x-only" id="stepNote"></p>
+  </div>
+
+  <div class="grid2">
+    <div class="panel earthpanel" id="earthPanel">
+      <div class="panelhead"><h2>Earth link windows <span class="q" data-q="earthWindows"></span></h2></div>
+      <div class="row wrap minelrow">
+        <label>Usable link needs Earth at least <span class="inl"><input id="minEl" type="number" min="0" max="30" step="0.5" value="0" aria-label="Minimum Earth elevation above terrain in degrees"> &deg; above the terrain</span></label>
+        <span class="q" data-q="minEl"></span>
+      </div>
+      <p class="fineprint">Geometric line-of-sight only; antenna, power and ground-station availability are not modelled.</p>
+      <div class="wstats" id="earthStats"></div>
+      <canvas id="earthChart" aria-label="Earth elevation versus time with the terrain horizon at Earth's azimuth"></canvas>
+      <p class="caption" id="earthChartCap"></p>
+      <div class="wlist" id="earthWindows"></div>
+    </div>
+    <div class="panel sunpanel" id="sunPanel">
+      <div class="panelhead"><h2>Sunlight windows <span class="q" data-q="sunWindows"></span></h2></div>
+      <div class="wstats" id="sunStats"></div>
+      <canvas id="sunChart" aria-label="Sun elevation versus time with the terrain horizon at the Sun's azimuth"></canvas>
+      <p class="caption" id="sunChartCap"></p>
+      <div class="wlist" id="sunWindows"></div>
+    </div>
+  </div>
+
+  <div class="panel x-only" id="expertPanel">
+    <div class="panelhead"><h2>Technical values at the selected time</h2></div>
+    <div class="cards small">
+      <div class="card"><div class="cardlbl">Sun elevation</div><div class="val mono" id="vSunEl">-</div></div>
+      <div class="card"><div class="cardlbl">Sun azimuth</div><div class="val mono" id="vSunAz">-</div></div>
+      <div class="card"><div class="cardlbl">Solar disk visible</div><div class="val mono" id="vSunFrac">-</div></div>
+      <div class="card"><div class="cardlbl">Earth elevation</div><div class="val mono" id="vEarthEl">-</div></div>
+      <div class="card"><div class="cardlbl">Earth azimuth</div><div class="val mono" id="vEarthAz">-</div></div>
+      <div class="card"><div class="cardlbl">Horizon at Sun / Earth az</div><div class="val mono" id="vHz">-</div></div>
+    </div>
+    <p class="hint" id="methodNote">Elevations are of the body centre above the local horizontal; azimuth is clockwise from local north (toward the lunar north pole). Ephemeris: Astronomy Engine + IAU Moon orientation, light-time and aberration corrected, validated against JPL Horizons (Validation tab). Events refined by bisection to 1 minute.</p>
   </div>
 </section>
 
 <!-- ============================================================ LAUNCH SLIP -->
 <section id="page-slip" class="page">
   <div class="panel">
-    <div class="panelhead"><h2>Launch-slip heatmap</h2><span class="badge" id="slipHorizonNote"></span></div>
-    <p class="hint">If the landing slips by N days, how do power and direct-to-Earth (DTE) conditions over the surface mission change? Each column is a landing N days after the nominal date; each mission window starts at landing and lasts the mission duration.</p>
+    <div class="panelhead"><h2>Launch-slip heatmap <span class="q" data-q="slip"></span></h2><span class="badge" id="slipHorizonNote"></span></div>
+    <p class="hint">If the landing slips by N days, how do sunlight and the Earth link over the surface mission change? Each column is a landing N days after the nominal date; each mission window starts at landing and lasts the mission duration.</p>
     <div class="row wrap">
       <label>Sites <select id="slipSites"><option value="current">Current site</option><option value="compare">All sites in Compare</option><option value="terrain">All south-pole sites with terrain</option></select></label>
       <label>Nominal landing (UTC) <input id="slipNominal" type="datetime-local" step="60"></label>
@@ -145,25 +179,26 @@
       <label>to (days) <input id="slipTo" type="number" min="1" max="365" step="1" value="60"></label>
       <label>step <input id="slipStep" type="number" min="1" max="30" step="1" value="1"></label>
       <label>Colour by <select id="slipMetric">
-        <option value="pctBoth">% both (power + DTE)</option><option value="pctSun">% sunlit</option><option value="avgSunFrac">Average illumination (disk fraction)</option>
-        <option value="pctEarth">% Earth visible</option><option value="longestDarkH">Longest darkness (h)</option><option value="longestBlackoutH">Longest Earth blackout (h)</option>
+        <option value="pctBoth">% both (power + Earth link)</option><option value="pctSun">% sunlit</option><option value="avgSunFrac">Average illumination (disk fraction)</option>
+        <option value="pctEarth">% Earth link</option><option value="longestDarkH">Longest darkness (h)</option><option value="longestBlackoutH">Longest Earth blackout (h)</option>
         <option value="hoursToFirstSunset">Hours until first sunset</option></select></label>
       <button id="slipRun" class="btn primary">Compute</button>
       <span id="slipProgress" class="hint" role="status"></span>
     </div>
+    <p class="fineprint" id="slipMinElNote"></p>
     <div class="heatwrap"><canvas id="slipHeat" aria-label="Launch slip heatmap"></canvas><div id="slipTip" class="tip" hidden></div></div>
     <div id="slipLegend" class="hint"></div>
     <h3>Chosen metric vs slip: <span id="slipLineSite">current site</span></h3>
     <canvas id="slipLine" aria-label="Metric versus slip"></canvas>
     <div id="slipSummary" class="summary"></div>
-    <p class="explain">Each square is one possible landing date. Brighter is better for the selected metric (for darkness and blackout, shorter is better, so the colours are flipped). The white outline marks the nominal date (slip 0) and the green outline the best date in the range. Click a square to open that site and landing date in the Explorer.</p>
+    <p class="explain">Each square is one possible landing date. Brighter is better for the selected metric (for darkness and blackout, shorter is better, so the colours are flipped). The white outline marks the nominal date (slip 0) and the green outline the best date in the range. Click a square to open that site and landing date in Explore.</p>
   </div>
 </section>
 
 <!-- ================================================================== POWER -->
 <section id="page-power" class="page">
   <div class="panel">
-    <div class="panelhead"><h2>Solar power &amp; battery calculator</h2><span class="badge smooth">First-order estimate</span></div>
+    <div class="panelhead"><h2>Solar power &amp; battery calculator <span class="q" data-q="power"></span></h2><span class="badge smooth">First-order estimate</span></div>
     <p class="hint">First-order estimate: no temperature effects, dust, degradation, wiring/conversion losses or light reflected from terrain. Power = 1361 W/m&sup2; (IAU 2015 nominal total solar irradiance) &times; (1 AU / Sun distance)&sup2; &times; area &times; efficiency &times; cos(incidence) &times; visible fraction of the solar disk.</p>
     <div class="row wrap">
       <label>Panel area (m&sup2;) <input id="pwArea" type="number" min="0.01" step="0.1" value="1"></label>
@@ -172,12 +207,12 @@
       <label id="pwFaceWrap">Facing azimuth (&deg;) <input id="pwFace" type="number" min="0" max="360" step="1" value="0"></label>
       <label>Average load (W) <input id="pwLoad" type="number" min="0" step="1" value="100"></label>
       <label>Usable battery (%) <input id="pwDod" type="number" min="1" max="100" step="1" value="80"></label>
-      <label>Mission window <select id="pwWindow"><option value="explorer">Explorer timeline (site, start, window)</option><option value="slip">Launch-slip mission (current site, nominal landing + duration)</option></select></label>
+      <label>Mission window <select id="pwWindow"><option value="explorer">Explore timeline (site, start, window)</option><option value="slip">Launch-slip mission (current site, nominal landing + duration)</option></select></label>
       <button id="pwRun" class="btn primary">Compute</button>
     </div>
     <p class="hint" id="pwWindowNote"></p>
-    <div class="cards small pwcards" id="pwCards"></div>
     <div id="pwVerdict" class="verdict"></div>
+    <div class="cards small pwcards" id="pwCards"></div>
     <canvas id="pwChart" aria-label="Power versus time"></canvas>
     <p class="explain">A vertical panel that turns to follow the Sun is the usual choice at the poles because the Sun is always near the horizon: a flat (horizontal) panel would see it almost edge-on. The battery must carry the load through the longest darkness; only part of a battery's capacity is usable, so the needed capacity is load &times; hours of darkness &divide; usable fraction.</p>
   </div>
@@ -186,17 +221,18 @@
 <!-- ================================================================ COMPARE -->
 <section id="page-compare" class="page">
   <div class="panel">
-    <div class="panelhead"><h2>Compare scenarios</h2>
+    <div class="panelhead"><h2>Compare scenarios <span class="q" data-q="compare"></span></h2>
       <div class="row wrap">
         <label>Window <select id="cmpWindow"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="365">365 days</option></select></label>
         <button id="cmpAdd" class="btn">+ Add scenario</button>
-        <button id="cmpSlip" class="btn ghost" title="Duplicate the first scenario with the start date moved later">+ Slip first by
-        </button><select id="cmpSlipDays" aria-label="Slip days"><option value="1">1 day</option><option value="3">3 days</option><option value="7" selected>7 days</option><option value="14">14 days</option><option value="30">30 days</option></select>
+        <button id="cmpSlip" class="btn ghost" title="Duplicate the first scenario with the start date moved later">+ Slip first by</button>
+        <select id="cmpSlipDays" aria-label="Slip days"><option value="1">1 day</option><option value="3">3 days</option><option value="7" selected>7 days</option><option value="14">14 days</option><option value="30">30 days</option></select>
         <button id="cmpRun" class="btn primary">Compute</button>
       </div>
     </div>
-    <p class="explain">Pick up to four site + date combinations. A scenario can be the same site on a later date (a launch slip) or a nearby alternative site. The best value in each row is highlighted.</p>
+    <p class="explain">Pick up to four site + date combinations. A scenario can be the same site on a later date (a launch slip) or a nearby alternative site. Sunlight and Earth-link metrics are shown side by side; the best value in each row is highlighted.</p>
     <div id="cmpScenarios" class="scenarios"></div>
+    <p class="fineprint" id="cmpMinElNote"></p>
     <div id="cmpResult" class="tablewrap"></div>
     <div id="cmpBars"></div>
   </div>
@@ -211,39 +247,47 @@
 <section id="page-about" class="page">
   <div class="panel prose" id="aboutContent">
     <h2>About ASTERIA</h2>
-    <p>ASTERIA (Lunar South Pole Landing Site Navigator) is an entry for the NASA Space Apps Challenge 2026 challenge "Lunar Landing Site Navigator". It shows, for any lunar site and date, when the Sun is above the local horizon (solar power) and when the Earth is above it (direct-to-Earth communication), with special attention to the lunar south pole, where the Sun skims the horizon and terrain decides everything.</p>
-    <p class="disclaimer"><b>Not endorsed by NASA.</b> Not affiliated with NASA's ASTERIA CubeSat mission. This is an independent hackathon project. It is not a mission planning product and must not be used for operational decisions.</p>
+    <p>ASTERIA (Lunar South Pole Landing Site Navigator) is an entry for the NASA Space Apps Challenge 2026 challenge "Lunar Landing Site Navigator". It shows, for sites at the lunar south pole and any date, when the Sun is above the local terrain horizon (solar power and heat) and when the Earth is above it (direct-to-Earth radio contact). At the pole the Sun skims the horizon, so a few metres of hill decide between light and darkness.</p>
+    <p class="disclaimer"><b>Not affiliated with NASA's ASTERIA CubeSat mission. Not endorsed by NASA.</b> This is an independent hackathon project. It is not a mission planning product and must not be used for operational decisions.</p>
+    <h3>What is computed and what is estimated</h3>
+    <ul>
+      <li><b>Computed</b>: Sun and Earth positions (validated against JPL Horizons), terrain horizons from LOLA elevation data, rise/set events, visibility windows and their statistics, the launch-slip heatmap, the illumination cross-check.</li>
+      <li><b>Estimate</b> (labelled in the app): the power and battery calculator (first-order), Earth-link usability (geometric line-of-sight only).</li>
+      <li><b>Approximations</b> (labelled): smooth-Moon horizon for custom points and sites outside the south pole; named-feature coordinates standing in for NASA's Artemis III regions (NASA publishes no region coordinates); the hillshade map uses synthetic lighting.</li>
+    </ul>
     <h3>Methods</h3>
     <ul>
-      <li><b>Ephemeris</b>: Sun, Earth and Moon positions from Astronomy Engine (VSOP87 and a Chapront-based lunar theory). Moon orientation from the IAU/WGCCRE rotation model (pole direction and prime-meridian angle). Positions are corrected for light travel time and stellar aberration. Azimuth is measured clockwise from local north (toward the lunar north pole). No atmospheric refraction (the Moon has none).</li>
+      <li><b>Ephemeris</b>: Sun, Earth and Moon positions from Astronomy Engine (VSOP87 and a Chapront-based lunar theory). Moon orientation from the IAU/WGCCRE rotation model. Positions are corrected for light travel time and stellar aberration. Azimuth is measured clockwise from local north (toward the lunar north pole). No refraction (the Moon has no atmosphere). Libration is included automatically.</li>
       <li><b>Validation</b>: compared against NASA/JPL Horizons on 52 angle cases and 4 event times; see the Validation tab.</li>
-      <li><b>Libration</b> is included automatically: the real rotation model and the real Earth-Moon geometry are used, so Earth's wobble in the lunar sky comes out of the computation.</li>
-      <li><b>Events</b> (sunrise/sunset, Earthrise/Earthset) refer to the centre of the Sun or Earth crossing the horizon, found by a 10-20 minute scan and refined by bisection to 1 minute.</li>
-      <li><b>Solar disk visible</b>: fraction of the solar disk area above the horizon at the Sun's azimuth, treating the horizon as straight across the 0.53&deg; disk.</li>
-      <li><b>Launch slip</b>: one series covers the whole slip range; each landing date is an exact slice of it, so slip 0 matches the Explorer timeline for the same window.</li>
-      <li><b>Power</b> (first-order estimate): 1361 W/m&sup2; (IAU 2015 Resolution B3 nominal total solar irradiance) &times; (1 AU / Sun distance)&sup2; &times; area &times; efficiency &times; cos(incidence) &times; visible solar-disk fraction. No temperature effects, dust, degradation, losses or terrain reflection. Battery = load &times; longest darkness &divide; usable fraction.</li>
-      <li><b>Terrain illumination cross-check</b>: our 18.6-year averages compared with NASA's published LOLA average-illumination map (PGDA product 69); see the Validation tab.</li>
-      <li><b>Terrain horizons</b> (curated south-polar sites only): from LOLA gridded topography (LDEM_85S_20M, 20 m/pixel, and LDEM_80S_80M, 80 m/pixel), ray-marched in 360 directions out to 300 km (or the DEM edge), observer 2 m above the ground, including lunar curvature.</li>
+      <li><b>Terrain horizons</b> (south-pole sites only): LOLA gridded topography (LDEM_85S_20M 20 m/px, LDEM_80S_80M 80 m/px, LDEM_75S_120M 120 m/px), ray-marched in 360 directions out to 300 km, observer 2 m above the ground, lunar curvature included.</li>
+      <li><b>Events</b> (sunrise/sunset, Earthrise/Earthset): the centre of the Sun or Earth crossing the horizon (plus the minimum link elevation for Earth), found by a 10-minute scan (60 min for windows over 30 days) and refined by bisection to 1 minute.</li>
+      <li><b>Windows and statistics</b>: from the sampled series; windows cut by the start or end of the period count only their part inside it.</li>
+      <li><b>Animation</b>: the Sky view and timeline step through computed samples only (every 10 or 60 minutes); nothing is interpolated between samples.</li>
+      <li><b>Launch slip</b>: one series covers the whole slip range; each landing date is an exact slice of it, so slip 0 matches the Explore timeline for the same window.</li>
+      <li><b>Power</b> (first-order estimate): 1361 W/m&sup2; (IAU 2015 Resolution B3) &times; (1 AU / Sun distance)&sup2; &times; area &times; efficiency &times; cos(incidence) &times; visible solar-disk fraction. Battery = load &times; longest darkness &divide; usable fraction.</li>
+      <li><b>Map</b>: polar stereographic tiles generated locally from the LOLA DEMs (hillshade with synthetic lighting; slope from the DEM) and from NASA's published average-illumination map (PGDA product 69). Same projection as the DEMs, so markers and tiles line up.</li>
     </ul>
-    <h3>Limitations and approximations</h3>
+    <h3>NASA Artemis III candidate regions</h3>
+    <p id="aboutRegions"></p>
+    <h3>Limitations</h3>
     <ul>
-      <li>Sites without a terrain horizon (all non-polar sites and custom points) use a <b>smooth Moon horizon - terrain not included</b>. Real local hills and crater walls can change rise/set times by hours to days.</li>
-      <li>The Moon is treated as a sphere of radius 1737.4 km; site height above that sphere is taken from LOLA where terrain is used.</li>
-      <li>Terrain masks have 1&deg; azimuth resolution and DEM resolution of 20-80 m; nearby boulders and the lander itself are not modelled.</li>
-      <li>"Earth visible" uses Earth's centre; DTE links also depend on antennas, ground stations on Earth and relay satellites, which are not modelled.</li>
-      <li>Several south-pole entries are representative or feature points, not region centres or landing points; each site card says exactly what the coordinate is.</li>
+      <li>Custom points and sites outside the south pole use a <b>smooth Moon horizon - terrain not included</b>. Real hills and crater walls can change rise/set times by hours to days.</li>
+      <li>Terrain masks have 1&deg; azimuth resolution and DEM resolution of 20-120 m; boulders and the lander itself are not modelled.</li>
+      <li>"Earth link" uses Earth's centre and a geometric line of sight; antennas, power, ground stations on Earth and relay satellites are not modelled.</li>
+      <li>The Moon is treated as a sphere of radius 1737.4 km for the Sun/Earth directions (site height effect &lt; 0.001&deg;).</li>
     </ul>
     <h3>Data sources and credits</h3>
     <ul>
-      <li><a href="https://github.com/cosinekitty/astronomy">Astronomy Engine</a> by Don Cross (MIT License) - ephemeris library.</li>
+      <li><a href="https://github.com/cosinekitty/astronomy">Astronomy Engine</a> by Don Cross (MIT License) - ephemeris library. <a href="https://leafletjs.com/">Leaflet</a> 1.9.4 (BSD-2-Clause) - map.</li>
       <li><a href="https://ssd.jpl.nasa.gov/horizons/">NASA/JPL Horizons</a> - reference ephemeris used for validation.</li>
-      <li><a href="https://pgda.gsfc.nasa.gov/products/69">NASA PGDA LOLA lunar polar illumination maps</a> (Mazarico et al.) - used to cross-check terrain illumination.</li>
-      <li><a href="https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/">LRO LOLA gridded polar DEMs</a>, NASA PDS Geosciences Node (LDEM_85S_20M, LDEM_80S_80M).</li>
-      <li><a href="https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html">NASA NSSDC Apollo landing site coordinates</a>; <a href="https://lroc.im-ldi.com/">LROC</a> featured images for robotic lander positions; Wikipedia, Mahanti et al. 2024 (PSJ 5, 62) and Pe&ntilde;a-Asensio et al. (arXiv 2406.19863) for south-polar points. Every site lists its source links.</li>
+      <li><a href="https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/">LRO LOLA gridded polar DEMs</a>, NASA PDS Geosciences Node.</li>
+      <li><a href="https://pgda.gsfc.nasa.gov/products/69">NASA PGDA Lunar Polar Illumination</a> (product 69): AVGVISIB_85S_060M_201608. Please cite Mazarico, E., et al. (2011), Illumination conditions of the lunar polar regions using LOLA topography, Icarus 211, 1066-1081, doi:10.1016/j.icarus.2010.10.030 (as the PGDA page requests).</li>
+      <li><a href="https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/">NASA Artemis III candidate regions</a> (28 Oct 2024); <a href="https://planetarynames.wr.usgs.gov/">IAU Gazetteer of Planetary Nomenclature</a> (USGS) for feature coordinates.</li>
+      <li><a href="https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html">NASA NSSDC Apollo landing site coordinates</a>; <a href="https://lroc.im-ldi.com/">LROC</a> featured images for robotic lander positions; Mahanti et al. 2024 (PSJ 5, 62) and Pe&ntilde;a-Asensio et al. (arXiv 2406.19863) for south-polar points. Every site lists its source links.</li>
       <li>Useful tools: <a href="https://quickmap.lroc.asu.edu/">LROC Quickmap</a>, <a href="https://trek.nasa.gov/moon/">NASA Moon Trek</a>.</li>
     </ul>
     <h3>Time zones</h3>
-    <p>All inputs are UTC. Riyadh local time (UTC+3, no daylight saving) is shown for convenience.</p>
+    <p>All inputs are UTC. Riyadh local time (UTC+3, no daylight saving) is shown in Expert view.</p>
   </div>
 </section>
 </main>
@@ -253,27 +297,43 @@
   <div class="tourtext" id="tourText"></div>
   <div class="tourbtns"><button id="tourPrev" class="btn ghost">Back</button><button id="tourNext" class="btn primary">Next</button><button id="tourClose" class="btn ghost" aria-label="Close tour">Close</button></div>
 </div>
-<footer class="foot">ASTERIA &middot; NASA Space Apps Challenge 2026 &middot; Not endorsed by NASA &middot; Ephemeris validated against JPL Horizons (see Validation)</footer>
+<div id="hint" class="hintbox" hidden role="dialog" aria-label="Getting started">
+  <div class="hintstep" id="hintStep"></div>
+  <div class="hinttext" id="hintText"></div>
+  <div class="tourbtns"><button id="hintNext" class="btn primary">Next</button><button id="hintClose" class="btn ghost">Got it</button></div>
+</div>
+<div id="qpop" class="qpop" hidden role="tooltip"></div>
+<footer class="foot">ASTERIA &middot; NASA Space Apps Challenge 2026 &middot; Not endorsed by NASA &middot; Not affiliated with NASA's ASTERIA CubeSat mission &middot; Ephemeris validated against JPL Horizons (see Validation)</footer>
 
-<script src="lib/astronomy.browser.min.js"></script>
-<script src="js/engine.js"></script>
+<script src="js/core.js"></script>
+<script src="lib/leaflet/leaflet.js"></script>
 <script src="data/sites.js"></script>
-<script src="data/map_meta.js"></script>
+<script src="data/tiles_meta.js"></script>
 <script src="data/validation.js"></script>
-<!-- HORIZON_SCRIPTS_START (generated list; see tools/terrain.py) -->
+<!-- HORIZON_SCRIPTS_START (one file per south-pole site; see tools/terrain.py) -->
 <script src="data/horizons/index.js"></script>
+<script src="data/horizons/cabeus_b.js"></script>
 <script src="data/horizons/change7.js"></script>
+<script src="data/horizons/de_gerlache.js"></script>
+<script src="data/horizons/haworth.js"></script>
 <script src="data/horizons/im1.js"></script>
 <script src="data/horizons/im2.js"></script>
+<script src="data/horizons/mons_malapert.js"></script>
 <script src="data/horizons/mons_mouton.js"></script>
+<script src="data/horizons/nobile.js"></script>
 <script src="data/horizons/nobile_rim2_dm2.js"></script>
 <script src="data/horizons/peak_shackleton.js"></script>
 <script src="data/horizons/peak_shackleton_lw.js"></script>
 <script src="data/horizons/shackleton_centre.js"></script>
+<script src="data/horizons/slater.js"></script>
+<!-- HORIZON_SCRIPTS_END -->
 <script src="data/illumination.js"></script>
 <script src="data/illum_crosscheck.js"></script>
 <script src="data/illum_crosscheck_meta.js"></script>
-<!-- HORIZON_SCRIPTS_END -->
+<script src="js/loader.js"></script>
+<script src="js/jobs.js"></script>
+<script src="js/explain.js"></script>
+<script src="js/map.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

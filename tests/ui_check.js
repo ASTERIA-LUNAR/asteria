@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-/* Headless UI check: opens index.html via file://, exercises every page and feature at laptop and
- * phone sizes, collects console errors/warnings, checks a few invariants and writes screenshots
- * to tests/screenshots/. Usage: node tests/ui_check.js */
+/* Headless UI check: opens index.html via file:// (as a double-click would), exercises every page and
+ * feature at laptop and phone sizes, collects console errors/warnings, checks invariants and writes
+ * screenshots to tests/screenshots/. Usage: node tests/ui_check.js */
 'use strict';
 const { chromium } = require('playwright');
 const path = require('path'), fs = require('fs'), url = require('url');
@@ -12,31 +12,112 @@ const path = require('path'), fs = require('fs'), url = require('url');
   const browser = await chromium.launch();
   const errors = [], fails = [];
   const expect = (name, ok, detail) => { console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail ? ' - ' + detail : '')); if (!ok) fails.push(name); };
+  const ready = page => page.evaluate(() => window.AsteriaApp.ready());
+  const shot = (page, name, full) => page.screenshot({ path: path.join(out, name + '.png'), fullPage: full !== false });
 
-  for (const vp of [{ name: 'laptop', width: 1440, height: 900 }, { name: 'phone', width: 390, height: 844 }]) {
-    const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } });
-    page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`[${vp.name}] console.${m.type()}: ${m.text()}`); });
-    page.on('pageerror', e => errors.push(`[${vp.name}] pageerror: ${e.message}`));
+  for (const vp of [{ name: 'laptop', width: 1440, height: 900 }, { name: 'phone', width: 390, height: 844, isMobile: true, hasTouch: true }]) {
+    const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, isMobile: !!vp.isMobile, hasTouch: !!vp.hasTouch });
+    const page = await ctx.newPage();
+    const tag = `[${vp.name}]`;
+    page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`${tag} console.${m.type()}: ${m.text()}`); });
+    page.on('pageerror', e => errors.push(`${tag} pageerror: ${e.message}`));
     await page.goto(base);
-    await page.waitForTimeout(1200);
-    // default view
-    const def = await page.evaluate(() => ({ name: document.getElementById('siteName').textContent, hash: location.hash, w: window.LunaApp.state.windowDays }));
-    expect(`[${vp.name}] default view is Peak near Shackleton, 30 days`, def.name.startsWith('Peak near Shackleton') && def.w === 30 && def.hash.includes('site=peak_shackleton'), JSON.stringify(def));
-    await page.screenshot({ path: path.join(out, vp.name + '_explorer.png'), fullPage: true });
+    await page.waitForFunction(() => window.AsteriaApp && window.AsteriaApp.state.series, null, { timeout: 30000 });
+    await page.waitForTimeout(900);
 
-    // explorer interactions
-    for (const id of ['apollo11', 'change4', 'shackleton_centre', 'im2']) { await page.click(`.siteitem[data-id="${id}"]`); await page.waitForTimeout(250); }
-    await page.selectOption('#windowSel', '365'); await page.waitForTimeout(700);
-    await page.selectOption('#windowSel', '14'); await page.waitForTimeout(300);
-    await page.click('#playBtn'); await page.waitForTimeout(600); await page.click('#playBtn');
-    await page.fill('#customLat', '-89.9'); await page.fill('#customLon', '45'); await page.click('#customGo'); await page.waitForTimeout(300);
-    await page.click('.siteitem[data-id="peak_shackleton"]'); await page.waitForTimeout(300);
-    await page.selectOption('#windowSel', '30'); await page.waitForTimeout(300);
+    // ---- default view, worker, first-visit hint
+    const def = await page.evaluate(() => ({ name: document.getElementById('siteName').textContent, kind: document.getElementById('siteKind').textContent, hash: location.hash, w: AsteriaApp.state.windowDays, mode: AsteriaApp.jobsMode(), title: document.title }));
+    expect(`${tag} default view is the derived best-supported point near Peak near Shackleton, 30 days`, def.name.startsWith('Peak near Shackleton - best-lit point') && /Derived/.test(def.kind) && def.w === 30 && def.hash.includes('site=peak_shackleton_lw'), JSON.stringify(def));
+    expect(`${tag} title is ASTERIA`, def.title.startsWith('ASTERIA - Lunar South Pole Landing Site Navigator'));
+    const ping = await page.evaluate(() => AsteriaJobs.run('ping', {}));
+    expect(`${tag} computations run in a Blob Web Worker under file://`, def.mode === 'worker' && ping.inWorker && ping.engine, def.mode + ' ' + JSON.stringify(ping));
+    expect(`${tag} first-visit hint shows`, await page.isVisible('#hint'));
+    await shot(page, vp.name + '_1_first_visit', false);
+    await page.click('#hintNext'); await page.click('#hintNext'); await page.click('#hintNext');
+    expect(`${tag} hint dismissed and stored`, await page.isHidden('#hint') && await page.evaluate(() => localStorage.getItem('asteria.hintDismissed') === '1'));
+    await page.reload(); await page.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series); await page.waitForTimeout(900);
+    expect(`${tag} hint not shown again after dismissal`, await page.isHidden('#hint'));
 
-    // launch slip: slip 0 must equal the Explorer metrics for the same window
+    // ---- status tiles: consistent with the series and colour classes
+    const tiles = await page.evaluate(() => {
+      const S = AsteriaApp.state, i = S.idx, su = S.series.sunUp[i], eu = S.series.earthUp[i];
+      const cls = id => document.getElementById(id).className;
+      return { su, eu, sun: cls('tileSun'), earth: cls('tileEarth'), mission: cls('tileMission'), ms: document.getElementById('missionState').textContent, cnt: document.getElementById('sunCount').textContent };
+    });
+    const mExp = tiles.su && tiles.eu ? 'on-both' : tiles.su ? 'on-sun' : tiles.eu ? 'on-earth' : 'off';
+    expect(`${tag} status tiles match the computed state (Sun amber / Earth blue / both green / neither grey)`, tiles.sun.includes(tiles.su ? 'on-sun' : 'off') && tiles.earth.includes(tiles.eu ? 'on-earth' : 'off') && tiles.mission.includes(mExp) && /\d/.test(tiles.cnt), JSON.stringify(tiles));
+    await shot(page, vp.name + '_2_explore');
+
+    // ---- map: projection, markers, layers, click-to-pick
+    const proj = await page.evaluate(() => {
+      const m = AsteriaMap.leaflet(), H = LUNA_TILES.halfExtent_m, z = 5;
+      const R = 1737400, lat = -89.67, lon = 129.78, r = 2 * R * Math.tan((90 + lat) * Math.PI / 360);
+      const x = r * Math.sin(lon * Math.PI / 180), y = r * Math.cos(lon * Math.PI / 180);
+      const want = { x: (x + H) * 256 * 32 / (2 * H), y: (H - y) * 256 * 32 / (2 * H) };
+      const got = m.project([lat, lon], z);
+      return { dx: got.x - want.x, dy: got.y - want.y, tile: [Math.floor(got.x / 256), Math.floor(got.y / 256)], px: [Math.floor(got.x % 256), Math.floor(got.y % 256)] };
+    });
+    expect(`${tag} map CRS puts Shackleton centre on the tile pixel of the DEM floor (z5 tile 16,16 px 103,86)`, Math.abs(proj.dx) < 1e-6 && Math.abs(proj.dy) < 1e-6 && proj.tile.join() === '16,16' && proj.px.join() === '103,86', JSON.stringify(proj));
+    const nMarkers = await page.evaluate(() => document.querySelectorAll('.leaflet-marker-pane .mk').length);
+    expect(`${tag} site markers drawn (overlapping ones grouped)`, nMarkers >= 5, nMarkers + ' marker icons');
+    for (const v of ['slope', 'illum', 'none']) { await page.check(`input[name=ovl][value=${v}]`); await page.waitForTimeout(700); if (v !== 'none') await shot(page, `${vp.name}_3_layer_${v}`, false); }
+    const box = await page.locator('#lmap').boundingBox();
+    await page.mouse.click(box.x + box.width * 0.5 + 25, box.y + box.height * 0.5 + 35); await ready(page); await page.waitForTimeout(300);
+    const pick = await page.evaluate(() => ({ id: AsteriaApp.state.site.id, lat: AsteriaApp.state.site.lat, lon: AsteriaApp.state.site.lon, name: document.getElementById('siteName').textContent, kind: document.getElementById('siteKind').textContent }));
+    expect(`${tag} clicking the map picks a custom point with lat/lon (smooth horizon)`, pick.id === null && pick.lat < -85 && /smooth horizon/.test(pick.kind), JSON.stringify(pick));
+
+    // ---- picker: Artemis features, reference site outside the pole
+    const pickSite = async id => { await page.click('#pickBtn'); await page.click(`.siteitem[data-id="${id}"]`); await ready(page); await page.waitForTimeout(250); };
+    await pickSite('haworth');
+    const hw = await page.evaluate(() => ({ kind: document.getElementById('siteKind').textContent, badge: document.getElementById('horizonBadge').textContent, warn: !!document.querySelector('.warnline') }));
+    expect(`${tag} Artemis region feature labelled "named feature in/near this region (not a landing point)" with terrain`, /Haworth/.test(hw.kind) && /not a landing point/.test(hw.kind) && /Terrain/.test(hw.badge) && hw.warn, JSON.stringify(hw));
+    await pickSite('apollo11');
+    const ap = await page.evaluate(() => ({ note: document.getElementById('mapNote').hidden ? '' : document.getElementById('mapNote').textContent, badge: document.getElementById('horizonBadge').textContent }));
+    expect(`${tag} reference site outside the pole: map note + "smooth horizon, terrain not included"`, /outside this south-pole map/.test(ap.note) && /terrain not included/.test(ap.badge) && /terrain not included/.test(ap.note), JSON.stringify(ap));
+    await pickSite('peak_shackleton_lw');
+
+    // ---- long window: loader appears, UI stays responsive (worker)
+    const before = await page.evaluate(() => AsteriaLoader.shownCount());
+    await page.selectOption('#windowSel', '365');
+    const t0 = Date.now(); let maxLag = 0;
+    while (await page.evaluate(() => AsteriaApp.state.computing)) {
+      const t = Date.now(); await page.evaluate(() => 1); maxLag = Math.max(maxLag, Date.now() - t);
+      if (Date.now() - t0 > 60000) break;
+    }
+    const after = await page.evaluate(() => ({ shown: AsteriaLoader.shownCount(), n: AsteriaApp.state.series.t.length }));
+    expect(`${tag} 365-day window computed off the main thread (page answered within ${maxLag} ms), took ${Date.now() - t0} ms; loader shown only if > 250 ms`, maxLag < 250 && after.n === 8761 && (Date.now() - t0 < 250 || after.shown > before), JSON.stringify(after));
+    await page.selectOption('#windowSel', '30'); await ready(page);
+
+    // ---- expert / explain
+    await page.check('#expertToggle'); await page.waitForTimeout(150);
+    expect(`${tag} Expert view reveals technical values`, await page.isVisible('#expertPanel') && await page.isVisible('#sunExpert'));
+    await shot(page, vp.name + '_4_expert');
+    await page.uncheck('#expertToggle'); await page.waitForTimeout(150);
+    expect(`${tag} beginner view hides technical values`, await page.isHidden('#expertPanel') && await page.isHidden('#sunExpert'));
+    await page.click('#tileSun .qb'); await page.waitForTimeout(100);
+    const qtxt = await page.textContent('#qpop');
+    expect(`${tag} "?" explains a metric and why it matters`, await page.isVisible('#qpop') && /Why it matters/.test(qtxt), qtxt.slice(0, 80));
+    await page.mouse.click(5, 300);
+
+    // ---- Earth communication: windows, stats, minimum elevation
+    const comm = async () => page.evaluate(() => {
+      const S = AsteriaApp.state, w = AsteriaApp.windows('earth'), s = S.series;
+      const inside = w.reduce((a, x) => a + (x.end - x.start), 0) / (s.t[s.t.length - 1] - s.t[0]) * 100;
+      return { pct: S.stats.pctEarth, inside, n: w.length, rows: document.querySelectorAll('#earthWindows tbody tr[data-k]').length, stepPct: 100 * s.stepMin / ((s.t[s.t.length - 1] - s.t[0]) / 60000) };
+    });
+    const c0 = await comm();
+    expect(`${tag} Earth windows listed and their total time matches % Earth link (within sampling)`, c0.rows === c0.n && Math.abs(c0.inside - c0.pct) <= 2 * c0.stepPct * Math.max(1, c0.n) + 0.05, JSON.stringify(c0));
+    await page.fill('#minEl', '2'); await page.dispatchEvent('#minEl', 'change'); await ready(page); await page.waitForTimeout(200);
+    const c2 = await comm();
+    const h2 = await page.evaluate(() => location.hash);
+    expect(`${tag} minimum link elevation 2 deg lowers Earth link time and is in the URL`, c2.pct <= c0.pct && h2.includes('me=2'), `${c0.pct.toFixed(1)}% -> ${c2.pct.toFixed(1)}%`);
+    await shot(page, vp.name + '_5_minel');
+
+    // ---- launch slip: slip 0 == Explore metrics (with the minimum elevation applied)
     await page.click('.tab[data-page="slip"]');
+    await page.waitForFunction(() => !document.getElementById('slipRun').disabled && /Done/.test(document.getElementById('slipProgress').textContent), null, { timeout: 60000 });
     await page.evaluate(() => {
-      const S = window.LunaApp.state, pad = n => (n < 10 ? '0' : '') + n, d = S.start;
+      const S = AsteriaApp.state, pad = n => (n < 10 ? '0' : '') + n, d = S.start;
       document.getElementById('slipNominal').value = d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()) + 'T' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes());
       document.getElementById('slipDuration').value = S.windowDays;
       document.getElementById('slipSites').value = 'current';
@@ -44,64 +125,95 @@ const path = require('path'), fs = require('fs'), url = require('url');
     await page.click('#slipRun');
     await page.waitForFunction(() => !document.getElementById('slipRun').disabled && /Done/.test(document.getElementById('slipProgress').textContent), null, { timeout: 60000 });
     const cmp = await page.evaluate(() => {
-      const st = window.LunaApp.state.stats, r0 = window.LunaApp.slipResults().sites[0].scan.rows[0];
+      const st = AsteriaApp.state.stats, r0 = AsteriaApp.slipResults().sites[0].scan.rows[0];
       const keys = ['pctSun', 'avgSunFrac', 'pctEarth', 'pctBoth', 'longestDarkH', 'longestBlackoutH', 'samples'];
-      return { same: keys.every(k => r0[k] === st[k]), detail: keys.map(k => k + ' ' + r0[k] + '/' + st[k]).join(', ') };
+      return { same: keys.every(k => r0[k] === st[k]), minEl: AsteriaApp.slipResults().minEl, detail: keys.map(k => k + ' ' + r0[k] + '/' + st[k]).join(', ') };
     });
-    expect(`[${vp.name}] heatmap slip 0 == Explorer timeline metrics`, cmp.same, cmp.detail);
-    // multi-site heatmap with timing
+    expect(`${tag} heatmap slip 0 == Explore metrics (minimum elevation ${cmp.minEl} deg applied to both)`, cmp.same && cmp.minEl === 2, cmp.detail);
     await page.selectOption('#slipSites', 'terrain'); await page.fill('#slipDuration', '14');
-    const t0 = Date.now();
+    const t1 = Date.now();
     await page.click('#slipRun');
-    await page.waitForFunction(() => /Done/.test(document.getElementById('slipProgress').textContent) && window.LunaApp.slipResults().sites.length > 1, null, { timeout: 60000 });
-    console.log(`[${vp.name}] terrain-sites heatmap (${await page.evaluate(() => window.LunaApp.slipResults().sites.length)} sites x 61 slips) computed in ${Date.now() - t0} ms`);
+    await page.waitForFunction(() => /Done/.test(document.getElementById('slipProgress').textContent) && AsteriaApp.slipResults().sites.length > 1, null, { timeout: 120000 });
+    console.log(`${tag} terrain-sites heatmap (${await page.evaluate(() => AsteriaApp.slipResults().sites.length)} sites x 61 slips) computed in ${Date.now() - t1} ms`);
     await page.locator('#slipHeat').scrollIntoViewIfNeeded();
-    const box = await page.locator('#slipHeat').boundingBox();
-    await page.mouse.move(box.x + box.width * 0.6, box.y + 20); await page.waitForTimeout(150);
-    expect(`[${vp.name}] heatmap tooltip shows`, await page.isVisible('#slipTip'));
-    await page.screenshot({ path: path.join(out, vp.name + '_slip.png'), fullPage: true });
-    await page.mouse.click(box.x + box.width * 0.6, box.y + 20); await page.waitForTimeout(500);
-    const after = await page.evaluate(() => ({ tab: document.querySelector('.tab.active').dataset.page, w: window.LunaApp.state.windowDays }));
-    expect(`[${vp.name}] clicking a heatmap cell opens the Explorer with the mission window`, after.tab === 'explorer' && after.w === 14, JSON.stringify(after));
+    const hb = await page.locator('#slipHeat').boundingBox();
+    await page.mouse.move(hb.x + hb.width * 0.6, hb.y + 20); await page.waitForTimeout(150);
+    expect(`${tag} heatmap tooltip shows`, await page.isVisible('#slipTip'));
+    await shot(page, vp.name + '_6_slip');
+    await page.mouse.click(hb.x + hb.width * 0.6, hb.y + 20); await ready(page); await page.waitForTimeout(300);
+    const aft = await page.evaluate(() => ({ tab: document.querySelector('.tab.active').dataset.page, w: AsteriaApp.state.windowDays }));
+    expect(`${tag} clicking a heatmap cell opens Explore with the mission window`, aft.tab === 'explorer' && aft.w === 14, JSON.stringify(aft));
 
-    // power
-    await page.click('.tab[data-page="power"]'); await page.waitForTimeout(300);
-    await page.selectOption('#pwMode', 'fixed'); await page.fill('#pwFace', '90'); await page.click('#pwRun'); await page.waitForTimeout(200);
-    await page.selectOption('#pwMode', 'track'); await page.click('#pwRun'); await page.waitForTimeout(200);
+    // ---- power
+    await page.click('.tab[data-page="power"]'); await page.waitForTimeout(400);
+    await page.selectOption('#pwMode', 'fixed'); await page.fill('#pwFace', '90'); await page.click('#pwRun'); await page.waitForTimeout(400);
+    await page.selectOption('#pwMode', 'track'); await page.click('#pwRun'); await page.waitForTimeout(400);
     const pv = await page.textContent('#pwVerdict');
-    expect(`[${vp.name}] power verdict rendered`, /Energy (positive|negative)/.test(pv), pv.slice(0, 90));
-    await page.screenshot({ path: path.join(out, vp.name + '_power.png'), fullPage: true });
+    expect(`${tag} power verdict rendered`, /Energy (positive|negative)/.test(pv), pv.slice(0, 90));
+    await shot(page, vp.name + '_7_power');
 
-    // compare, validation, about
+    // ---- compare: sunlight and Earth-link metrics side by side
     await page.click('.tab[data-page="compare"]'); await page.waitForTimeout(200);
-    await page.click('#cmpRun'); await page.waitForTimeout(2000);
-    await page.screenshot({ path: path.join(out, vp.name + '_compare.png'), fullPage: true });
+    await page.click('#cmpRun');
+    await page.waitForFunction(() => document.querySelector('#cmpResult table'), null, { timeout: 60000 });
+    const ct = await page.textContent('#cmpResult');
+    expect(`${tag} Compare shows Earth-link metrics next to sunlight metrics`, /Sunlight windows/.test(ct) && /Earth link windows/.test(ct) && /Longest Earth blackout/.test(ct) && /Average Earth link window/.test(ct));
+    await shot(page, vp.name + '_8_compare');
     await page.click('.tab[data-page="validation"]'); await page.waitForTimeout(200);
-    await page.screenshot({ path: path.join(out, vp.name + '_validation.png'), fullPage: true });
+    const vt = await page.textContent('#validationContent');
+    expect(`${tag} Validation lists the Artemis features in the cross-check`, /Overall: PASS/.test(vt) && /Haworth \(feature\)/.test(vt) && /Mons Malapert/.test(vt));
+    await shot(page, vp.name + '_9_validation');
     await page.click('.tab[data-page="about"]'); await page.waitForTimeout(200);
+    const ab = await page.textContent('#aboutContent');
+    expect(`${tag} About: disclaimer and the nine Artemis regions`, /Not affiliated with NASA's ASTERIA CubeSat mission\. Not endorsed by NASA\./.test(ab) && ['Peak near Cabeus B', 'Haworth', 'Malapert Massif', 'Mons Mouton Plateau', 'Nobile Rim 1', 'Nobile Rim 2', 'de Gerlache Rim 2', 'Slater Plain'].every(n => ab.includes(n)));
+    await shot(page, vp.name + '_10_about');
 
-    // tour
+    // ---- tour (all numbers read live)
     await page.click('#tourBtn');
     for (let i = 0; i < 5; i++) {
-      await page.waitForFunction(() => !/Working/.test(document.getElementById('tourText').textContent), null, { timeout: 60000 });
+      await page.waitForFunction(() => !/Working/.test(document.getElementById('tourText').textContent), null, { timeout: 120000 });
       const cap = await page.textContent('#tourText');
-      const nums = /\d/.test(cap) && !/NaN|undefined|Infinity/.test(cap);
-      expect(`[${vp.name}] tour step ${i + 1} caption`, nums, cap.replace(/\s+/g, ' ').slice(0, 400));
-      await page.screenshot({ path: path.join(out, `${vp.name}_tour${i + 1}.png`), fullPage: false });
+      expect(`${tag} tour step ${i + 1} caption`, /\d/.test(cap) && !/NaN|undefined|Infinity/.test(cap), cap.replace(/\s+/g, ' ').slice(0, 420));
+      await page.waitForTimeout(500);
+      await shot(page, `${vp.name}_tour${i + 1}`, false);
       await page.click('#tourNext'); await page.waitForTimeout(200);
     }
-    expect(`[${vp.name}] tour closes after the last step`, await page.isHidden('#tour'));
+    expect(`${tag} tour closes after the last step`, await page.isHidden('#tour'));
 
-    // shareable link restores state
-    const shared = base + '#site=apollo11&t=2027-01-01T00:00Z&w=14&tab=compare';
-    await page.goto('about:blank'); await page.goto(shared); await page.waitForTimeout(900);
-    const st = await page.evaluate(() => ({ site: window.LunaApp.state.site.id, t: window.LunaApp.state.start.toISOString(), w: window.LunaApp.state.windowDays, tab: document.querySelector('.tab.active').dataset.page }));
-    expect(`[${vp.name}] URL hash restores site/date/window/tab`, st.site === 'apollo11' && st.t === '2027-01-01T00:00:00.000Z' && st.w === 14 && st.tab === 'compare', JSON.stringify(st));
-    await page.goto(base + '#lat=-89.9&lon=45&t=2027-06-01T12:30Z&w=7'); await page.waitForTimeout(700);
-    const st2 = await page.evaluate(() => ({ lat: window.LunaApp.state.site.lat, lon: window.LunaApp.state.site.lon, id: window.LunaApp.state.site.id, w: window.LunaApp.state.windowDays }));
-    expect(`[${vp.name}] URL hash restores custom coordinates`, st2.lat === -89.9 && st2.lon === 45 && st2.id === null && st2.w === 7, JSON.stringify(st2));
-    await page.close();
+    // ---- shareable link restores state
+    await page.goto('about:blank'); await page.goto(base + '#site=apollo11&t=2027-01-01T00:00Z&w=14&me=3&tab=compare'); await page.waitForTimeout(1200);
+    const st = await page.evaluate(() => ({ site: AsteriaApp.state.site.id, t: AsteriaApp.state.start.toISOString(), w: AsteriaApp.state.windowDays, me: AsteriaApp.state.minEl, tab: document.querySelector('.tab.active').dataset.page }));
+    expect(`${tag} URL hash restores site/date/window/min elevation/tab`, st.site === 'apollo11' && st.t === '2027-01-01T00:00:00.000Z' && st.w === 14 && st.me === 3 && st.tab === 'compare', JSON.stringify(st));
+    await page.goto(base + '#lat=-89.9&lon=45&t=2027-06-01T12:30Z&w=7'); await page.waitForTimeout(1000);
+    const st2 = await page.evaluate(() => ({ lat: AsteriaApp.state.site.lat, lon: AsteriaApp.state.site.lon, id: AsteriaApp.state.site.id, w: AsteriaApp.state.windowDays }));
+    expect(`${tag} URL hash restores custom coordinates`, st2.lat === -89.9 && st2.lon === 45 && st2.id === null && st2.w === 7, JSON.stringify(st2));
+    // ---- horizontal overflow (phone layout)
+    await page.goto(base); await page.waitForTimeout(1200);
+    const ov = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(`${tag} no horizontal page scroll`, ov <= 1, ov + ' px');
+    await ctx.close();
   }
+
+  // ---- reduced motion: spinner instead of the rocket, map without animation
+  const rctx = await browser.newContext({ viewport: { width: 1024, height: 768 }, reducedMotion: 'reduce' });
+  const rp = await rctx.newPage();
+  rp.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`[reduced] console.${m.type()}: ${m.text()}`); });
+  rp.on('pageerror', e => errors.push(`[reduced] pageerror: ${e.message}`));
+  await rp.goto(base); await rp.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series);
+  await rp.evaluate(() => { AsteriaLoader.begin('test'); });
+  await rp.waitForTimeout(400);
+  const rm = await rp.evaluate(() => ({ cls: document.getElementById('loader').className, spinner: !!document.querySelector('#loader .spinner'), canvas: !!document.querySelector('#loader canvas') }));
+  await rp.evaluate(() => AsteriaLoader.end());
+  expect('[reduced-motion] loader is a simple spinner', rm.spinner && !rm.canvas && /reduced/.test(rm.cls), JSON.stringify(rm));
+  await rctx.close();
+  // ---- no artificial delay: a fast operation never shows the loader
+  const fctx = await browser.newContext({ viewport: { width: 1024, height: 768 } });
+  const fp = await fctx.newPage();
+  await fp.goto(base); await fp.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series);
+  const fast = await fp.evaluate(() => { const n0 = AsteriaLoader.shownCount(); return AsteriaLoader.track(new Promise(r => setTimeout(r, 50)), 'x').then(() => new Promise(r => setTimeout(() => r(AsteriaLoader.shownCount() - n0), 400))); });
+  expect('loader not shown for a 50 ms operation (only after 250 ms)', fast === 0, 'shown ' + fast + ' times');
+  await fctx.close();
+
   await browser.close();
   console.log(errors.length ? 'CONSOLE ERRORS:\n' + errors.join('\n') : 'No console errors or warnings.');
   console.log(fails.length ? 'UI CHECK FAILED: ' + fails.join('; ') : 'UI CHECK PASS');
