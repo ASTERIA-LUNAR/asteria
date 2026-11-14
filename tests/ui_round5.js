@@ -107,6 +107,32 @@ function loadData(file, name) { const w = {}; new Function('window', fs.readFile
     expect(`${tag} 3D "Light up" is not remembered and switches off when the Sun is up at the site`, lu.b1 === 3 && lu.ls1 === lu.ls0 && (lu.i < 0 || (lu.b2 < 3 && /switched off/.test(lu.note))), JSON.stringify(lu));
     await page.evaluate(() => AsteriaView3D.close(true));
 
+    // ---- Part 6: "Verify with NASA" = the exact query the blind test cached; values box; Verified card; Validation page
+    const BL = loadData('data/blind_test.js', 'LUNA_BLIND').cases[0], VAL = loadData('data/validation.js', 'LUNA_VALIDATION');
+    await page.goto('about:blank'); await open(`site=${BL.siteId}&t=${BL.date}&w=1`);
+    await page.evaluate(() => { if (!document.getElementById('expertToggle').checked) document.getElementById('expertToggle').click(); });
+    await page.waitForTimeout(200);
+    const vf = await page.evaluate(() => ({ sun: document.getElementById('verifySun').href, earth: document.getElementById('verifyEarth').href, vis: document.getElementById('verifySun').offsetParent !== null, txt: document.getElementById('verifyBox').textContent, target: document.getElementById('verifySun').target }));
+    const firstLine = f => fs.readFileSync(path.join(ROOT, f), 'utf8').split(/\r?\n/)[0].replace(/^# /, '');
+    const rows = VAL.blind.rows.filter(r => r.date === BL.date && r.siteId === BL.siteId), rs = rows.find(r => r.body === 'Sun'), re = rows.find(r => r.body === 'Earth');
+    const nodeUrl = HZ.query({ COMMAND: "'10'", SITE_COORD: HZ.siteCoord(BL), TLIST: `'${HZ.fmtH(new Date(BL.date))}'` }).url;
+    expect(`${tag} Verify with NASA: Sun/Earth links = the cached validation queries character for character (tests/horizons_api.js format), open in a new tab, shown in Expert view`,
+      vf.vis && vf.target === '_blank' && vf.sun === firstLine(rs.cacheFile) && vf.earth === firstLine(re.cacheFile) && vf.sun === nodeUrl, JSON.stringify({ sun: vf.sun, cached: firstLine(rs.cacheFile) }));
+    expect(`${tag} Verify with NASA box shows ASTERIA's values for the same moment (= validation rows) and the expected agreement`,
+      vf.txt.includes(rs.oursAz.toFixed(3) + '°') && vf.txt.includes(rs.oursEl.toFixed(3) + '°') && vf.txt.includes(re.oursEl.toFixed(3) + '°') && /Expected agreement: about 0\.01°/.test(vf.txt), vf.txt.slice(0, 300));
+    await page.evaluate(() => document.getElementById('expertToggle').click());
+    const card = await page.evaluate(() => document.getElementById('verifiedCard').textContent);
+    const INS = INST, A3d = loadData('data/accuracy3d.js', 'LUNA_ACCURACY3D');
+    const wantCard = [VAL.angles.length + ' angle checks', VAL.angleStats.el.max.toFixed(4) + '°', VAL.blind.rows.length + ' fresh cases', VAL.oneYear.rows.toLocaleString('en-US') + ' rows', INS.agree + ' of ' + INS.n + ' agree', (A3d.heights.points / 1e6).toFixed(1) + ' million heights', 'points mean difference'];
+    expect(`${tag} Verified card on Explore with live numbers from the result files`, wantCard.every(w => card.includes(w)) && /Verified against NASA data/.test(card), card);
+    await page.click('#verifiedCard'); await page.waitForTimeout(200);
+    const vp6 = await page.evaluate(() => ({ active: document.getElementById('page-validation').classList.contains('active'), ids: ['valHow', 'valMethods', 'valRepro', 'valInstant', 'valAcc3d', 'valVerify'].filter(i => !document.getElementById(i)),
+      dl: document.getElementById('reportDl').getAttribute('href'), dlName: document.getElementById('reportDl').getAttribute('download'), src: [...document.querySelectorAll('table.formulas a')].map(a => a.getAttribute('href')), valLink: document.querySelector('#valVerify #verifySun') && document.querySelector('#valVerify #verifySun').href }));
+    expect(`${tag} Verified card opens the Validation page: "How we know", "Methods and formulas" (with source links that exist), "Reproduce it yourself", instant check, 3D accuracy, Verify with NASA, downloadable VALIDATION_REPORT.md`,
+      vp6.active && !vp6.ids.length && vp6.dl === 'VALIDATION_REPORT.md' && vp6.dlName && fs.existsSync(path.join(ROOT, vp6.dl)) && vp6.src.length >= 8 && vp6.src.every(s => fs.existsSync(path.join(ROOT, s))) && vp6.valLink === vf.sun, JSON.stringify(vp6));
+    if (SHOTS) { await page.screenshot({ path: path.join(out, `r5_validation_${vp.name}.png`) }); }
+    await page.evaluate(() => document.querySelector('.tab[data-page=explorer]').click());
+
     // ---- Part 5: Deploy icon; no warning-like triangle used as a button icon outside the 3D arrow pad
     await page.goto('about:blank'); await open('');
     const dep = await page.evaluate(() => ({ t: document.getElementById('deployBtn').textContent, tri: [...document.querySelectorAll('button')].filter(b => /▲/.test(b.textContent) && !b.closest('#v3dPad')).map(b => b.id || b.textContent) }));

@@ -447,6 +447,24 @@ body.v3d-open { overflow: hidden; }
 
 .nowrap { white-space: nowrap; }
 
+/* round 5: proof for judges */
+.verified { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; width: 100%; text-align: left; margin: 0 0 14px; padding: 8px 14px; background: #0d1b2e; border: 1px solid #2c5a3c; border-radius: var(--radius); color: var(--text); cursor: pointer; font: inherit; font-size: .8rem; }
+.verified:hover, .verified:focus-visible { border-color: var(--good); }
+.verified .vtitle { font-weight: 700; font-size: .9rem; white-space: nowrap; }
+.verified .vmark { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; font-style: normal; font-size: .75rem; margin-right: 4px; }
+.verified .vmark.pass { background: var(--good); color: #062010; } .verified .vmark.fail { background: var(--bad); color: #fff; }
+.verified .vitems { display: flex; flex-wrap: wrap; gap: 2px 14px; color: var(--muted); flex: 1 1 400px; }
+.verified .vitems span::before { content: '\2022  '; color: var(--good); }
+.verified .vmore { color: var(--accent); white-space: nowrap; }
+.verifybox { margin-top: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg2); font-size: .82rem; }
+.verifybox:empty { display: none; }
+.verifybox .vbtab { width: 100%; border-collapse: collapse; margin: 6px 0; }
+.verifybox .vbtab th, .verifybox .vbtab td { padding: 3px 6px; text-align: left; }
+.verifybox .vbtab .num { text-align: right; }
+.plainlist li { margin: 4px 0; }
+table.formulas td.small { font-size: .78rem; }
+pre.repro { background: var(--bg2); border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow-x: auto; font-size: .78rem; }
+
 /* round 5: jump to the next window (Site Card and 3D panel) */
 .jumprow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0 2px; }
 .jumprow .hint { flex-basis: 100%; margin: 2px 0 0; min-height: 1em; }
