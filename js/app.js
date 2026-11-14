@@ -277,14 +277,17 @@
   // ------------------------------------------------------------- map legend
   function renderLegend(name) {
     var LY = (window.LUNA_TILES || {}).layers || {}, el = $('mapLegend'), h = '';
+    var TMp = (window.LUNA_TILES || {}).pixelSize_m || {};
     if (name === 'slope' && LY.slope) {
       h = '<div class="lgtitle">Slope (°) ' + q('overlay_slope') + '</div><div class="lgbar">' + LY.slope.colors.map(function (c, i) {
         var a = LY.slope.edges[i], b = LY.slope.edges[i + 1]; return '<span style="background:rgb(' + c.join(',') + ')" title="' + a + '-' + (b > 90 ? 90 : b) + '°">' + (b > 90 ? '>' + a : a) + '</span>';
-      }).join('') + '</div><div class="lgnote">From the LOLA DEM on a 37 m grid, shown as 74 m pixels; real metre-scale slopes can be steeper.</div>';
+      }).join('') + '</div><div class="lgnote">From the LOLA DEM: slope sampled every ' + (TMp['6'] || 37.1).toFixed(0) + ' m and averaged over ' + (TMp['5'] || 74.2).toFixed(0) + ' m pixels (zoomed out: averaged over larger pixels). Steeper slopes over a few metres are not shown.</div>';
     } else if (name === 'illum' && LY.illum) {
-      h = '<div class="lgtitle">Average illumination, % of time (published) ' + q('overlay_illum') + '</div><div class="lgbar">' + LY.illum.colors.map(function (c, i) {
+      h = '<div class="lgtitle">Average illumination, published by NASA (%) ' + q('overlay_illum') + '</div><div class="lgbar">' + LY.illum.colors.map(function (c, i) {
         var a = LY.illum.edges[i]; return '<span style="background:rgb(' + c.join(',') + ')">' + (i === 0 ? '0' : Math.round(a * 100)) + '</span>';
-      }).join('') + '</div><div class="lgnote">NASA PGDA product 69, AVGVISIB_85S_060M_201608 (Mazarico et al. 2011): average over hourly steps spanning 18.6 years, 60 m/px, ~85°S-90°S only. 0 = permanent shadow.</div>';
+      }).join('') + '</div><div class="lgnote"><b>NASA\'s published illumination map covers about 85°S-90°S only</b> (inside the dashed yellow square: AVGVISIB_85S_060M_201608, 60 m/px).' +
+        (LY.illum120 ? ' Outside the square: NASA\'s coarser map AVGVISIB_75S_120M_201608 (120 m/px, 75°S-90°S), shown on ' + (TMp[String(LY.illum120.maxNativeZoom)] || 148).toFixed(0) + ' m pixels.' : '') +
+        ' Source: <a href="https://pgda.gsfc.nasa.gov/products/69" target="_blank" rel="noopener">NASA PGDA product 69</a> (Mazarico et al. 2011), hourly steps over 18.6 years. Its documentation gives two different definitions: % of time steps sunlit by any part of the solar disc, and average solar disc visibility. 0 = permanent shadow.</div>';
     } else {
       h = '<div class="lgtitle">Terrain ' + q('overlay_none') + '</div><div class="lgnote">Hillshade from LOLA elevation data - synthetic lighting, not real illumination. Up to 18.6 m/px inside ~85°S.</div>';
     }
@@ -846,12 +849,13 @@
       h += '<tr><td>' + k + ' m observer, ' + g.n + ' points</td><td>' + b.lat.toFixed(5) + ', ' + b.lon.toFixed(4) + '</td><td class="num">' + p(b.avgDiskFrac) + '</td><td class="num">' + p(b.pgda) + '</td><td class="num">' + p(g.bestByPgda.pgda) + '</td><td class="num">' + g.corrWithPgda.toFixed(2) + '</td></tr>';
     });
     h += '</tbody></table></div>';
-    h += '<h4>All south-pole sites vs the published map (observer 2 m, 18.6 years)</h4><div class="tablewrap"><table><thead><tr><th>Site</th><th class="num">(1) Avg disk fraction</th><th class="num">(2) Centre up</th><th class="num">Published map</th><th class="num">Difference (1) - map</th></tr></thead><tbody>';
+    var dpts = function (a, b) { if (b === null || b === undefined) return 'n/a'; var d = 100 * (a - b); return (d >= 0 ? '+' : '') + d.toFixed(1) + ' pts'; };
+    h += '<h4>All south-pole sites vs the published maps (observer 2 m, 18.6 years)</h4><div class="tablewrap"><table><thead><tr><th>Site</th><th class="num">(1) Avg disk fraction</th><th class="num">(2) Centre up</th><th class="num">Published 60 m map</th><th class="num">(1) - 60 m map</th><th class="num">Published 120 m map</th><th class="num">(1) - 120 m map</th></tr></thead><tbody>';
     X.sites.forEach(function (s) {
-      var site = siteById(s.id), d = s.pgda === null ? null : 100 * (s.avgDiskFrac - s.pgda);
-      h += '<tr><td>' + esc(site ? site.name : s.id) + '</td><td class="num">' + p(s.avgDiskFrac) + '</td><td class="num">' + s.pctCentre.toFixed(1) + '%</td><td class="num">' + p(s.pgda) + '</td><td class="num">' + (d === null ? 'n/a' : (d >= 0 ? '+' : '') + d.toFixed(1) + ' pts') + '</td></tr>';
+      var site = siteById(s.id);
+      h += '<tr><td>' + esc(site ? site.name : s.id) + '</td><td class="num">' + p(s.avgDiskFrac) + '</td><td class="num">' + s.pctCentre.toFixed(1) + '%</td><td class="num">' + p(s.pgda) + '</td><td class="num">' + dpts(s.avgDiskFrac, s.pgda) + '</td><td class="num">' + (s.pgda120 === undefined ? 'n/a' : p(s.pgda120)) + '</td><td class="num">' + dpts(s.avgDiskFrac, s.pgda120) + '</td></tr>';
     });
-    h += '</tbody></table></div><p class="hint">The published map covers about 85°S-90°S; sites further north are "outside map".</p>';
+    h += '</tbody></table></div><p class="hint">The 60 m map (AVGVISIB_85S_060M_201608) covers about 85°S-90°S; sites further north are "outside map". The coarser 120 m map (AVGVISIB_75S_120M_201608) covers 75°S-90°S.</p>';
     var c18 = X.central.filter(function (c) { return c.height_m === 2 && c.period === '18.6 yr'; })[0];
     h += '<p><b>Finding:</b> at the published coordinate the published 60 m map itself gives ' + p(X.pgdaAtPoint.bilinear) + ' and ASTERIA gives ' + p(c18.avgDiskFrac) + ' (2 m, 18.6 years). Both are well below "approximately 80%", so that figure is not reproduced at this coordinate by the public map product.' + (X.grid['10.0'] ? ' With the observer 10 m above the surface, the best point within 500 m reaches ' + p(X.grid['10.0'].best.avgDiskFrac) + ' in our model (published map there: ' + p(X.grid['10.0'].best.pgda) + '; the map does not state its observer height).' : '') + ' The derived best-supported point (ASTERIA\'s default view) is where both models agree on the highest value. Nothing was tuned. Full tables: VALIDATION_REPORT.md.</p>';
     return h;

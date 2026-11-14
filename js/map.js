@@ -8,7 +8,7 @@ window.AsteriaMap = (function () {
   'use strict';
   var R = 1737400, DEG = Math.PI / 180;
   var TM = window.LUNA_TILES;
-  var dataBounds = null;
+  var dataBounds = null, illumEdge = null;
   var map = null, layers = {}, markerLayer = null, pickMarker = null, opts = {}, sites = [], selId = null, readout = null;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -114,8 +114,14 @@ window.AsteriaMap = (function () {
       layers['hill' + z] = new RangedTiles(LY.hill.path, { tileSize: 256, minZoom: +z, maxZoom: ZMAX, minNativeZoom: +z, maxNativeZoom: +z, ranges: (function () { var o = {}; o[z] = LY.hill.ranges[z]; return o; })() }).addTo(map);
     });
     layers.slope = L.tileLayer(LY.slope.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.slope.maxNativeZoom, opacity: 0.62, noWrap: true });
-    layers.illum = new RangedTiles(LY.illum.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.illum.maxNativeZoom, opacity: 0.85, ranges: LY.illum.ranges,
+    layers.illum = new RangedTiles(LY.illum.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.illum.maxNativeZoom, opacity: 0.85, ranges: LY.illum.ranges, zIndex: 4,
       attribution: 'Illumination: NASA PGDA product 69 (Mazarico et al. 2011)' });
+    // Outer published layer (120 m/px, 75-90 S) under the 60 m layer, for the part the 60 m map does not cover.
+    if (LY.illum120) layers.illum120 = L.tileLayer(LY.illum120.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.illum120.maxNativeZoom, opacity: 0.85, noWrap: true, zIndex: 3 });
+    // Outline of the 60 m map's coverage (its square grid, about 85 S on the axes).
+    var h60 = LY.illum.halfExtent_m || 151740;
+    illumEdge = L.polygon([[-h60, h60], [h60, h60], [h60, -h60], [-h60, -h60]].map(function (c) { var q = unproject(c[0], c[1]); return [q.lat, q.lon]; }),
+      { color: '#ffe08a', weight: 1.5, dashArray: '3 4', fill: false, interactive: false });
     // Mark the edge of data coverage: hatch everything outside the square, outline the square.
     var big = 3 * H, ring = function (h) { return [[-h, h], [h, h], [h, -h], [-h, -h]].map(function (c) { var q = unproject(c[0], c[1]); return [q.lat, q.lon]; }); };
     L.polygon([ring(big), ring(H)], { stroke: false, fillColor: '#000', fillOpacity: 0.55, interactive: false, className: 'nodata' }).addTo(map);
@@ -175,8 +181,11 @@ window.AsteriaMap = (function () {
     }
   }
   function setOverlay(name) {
-    ['slope', 'illum'].forEach(function (k) { if (map && map.hasLayer(layers[k]) && k !== name) map.removeLayer(layers[k]); });
-    if (map && layers[name] && !map.hasLayer(layers[name])) layers[name].addTo(map);
+    if (!map) return;
+    var want = name === 'illum' ? ['illum120', 'illum'] : [name];
+    ['slope', 'illum', 'illum120'].forEach(function (k) { if (layers[k] && map.hasLayer(layers[k]) && want.indexOf(k) < 0) map.removeLayer(layers[k]); });
+    want.forEach(function (k) { if (layers[k] && !map.hasLayer(layers[k])) layers[k].addTo(map); });
+    if (illumEdge) { if (name === 'illum') illumEdge.addTo(map); else map.removeLayer(illumEdge); }
   }
   function setMarkersVisible(v) { if (!map) return; if (v) markerLayer.addTo(map); else map.removeLayer(markerLayer); }
   function invalidate() { if (map) { map.invalidateSize(); renderMarkers(); } }

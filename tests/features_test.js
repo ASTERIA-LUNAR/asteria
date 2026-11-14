@@ -88,6 +88,7 @@ for (const [id, days] of [['peak_shackleton', 14], ['apollo11', 30], ['im2', 45]
   let missing = 0, n = 0;
   const has = (tpl, z, x, y) => { n++; if (!fs.existsSync(path.join(root, tpl.replace('{z}', z).replace('{x}', x).replace('{y}', y)))) missing++; };
   for (let z = 0; z <= 5; z++) for (let x = 0; x < 2 ** z; x++) for (let y = 0; y < 2 ** z; y++) { has(TM.layers.hill.path, z, x, y); has(TM.layers.slope.path, z, x, y); }
+  for (let z = 0; z <= TM.layers.illum120.maxNativeZoom; z++) for (let x = 0; x < 2 ** z; x++) for (let y = 0; y < 2 ** z; y++) has(TM.layers.illum120.path, z, x, y);
   for (const [lay, rs] of [['hill', TM.layers.hill.ranges], ['illum', TM.layers.illum.ranges]])
     for (const z of Object.keys(rs)) { const r = rs[z]; for (let x = r[0]; x <= r[1]; x++) for (let y = r[2]; y <= r[3]; y++) has(TM.layers[lay].path, z, x, y); }
   check('all requestable map tiles exist', missing === 0, `${n} tiles checked, ${missing} missing`);

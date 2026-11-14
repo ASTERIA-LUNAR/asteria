@@ -60,7 +60,15 @@ const path = require('path'), fs = require('fs'), url = require('url');
     expect(`${tag} map CRS puts Shackleton centre on the tile pixel of the DEM floor (z5 tile 16,16 px 103,86)`, Math.abs(proj.dx) < 1e-6 && Math.abs(proj.dy) < 1e-6 && proj.tile.join() === '16,16' && proj.px.join() === '103,86', JSON.stringify(proj));
     const nMarkers = await page.evaluate(() => document.querySelectorAll('.leaflet-marker-pane .mk').length);
     expect(`${tag} site markers drawn (overlapping ones grouped)`, nMarkers >= 5, nMarkers + ' marker icons');
-    for (const v of ['slope', 'illum', 'none']) { await page.check(`input[name=ovl][value=${v}]`); await page.waitForTimeout(700); if (v !== 'none') await shot(page, `${vp.name}_3_layer_${v}`, false); }
+    for (const v of ['slope', 'illum', 'none']) {
+      await page.check(`input[name=ovl][value=${v}]`); await page.waitForTimeout(700); if (v !== 'none') await shot(page, `${vp.name}_3_layer_${v}`, false);
+      const lg = await page.textContent('#mapLegend');
+      if (v === 'illum') {
+        const li = await page.evaluate(() => { const m = AsteriaMap.leaflet(); let n = 0; m.eachLayer(l => { if (l._url && /tiles\/illum(120)?\//.test(l._url)) n++; }); return n; });
+        expect(`${tag} illumination layer: 60 m map + outer 120 m map, coverage note, source and both definitions`, li === 2 && /NASA's published illumination map covers about 85°S-90°S only/.test(lg) && /AVGVISIB_75S_120M_201608/.test(lg) && /two different definitions/.test(lg), lg.slice(0, 160));
+      }
+      if (v === 'slope') expect(`${tag} slope legend states sample spacing and pixel averaging`, /sampled every 37 m and averaged over 74 m pixels/.test(lg), lg.slice(0, 160));
+    }
     const box = await page.locator('#lmap').boundingBox();
     await page.mouse.click(box.x + box.width * 0.5 + 25, box.y + box.height * 0.5 + 35); await ready(page); await page.waitForTimeout(300);
     const pick = await page.evaluate(() => ({ id: AsteriaApp.state.site.id, lat: AsteriaApp.state.site.lat, lon: AsteriaApp.state.site.lon, name: document.getElementById('siteName').textContent, kind: document.getElementById('siteKind').textContent }));

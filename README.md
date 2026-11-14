@@ -15,8 +15,8 @@ Double-click **`index.html`**. It runs offline in any modern browser, with no se
 
 * **South-pole map** (about 80°S-90°S, pan and zoom). Layers:
   * **Terrain**: hillshade from LOLA elevation data, labelled "synthetic lighting, not real illumination". 18.6 m/px inside about 85°S, 74 m/px beyond.
-  * **Slope** in degrees from the DEM, with a legend. Computed on a 37 m grid and shown as 74 m pixels.
-  * **Average illumination**: NASA's published PGDA map, with its source and definition. It covers about 85°S-90°S.
+  * **Slope** in degrees from the DEM, with a legend: sampled every 37 m and averaged over 74 m pixels (larger pixels when zoomed out).
+  * **Average illumination**: NASA's published PGDA maps (product 69). The 60 m map AVGVISIB_85S_060M_201608 covers about 85°S-90°S only (dashed yellow outline); outside it, the coarser 120 m map AVGVISIB_75S_120M_201608 (75°S-90°S) is shown, each with its source, resolution, and a note that the documentation gives two different definitions.
   * **Site markers**: markers that overlap on screen are grouped with a count, and a click lists them.
   * Panning and zooming are limited to the area covered by the map data; outside it is hatched and the edge is drawn. A click outside the data selects nothing and shows "No elevation data here - this map covers the lunar south pole (about 80°S to the pole)."
   * Clicking inside the map selects a custom point. It gets a terrain horizon computed in the browser from a downsampled 240 m DEM, labelled "terrain from coarser 240 m data (less precise than curated sites)". This was shipped only because it passed validation (see below). Typed points outside the map use a smooth horizon (a Moon without mountains), also labelled.

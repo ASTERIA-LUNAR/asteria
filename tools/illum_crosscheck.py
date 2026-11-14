@@ -12,6 +12,8 @@ Outputs: data/illum_crosscheck.js (window.LUNA_XCHECK) used by the app and VALID
 
 Usage: .venv/Scripts/python -I tools/illum_crosscheck.py          # everything (~10 min)
        .venv/Scripts/python -I tools/illum_crosscheck.py sites    # per-site rows only
+       .venv/Scripts/python -I tools/illum_crosscheck.py pgda120  # add the 120 m map (AVGVISIB_75S_120M_201608,
+                                                                  # 75-90S) value at each site to the rows
 """
 import json
 import math
@@ -39,8 +41,8 @@ def load_sun():
 
 class PGDA:
     """Published average-illumination map (same polar stereographic grid convention as LOLA)."""
-    def __init__(self):
-        base = os.path.join(ROOT, 'dem', 'pgda', 'AVGVISIB_85S_060M_201608')
+    def __init__(self, product='AVGVISIB_85S_060M_201608'):
+        base = os.path.join(ROOT, 'dem', 'pgda', product)
         lbl = T.read_label(base + '.LBL')
         self.n, self.scale = lbl['lines'], lbl['scale']
         assert lbl['line_off'] == self.n / 2 - 0.5
@@ -170,8 +172,24 @@ def sites_only():
     write(out)
 
 
+def pgda120():
+    """Add the coarser 120 m published map (covers 75-90S, so also the sites outside the 60 m map)."""
+    path = os.path.join(ROOT, 'data', 'illum_crosscheck.js')
+    txt = open(path).read()
+    out = json.loads(txt[txt.index('= ') + 2:txt.rstrip().rindex(';')])
+    pg = PGDA('AVGVISIB_75S_120M_201608')
+    for s in out['sites']:
+        b, n = pg.sample(s['lat'], s['lon'])
+        s['pgda120'], s['pgda120Nearest'] = b, n
+        print('%-20s 60 m map %s | 120 m map %.3f' % (s['id'], 'outside' if s['pgda'] is None else '%.3f' % s['pgda'], b))
+    out['pgda120Product'] = 'AVGVISIB_75S_120M_201608'
+    write(out)
+
+
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == 'sites':
+    if len(sys.argv) > 1 and sys.argv[1] == 'pgda120':
+        pgda120()
+    elif len(sys.argv) > 1 and sys.argv[1] == 'sites':
         sites_only()
     else:
         main()

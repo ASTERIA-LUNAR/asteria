@@ -65,7 +65,7 @@ Status as of 2026-11-14 (third development round: ASTERIA rename, south-pole map
 * **Map**:
   * The hillshade uses synthetic lighting (from the upper left at 25° altitude). It is not real illumination at any date.
   * Slope is computed by central differences on a 37 m sample grid and shown as 74 m pixels (coarser zooms are averages). Real slopes over a few metres can be steeper.
-  * The published-illumination layer is classed into 10 bins and covers only about 85°S-90°S.
+  * The published-illumination layer is classed into 10 bins. NASA's 60 m map (AVGVISIB_85S_060M_201608) covers only about 85°S-90°S; its coverage is drawn as a dashed yellow square and the legend says so. **PGDA product 69 does provide an average-illumination map that covers 80-85°S**: AVGVISIB_75S_120M_201608 (120 m/px, 75°S-90°S, same two definitions in its label). It is shown as an outer layer under the 60 m map, with its own source and resolution label, on 148 m pixels (zoom 4). It is coarser, so it can differ from the 60 m map (for example 43% vs 39% at the Mons Malapert landform centre). The cross-check now also compares every site with it, including IM-1 and Nobile Rim 2 (DM2), which the 60 m map does not reach.
   * The tile square reaches about 80°S on the axes and about 76°S in the corners. Panning and zooming are limited to it; the area outside is hatched and its edge drawn as a dashed orange line. A click outside it selects nothing and says "No elevation data here - this map covers the lunar south pole (about 80°S to the pole)." 
 
 ### Launch-slip heatmap

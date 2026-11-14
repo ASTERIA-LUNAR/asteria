@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T10:32:02.839Z by `node tests/validate.js`.
+Generated 2026-11-14T10:43:25.255Z by `node tests/validate.js`.
 
 ## Overall: **PASS**
 
@@ -140,20 +140,20 @@ Peak near Shackleton (-88.79, 124.5) vs the published "approximately 80%" figure
 
 Best point supported by both models (maximum of min(ours at 2 m, published map)): **-88.78505, 124.3438**, ours 59.8%, published map 59.2%. Added to the app as a clearly labelled derived point; the original published coordinate is kept.
 
-**All south-pole sites with terrain horizons vs the published map** (observer 2 m, 18.6 years). "(landform centre)" = IAU Gazetteer centre of a landform that is itself a NASA Artemis III region (one point, not a landing site; region boundary not plotted). The published map covers ~85°S-90°S only; "outside map" = not covered:
+**All south-pole sites with terrain horizons vs the published map** (observer 2 m, 18.6 years). "(landform centre)" = IAU Gazetteer centre of a landform that is itself a NASA Artemis III region (one point, not a landing site; region boundary not plotted). The 60 m published map covers ~85°S-90°S only ("outside map" = not covered); the coarser 120 m map AVGVISIB_75S_120M_201608 (75°S-90°S) covers every site:
 
-| Site | lat | E-lon | (1) Avg disk fraction | (2) Sun centre up | (3) Any part up | Published map | Difference (1) - map |
-|---|---|---|---|---|---|---|---|
-| IM-1 Odysseus | -80.13 | 1.44 | 39.4% | 39.4% | 40.0% | outside map | n/a |
-| IM-2 Athena | -84.7906 | 29.1957 | 45.0% | 45.0% | 46.7% | 46.0% | -1.0 pts |
-| Peak near Shackleton (illuminated area) | -88.79 | 124.5 | 48.1% | 48.1% | 49.8% | 45.4% | 2.8 pts |
-| Peak near Shackleton - best-lit point (derived) | -88.7851 | 124.3438 | 59.8% | 59.8% | 61.4% | 59.1% | 0.7 pts |
-| Nobile Rim 2 (site DM2) | -84.20156 | 60.69989 | 32.8% | 32.8% | 34.2% | outside map | n/a |
-| Mons Mouton (landform centre) | -84.6 | 31 | 30.1% | 30.1% | 33.1% | 32.8% | -2.8 pts |
-| Mons Malapert (landform centre) | -85.98 | -1.67 | 33.9% | 33.9% | 34.6% | 39.0% | -5.1 pts |
-| Shackleton crater centre (floor) | -89.67 | 129.78 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0 pts |
+| Site | lat | E-lon | (1) Avg disk fraction | (2) Sun centre up | (3) Any part up | Published 60 m map | Difference (1) - 60 m map | Published 120 m map | Difference (1) - 120 m map |
+|---|---|---|---|---|---|---|---|---|---|
+| IM-1 Odysseus | -80.13 | 1.44 | 39.4% | 39.4% | 40.0% | outside map | n/a | 37.0% | 2.4 pts |
+| IM-2 Athena | -84.7906 | 29.1957 | 45.0% | 45.0% | 46.7% | 46.0% | -1.0 pts | 46.5% | -1.5 pts |
+| Peak near Shackleton (illuminated area) | -88.79 | 124.5 | 48.1% | 48.1% | 49.8% | 45.4% | 2.8 pts | 45.9% | 2.2 pts |
+| Peak near Shackleton - best-lit point (derived) | -88.7851 | 124.3438 | 59.8% | 59.8% | 61.4% | 59.1% | 0.7 pts | 54.2% | 5.6 pts |
+| Nobile Rim 2 (site DM2) | -84.20156 | 60.69989 | 32.8% | 32.8% | 34.2% | outside map | n/a | 34.6% | -1.8 pts |
+| Mons Mouton (landform centre) | -84.6 | 31 | 30.1% | 30.1% | 33.1% | 32.8% | -2.8 pts | 33.6% | -3.5 pts |
+| Mons Malapert (landform centre) | -85.98 | -1.67 | 33.9% | 33.9% | 34.6% | 39.0% | -5.1 pts | 43.2% | -9.3 pts |
+| Shackleton crater centre (floor) | -89.67 | 129.78 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0 pts | 0.0% | 0.0 pts |
 
-Covered sites (excluding the derived point, which was chosen using the map): 5; |difference| mean 2.3 pts, max 5.1 pts.
+Sites covered by the 60 m map (excluding the derived point, which was chosen using that map): 5; |difference| mean 2.3 pts, max 5.1 pts. Against the coarser 120 m map (all 7 sites except the derived point): |difference| mean 3.0 pts, max 9.3 pts.
 
 **Finding.** At the published coordinate, the published 60 m map itself gives 45.4%, and our model gives 48.1% (2 m, 18.6 years). Both are well below "approximately 80%". The ~80% figure is therefore not reproduced by the public map product at that coordinate. Possible reasons: the 2011 analysis used 240 m topography and different heights or periods, the coordinate is rounded to 0.01° (about ±150 m), and illumination changes a lot over a few hundred metres. We report this as-is. With the observer 10 m above the surface (the Mazarico et al. abstract notes that ~10 m height gains can greatly improve illumination), the best point within 500 m reaches 79.2% in our model; the published map at that point gives 58.1% (the map does not state its observer height).
 
