@@ -1,0 +1,190 @@
+# ASTERIA - Text audit (round 2B)
+
+Every factual sentence a user can see in the app was reviewed on 2026-11-14: Explain-mode "?" texts (`js/explain.js`), tooltips and badges, the first-visit hints, tour captions, Site Card text and site notes (`data/sites.js`, Expert view), map messages and legends, the Validation and About pages (`index.html`, `js/app.js`).
+
+**Rule applied.** A sentence with a specific number must either read the value live from the app (computed or generated data) or cite a source that was fetched and checked. Otherwise the number was removed or the sentence rewritten. Over-claiming words ("exact", "real", "talk to Earth", "guaranteed") were removed where not strictly true.
+
+**Claim types.** *computed live* = the value is read from the app's own computation or generated data at display time; *cited: URL* = stated by a source fetched and checked on 2026-11-14; *basic physics / definition* = a definition of the app's own quantity or settings, or elementary geometry/physics.
+
+## Summary
+
+| | Count |
+|---|---|
+| Rows audited (a row is one sentence, label or a group of closely related sentences) | 123 |
+| Kept (checked, no change needed; a few with a small addition noted in the row) | 47 |
+| Rewritten (now cited, read live, softened or corrected) | 47 |
+| New text added this round (each checked the same way) | 12 |
+| Removed (sentence or number dropped because it was unsupported or no longer true) | 17 |
+
+Rows marked **removed** are listed in place, with what (if anything) replaced them.
+
+## Specific checks requested
+
+| Topic | Finding | Status |
+|---|---|---|
+| Lunar axial tilt (~1.54° to the ecliptic) | No sentence in the app states it. Not added: the NASA Moon fact sheet fetched for this audit lists "Obliquity to orbit 6.68°" but not the tilt to the ecliptic, so no fetched source for 1.54°. The tour instead shows the live range of Sun elevation at the selected site. | not stated (nothing to fix) |
+| Libration values | No numeric libration value is stated. The tour's Earth step now shows the live range of Earth elevation over the window instead of a fixed claim. | rewritten (computed live) |
+| Solar and Earth angular sizes | No fixed value is stated in the app. Expert view now shows the disk diameters computed live by the engine (2·asin(R/d), R_Sun = 695,700 km (IAU 2015 nominal), R_Earth = 6378.137 km). GAPS_AND_ISSUES.md "0.53°" rewritten to refer to the computed size. | computed live |
+| 1361 W/m² | Fetched IAU 2015 Resolution B3 (Prša et al., https://arxiv.org/abs/1510.07674, PDF text): "1 S_N = 1361 W m^-2". The Power page and About page now link this source. | cited |
+| Definition of "sunlit" | Sun **centre** above the local horizon (terrain where available). Same wording in the Sunlight tile "?", % sunlit "?", Sunlight windows "?". | definition |
+| Definition of "average illumination" | Average visible fraction of the solar disk. NASA's maps are described as using two wordings (both quoted on the Validation page); the "?" no longer says the app's quantity *is* NASA's quantity. | rewritten |
+| Definition of "Earth visible / Earth link" | Earth **centre** above the horizon plus the minimum link elevation; geometric line of sight only. "Talk to Earth" replaced by "line of sight to Earth". | rewritten |
+| "All Artemis regions are covered" | Tour step 1 said ASTERIA's sites were "covering all 9 NASA Artemis III candidate regions". Now false (6 regions are not plotted) and removed; the step reads the number of plotted regions live (3 of 9). | removed / rewritten |
+
+## Explain mode ("?" texts, `js/explain.js`)
+
+| Text (as shown now) | Claim type | Status |
+|---|---|---|
+| Map: "A map of the Moon's south pole region seen from above the pole (polar stereographic projection, the same one used by the LOLA elevation data)." | definition; cited: LOLA PDS labels (DSMAP_POLAR) | kept |
+| Map: "It covers the area of the elevation data only: about 80°S to the pole." | basic geometry (tile square = LDEM_80S_80M extent, 80°S on the axes) | rewritten (new restriction) |
+| Map: "...click anywhere on the map to test your own point (it gets a terrain horizon from coarser 240 m data)." | app behaviour | rewritten (was "click anywhere") |
+| Map: "NASA's Artemis III candidate landing regions are all near the lunar south pole (NASA, 28 Oct 2024)." | cited: https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/ ("nine potential landing regions near the lunar South Pole") | rewritten (source named) |
+| Map: "There the Sun stays close to the horizon, so mountains and crater rims decide where there is sunlight and where there is permanent shadow." | basic physics (also computed: Validation sanity test, pole Sun elevation range) | kept |
+| Map: "NASA notes that permanently shadowed areas can preserve resources, including water." | cited: same NASA release ("permanently shadowed areas that can preserve resources, including water") | rewritten (was "possibly water ice", uncited) |
+| Sunlight: "'Sun up' means the centre of the Sun is above the local horizon, including hills and crater walls (terrain) where available." | definition | kept |
+| Sunlight: "Solar panels need the Sun; without it a lander runs on batteries and cools down." | basic physics | rewritten ("gets very cold" softened) |
+| Sunlight: "At the pole the Sun moves around the sky close to the horizon instead of rising high." | basic physics; computed (sky view, tour) | kept (reworded) |
+| Earth link: "'Earth in view' means the centre of the Earth is above the local horizon (plus the minimum link elevation you set)." | definition | kept |
+| Earth link: "With Earth in view a lander can in principle radio Earth directly ... Antennas, power and ground stations are not modelled." | basic / limitation | rewritten (was "can talk directly to antennas on Earth") |
+| Mission status: colour definitions | definition | kept |
+| Mission status: "Times when a lander can charge its batteries and have a line of sight to Earth at the same moment are the easiest for surface work." | basic | rewritten (was "The best times...") |
+| Sky view: definitions of axes, skyline, dots; "nothing is interpolated" | definition / app behaviour | kept; "as seen from 2 m above the ground" added (observer height) |
+| Sky view: "It shows which part of the skyline hides the Sun or the Earth, and when." | app behaviour | rewritten (removed "exactly") |
+| Timeline: definition | definition | kept |
+| Earth link windows: definition | definition | kept |
+| Earth link windows: "Direct contact with Earth is only geometrically possible inside these windows." | basic | rewritten (was "Mission controllers plan data downloads ... around these windows", unsupported) |
+| Sunlight windows: "The longest gap between sunlight windows is what a battery has to bridge." | basic | rewritten |
+| Minimum link elevation: "A margin of a few degrees leaves room for things the model does not include, such as boulders or antenna limits." | basic | rewritten |
+| Launch slip: "At the pole, sunlight and Earth visibility change over days, so a slip can change both; the heatmap shows by how much ..." | basic; computed (heatmap) | rewritten (was "a slip of a week or two can turn a well-lit mission into one that starts in darkness", a general claim with an unsupported magnitude) |
+| Power: "...The panel and load values are examples: enter your mission's values." | definition | rewritten (label added) |
+| Power: "A solar-powered lander can only work as long as its energy lasts." | basic | rewritten (was "Power is the first thing that limits a polar mission.") |
+| Compare | definition | kept |
+| % sunlit / % Earth link / % both | definitions | kept (Earth wording: "line-of-sight time") |
+| Average illumination: "Average fraction of the solar disk that is visible above the horizon (a half-hidden Sun counts as 0.5)." | definition | kept |
+| Average illumination: "NASA's published illumination maps describe their value in two ways, one of them this quantity (see the Validation tab)." | cited: https://pgda.gsfc.nasa.gov/products/69 and the AVGVISIB .LBL files | rewritten (was "it is also the quantity in NASA's published illumination maps") |
+| Longest darkness / blackout / windows | definitions | kept |
+| Terrain layer: "synthetic lighting ... not real sunlight at any date" | definition (tools/tiles.py) | kept |
+| Slope layer: "sampled every 37 m and averaged over 74 m pixels (over larger pixels when zoomed out)" | definition (tools/tiles.py, data/tiles_meta.js) | rewritten (Part F) |
+| Slope layer: "Landers need gentle slopes (often below about 8-10°)" | number not sourced | **removed** the number; now "Landers need gentle ground." |
+| Illumination layer: two maps, 18.6 years hourly, two definitions | cited: https://pgda.gsfc.nasa.gov/products/69, product labels | rewritten (Part D/F) |
+
+## Site Card, map, legends, badges (`js/app.js`, `index.html`)
+
+| Text | Claim type | Status |
+|---|---|---|
+| Badge "Terrain horizon (LOLA)", tooltip "LOLA DEMs (20 m/px near the site, 80-120 m/px further away), 360 azimuths, observer 2 m above ground" | definition (tools/terrain.py) | rewritten (was "LOLA 20-120 m DEM") |
+| Badge "Terrain horizon (240 m data)", tooltip "Terrain from coarser 240 m data (less precise than curated sites)" | definition; validation computed | new |
+| Badge "Smooth horizon - terrain not included", tooltip "...real hills and crater walls can change when the Sun and Earth rise and set" | basic | rewritten (was "by hours to days", magnitude not supported) |
+| Custom point (terrain): "Sun and Earth positions come from the validated engine (elevations within X° of NASA/JPL Horizons in the tests); the horizon is terrain from coarser 240 m data ... at the curated sites, yearly % sunlit from this data differed from the 20 m terrain by X points on average (up to Y, at SITE)." | computed live (data/validation.js, data/coarse_validation.js) | new (Part C) |
+| Custom point (smooth): "...the horizon is a smooth Moon without mountains, so results may differ from reality a lot: at the curated south-pole sites, real terrain changes the yearly % sunlit by up to N percentage points." | computed live (data/illumination.js) | new (Part C) |
+| Map message: "No elevation data here - this map covers the lunar south pole (about 80°S to the pole)." | basic geometry | new (Part C) |
+| Map note for reference sites: "... is outside this south-pole map. It is a reference site: smooth horizon, terrain not included." | definition | kept |
+| Landform-centre warning: "One point at the centre of a large landform, not a landing site. NASA's region boundary is not plotted; conditions elsewhere in the region can be very different." | cited (IAU Gazetteer diameters) / basic | rewritten (Part A) |
+| Site kind: "centre of the named landform; region boundary not plotted" / "published point inside the region (independent study); region boundary not plotted" | cited (IAU Gazetteer; arXiv 2406.19863) | rewritten (Part A) |
+| Unplotted regions: "Official boundaries published only as images; not plotted, no values computed." | cited: NASA release (image only, no coordinates) | new (Part A) |
+| Site group text: "A region is plotted only where a point is genuinely inside it ..." | definition | rewritten (was "Each shown at the IAU named feature it is named after") |
+| Expert view: "Source type: primary - <what the source states>" | cited per site | new (Part B) |
+| Expert view: terrain line (site height, horizon range, ray reach) | computed live | kept; new 240 m variant |
+| Expert view: Sun and Earth disk diameters | computed live | new |
+| Tile "Why it matters: solar power and heat." | basic | kept |
+| Tile "Why it matters: a line of sight for direct radio contact with Earth." | basic | rewritten (was "direct radio contact") |
+| Mission status lines ("Both at once: power and a line of sight to Earth." etc.) | definitions | rewritten (4 lines; removed "talk to Earth") |
+| Countdown tooltip "No sunrise found within the search range" | app behaviour | rewritten (removed the guess "permanently shadowed?") |
+| Legend, terrain: "Hillshade ... synthetic lighting, not real illumination. Up to X m/px near the pole." | computed live (tiles_meta) | rewritten (number now read from tile metadata) |
+| Legend, slope: sample spacing and pixel averaging | computed live (tiles_meta) | rewritten (Part F) |
+| Legend, illumination: "NASA's published illumination map covers about 85°S-90°S only", 60 m and 120 m products, source link, "Its documentation gives two different definitions ..." | cited: PGDA product 69 page and labels | rewritten (Parts D, F) |
+| Legend markers: "Point inside an Artemis III region" | definition | rewritten (was "Artemis III region feature") |
+| Sky / chart captions ("Brown: LOLA terrain skyline (2 m above ground)" or "terrain from coarser 240 m data") | definition | rewritten (basis per site) |
+| Step note "Sampling every N min (M samples); rise/set events refined to 1 min; statistics accurate to about one sampling step." | computed live / app behaviour | kept |
+| Window notes ("before"/"after", "Max elevation from the computed samples") | definition | kept |
+| Fine print "Geometric line-of-sight only; antenna, power and ground-station availability are not modelled." | limitation | kept |
+| Method note in Expert view (body centre, azimuth from local north, Astronomy Engine + IAU orientation, light-time and aberration, validated against Horizons, bisection to 1 minute) | definition; computed (Validation) | kept |
+| Picker hint: "Points clicked or typed inside the map get a terrain horizon from coarser 240 m data (less precise than curated sites). Points outside the map use a smooth Moon without mountains." | definition | rewritten (was "terrain is not computed for them") |
+
+## First-visit hints and tour
+
+| Text | Claim type | Status |
+|---|---|---|
+| Hint 1: "Click a marker to open a site (violet diamonds are points inside NASA's Artemis III candidate regions) ..." | definition | rewritten (was "violet diamonds are NASA's Artemis III candidate regions") |
+| Hints 2-3 | app behaviour | kept |
+| Tour 1: "This is the lunar south pole, from about 80°S to 90°S, built from NASA LOLA elevation data." | basic; cited (LOLA PDS) | kept |
+| Tour 1: "ASTERIA has N south-pole sites with computed terrain horizons." | computed live | kept |
+| Tour 1: "...covering all 9 NASA Artemis III candidate regions (Oct 2024), each shown at the IAU feature it is named after." | false after Part A | **removed** |
+| Tour 1: "Of NASA's 9 Artemis III candidate regions (Oct 2024), K have a plotted point inside them; the others are listed by name only, because their boundaries are published only as images." | computed live; cited (NASA release) | new |
+| Tour 1: "Its permanently shadowed craters may hold water ice, and nearby peaks get long periods of sunlight." | uncited | **removed**; replaced by "NASA notes that its permanently shadowed areas can preserve resources, including water, while some high ground is sunlit for long periods (the best-lit site here, X, is sunlit Y% of 2027 in ASTERIA's terrain model)." (cited + computed live) |
+| Tour 1: Sun elevation range at the selected site | computed live | kept |
+| Tour 2: Sun elevation range, terrain range, % sunlit terrain vs smooth, Apollo 11 comparison | computed live | kept |
+| Tour 2: "The brown skyline is the real terrain" | over-claim | rewritten: "the terrain from LOLA elevation data" |
+| Tour 3: "Earth bobs near the horizon (libration)" | qualitative | rewritten: Earth "moves up and down a little as the Moon's orientation toward Earth changes (libration)", with the live elevation range |
+| Tour 3: % in view, windows, longest blackout, next Earthrise/Earthset | computed live | kept |
+| Tour 3: "so direct radio contact comes and goes" | over-claim (no radio model) | rewritten: "a direct line of sight comes and goes" |
+| Tour 4: launch-slip numbers | computed live | kept |
+| Tour 5: power numbers | computed live | kept; "(example values)" added twice |
+
+## Power, Compare, Launch slip
+
+| Text | Claim type | Status |
+|---|---|---|
+| "First-order estimate: no temperature effects, dust, degradation, wiring/conversion losses or light reflected from terrain." | limitation | kept |
+| "Power = 1361 W/m² (nominal total solar irradiance, IAU 2015 Resolution B3) × ..." | cited: https://arxiv.org/abs/1510.07674 | rewritten (link added) |
+| "Example values - enter your mission's values. ... placeholders, not data for any real lander." | label | new (Part F) |
+| "A vertical panel that turns to follow the Sun is the usual choice at the poles ..." | "usual choice" unsupported | **removed**; replaced by geometry: a flat panel sees the low Sun almost edge-on, a vertical panel turned toward it faces it nearly head-on (power ∝ cos(incidence)) |
+| Battery sizing sentence | definition | kept |
+| Power verdict, cards, window note | computed live | kept (horizon basis now named) |
+| Compare explanation, "Highlighted = best in row ..." | definition | kept |
+| Compare "Horizon model" row | definition | rewritten (3 cases incl. 240 m data) |
+| Launch-slip explanations, legend, summary | definition / computed live | kept |
+
+## Validation page
+
+| Text | Claim type | Status |
+|---|---|---|
+| Overall PASS, error statistics, case tables | computed live (data/validation.js) | kept |
+| Method paragraph (Horizons settings) | cited: Horizons API documentation / cached responses | kept; tolerance now read live |
+| Blind-test section | computed live (fresh Horizons fetch) | new (Part G) |
+| One-year terrain table; "Artemis III points are landform centres or a published point inside a region, not landing sites." | computed live; definition | rewritten |
+| Cross-check source quotes (Mahanti et al. 2024, Mazarico et al. 2011 abstract, PGDA product 69) | cited (URLs shown) | kept |
+| Cross-check tables and "Finding" paragraph | computed live (data/illum_crosscheck.js) | kept; 120 m map column added |
+| Clicked-point terrain validation section | computed live (data/coarse_validation.js) | new (Part C) |
+
+## About page
+
+| Text | Claim type | Status |
+|---|---|---|
+| Purpose paragraph, disclaimer | definition | kept |
+| "Computed" list | definition | kept |
+| "Approximations" list | definition | rewritten (240 m terrain; landform centres; regions not plotted) |
+| Ephemeris methods (VSOP87, Chapront-based lunar theory, IAU/WGCCRE orientation, light-time, aberration, no refraction) | cited: Astronomy Engine documentation; js/engine.js | kept |
+| "compared against NASA/JPL Horizons on 52 angle cases and 4 event times" | fixed numbers | rewritten: counts read live from data/validation.js, plus the blind test |
+| Terrain horizons method | definition (tools/terrain.py) | rewritten (240 m variant added) |
+| Events, windows, animation, launch-slip, power methods | definition | kept |
+| Map method | definition; cited (PGDA) | rewritten (two maps, coverage) |
+| NASA Artemis III regions paragraph (generated) | cited: NASA release; IAU Gazetteer; arXiv 2406.19863 | rewritten (Part A) |
+| Limitation: "Real hills and crater walls can change rise/set times by hours to days." | magnitude unsupported | **removed** the magnitude; now refers to the terrain-vs-smooth columns on the Validation tab |
+| Limitation: 240 m data smooths features smaller than about 240 m | definition | new |
+| Limitation: "(site height effect < 0.001°)" | was a bare number | rewritten as basic geometry: at most height ÷ Earth distance (about 0.001° for 6 km) |
+| Data sources | cited | rewritten (120 m map, IAU B3 link, "accepted in Acta Astronautica" from the arXiv page) |
+| "Riyadh local time (UTC+3, no daylight saving)" | basic (time-zone definition) | kept |
+
+## Site notes and coordinate descriptions (`data/sites.js`, Expert view)
+
+| Text | Claim type | Status |
+|---|---|---|
+| Apollo coordinates, "NSSDC: planetocentric Mean Earth/Polar Axis (DE421), from LRO images (Wagner et al. 2017)" | cited: https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html | kept |
+| Chandrayaan-3 "Shiv Shakti Point" | Wikipedia only | **removed**; note now quotes LROC |
+| Chang'e-4 "Von Kármán crater ... communications via the Queqiao relay satellite" | Wikipedia only | **removed**; note quotes LROC and the computed far-side test |
+| Chang'e-6 "First far-side sample return" | Wikipedia only | **removed**; LROC "southern edge of the Apollo basin" kept |
+| SLIM "Near Shioli crater" | Wikipedia only | **removed** |
+| IM-1 "Malapert A region ... Lander tipped over on landing" | Wikipedia only | **removed**; LROC quote (crater, slope) instead |
+| IM-2 "Mons Mouton plateau region" | not in the LROC source | **removed**; LROC quote ("on its side within a 20-meter diameter crater") |
+| Blue Ghost "Landing-region image centre" | superseded | rewritten: LROC post-landing position (image page 1407) |
+| Chang'e-7 target (all text) | Wikipedia citing a social-media post | **removed** with the site |
+| Crater-centre stand-ins (Cabeus B, Haworth, Nobile, de Gerlache, Slater) | not inside the regions | **removed** with the sites (Part A) |
+| Mons Mouton note "VIPER destination" | not re-verified this round | **removed** |
+| Peak near Shackleton: Mahanti et al. quote "approximately 80%" | cited: https://iopscience.iop.org/article/10.3847/PSJ/ad1b50 | kept |
+| Peak near Shackleton: "'Peak near Shackleton' was in NASA's 2022 list of 13 regions; it is not in the October 2024 list of 9" | cited: both NASA releases (fetched) | kept |
+| Peak near Shackleton: "both our model (48% ...) and the published map (45%)" | fixed numbers | rewritten without numbers; values on the Validation page (computed) |
+| Derived point: "ASTERIA 59.8%, published map 59.2%" | fixed numbers | rewritten without numbers; values on the Validation page |
+| Shackleton centre: "Permanently shadowed crater floor" | unsupported as a bare statement | rewritten: "0% sunlight in ASTERIA's terrain model and in NASA's published map (Validation)" |
+| Mons Mouton / Mons Malapert: IAU centre, diameters, "named for nearby crater, Malapert", adoption date, centre inside the IAU outline | cited: IAU Gazetteer pages 16070, 16338 | rewritten (Part A) |
+| DM2: "Peña-Asensio et al. ... site DM2 is their optimal point. Independent study, not a NASA selection." | cited: https://arxiv.org/abs/2406.19863 (full text checked) | kept |

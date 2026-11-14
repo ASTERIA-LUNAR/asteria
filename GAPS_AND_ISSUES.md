@@ -57,7 +57,7 @@ Status as of 2026-11-14 (third development round: ASTERIA rename, south-pole map
   * Statistics and "max elevation" in the window lists come from the samples, so they are accurate to about one step.
   * Windows cut by the start or end of the period count only their part inside it, and are marked "before"/"after" and "+".
   * Beyond the selected window, the next event is searched for up to 400 days with 60-minute steps.
-* **Sunrise/sunset and Earthrise/Earthset** use the centre of the body. "Average illumination" averages the visible fraction of the solar disk, treating the horizon as a straight line across the 0.53° disk.
+* **Sunrise/sunset and Earthrise/Earthset** use the centre of the body. "Average illumination" averages the visible fraction of the solar disk, treating the horizon as a straight line across the disk (its diameter is computed at each step from the Sun distance and shown in Expert view).
 * **Earth link**: Earth's centre is above the terrain horizon plus the user's minimum elevation (default 0°). It is a geometric line of sight only; antennas, power, Earth ground-station coverage and relay satellites are not modelled.
 * **Moon frame**: the Moon orientation uses the IAU/WGCCRE rotation model; Horizons uses the DE-based Mean-Earth frame. The difference is well under 0.01° in the validation tables.
 * **Moon shape**: the Moon is a 1737.4 km sphere for the Sun and Earth directions. Site height changes them by less than 0.001°.
@@ -79,7 +79,7 @@ Status as of 2026-11-14 (third development round: ASTERIA rename, south-pole map
 ### Power & battery calculator - first-order estimate
 
 * Power = 1361 W/m² × (1 AU/d)² × area × efficiency × cos(incidence) × visible disk fraction.
-  * 1361 W/m² is the IAU 2015 Resolution B3 nominal total solar irradiance. The value was confirmed via the Wikipedia "Solar constant" article; the arXiv PDF text could not be extracted.
+  * 1361 W/m² is the IAU 2015 Resolution B3 nominal total solar irradiance, read from the resolution text (Prša et al., arXiv 1510.07674, PDF fetched 2026-11-14: "1 S_N = 1361 W m^-2").
 * Not modelled:
   * temperature
   * dust
@@ -90,6 +90,11 @@ Status as of 2026-11-14 (third development round: ASTERIA rename, south-pole map
   * battery efficiency
 * The battery size is load × longest darkness ÷ usable fraction. For a fixed-azimuth panel the longest zero-output period can be longer; the app then shows a note with the battery needed for that period.
 * Energy is integrated with the trapezoid rule on the samples.
+
+### Text audit
+
+* All user-facing factual text was audited (TEXT_AUDIT.md). Unsupported numbers and claims were removed or rewritten; numbers are read live from the app's computations or cite a fetched source.
+* Not stated in the app for lack of a fetched source: the Moon's axial tilt to the ecliptic (the NASA Moon fact sheet fetched lists only the obliquity to the orbit, 6.68°), a typical lander slope limit, and the VIPER destination.
 
 ## 4. Known issues and limitations of the app
 

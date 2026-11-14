@@ -94,14 +94,14 @@
           <div class="tlabel">Earth link <span class="q" data-q="earth"></span></div>
           <div class="tstate" id="earthState">-</div>
           <div class="tcount"><span id="earthCountLbl">-</span> <b class="mono" id="earthCount">-</b></div>
-          <div class="twhy">Why it matters: direct radio contact with Earth.</div>
+          <div class="twhy">Why it matters: a line of sight for direct radio contact with Earth.</div>
           <div class="tx x-only mono" id="earthExpert"></div>
         </div>
         <div class="tile" id="tileMission">
           <div class="tlabel">Mission status <span class="q" data-q="mission"></span></div>
           <div class="tstate" id="missionState">-</div>
           <div class="tcount"><span id="missionCountLbl">-</span> <b class="mono" id="missionCount">-</b></div>
-          <div class="twhy" id="missionWhy">Both at once = charge batteries and talk to Earth.</div>
+          <div class="twhy" id="missionWhy">Both at once: power and a line of sight to Earth.</div>
         </div>
       </div>
     </aside>
@@ -199,7 +199,8 @@
 <section id="page-power" class="page">
   <div class="panel">
     <div class="panelhead"><h2>Solar power &amp; battery calculator <span class="q" data-q="power"></span></h2><span class="badge smooth">First-order estimate</span></div>
-    <p class="hint">First-order estimate: no temperature effects, dust, degradation, wiring/conversion losses or light reflected from terrain. Power = 1361 W/m&sup2; (IAU 2015 nominal total solar irradiance) &times; (1 AU / Sun distance)&sup2; &times; area &times; efficiency &times; cos(incidence) &times; visible fraction of the solar disk.</p>
+    <p class="hint">First-order estimate: no temperature effects, dust, degradation, wiring/conversion losses or light reflected from terrain. Power = 1361 W/m&sup2; (nominal total solar irradiance, <a href="https://arxiv.org/abs/1510.07674" target="_blank" rel="noopener">IAU 2015 Resolution B3</a>) &times; (1 AU / Sun distance)&sup2; &times; area &times; efficiency &times; cos(incidence) &times; visible fraction of the solar disk.</p>
+    <p class="examplenote" id="pwExample"><b>Example values - enter your mission's values.</b> The panel area, efficiency, load and usable battery fraction below are placeholders, not data for any real lander.</p>
     <div class="row wrap">
       <label>Panel area (m&sup2;) <input id="pwArea" type="number" min="0.01" step="0.1" value="1"></label>
       <label>Cell efficiency (%) <input id="pwEff" type="number" min="1" max="100" step="1" value="30"></label>
@@ -214,7 +215,7 @@
     <div id="pwVerdict" class="verdict"></div>
     <div class="cards small pwcards" id="pwCards"></div>
     <canvas id="pwChart" aria-label="Power versus time"></canvas>
-    <p class="explain">A vertical panel that turns to follow the Sun is the usual choice at the poles because the Sun is always near the horizon: a flat (horizontal) panel would see it almost edge-on. The battery must carry the load through the longest darkness; only part of a battery's capacity is usable, so the needed capacity is load &times; hours of darkness &divide; usable fraction.</p>
+    <p class="explain">At the pole the Sun stays near the horizon, so a flat (horizontal) panel sees it almost edge-on, while a vertical panel turned toward the Sun faces it nearly head-on (power &prop; cos(incidence)). The battery must carry the load through the longest darkness; only part of a battery's capacity is usable, so the needed capacity is load &times; hours of darkness &divide; usable fraction.</p>
   </div>
 </section>
 
@@ -253,37 +254,39 @@
     <ul>
       <li><b>Computed</b>: Sun and Earth positions (validated against JPL Horizons), terrain horizons from LOLA elevation data, rise/set events, visibility windows and their statistics, the launch-slip heatmap, the illumination cross-check.</li>
       <li><b>Estimate</b> (labelled in the app): the power and battery calculator (first-order), Earth-link usability (geometric line-of-sight only).</li>
-      <li><b>Approximations</b> (labelled): smooth-Moon horizon for custom points and sites outside the south pole; named-feature coordinates standing in for NASA's Artemis III regions (NASA publishes no region coordinates); the hillshade map uses synthetic lighting.</li>
+      <li><b>Approximations</b> (labelled): terrain from coarser 240 m data for points you click or type inside the map (less precise than the curated sites; validated, see the Validation tab); a smooth-Moon horizon (no mountains) for points outside the map and the reference sites outside the south pole; single landform-centre points for two Artemis III regions whose boundaries are not plotted; the hillshade map uses synthetic lighting.</li>
     </ul>
     <h3>Methods</h3>
     <ul>
       <li><b>Ephemeris</b>: Sun, Earth and Moon positions from Astronomy Engine (VSOP87 and a Chapront-based lunar theory). Moon orientation from the IAU/WGCCRE rotation model. Positions are corrected for light travel time and stellar aberration. Azimuth is measured clockwise from local north (toward the lunar north pole). No refraction (the Moon has no atmosphere). Libration is included automatically.</li>
-      <li><b>Validation</b>: compared against NASA/JPL Horizons on 52 angle cases and 4 event times; see the Validation tab.</li>
-      <li><b>Terrain horizons</b> (south-pole sites only): LOLA gridded topography (LDEM_85S_20M 20 m/px, LDEM_80S_80M 80 m/px, LDEM_75S_120M 120 m/px), ray-marched in 360 directions out to 300 km, observer 2 m above the ground, lunar curvature included.</li>
+      <li><b>Validation</b>: compared against NASA/JPL Horizons on <span id="aboutNAngles">the</span> angle cases and <span id="aboutNEvents">the</span> event times listed on the Validation tab, plus a blind test on freshly fetched cases.</li>
+      <li><b>Terrain horizons</b> (curated south-pole sites): LOLA gridded topography (LDEM_85S_20M 20 m/px, LDEM_80S_80M 80 m/px, LDEM_75S_120M 120 m/px), ray-marched in 360 directions out to 300 km, observer 2 m above the ground, lunar curvature included. Points clicked or typed inside the map: the same method in the browser on a 240 m version of the same data.</li>
       <li><b>Events</b> (sunrise/sunset, Earthrise/Earthset): the centre of the Sun or Earth crossing the horizon (plus the minimum link elevation for Earth), found by a 10-minute scan (60 min for windows over 30 days) and refined by bisection to 1 minute.</li>
       <li><b>Windows and statistics</b>: from the sampled series; windows cut by the start or end of the period count only their part inside it.</li>
       <li><b>Animation</b>: the Sky view and timeline step through computed samples only (every 10 or 60 minutes); nothing is interpolated between samples.</li>
       <li><b>Launch slip</b>: one series covers the whole slip range; each landing date is an exact slice of it, so slip 0 matches the Explore timeline for the same window.</li>
       <li><b>Power</b> (first-order estimate): 1361 W/m&sup2; (IAU 2015 Resolution B3) &times; (1 AU / Sun distance)&sup2; &times; area &times; efficiency &times; cos(incidence) &times; visible solar-disk fraction. Battery = load &times; longest darkness &divide; usable fraction.</li>
-      <li><b>Map</b>: polar stereographic tiles generated locally from the LOLA DEMs (hillshade with synthetic lighting; slope from the DEM) and from NASA's published average-illumination map (PGDA product 69). Same projection as the DEMs, so markers and tiles line up.</li>
+      <li><b>Map</b>: polar stereographic tiles generated locally from the LOLA DEMs (hillshade with synthetic lighting; slope from the DEM) and from NASA's published average-illumination maps (PGDA product 69: 60 m map for about 85°S-90°S, 120 m map beyond). Same projection as the DEMs, so markers and tiles line up. The map only shows the area covered by the elevation data.</li>
     </ul>
     <h3>NASA Artemis III candidate regions</h3>
     <p id="aboutRegions"></p>
     <h3>Limitations</h3>
     <ul>
-      <li>Custom points and sites outside the south pole use a <b>smooth Moon horizon - terrain not included</b>. Real hills and crater walls can change rise/set times by hours to days.</li>
+      <li>Points outside the map and sites outside the south pole use a <b>smooth Moon horizon - terrain not included</b>. Real hills and crater walls can change when the Sun and Earth rise and set a great deal (compare the terrain and smooth columns on the Validation tab).</li>
+      <li>Points clicked or typed inside the map use <b>terrain from coarser 240 m data</b>: features smaller than about 240 m are smoothed out (see the Validation tab for how much this changes the results).</li>
       <li>Terrain masks have 1&deg; azimuth resolution and DEM resolution of 20-120 m; boulders and the lander itself are not modelled.</li>
       <li>"Earth link" uses Earth's centre and a geometric line of sight; antennas, power, ground stations on Earth and relay satellites are not modelled.</li>
-      <li>The Moon is treated as a sphere of radius 1737.4 km for the Sun/Earth directions (site height effect &lt; 0.001&deg;).</li>
+      <li>The Moon is treated as a sphere of radius 1737.4 km for the Sun/Earth directions. Ignoring a site's height shifts the Earth's direction by at most about height &divide; Earth distance (about 0.001&deg; for 6 km) and the Sun's by far less.</li>
     </ul>
     <h3>Data sources and credits</h3>
     <ul>
       <li><a href="https://github.com/cosinekitty/astronomy">Astronomy Engine</a> by Don Cross (MIT License) - ephemeris library. <a href="https://leafletjs.com/">Leaflet</a> 1.9.4 (BSD-2-Clause) - map.</li>
       <li><a href="https://ssd.jpl.nasa.gov/horizons/">NASA/JPL Horizons</a> - reference ephemeris used for validation.</li>
       <li><a href="https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/">LRO LOLA gridded polar DEMs</a>, NASA PDS Geosciences Node.</li>
-      <li><a href="https://pgda.gsfc.nasa.gov/products/69">NASA PGDA Lunar Polar Illumination</a> (product 69): AVGVISIB_85S_060M_201608. Please cite Mazarico, E., et al. (2011), Illumination conditions of the lunar polar regions using LOLA topography, Icarus 211, 1066-1081, doi:10.1016/j.icarus.2010.10.030 (as the PGDA page requests).</li>
+      <li><a href="https://pgda.gsfc.nasa.gov/products/69">NASA PGDA Lunar Polar Illumination</a> (product 69): AVGVISIB_85S_060M_201608 and AVGVISIB_75S_120M_201608. Please cite Mazarico, E., et al. (2011), Illumination conditions of the lunar polar regions using LOLA topography, Icarus 211, 1066-1081, doi:10.1016/j.icarus.2010.10.030 (as the PGDA page requests).</li>
       <li><a href="https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/">NASA Artemis III candidate regions</a> (28 Oct 2024); <a href="https://planetarynames.wr.usgs.gov/">IAU Gazetteer of Planetary Nomenclature</a> (USGS) for feature coordinates.</li>
-      <li><a href="https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html">NASA NSSDC Apollo landing site coordinates</a>; <a href="https://lroc.im-ldi.com/">LROC</a> featured images for robotic lander positions; Mahanti et al. 2024 (PSJ 5, 62) and Pe&ntilde;a-Asensio et al. (arXiv 2406.19863) for south-polar points. Every site lists its source links.</li>
+      <li><a href="https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html">NASA NSSDC Apollo landing site coordinates</a>; <a href="https://lroc.im-ldi.com/">LROC</a> featured images for robotic lander positions; Mahanti et al. 2024 (PSJ 5, 62) and Pe&ntilde;a-Asensio et al. (arXiv 2406.19863, accepted in Acta Astronautica) for south-polar points. Every site lists its source links and source type (Expert view).</li>
+      <li>Nominal total solar irradiance 1361 W/m&sup2;: <a href="https://arxiv.org/abs/1510.07674">IAU 2015 Resolution B3</a> (Pr&scaron;a et al. 2016).</li>
       <li>Useful tools: <a href="https://quickmap.lroc.asu.edu/">LROC Quickmap</a>, <a href="https://trek.nasa.gov/moon/">NASA Moon Trek</a>.</li>
     </ul>
     <h3>Time zones</h3>

@@ -289,7 +289,7 @@
         (LY.illum120 ? ' Outside the square: NASA\'s coarser map AVGVISIB_75S_120M_201608 (120 m/px, 75°S-90°S), shown on ' + (TMp[String(LY.illum120.maxNativeZoom)] || 148).toFixed(0) + ' m pixels.' : '') +
         ' Source: <a href="https://pgda.gsfc.nasa.gov/products/69" target="_blank" rel="noopener">NASA PGDA product 69</a> (Mazarico et al. 2011), hourly steps over 18.6 years. Its documentation gives two different definitions: % of time steps sunlit by any part of the solar disc, and average solar disc visibility. 0 = permanent shadow.</div>';
     } else {
-      h = '<div class="lgtitle">Terrain ' + q('overlay_none') + '</div><div class="lgnote">Hillshade from LOLA elevation data - synthetic lighting, not real illumination. Up to 18.6 m/px inside ~85°S.</div>';
+      h = '<div class="lgtitle">Terrain ' + q('overlay_none') + '</div><div class="lgnote">Hillshade from LOLA elevation data - synthetic lighting, not real illumination. Up to ' + (TMp['7'] || 18.6).toFixed(1) + ' m/px near the pole.</div>';
     }
     h += '<div class="lgmk"><span><i class="mk mk-feature"></i>Point inside an Artemis III region</span><span><i class="mk mk-point"></i>Mission / published point</span><span><i class="mk mk-derived"></i>Derived</span><span><i class="mk mk-reference"></i>Reference</span><span><i class="mk mk-group"><b>2</b></i>Overlapping</span></div>';
     el.innerHTML = h;
@@ -317,13 +317,13 @@
     tile('tileEarth', earthUp ? 'on-earth' : 'off', $('earthState'), earthUp ? 'Earth in view' : 'Earth hidden');
     countdown('sun', sunUp, t, 'Sunset in', 'Sunrise in');
     countdown('earth', earthUp, t, 'Earthset in', 'Earthrise in');
-    $('sunExpert').textContent = 'el ' + fmtDeg(r.sun.el) + ' · az ' + r.sun.az.toFixed(1) + '° · horizon ' + fmtDeg(hs, 1) + ' · disk ' + (100 * frac).toFixed(0) + '%';
-    $('earthExpert').textContent = 'el ' + fmtDeg(r.earth.el) + ' · az ' + r.earth.az.toFixed(1) + '° · horizon ' + fmtDeg(he, 1) + (S.minEl ? ' + ' + S.minEl + '° min' : '');
+    $('sunExpert').textContent = 'el ' + fmtDeg(r.sun.el) + ' · az ' + r.sun.az.toFixed(1) + '° · horizon ' + fmtDeg(hs, 1) + ' · disk ' + (100 * frac).toFixed(0) + '% visible · disk diameter ' + (2 * r.sun.radius_deg).toFixed(3) + '°';
+    $('earthExpert').textContent = 'el ' + fmtDeg(r.earth.el) + ' · az ' + r.earth.az.toFixed(1) + '° · horizon ' + fmtDeg(he, 1) + (S.minEl ? ' + ' + S.minEl + '° min' : '') + ' · disk diameter ' + (2 * r.earth.radius_deg).toFixed(2) + '°';
     var ms, cls, why;
-    if (sunUp && earthUp) { ms = 'Power + Earth link'; cls = 'on-both'; why = 'Both at once: can charge batteries and talk to Earth.'; }
-    else if (sunUp) { ms = 'Sunlight only'; cls = 'on-sun'; why = 'Power, but no direct contact with Earth.'; }
-    else if (earthUp) { ms = 'Earth link only'; cls = 'on-earth'; why = 'Contact with Earth, running on batteries.'; }
-    else { ms = 'Neither'; cls = 'off'; why = 'No sunlight and no direct Earth link: batteries and autonomy.'; }
+    if (sunUp && earthUp) { ms = 'Power + Earth link'; cls = 'on-both'; why = 'Both at once: power and a line of sight to Earth.'; }
+    else if (sunUp) { ms = 'Sunlight only'; cls = 'on-sun'; why = 'Power, but no line of sight to Earth.'; }
+    else if (earthUp) { ms = 'Earth link only'; cls = 'on-earth'; why = 'Line of sight to Earth, but running on batteries.'; }
+    else { ms = 'Neither'; cls = 'off'; why = 'No sunlight and no line of sight to Earth: batteries and autonomy.'; }
     tile('tileMission', cls, $('missionState'), ms);
     $('missionWhy').textContent = why;
     var ns = nextEventAfter('sun', t), ne = nextEventAfter('earth', t);
@@ -345,7 +345,7 @@
     } else {
       var maxD = Math.round((S.series.t[S.series.t.length - 1] - t) / DAY) + Jobs.local().SEARCH_DAYS_AFTER;
       $(body + 'Count').textContent = '> ' + maxD + ' days';
-      $(body + 'Count').title = (up ? 'No change' : body === 'sun' ? 'No sunrise (permanently shadowed?)' : 'No Earthrise') + ' found within the search range';
+      $(body + 'Count').title = (up ? 'No change' : body === 'sun' ? 'No sunrise' : 'No Earthrise') + ' found within the search range';
     }
   }
 
@@ -791,7 +791,7 @@
     h += '<tr><td>Angles vs Horizons (' + V.angles.length + ' comparisons)</td><td class="' + (V.anglePass ? 'pass' : 'fail') + '">' + (V.anglePass ? 'PASS' : 'FAIL') + '</td><td>Elevation error max ' + f(V.angleStats.el.max, 4) + '° (mean ' + f(V.angleStats.el.mean, 4) + '°), limit ' + V.tolerances.elDeg + '°. Azimuth error max ' + f(V.angleStats.az.max, 4) + '° (mean ' + f(V.angleStats.az.mean, 4) + '°), limit ' + V.tolerances.azDeg + '°.</td></tr>';
     h += '<tr><td>Event times vs Horizons (' + V.events.length + ')</td><td class="' + (V.eventPass ? 'pass' : 'fail') + '">' + (V.eventPass ? 'PASS' : 'FAIL') + '</td><td>Max ' + f(V.eventStats.max, 2) + ' min (mean ' + f(V.eventStats.mean, 2) + ' min), limit ' + V.tolerances.eventMin + ' min.</td></tr>';
     h += '<tr><td>Physics sanity tests (' + V.sanity.tests.length + ')</td><td class="' + (V.sanityPass ? 'pass' : 'fail') + '">' + (V.sanityPass ? 'PASS' : 'FAIL') + '</td><td>' + esc(V.sanity.period) + '</td></tr></tbody></table></div>';
-    h += '<h3>Method</h3><p>Our engine vs Horizons with the observer on the Moon (<code>CENTER=\'coord@301\'</code>, <code>COORD_TYPE=\'GEODETIC\'</code>, height 0 km on the 1737.4 km sphere), targets Sun (10) and Earth (399), quantity 4 (apparent azimuth/elevation), <code>APPARENT=\'AIRLESS\'</code>. Azimuth tolerance is relaxed (0.2°/cos el) only above 80° elevation, where azimuth becomes ill-defined near the zenith.</p>';
+    h += '<h3>Method</h3><p>Our engine vs Horizons with the observer on the Moon (<code>CENTER=\'coord@301\'</code>, <code>COORD_TYPE=\'GEODETIC\'</code>, height 0 km on the 1737.4 km sphere), targets Sun (10) and Earth (399), quantity 4 (apparent azimuth/elevation), <code>APPARENT=\'AIRLESS\'</code>. Azimuth tolerance is relaxed (' + V.tolerances.azDeg + '°/cos el) only above 80° elevation, where azimuth becomes ill-defined near the zenith.</p>';
     h += '<details><summary>Angle cases (' + V.angles.length + ')</summary><div class="tablewrap"><table><thead><tr><th>Site</th><th class="num">Lat</th><th class="num">E-lon</th><th>UTC</th><th>Body</th><th class="num">Az ours</th><th class="num">Az Horizons</th><th class="num">ΔAz</th><th class="num">El ours</th><th class="num">El Horizons</th><th class="num">ΔEl</th><th>Pass</th></tr></thead><tbody>';
     V.angles.forEach(function (c) {
       h += '<tr><td>' + esc(c.site) + '</td><td class="num">' + c.lat + '</td><td class="num">' + c.lon + '</td><td>' + c.date.replace('T', ' ').replace(':00Z', '') + '</td><td>' + c.body + '</td><td class="num">' + f(c.oursAz, 4) + '</td><td class="num">' + f(c.hzAz, 4) + '</td><td class="num">' + f(c.dAz, 4) + '</td><td class="num">' + f(c.oursEl, 4) + '</td><td class="num">' + f(c.hzEl, 4) + '</td><td class="num">' + f(c.dEl, 4) + '</td><td class="' + (c.pass ? 'pass' : 'fail') + '">' + (c.pass ? 'PASS' : 'FAIL') + '</td></tr>';
@@ -1237,8 +1237,9 @@
       var p = (S.site && S.site.id === DEFAULT_SITE && S.windowDays === 30) ? (S.ready || Promise.resolve()) : openInExplorer(siteById(DEFAULT_SITE), S.start, 30, true);
       p.then(function () {
         showPage('explorer'); Map.home(true);
-        var sEl = minMax(S.series.sunEl);
-        done('mapPanel', 'This is the lunar <b>south pole</b>, from about 80°S to 90°S, built from NASA LOLA elevation data. ASTERIA has <b>' + nTerrainSites() + '</b> south-pole sites with computed terrain horizons. Of NASA\'s <b>' + REG.regions.length + '</b> Artemis III candidate regions (Oct 2024), <b>' + REG.regions.filter(function (r) { return r.sites.length; }).length + '</b> have a plotted point inside them; the others are listed by name only, because their boundaries are published only as images. Why the pole? Its permanently shadowed craters may hold water ice, and nearby peaks get long periods of sunlight. The Sun stays low here: at the selected site its centre moves between ' + fmtDeg(sEl[0], 1) + ' and ' + fmtDeg(sEl[1], 1) + ' over the next 30 days.');
+        var sEl = minMax(S.series.sunEl), IL = window.LUNA_ILLUMINATION;
+        var bestLit = IL && IL.rows.length ? IL.rows.reduce(function (a, b) { return b.sunTerrain > a.sunTerrain ? b : a; }) : null;
+        done('mapPanel', 'This is the lunar <b>south pole</b>, from about 80°S to 90°S, built from NASA LOLA elevation data. ASTERIA has <b>' + nTerrainSites() + '</b> south-pole sites with computed terrain horizons. Of NASA\'s <b>' + REG.regions.length + '</b> Artemis III candidate regions (Oct 2024), <b>' + REG.regions.filter(function (r) { return r.sites.length; }).length + '</b> have a plotted point inside them; the others are listed by name only, because their boundaries are published only as images. Why the pole? NASA notes that its permanently shadowed areas can preserve resources, including water, while some high ground is sunlit for long periods' + (bestLit ? ' (the best-lit site here, ' + esc(bestLit.name) + ', is sunlit ' + bestLit.sunTerrain.toFixed(0) + '% of 2027 in ASTERIA\'s terrain model)' : '') + '. The Sun stays low here: at the selected site its centre moves between ' + fmtDeg(sEl[0], 1) + ' and ' + fmtDeg(sEl[1], 1) + ' over the next 30 days.');
       });
     },
     function (done) { // 2. the selected polar site: Sun skims, terrain blocks; contrast with an equatorial site
@@ -1249,7 +1250,7 @@
           Jobs.run('scenario', { site: { lat: a11.lat, lon: a11.lon }, start: S.start.getTime(), days: 30, mask: null, minEl: 0 })
         ]).then(function (r) {
           var smooth = r[0].stats, eq = r[1].stats, eqMax = minMax(r[1].series.sunEl)[1];
-          done('skyPanel', '<b>' + esc(S.site.name) + '</b>: the Sun skims around the horizon, its centre between ' + fmtDeg(sEl[0], 1) + ' and ' + fmtDeg(sEl[1], 1) + ' over these 30 days. The brown skyline is the real terrain (' + fmtDeg(m[0], 1) + ' to ' + fmtDeg(m[1], 1) + ') and it decides when the Sun is visible: Sun up <b>' + st.pctSun.toFixed(0) + '%</b> of the time, against ' + smooth.pctSun.toFixed(0) + '% for a perfectly smooth Moon. By contrast, at Apollo 11 near the equator the Sun climbs to ' + eqMax.toFixed(0) + '° and is up ' + eq.pctSun.toFixed(0) + '% of the time in one long day and night.');
+          done('skyPanel', '<b>' + esc(S.site.name) + '</b>: the Sun skims around the horizon, its centre between ' + fmtDeg(sEl[0], 1) + ' and ' + fmtDeg(sEl[1], 1) + ' over these 30 days. The brown skyline is the terrain from LOLA elevation data (' + fmtDeg(m[0], 1) + ' to ' + fmtDeg(m[1], 1) + ') and it decides when the Sun is visible: Sun up <b>' + st.pctSun.toFixed(0) + '%</b> of the time, against ' + smooth.pctSun.toFixed(0) + '% for a perfectly smooth Moon. By contrast, at Apollo 11 near the equator the Sun climbs to ' + eqMax.toFixed(0) + '° and is up ' + eq.pctSun.toFixed(0) + '% of the time in one long day and night.');
         });
       });
     },
@@ -1258,7 +1259,8 @@
       (S.ready || Promise.resolve()).then(function () {
         var w = WIN.earth, st = S.stats, t = S.series.t[S.idx], ev = nextEventAfter('earth', t), up = S.series.earthUp[S.idx];
         var nextTxt = ev ? (up ? 'The next <b>Earthset</b> is in <b>' + fmtDur(ev.time.getTime() - t) + '</b> (' + fmtUTC(ev.time) + ' UTC).' : 'Earth is hidden now; the next <b>Earthrise</b> is in <b>' + fmtDur(ev.time.getTime() - t) + '</b> (' + fmtUTC(ev.time) + ' UTC).') : 'No Earth event in the search range.';
-        done('earthPanel', 'Earth link: seen from the pole, Earth bobs near the horizon (libration), so direct radio contact comes and goes. In these 30 days Earth is in view <b>' + st.pctEarth.toFixed(0) + '%</b> of the time in <b>' + w.length + '</b> window(s); the longest blackout lasts ' + fmtD(st.longestBlackoutH) + '. ' + nextTxt + ' You can require a minimum elevation above the terrain for a usable link.');
+        var eEl = minMax(S.series.earthEl);
+        done('earthPanel', 'Earth link: seen from the pole, Earth stays near the horizon and moves up and down a little as the Moon\'s orientation toward Earth changes (libration), so a direct line of sight comes and goes. In these 30 days Earth\'s centre moves between ' + fmtDeg(eEl[0], 1) + ' and ' + fmtDeg(eEl[1], 1) + ' elevation and is in view <b>' + st.pctEarth.toFixed(0) + '%</b> of the time in <b>' + w.length + '</b> window(s); the longest blackout lasts ' + fmtD(st.longestBlackoutH) + '. ' + nextTxt + ' You can require a minimum elevation above the terrain for a usable link.');
       });
     },
     function (done) { // 4. launch slip
@@ -1275,7 +1277,7 @@
       $('pwWindow').value = 'slip'; $('pwMode').value = 'track'; $('pwArea').value = 1; $('pwEff').value = 30; $('pwLoad').value = 100; $('pwDod').value = 80;
       runPower().then(function () {
         var R = PW.res;
-        done('pwVerdict', 'Power check for the nominal 14-day mission: a 1 m², 30%-efficient vertical Sun-tracking panel generates <b>' + (R.Wh / 1000).toFixed(1) + ' kWh</b> against <b>' + (R.loadWh / 1000).toFixed(1) + ' kWh</b> for a 100 W load, so the mission is <b>' + (R.Wh >= R.loadWh ? 'energy positive' : 'energy negative') + '</b>. Surviving the longest darkness (' + fmtD(R.darkH) + ') needs about <b>' + (R.battery / 1000).toFixed(1) + ' kWh</b> of battery at 80% usable capacity. First-order estimate only.');
+        done('pwVerdict', 'Power check for the nominal 14-day mission: a 1 m², 30%-efficient vertical Sun-tracking panel (example values) generates <b>' + (R.Wh / 1000).toFixed(1) + ' kWh</b> against <b>' + (R.loadWh / 1000).toFixed(1) + ' kWh</b> for a 100 W load, so the mission is <b>' + (R.Wh >= R.loadWh ? 'energy positive' : 'energy negative') + '</b>. Surviving the longest darkness (' + fmtD(R.darkH) + ') needs about <b>' + (R.battery / 1000).toFixed(1) + ' kWh</b> of battery at 80% usable capacity (example values). First-order estimate only.');
       });
     }
   ];
@@ -1395,6 +1397,7 @@
     });
 
     $('customHint').textContent = COARSE_OK ? 'Points clicked or typed inside the map get a terrain horizon from coarser ' + COARSE_PX + ' m data (less precise than curated sites). Points outside the map use a smooth Moon without mountains.' : 'Custom points (typed or clicked on the map) use a smooth Moon without mountains: terrain is not computed for them.';
+    if (window.LUNA_VALIDATION) { $('aboutNAngles').textContent = window.LUNA_VALIDATION.angles.length; $('aboutNEvents').textContent = window.LUNA_VALIDATION.events.length; }
     renderValidation();
     var h = readHash();
     if (h) applyHash(h); else selectSite(siteById(DEFAULT_SITE) || SITES[0], { fly: false });
