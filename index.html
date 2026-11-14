@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LunaWindow - Lunar Landing Site Navigator</title>
+<meta name="description" content="Compare lunar landing sites and dates: Sun and Earth above the horizon, power and direct-to-Earth communication windows, with LOLA terrain horizons at the south pole.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 19 Q16 12 29 19" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="22" cy="10" r="3" fill="var(--sun)"/></svg>
+    <div><div class="brand-name">LunaWindow</div><div class="brand-sub">Lunar Landing Site Navigator</div></div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-page="explorer" role="tab">Explorer</button>
+    <button class="tab" data-page="compare" role="tab">Compare</button>
+    <button class="tab" data-page="validation" role="tab">Validation</button>
+    <button class="tab" data-page="about" role="tab">About</button>
+  </nav>
+  <label class="switch" title="Show plain-language explanations">
+    <input type="checkbox" id="explainToggle"> <span>Explain mode</span>
+  </label>
+</header>
+
+<main>
+<!-- =============================================================== EXPLORER -->
+<section id="page-explorer" class="page active">
+  <div class="layout">
+    <aside class="panel sitepanel">
+      <h2>Site</h2>
+      <input id="siteSearch" type="search" placeholder="Search sites, missions, agencies..." aria-label="Search sites">
+      <div id="siteList" class="sitelist" role="listbox"></div>
+      <div class="mapwrap">
+        <canvas id="map" width="600" height="600" aria-label="South pole map"></canvas>
+        <div class="mapcap">South pole, ~85&deg;S&ndash;90&deg;S. LOLA hillshade (synthetic lighting). Tap the map to pick a custom point.</div>
+      </div>
+      <details class="custom" open>
+        <summary>Custom coordinates</summary>
+        <div class="row">
+          <label>Lat (&deg;N) <input id="customLat" type="number" step="0.0001" min="-90" max="90" value="-89.5"></label>
+          <label>Lon (&deg;E) <input id="customLon" type="number" step="0.0001" min="-360" max="360" value="0"></label>
+          <button id="customGo" class="btn">Use</button>
+        </div>
+        <p class="hint">Custom points use a smooth-Moon horizon (terrain not included).</p>
+      </details>
+      <div class="unplotted" id="unplotted"></div>
+    </aside>
+
+    <div class="maincol">
+      <div class="panel siteheader">
+        <div>
+          <h1 id="siteName">-</h1>
+          <div id="siteMeta" class="meta"></div>
+        </div>
+        <div class="horizonmode">
+          <span id="horizonBadge" class="badge"></span>
+          <label class="smallswitch"><input type="checkbox" id="terrainToggle" checked> use terrain</label>
+        </div>
+      </div>
+
+      <div class="panel timepanel">
+        <div class="row wrap">
+          <label>Start (UTC) <input id="startInput" type="datetime-local" step="60"></label>
+          <button id="nowBtn" class="btn">Now</button>
+          <label>Window
+            <select id="windowSel"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="365">365 days</option></select>
+          </label>
+          <span class="stepnote" id="stepNote"></span>
+        </div>
+        <div class="row wrap slider-row">
+          <button id="playBtn" class="btn play" aria-label="Play">&#9654;</button>
+          <input id="timeSlider" type="range" min="0" max="100" value="0" aria-label="Time within window">
+          <select id="speedSel" aria-label="Animation speed"><option value="1">1&times;</option><option value="4" selected>4&times;</option><option value="16">16&times;</option></select>
+        </div>
+        <div class="clock">
+          <div><span class="lbl">Selected time (UTC)</span><span id="curUtc" class="mono">-</span></div>
+          <div><span class="lbl">Riyadh (UTC+3)</span><span id="curRiyadh" class="mono">-</span></div>
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="card big" id="sunCard">
+          <div class="cardlbl" id="sunCountLbl">Next sunset</div>
+          <div class="count mono" id="sunCount">-</div>
+          <div class="cardsub" id="sunCountSub"></div>
+        </div>
+        <div class="card big" id="earthCard">
+          <div class="cardlbl" id="earthCountLbl">Next Earthset</div>
+          <div class="count mono" id="earthCount">-</div>
+          <div class="cardsub" id="earthCountSub"></div>
+        </div>
+      </div>
+      <p class="explain">Countdowns are measured from the selected time. "Sunset" means the Sun's centre drops below the horizon (terrain or smooth). At the poles the Sun can stay up, or down, for weeks or months, so these numbers can be very long.</p>
+
+      <div class="cards small">
+        <div class="card"><div class="cardlbl">Sun elevation</div><div class="val mono" id="vSunEl">-</div></div>
+        <div class="card"><div class="cardlbl">Sun azimuth</div><div class="val mono" id="vSunAz">-</div></div>
+        <div class="card"><div class="cardlbl">Solar disk visible</div><div class="val mono" id="vSunFrac">-</div></div>
+        <div class="card"><div class="cardlbl">Earth elevation</div><div class="val mono" id="vEarthEl">-</div></div>
+        <div class="card"><div class="cardlbl">Earth azimuth</div><div class="val mono" id="vEarthAz">-</div></div>
+        <div class="card"><div class="cardlbl">Horizon at Sun / Earth az</div><div class="val mono" id="vHz">-</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panelhead"><h2>Sky view</h2>
+          <div class="legend"><span class="lg sun"></span>Sun <span class="lg earth"></span>Earth <span class="lg terrain"></span>Terrain horizon</div>
+          <label class="smallswitch"><input type="checkbox" id="fullSky"> full sky</label>
+        </div>
+        <canvas id="sky" width="1200" height="360" aria-label="Horizon panorama"></canvas>
+        <p class="caption" id="skyCaption"></p>
+        <p class="explain">This is a 360&deg; panorama of the horizon as seen by a person standing at the site. Left to right is compass direction (0&deg; = toward the lunar north pole, 90&deg; = east). The dotted lines are the paths of the Sun and Earth over the window. <b>Why does the Sun skim the horizon at the pole?</b> The Moon's spin axis is tilted only about 1.5&deg; from perpendicular to its orbit around the Sun, so at the pole the Sun circles around the horizon once a month, rising or sinking by at most about 1.5&deg; over the year. A few metres of hill can decide between sunlight and darkness.</p>
+      </div>
+
+      <div class="panel">
+        <div class="panelhead"><h2>Timeline</h2>
+          <div class="legend"><span class="lg sun"></span>Sun visible <span class="lg earth"></span>Earth visible <span class="lg both"></span>Both (power + DTE)</div>
+        </div>
+        <canvas id="timeline" width="1200" height="170" aria-label="Visibility timeline"></canvas>
+        <div class="metrics" id="metrics"></div>
+        <p class="explain"><b>Why does the Earth bob up and down?</b> The Moon always keeps roughly the same face toward Earth, but not exactly: its slightly elliptical, tilted orbit makes Earth appear to wobble by up to about 7&deg; east-west and 6.7&deg; north-south in the lunar sky (this is called libration). Near the limb of the visible face, or at the poles, that wobble moves Earth above and below the horizon, opening and closing direct-to-Earth (DTE) radio windows.</p>
+      </div>
+
+      <!-- TODO(launch-slip-heatmap): heatmap of % "both" (power+DTE) vs launch/landing date (x) and site (y),
+           to help teams react to schedule slips. Hook: LunaApp.todo.launchSlipHeatmap(siteIds, startDates). Not built yet. -->
+      <!-- TODO(power-calculator): solar power + battery calculator (panel area/efficiency/orientation,
+           load profile, battery capacity) driven by sunFrac and Sun elevation series. Hook: LunaApp.todo.powerCalculator(series). Not built yet. -->
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ COMPARE -->
+<section id="page-compare" class="page">
+  <div class="panel">
+    <div class="panelhead"><h2>Compare scenarios</h2>
+      <div class="row wrap">
+        <label>Window <select id="cmpWindow"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="365">365 days</option></select></label>
+        <button id="cmpAdd" class="btn">+ Add scenario</button>
+        <button id="cmpSlip" class="btn ghost" title="Duplicate the first scenario with the start date moved later">+ Slip first by
+        </button><select id="cmpSlipDays" aria-label="Slip days"><option value="1">1 day</option><option value="3">3 days</option><option value="7" selected>7 days</option><option value="14">14 days</option><option value="30">30 days</option></select>
+        <button id="cmpRun" class="btn primary">Compute</button>
+      </div>
+    </div>
+    <p class="explain">Pick up to four site + date combinations. A scenario can be the same site on a later date (a launch slip) or a nearby alternative site. The best value in each row is highlighted.</p>
+    <div id="cmpScenarios" class="scenarios"></div>
+    <div id="cmpResult" class="tablewrap"></div>
+    <div id="cmpBars"></div>
+  </div>
+</section>
+
+<!-- ============================================================= VALIDATION -->
+<section id="page-validation" class="page">
+  <div class="panel" id="validationContent"></div>
+</section>
+
+<!-- ================================================================== ABOUT -->
+<section id="page-about" class="page">
+  <div class="panel prose" id="aboutContent">
+    <h2>About LunaWindow</h2>
+    <p>LunaWindow is an entry for the NASA Space Apps Challenge 2026 challenge "Lunar Landing Site Navigator". It shows, for any lunar site and date, when the Sun is above the local horizon (solar power) and when the Earth is above it (direct-to-Earth communication), with special attention to the lunar south pole, where the Sun skims the horizon and terrain decides everything.</p>
+    <p class="disclaimer"><b>Not endorsed by NASA.</b> This is an independent hackathon project. It is not a mission planning product and must not be used for operational decisions.</p>
+    <h3>Methods</h3>
+    <ul>
+      <li><b>Ephemeris</b>: Sun, Earth and Moon positions from Astronomy Engine (VSOP87 and a Chapront-based lunar theory). Moon orientation from the IAU/WGCCRE rotation model (pole direction and prime-meridian angle). Positions are corrected for light travel time and stellar aberration. Azimuth is measured clockwise from local north (toward the lunar north pole). No atmospheric refraction (the Moon has none).</li>
+      <li><b>Validation</b>: compared against NASA/JPL Horizons on 52 angle cases and 4 event times; see the Validation tab.</li>
+      <li><b>Libration</b> is included automatically: the real rotation model and the real Earth-Moon geometry are used, so Earth's wobble in the lunar sky comes out of the computation.</li>
+      <li><b>Events</b> (sunrise/sunset, Earthrise/Earthset) refer to the centre of the Sun or Earth crossing the horizon, found by a 10-20 minute scan and refined by bisection to 1 minute.</li>
+      <li><b>Solar disk visible</b>: fraction of the solar disk area above the horizon at the Sun's azimuth, treating the horizon as straight across the 0.53&deg; disk.</li>
+      <li><b>Terrain horizons</b> (curated south-polar sites only): from LOLA gridded topography (LDEM_85S_20M, 20 m/pixel, and LDEM_80S_80M, 80 m/pixel), ray-marched in 360 directions out to 300 km (or the DEM edge), observer 2 m above the ground, including lunar curvature.</li>
+    </ul>
+    <h3>Limitations and approximations</h3>
+    <ul>
+      <li>Sites without a terrain horizon (all non-polar sites and custom points) use a <b>smooth Moon horizon - terrain not included</b>. Real local hills and crater walls can change rise/set times by hours to days.</li>
+      <li>The Moon is treated as a sphere of radius 1737.4 km; site height above that sphere is taken from LOLA where terrain is used.</li>
+      <li>Terrain masks have 1&deg; azimuth resolution and DEM resolution of 20-80 m; nearby boulders and the lander itself are not modelled.</li>
+      <li>"Earth visible" uses Earth's centre; DTE links also depend on antennas, ground stations on Earth and relay satellites, which are not modelled.</li>
+      <li>Several south-pole entries are representative or feature points, not region centres or landing points; each site card says exactly what the coordinate is.</li>
+    </ul>
+    <h3>Data sources and credits</h3>
+    <ul>
+      <li><a href="https://github.com/cosinekitty/astronomy">Astronomy Engine</a> by Don Cross (MIT License) - ephemeris library.</li>
+      <li><a href="https://ssd.jpl.nasa.gov/horizons/">NASA/JPL Horizons</a> - reference ephemeris used for validation.</li>
+      <li><a href="https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/">LRO LOLA gridded polar DEMs</a>, NASA PDS Geosciences Node (LDEM_85S_20M, LDEM_80S_80M).</li>
+      <li><a href="https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html">NASA NSSDC Apollo landing site coordinates</a>; <a href="https://lroc.im-ldi.com/">LROC</a> featured images for robotic lander positions; Wikipedia, Mahanti et al. 2024 (PSJ 5, 62) and Pe&ntilde;a-Asensio et al. (arXiv 2406.19863) for south-polar points. Every site lists its source links.</li>
+      <li>Useful tools: <a href="https://quickmap.lroc.asu.edu/">LROC Quickmap</a>, <a href="https://trek.nasa.gov/moon/">NASA Moon Trek</a>.</li>
+    </ul>
+    <h3>Time zones</h3>
+    <p>All inputs are UTC. Riyadh local time (UTC+3, no daylight saving) is shown for convenience.</p>
+  </div>
+</section>
+</main>
+
+<footer class="foot">LunaWindow &middot; NASA Space Apps Challenge 2026 &middot; Not endorsed by NASA &middot; Ephemeris validated against JPL Horizons (see Validation)</footer>
+
+<script src="lib/astronomy.browser.min.js"></script>
+<script src="js/engine.js"></script>
+<script src="data/sites.js"></script>
+<script src="data/map_meta.js"></script>
+<script src="data/validation.js"></script>
+<!-- HORIZON_SCRIPTS_START (generated list; see tools/terrain.py) -->
+<!-- HORIZON_SCRIPTS_END -->
+<script src="js/app.js"></script>
+</body>
+</html>
