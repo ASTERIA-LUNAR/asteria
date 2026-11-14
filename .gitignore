@@ -3,3 +3,4 @@ node_modules/
 dem/
 *.pyc
 __pycache__/
+tests/screenshots/

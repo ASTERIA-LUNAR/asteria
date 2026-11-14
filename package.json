@@ -12,5 +12,8 @@
   "type": "commonjs",
   "dependencies": {
     "astronomy-engine": "^2.1.19"
+  },
+  "devDependencies": {
+    "playwright": "^1.65.1"
   }
 }
