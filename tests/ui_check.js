@@ -355,6 +355,63 @@ const path = require('path'), fs = require('fs'), url = require('url');
   await rp.evaluate(() => AsteriaLoader.end());
   expect('[reduced-motion] loader is a simple spinner', rm.spinner && !rm.canvas && /reduced/.test(rm.cls), JSON.stringify(rm));
   await rctx.close();
+  // ---- first-visit intro (title card). Automated browsers skip it unless the test opts in with ASTERIA_INTRO_TEST.
+  {
+    const ictx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    await ictx.addInitScript(() => { window.ASTERIA_INTRO_TEST = true; });
+    const ip = await ictx.newPage();
+    ip.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`[intro] console.${m.type()}: ${m.text()}`); });
+    ip.on('pageerror', e => errors.push(`[intro] pageerror: ${e.message}`));
+    const tg = Date.now();
+    await ip.goto(base);
+    const i0 = await ip.evaluate(() => ({ shown: !!document.getElementById('intro'), txt: (document.getElementById('intro') || {}).textContent || '', ms: AsteriaIntro.INTRO_MS, seen: localStorage.getItem('asteria.introSeen') }));
+    expect('[intro] shows on a fresh first visit: rocket, "ASTERIA", subtitle, Skip; no loading claim; INTRO_MS = 3000', i0.shown && /ASTERIA/.test(i0.txt) && /Lunar South Pole Landing Site Navigator/.test(i0.txt) && /Skip/.test(i0.txt) && !/loading/i.test(i0.txt) && i0.ms === 3000 && i0.seen === '1', JSON.stringify(i0));
+    await ip.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series, null, { timeout: 30000 });
+    const behind = await ip.evaluate(() => ({ intro: AsteriaIntro.isShown(), hint: !document.getElementById('hint').hidden }));
+    expect(`[intro] the app computes normally behind the intro (first results after ${Date.now() - tg} ms while the intro is still up; hint waits)`, behind.intro && !behind.hint && Date.now() - tg < 3000, JSON.stringify(behind));
+    await shot(ip, 'intro_1_title_card', false);
+    await ip.click('#introSkip'); await ip.waitForTimeout(400);
+    expect('[intro] Skip button closes it; the getting-started hint follows', await ip.evaluate(() => !document.getElementById('intro') && !AsteriaIntro.isShown()) && await ip.waitForSelector('#hint', { state: 'visible', timeout: 3000 }).then(() => true, () => false));
+    await ip.goto('about:blank'); await ip.goto(base); await ip.waitForTimeout(300);   // (reload() would keep the app's #site= hash)
+    expect('[intro] not shown on the second visit', await ip.evaluate(() => !document.getElementById('intro') && AsteriaIntro.autoSkipReason() === 'seen'));
+    // replay from the About page; any key skips
+    await ip.evaluate(() => { localStorage.setItem('asteria.hintDismissed', '1'); document.getElementById('hint').hidden = true; });
+    await ip.click('.tab[data-page="about"]'); await ip.click('#replayIntro'); await ip.waitForTimeout(150);
+    const rp1 = await ip.evaluate(() => AsteriaIntro.isShown());
+    await ip.keyboard.press('KeyX'); await ip.waitForTimeout(350);
+    expect('[intro] "Replay intro" on the About page plays it; a key press skips it', rp1 && await ip.evaluate(() => !document.getElementById('intro')));
+    await ictx.close();
+    // auto-dismiss after INTRO_MS, tap/click anywhere skips, share link and reduced motion skip it automatically
+    const c2 = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    await c2.addInitScript(() => { window.ASTERIA_INTRO_TEST = true; });
+    const p2 = await c2.newPage();
+    p2.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`[intro2] console.${m.type()}: ${m.text()}`); });
+    p2.on('pageerror', e => errors.push(`[intro2] pageerror: ${e.message}`));
+    await p2.goto(base); await p2.waitForTimeout(200);
+    const shownPhone = await p2.evaluate(() => AsteriaIntro.isShown());
+    await shot(p2, 'intro_2_phone', false);
+    await p2.waitForTimeout(3300);
+    expect('[intro] phone: shown, then closes by itself after INTRO_MS (3 s)', shownPhone && await p2.evaluate(() => !document.getElementById('intro')));
+    await p2.evaluate(() => { localStorage.clear(); }); await p2.goto('about:blank'); await p2.goto(base); await p2.waitForTimeout(150);
+    await p2.tap('#intro'); await p2.waitForTimeout(350);
+    expect('[intro] a tap anywhere skips it', await p2.evaluate(() => !document.getElementById('intro')));
+    await p2.evaluate(() => { localStorage.clear(); });
+    await p2.goto('about:blank'); await p2.goto(base + '#site=im2&t=2027-01-01T00:00Z&w=7'); await p2.waitForTimeout(300);
+    expect('[intro] not shown when the URL has a share-link hash (#site=...)', await p2.evaluate(() => !document.getElementById('intro') && AsteriaIntro.autoSkipReason() === 'share-link'));
+    await p2.evaluate(() => { localStorage.clear(); });
+    await p2.goto('about:blank'); await p2.goto(base + '#lat=-89.9&lon=45'); await p2.waitForTimeout(300);
+    expect('[intro] not shown with a #lat=... share link', await p2.evaluate(() => !document.getElementById('intro') && AsteriaIntro.autoSkipReason() === 'share-link'));
+    await c2.close();
+    const c3 = await browser.newContext({ viewport: { width: 1024, height: 768 }, reducedMotion: 'reduce' });
+    await c3.addInitScript(() => { window.ASTERIA_INTRO_TEST = true; });
+    const p3 = await c3.newPage(); await p3.goto(base); await p3.waitForTimeout(300);
+    expect('[intro] not shown with prefers-reduced-motion', await p3.evaluate(() => !document.getElementById('intro') && AsteriaIntro.autoSkipReason() === 'reduced-motion'));
+    await c3.close();
+    const c4 = await browser.newContext({ viewport: { width: 1024, height: 768 } });
+    const p4 = await c4.newPage(); await p4.goto(base); await p4.waitForTimeout(300);
+    expect('[intro] automated tests skip it unless they opt in', await p4.evaluate(() => !document.getElementById('intro') && AsteriaIntro.autoSkipReason() === 'automated'));
+    await c4.close();
+  }
   // ---- no artificial delay: a fast operation never shows the loader
   const fctx = await browser.newContext({ viewport: { width: 1024, height: 768 } });
   const fp = await fctx.newPage();

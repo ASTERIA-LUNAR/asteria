@@ -15,30 +15,34 @@ window.AsteriaLoader = (function () {
   var ROCKET = ['..r..', '.www.', '.wbw.', '.www.', 'rwwwr', 'r.a.r'];   // nose up
   var RPAL = { r: '#ff5a5a', w: '#f2f4f8', b: '#4ea8ff', a: '#ffc23d' };
 
-  function sprite(rows, pal, x, y) {
+  function sprite(rows, pal, x, y, ctx) {
     for (var j = 0; j < rows.length; j++) for (var i = 0; i < rows[j].length; i++) {
       var c = rows[j][i]; if (c === '.') continue;
       ctx.fillStyle = (c === 'g' && pal === PAL && rows === MOON) ? PAL.G : pal[c];
       ctx.fillRect(x + i, y + j, 1, 1);
     }
   }
-  function frame(ts) {
-    if (!active) return;
-    if (!t0) t0 = ts;
-    var t = ((ts - t0) / 1800) % 1;                         // one flight every 1.8 s
-    ctx.clearRect(0, 0, W, H);
-    STARS.forEach(function (s, k) { ctx.fillStyle = ((ts / 300 + k) % 3) < 1 ? '#8fa1bf' : '#3a4866'; ctx.fillRect(s[0], s[1], 1, 1); });
-    sprite(EARTH, PAL, 1, 7);
-    sprite(MOON, PAL, 56, 6);
+  // Draw the 64 x 20 pixel scene on any 2D context: t = flight progress 0..1 (Earth -> Moon), ts = clock (ms) for
+  // the twinkling stars and the flame. Also used by the first-visit intro (js/intro.js).
+  function drawScene(c2, t, ts) {
+    c2.clearRect(0, 0, W, H);
+    STARS.forEach(function (s, k) { c2.fillStyle = ((ts / 300 + k) % 3) < 1 ? '#8fa1bf' : '#3a4866'; c2.fillRect(s[0], s[1], 1, 1); });
+    sprite(EARTH, PAL, 1, 7, c2);
+    sprite(MOON, PAL, 56, 6, c2);
     // rocket on a shallow arc between them, drawn rotated in 90-degree steps (pixel art)
     var x = 9 + t * 42, y = 12 - Math.sin(t * Math.PI) * 8;
-    ctx.save(); ctx.translate(Math.round(x) + 3, Math.round(y)); ctx.rotate(Math.PI / 2);
+    c2.save(); c2.translate(Math.round(x) + 3, Math.round(y)); c2.rotate(Math.PI / 2);
     for (var j = 0; j < ROCKET.length; j++) for (var i = 0; i < 5; i++) {
       var c = ROCKET[j][i]; if (c === '.') continue;
       if (c === 'a' && (Math.floor(ts / 90) % 2)) continue;          // flickering flame
-      ctx.fillStyle = RPAL[c]; ctx.fillRect(i - 2, j - 3, 1, 1);
+      c2.fillStyle = RPAL[c]; c2.fillRect(i - 2, j - 3, 1, 1);
     }
-    ctx.restore();
+    c2.restore();
+  }
+  function frame(ts) {
+    if (!active) return;
+    if (!t0) t0 = ts;
+    drawScene(ctx, ((ts - t0) / 1800) % 1, ts);              // one flight every 1.8 s
     raf = requestAnimationFrame(frame);
   }
   function build() {
@@ -71,5 +75,5 @@ window.AsteriaLoader = (function () {
     begin(text);
     return promise.then(function (v) { end(); return v; }, function (e) { end(); throw e; });
   }
-  return { track: track, begin: begin, end: end, shownCount: function () { return shownCount; }, delayMs: DELAY_MS };
+  return { track: track, begin: begin, end: end, shownCount: function () { return shownCount; }, isShown: function () { return !!(el && !el.hidden); }, delayMs: DELAY_MS, drawScene: drawScene, size: [W, H] };
 })();

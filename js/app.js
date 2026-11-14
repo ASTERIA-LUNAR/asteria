@@ -1508,7 +1508,10 @@
     hashReady = true;
     writeHash();
     window.addEventListener('hashchange', function () { var o = readHash(); if (o) { hashReady = false; applyHash(o); hashReady = true; } });
-    if (pref(HINT_KEY) !== '1') setTimeout(function () { if ($('tour').hidden) hintShow(0); }, 600);
+    // the getting-started hint waits for the first-visit intro (if any) to finish
+    var afterIntro = window.AsteriaIntro ? window.AsteriaIntro.whenDone : function (fn) { fn(); };
+    if (pref(HINT_KEY) !== '1') afterIntro(function () { setTimeout(function () { if ($('tour').hidden) hintShow(0); }, 600); });
+    $('replayIntro').addEventListener('click', function (ev) { ev.preventDefault(); if (window.AsteriaIntro) window.AsteriaIntro.replay(); });
   }
 
   window.LunaApp = {
