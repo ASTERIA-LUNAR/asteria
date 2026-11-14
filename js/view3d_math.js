@@ -148,14 +148,26 @@
   // Nodes on the hole's edge take their height from that finer grid ('inner'), so both meshes share identical edge
   // vertices; nodes on G's own outer edge can likewise take heights from 'outerOf' (unused here). Returns positions
   // (Three.js world), the index (cells fully inside the hole left out) and the number of nodes per side.
-  function buildGridMesh(G, stride, hole, inner) {
+  // Normals and slope come from the DEM at full resolution ('nsrc', default G itself): central differences over one
+  // full-resolution cell, positions with the exact curvature and the current vertical exaggeration; slope (deg) from
+  // true heights. Also returns the true heights (for contour lines).
+  function buildGridMesh(G, stride, hole, inner, nsrc) {
     stride = stride || 1;
+    var S = nsrc || G, dd = S.d;
     var m = Math.floor((G.n - 1) / stride) + 1, pos = new Float32Array(m * m * 3), H = new Float32Array(m * m), k = 0, eps = 1e-6;
+    var nor = new Float32Array(m * m * 3), slope = new Float32Array(m * m);
     for (var jj = 0; jj < m; jj++) for (var ii = 0; ii < m; ii++) {
       var i = ii * stride, j = jj * stride, e = (i - G.c) * G.d, n = (G.c - j) * G.d, h = node(G, i, j);
       if (hole > 0 && inner && Math.abs(e) <= hole + eps && Math.abs(n) <= hole + eps && Math.max(Math.abs(e), Math.abs(n)) >= hole - eps) h = nodeOrMesh(inner, e, n);
       H[jj * m + ii] = h;
       var p = toThree(enu(G, e, n, h));
+      var hE1 = heightAt(S, e + dd, n), hE0 = heightAt(S, e - dd, n), hN1 = heightAt(S, e, n + dd), hN0 = heightAt(S, e, n - dd);
+      slope[jj * m + ii] = Math.atan(Math.sqrt(Math.pow((hE1 - hE0) / (2 * dd), 2) + Math.pow((hN1 - hN0) / (2 * dd), 2))) / DEG;
+      var a1 = enu(G, e + dd, n, hE1), a0 = enu(G, e - dd, n, hE0), b1 = enu(G, e, n + dd, hN1), b0 = enu(G, e, n - dd, hN0);
+      var tx = a1[0] - a0[0], ty = a1[1] - a0[1], tz = a1[2] - a0[2], ux = b1[0] - b0[0], uy = b1[1] - b0[1], uz = b1[2] - b0[2];
+      var cx = ty * uz - tz * uy, cy = tz * ux - tx * uz, cz = tx * uy - ty * ux, cl = Math.sqrt(cx * cx + cy * cy + cz * cz) || 1;
+      var nt = toThree([cx / cl, cy / cl, cz / cl]);
+      nor[k] = nt[0]; nor[k + 1] = nt[1]; nor[k + 2] = nt[2];
       pos[k++] = p[0]; pos[k++] = p[1]; pos[k++] = p[2];
     }
     var idx = [], dd = G.d * stride;
@@ -165,7 +177,7 @@
       var a = j2 * m + i2, b = a + 1, c = a + m, d = c + 1;
       idx.push(a, c, b, b, c, d);
     }
-    return { m: m, pos: pos, H: H, index: (m * m > 65535 ? new Uint32Array(idx) : new Uint16Array(idx)), spacing: dd };
+    return { m: m, pos: pos, H: H, normal: nor, slope: slope, index: (m * m > 65535 ? new Uint32Array(idx) : new Uint16Array(idx)), spacing: G.d * stride };
   }
   // Skirt: a vertical strip hanging 'drop' metres below the outer edge of grid G (every 'stride'-th node), so the
   // T-junctions where a finer mesh meets a coarser one show terrain-coloured skirt instead of gaps.
@@ -177,15 +189,23 @@
     for (var c2 = m - 1; c2 > 0; c2--) ring.push([c2, m - 1]);
     for (var d2 = m - 1; d2 > 0; d2--) ring.push([0, d2]);
     ring.push(ring[0]);
-    var pos = new Float32Array(ring.length * 6), idx = [];
+    var pos = new Float32Array(ring.length * 6), nor = new Float32Array(ring.length * 6), H = new Float32Array(ring.length * 2), sl = new Float32Array(ring.length * 2), idx = [];
+    var dd = G.d;
     for (var q = 0; q < ring.length; q++) {
       var i = ring[q][0] * stride, j = ring[q][1] * stride, e = (i - G.c) * G.d, n = (G.c - j) * G.d;
       var h = heightFn ? heightFn(e, n) : node(G, i, j);
       var t = toThree(enu(G, e, n, h)), bt = toThree(enu(G, e, n, h - drop / (G.k || 1)));
       pos.set(t, q * 6); pos.set(bt, q * 6 + 3);
-      if (q < ring.length - 1) { var t0 = 2 * q, b0 = t0 + 1, t1 = t0 + 2, b1 = t0 + 3; idx.push(t0, b0, t1, t1, b0, b1); }
+      // the skirt is shaded like the terrain at its top edge (terrain normal), so it does not light up as a wall
+      var a1 = enu(G, e + dd, n, heightAt(G, e + dd, n)), a0 = enu(G, e - dd, n, heightAt(G, e - dd, n)), b1 = enu(G, e, n + dd, heightAt(G, e, n + dd)), b0 = enu(G, e, n - dd, heightAt(G, e, n - dd));
+      var tx = a1[0] - a0[0], ty = a1[1] - a0[1], tz = a1[2] - a0[2], ux = b1[0] - b0[0], uy = b1[1] - b0[1], uz = b1[2] - b0[2];
+      var cx = ty * uz - tz * uy, cy = tz * ux - tx * uz, cz = tx * uy - ty * ux, cl = Math.sqrt(cx * cx + cy * cy + cz * cz) || 1;
+      var nt = toThree([cx / cl, cy / cl, cz / cl]);
+      nor.set(nt, q * 6); nor.set(nt, q * 6 + 3);
+      H[2 * q] = h; H[2 * q + 1] = h;   // contour lines would not run down the skirt
+      if (q < ring.length - 1) { var t0 = 2 * q, b0i = t0 + 1, t1 = t0 + 2, b1i = t0 + 3; idx.push(t0, b0i, t1, t1, b0i, b1i); }
     }
-    return { pos: pos, index: new Uint32Array(idx) };
+    return { pos: pos, normal: nor, H: H, slope: sl, index: new Uint32Array(idx) };
   }
 
   // ------------------------------------------------------------ Earth phase

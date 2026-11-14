@@ -98,6 +98,11 @@ function loadWin(file) {
   // near-field Sun: plane rising to the east blocks a low Sun in the east, not one in the west
   const east = M.nearFieldSunUp(T, 0, 0, 90, 5, 2), west = M.nearFieldSunUp(T, 0, 0, 270, 1, 2);
   expect('near-field estimate: a 10° slope blocks a Sun at 5° on the uphill side, not a Sun at 1° on the downhill side', !east.up && west.up, JSON.stringify({ east: east.tileHorizon.toFixed(2), west: west.tileHorizon.toFixed(2) }));
+  // DEM-based vertex normals and slope (Part 5): a 10° plane rising to the east -> normal tilted 10° toward the west
+  const PG = M.buildGridMesh(T, 1, 0, null, T), kc = c * n + c;
+  const nv = [PG.normal[3 * kc], PG.normal[3 * kc + 1], PG.normal[3 * kc + 2]];
+  const tilt = Math.acos(nv[1]) / DEG, toward = Math.atan2(nv[0], -nv[2]) / DEG;
+  expect('vertex normals from the DEM at full resolution: 10° plane -> normal tilted 10.00° toward the west (downhill), slope attribute 10.00°', Math.abs(tilt - 10) < 0.01 && Math.abs(Math.abs(toward) - 90) < 0.01 && nv[0] < 0 && Math.abs(PG.slope[kc] - 10) < 0.01, 'tilt ' + tilt.toFixed(4) + '°, slope ' + PG.slope[kc].toFixed(4) + '°');
   // Earth phase: Sun behind the observer -> full Earth; Sun behind Earth -> new Earth
   const full = M.earthPhase({ az: 180, el: 0, dist_km: 1.496e8 }, { az: 0, el: 0, dist_km: 384400 });
   const neu = M.earthPhase({ az: 0, el: 0, dist_km: 1.496e8 }, { az: 0, el: 0, dist_km: 384400 });

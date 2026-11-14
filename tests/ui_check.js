@@ -122,6 +122,11 @@ const path = require('path'), fs = require('fs'), url = require('url');
     expect(`${tag} 3D brightness: "Light up" changes only display brightness (exposure ${b0.d.exposure} -> ${b1.d.exposure}, fill ${b0.d.fillIntensity.toFixed(2)} -> ${b1.d.fillIntensity.toFixed(2)}); Sun light direction, Sun intensity and status tiles unchanged; remembered; labelled`,
       b1.d.exposure > b0.d.exposure && sameDir && JSON.stringify(b0.t) === JSON.stringify(b1.t) && +b1.ls === b1.d.brightness && /Display brightness only \(like camera exposure\)\. Real polar shadows are almost black; this does not change the computed lighting\./.test(b1.note));
     await page.evaluate(() => AsteriaView3D.testBrightness(1));
+    // real-data overlays: contour lines (interval labelled) and slope shading from the DEM; regolith shading + uniform albedo stated
+    await page.click('#v3dContours'); await page.click('#v3dSlope'); await page.waitForTimeout(150);
+    const ovl = await page.evaluate(() => ({ d: AsteriaView3D.debug().overlays, iv: document.getElementById('v3dContourInt').value, leg: document.getElementById('v3dLegend').textContent, notes: document.getElementById('v3dNotes').textContent }));
+    expect(`${tag} 3D: contour lines (every ${ovl.iv} m) and slope shading toggle on, with a legend; Lommel-Seeliger shading and uniform albedo explained`, ovl.d.contour === +ovl.iv && ovl.d.slope === 1 && new RegExp("Contour lines every " + ovl.iv + " m").test(ovl.leg) && /Slope from the DEM/.test(ovl.leg) && /Lommel-Seeliger/.test(ovl.notes) && /Uniform albedo/.test(ovl.notes) && /No synthetic rocks/.test(ovl.notes), JSON.stringify(ovl.d));
+    await page.click('#v3dContours'); await page.click('#v3dSlope');
     // orbit: keyboard and mouse
     const cam0 = (await v3at()).d.camera;
     await page.evaluate(() => AsteriaView3D.testKey('ArrowLeft', true)); const tf = Date.now(), f0 = (await v3at()).d.frames;

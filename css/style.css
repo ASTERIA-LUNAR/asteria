@@ -390,6 +390,9 @@ body.v3d-open { overflow: hidden; }
 .v3d-rover .cards.small { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; margin: 8px 0; }
 .v3d-rover .val { font-size: .92rem; }
 .v3d-warn { margin-top: 6px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--bad); color: #ffd0d0; background: rgba(255, 107, 107, .12); font-weight: 600; }
+.v3d-legend { margin-top: 6px; font-size: .78rem; color: #c3cee2; display: flex; flex-direction: column; gap: 3px; }
+.v3d-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin: 0 3px 0 6px; vertical-align: -1px; }
+.v3d-legend i.cl { height: 2px; width: 16px; vertical-align: 3px; margin-left: 0; background: #59d9ff; }
 .v3d-notes { margin-top: 10px; font-size: .8rem; color: #c3cee2; } .v3d-notes summary { cursor: pointer; color: var(--accent); } .v3d-notes li { margin: 4px 0; }
 @media (max-width: 700px) {
   .v3d { flex-direction: column; }
