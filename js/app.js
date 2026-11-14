@@ -101,6 +101,7 @@
     renderMetrics();
     renderTimeline();
     renderInstant();
+    writeHash();
   }
 
   // ------------------------------------------------------------ site list
@@ -427,6 +428,7 @@
     var st = S.stats;
     var m = [
       ['Sunlit', st.pctSun.toFixed(1) + '%'], ['Earth visible', st.pctEarth.toFixed(1) + '%'],
+      ['Average illumination (solar-disk fraction)', (100 * st.avgSunFrac).toFixed(1) + '%'],
       ['Both (power + DTE)', st.pctBoth.toFixed(1) + '%'],
       ['Longest darkness', st.longestDarkH >= S.windowDays * 24 - 0.01 ? 'whole window' : fmtHours(st.longestDarkH)],
       ['Longest Earth blackout', st.longestBlackoutH >= S.windowDays * 24 - 0.01 ? 'whole window' : fmtHours(st.longestBlackoutH)]
@@ -604,7 +606,32 @@
       h += '</tbody></table></div>';
       h += '<p>The permanently shadowed Shackleton floor gets 0% sunlight while rim and ridge points 10-30 km away get 50-55%, as expected. Published comparison: Mahanti et al. 2024 (PSJ 5, 62) state that a small area at (−88.79, 124.5) receives persistent illumination "approximately 80% of the time" (citing Mazarico et al. 2011). At that exact (rounded) coordinate we get ' + (I.rows.filter(function (r) { return r.id === 'peak_shackleton'; })[0] || { sunTerrain: NaN }).sunTerrain.toFixed(1) + '% for 2027; within ±400 m of it our values range from 2% to 68% (see GAPS_AND_ISSUES.md). Illumination at the pole changes over a few hundred metres, the published value is for a different period and method, and the coordinate is only given to 0.01°, so we report the difference rather than tune the model.</p>';
     }
+    h += renderXcheck();
     el.innerHTML = h;
+  }
+  function renderXcheck() {
+    var X = window.LUNA_XCHECK, SRC = window.LUNA_XCHECK_SOURCES || [];
+    if (!X) return '<h3>Terrain illumination cross-check</h3><p class="hint">Not available (run tools/illum_crosscheck.py).</p>';
+    var p = function (v) { return (v === null || v === undefined) ? 'n/a' : (100 * v).toFixed(1) + '%'; };
+    var h = '<h3>Terrain illumination cross-check: Peak near Shackleton vs published ~80%</h3>';
+    h += '<ul>' + SRC.map(function (s) { return '<li><b>' + esc(s.what) + ':</b> ' + esc(s.quote) + ' <a href="' + esc(s.url) + '" target="_blank" rel="noopener">source</a></li>'; }).join('') + '</ul>';
+    h += '<p class="hint">Sun directions from the validated engine, hourly over ' + esc(X.span) + ' (one 18.6-year cycle); LOLA terrain horizons at 2 m and 10 m above the surface. (1) average visible solar-disk fraction, (2) % time Sun centre up, (3) % time any part of the disk up.</p>';
+    h += '<div class="tablewrap"><table><thead><tr><th>Observer</th><th>Period</th><th class="num">(1) Avg disk fraction</th><th class="num">(2) Centre up</th><th class="num">(3) Any part up</th></tr></thead><tbody>';
+    X.central.forEach(function (c) { h += '<tr><td>' + c.height_m + ' m</td><td>' + esc(c.period) + '</td><td class="num">' + p(c.avgDiskFrac) + '</td><td class="num">' + c.pctCentre.toFixed(1) + '%</td><td class="num">' + c.pctAnyPart.toFixed(1) + '%</td></tr>'; });
+    h += '<tr><td colspan="2">Published map ' + esc(X.pgdaProduct) + ' at the same point</td><td class="num">' + p(X.pgdaAtPoint.bilinear) + '</td><td></td><td></td></tr>';
+    h += '<tr><td colspan="2">Published text (Mahanti et al. 2024)</td><td class="num">~80%</td><td></td><td></td></tr></tbody></table></div>';
+    h += '<div class="tablewrap"><table><thead><tr><th>Neighbourhood (500 m, 50 m grid)</th><th>Best point (ours)</th><th class="num">Ours (1)</th><th class="num">Published map there</th><th class="num">Map max in area</th><th class="num">r</th></tr></thead><tbody>';
+    Object.keys(X.grid).forEach(function (k) {
+      var g = X.grid[k], b = g.best;
+      h += '<tr><td>' + k + ' m observer, ' + g.n + ' points</td><td>' + b.lat.toFixed(5) + ', ' + b.lon.toFixed(4) + '</td><td class="num">' + p(b.avgDiskFrac) + '</td><td class="num">' + p(b.pgda) + '</td><td class="num">' + p(g.bestByPgda.pgda) + '</td><td class="num">' + g.corrWithPgda.toFixed(2) + '</td></tr>';
+    });
+    h += '</tbody></table></div>';
+    h += '<div class="tablewrap"><table><thead><tr><th>Site (2 m, 18.6 yr)</th><th class="num">(1) Avg disk fraction</th><th class="num">(2) Centre up</th><th class="num">Published map</th></tr></thead><tbody>';
+    X.sites.forEach(function (s) { var site = siteById(s.id); h += '<tr><td>' + esc(site ? site.name : s.id) + '</td><td class="num">' + p(s.avgDiskFrac) + '</td><td class="num">' + s.pctCentre.toFixed(1) + '%</td><td class="num">' + p(s.pgda) + '</td></tr>'; });
+    h += '</tbody></table></div>';
+    var c18 = X.central.filter(function (c) { return c.height_m === 2 && c.period === '18.6 yr'; })[0];
+    h += '<p><b>Finding:</b> at the published coordinate the published 60 m map itself gives ' + p(X.pgdaAtPoint.bilinear) + ' and LunaWindow gives ' + p(c18.avgDiskFrac) + ' (2 m, 18.6 years). Both are well below "approximately 80%", so that figure is not reproduced at this coordinate by the public map product.' + (X.grid['10.0'] ? ' With the observer 10 m above the surface, the best point within 500 m reaches ' + p(X.grid['10.0'].best.avgDiskFrac) + ' in our model (published map there: ' + p(X.grid['10.0'].best.pgda) + '; the map does not state its observer height).' : '') + ' Nothing was tuned. Full tables: VALIDATION_REPORT.md.</p>';
+    return h;
   }
 
   // ------------------------------------------------------------------ tabs
@@ -616,7 +643,15 @@
       addScenario(S.site.id || '__custom', S.start, S.site.lat, S.site.lon);
       addScenario(S.site.id || '__custom', new Date(S.start.getTime() + 7 * DAY), S.site.lat, S.site.lon);
     }
-    try { localStorage.setItem('lw.page', p); } catch (e) { /* storage unavailable */ }
+    if (p === 'slip') {
+      if (!$('slipNominal').value) $('slipNominal').value = toInput(S.start);
+      if (SLIP.res) renderSlip(); else runSlip();
+    }
+    if (p === 'power') {
+      if (!$('slipNominal').value) $('slipNominal').value = toInput(S.start);
+      runPower();
+    }
+    writeHash();
   }
 
   // ------------------------------------------------------------------ init
@@ -657,26 +692,391 @@
     $('cmpScenarios').addEventListener('change', scenarioChange);
     $('cmpScenarios').addEventListener('click', function (ev) { var d = ev.target.dataset.del; if (d !== undefined) { CMP.splice(+d, 1); renderScenarios(); } });
     $('cmpRun').addEventListener('click', runCompare);
-    var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { renderMap(); renderTimeline(); renderInstant(); }, 150); });
+    var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { renderMap(); renderTimeline(); renderInstant(); renderSlip(); renderPowerChart(); }, 150); });
+    $('slipRun').addEventListener('click', function () { runSlip(); });
+    $('slipMetric').addEventListener('change', renderSlip);
+    $('slipHeat').addEventListener('mousemove', slipHover);
+    $('slipHeat').addEventListener('mouseleave', function () { $('slipTip').hidden = true; });
+    $('slipHeat').addEventListener('click', slipClick);
+    $('pwRun').addEventListener('click', runPower);
+    $('pwMode').addEventListener('change', function () { $('pwFaceWrap').style.display = this.value === 'fixed' ? '' : 'none'; });
+    $('pwFaceWrap').style.display = 'none';
+    $('shareBtn').addEventListener('click', copyLink);
+    $('tourBtn').addEventListener('click', function () { tourShow(0); });
+    $('tourNext').addEventListener('click', function () { if (TOUR.i < TOUR_STEPS.length - 1) tourShow(TOUR.i + 1); else tourClose(); });
+    $('tourPrev').addEventListener('click', function () { if (TOUR.i > 0) tourShow(TOUR.i - 1); });
+    $('tourClose').addEventListener('click', tourClose);
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !$('tour').hidden) tourClose(); });
 
     try { if (localStorage.getItem('lw.explain') === '1') { $('explainToggle').checked = true; document.body.classList.add('explain-on'); } } catch (e) { /* ignore */ }
     renderValidation();
-    selectSite(siteById('peak_shackleton') || SITES[0]);
-    var p = null; try { p = localStorage.getItem('lw.page'); } catch (e) { /* ignore */ }
-    if (p && $('page-' + p)) showPage(p);
+    var h = readHash();
+    if (h) applyHash(h); else selectSite(siteById('peak_shackleton') || SITES[0]);   // default view
+    hashReady = true;
+    writeHash();
+    window.addEventListener('hashchange', function () { var o = readHash(); if (o) { hashReady = false; applyHash(o); hashReady = true; } });
   }
 
-  // TODO hooks for later features (intentionally not implemented yet).
+  // Public hooks (used by the headless UI check and the tour).
+  // ================================================================ LAUNCH SLIP
+  var SLIP_METRICS = {
+    pctBoth: { label: '% both (power + DTE)', better: 'max', fmt: function (v) { return v.toFixed(1) + '%'; } },
+    pctSun: { label: '% sunlit', better: 'max', fmt: function (v) { return v.toFixed(1) + '%'; } },
+    avgSunFrac: { label: 'Average illumination (disk fraction)', better: 'max', fmt: function (v) { return (100 * v).toFixed(1) + '%'; } },
+    pctEarth: { label: '% Earth visible', better: 'max', fmt: function (v) { return v.toFixed(1) + '%'; } },
+    longestDarkH: { label: 'Longest darkness', better: 'min', fmt: function (v) { return fmtHours(v); } },
+    longestBlackoutH: { label: 'Longest Earth blackout', better: 'min', fmt: function (v) { return fmtHours(v); } },
+    hoursToFirstSunset: { label: 'Hours until first sunset', better: 'max', fmt: null }
+  };
+  var SLIP_KEYS = ['pctBoth', 'pctSun', 'avgSunFrac', 'pctEarth', 'longestDarkH', 'longestBlackoutH', 'hoursToFirstSunset'];
+  var SLIP = { res: null, layout: null };
+  // hoursToFirstSunset: null means "no sunset during the mission" -> treated as the full mission length.
+  function slipVal(row, key, durDays) { var v = row[key]; return (key === 'hoursToFirstSunset' && v === null) ? durDays * 24 : v; }
+  function slipFmt(row, key, durDays) {
+    if (key === 'hoursToFirstSunset') {
+      var v = row[key];
+      return v === null ? 'no sunset in mission' : v === 0 ? 'Sun down at landing' : fmtHours(v);
+    }
+    return SLIP_METRICS[key].fmt(row[key]);
+  }
+  function slipSites(mode) {
+    var list = [];
+    function add(site, useTerrain) {
+      var key = site.id || (site.lat + ',' + site.lon);
+      if (list.some(function (x) { return x.key === key; })) return;
+      list.push({ key: key, site: site, name: site.name, mask: maskFor(site, useTerrain) });
+    }
+    if (mode === 'terrain') SITES.forEach(function (s) { if (hasTerrain(s)) add(s, true); });
+    else if (mode === 'compare' && CMP.length) CMP.forEach(function (c) {
+      var s = siteById(c.siteId) || { id: null, name: 'Custom (' + c.lat + ', ' + c.lon + ')', lat: c.lat, lon: c.lon };
+      add(s, c.terrain);
+    });
+    else add(S.site, S.useTerrain);
+    return list;
+  }
+  function runSlip(done) {
+    var nominal = fromInput($('slipNominal').value) || S.start;
+    var dur = Math.round(+$('slipDuration').value), from = Math.round(+$('slipFrom').value), to = Math.round(+$('slipTo').value), step = Math.max(1, Math.round(+$('slipStep').value));
+    if (!(dur >= 1 && dur <= 120) || !(from >= 0) || !(to > from) || to - from > 365) {
+      $('slipProgress').textContent = 'Check inputs: mission 1-120 days, slip range up to 365 days.'; return;
+    }
+    var sites = slipSites($('slipSites').value);
+    var res = { nominal: nominal, dur: dur, from: from, to: to, step: step, sites: [] };
+    $('slipRun').disabled = true;
+    var k = 0;
+    (function nextSite() {
+      if (k >= sites.length) {
+        $('slipRun').disabled = false;
+        $('slipProgress').textContent = 'Done: ' + sites.length + ' site(s) x ' + res.sites[0].scan.rows.length + ' landing dates, ' + res.sites[0].scan.stepMin + '-minute sampling.';
+        SLIP.res = res; renderSlip(); if (done) done(); return;
+      }
+      $('slipProgress').textContent = 'Computing ' + (k + 1) + ' / ' + sites.length + ': ' + sites[k].name + ' ...';
+      setTimeout(function () {
+        var it = sites[k];
+        it.scan = E.slipScan({ lat: it.site.lat, lon: it.site.lon }, nominal, dur, from, to, step, it.mask);
+        res.sites.push(it); k++; nextSite();
+      }, 15);
+    })();
+  }
+  function heatColor(f) { // f in 0..1, dark blue -> teal -> yellow
+    var stops = [[13, 27, 62], [27, 110, 140], [64, 190, 140], [255, 214, 74]];
+    f = Math.max(0, Math.min(1, f)); var x = f * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(x)), t = x - i;
+    var a = stops[i], b = stops[i + 1];
+    return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * t) + ',' + Math.round(a[1] + (b[1] - a[1]) * t) + ',' + Math.round(a[2] + (b[2] - a[2]) * t) + ')';
+  }
+  function renderSlip() {
+    var R = SLIP.res; if (!R) return;
+    var c = $('slipHeat'); if (!c.clientWidth) return;
+    var key = $('slipMetric').value, M = SLIP_METRICS[key];
+    var bySite = R.sites.length > 1;
+    var rows = bySite ? R.sites.map(function (s) { return { label: s.name, site: s, key: key }; })
+      : SLIP_KEYS.map(function (k) { return { label: SLIP_METRICS[k].label, site: R.sites[0], key: k }; });
+    var nS = R.sites[0].scan.rows.length;
+    var w = c.clientWidth, labW = Math.min(210, Math.max(90, w * 0.24)), rowH = 26, top = 6, bottom = 24;
+    var f = fitCanvas(c, top + rows.length * rowH + bottom), ctx = f.ctx;
+    var pw = w - labW - 8, cw = pw / nS;
+    ctx.fillStyle = C.bg; ctx.fillRect(0, 0, w, f.h);
+    // global range for site mode (comparable colours), per-row range for metric mode
+    function rangeOf(rs) {
+      var lo = Infinity, hi = -Infinity;
+      rs.forEach(function (r) { r.site.scan.rows.forEach(function (x) { var v = slipVal(x, r.key, R.dur); if (v < lo) lo = v; if (v > hi) hi = v; }); });
+      return [lo, hi];
+    }
+    var globalRange = bySite ? rangeOf(rows) : null;
+    SLIP.layout = { labW: labW, rowH: rowH, top: top, cw: cw, rows: rows, nS: nS };
+    rows.forEach(function (r, ri) {
+      var rg = globalRange || rangeOf([r]), better = SLIP_METRICS[r.key].better;
+      var y = top + ri * rowH;
+      ctx.fillStyle = C.text; ctx.font = '11px system-ui'; ctx.textAlign = 'right';
+      var lbl = r.label;
+      while (lbl.length > 4 && ctx.measureText(lbl).width > labW - 10) lbl = lbl.slice(0, -2) + '…';
+      ctx.fillText(lbl, labW - 6, y + rowH / 2 + 4);
+      var vals = r.site.scan.rows.map(function (x) { return slipVal(x, r.key, R.dur); });
+      var bestV = better === 'max' ? Math.max.apply(null, vals) : Math.min.apply(null, vals), bestI = vals.indexOf(bestV);
+      vals.forEach(function (v, i) {
+        var fr = rg[1] > rg[0] ? (v - rg[0]) / (rg[1] - rg[0]) : 0.5;
+        if (better === 'min') fr = 1 - fr;
+        ctx.fillStyle = heatColor(fr);
+        ctx.fillRect(labW + i * cw, y + 1, Math.max(1, cw - (cw > 4 ? 1 : 0)), rowH - 2);
+      });
+      var allSame = vals.every(function (v) { return Math.abs(v - vals[0]) < 1e-9; });
+      if (!allSame) { ctx.strokeStyle = '#5ee27a'; ctx.lineWidth = 2; ctx.strokeRect(labW + bestI * cw + 1, y + 2, Math.max(2, cw - 2), rowH - 4); }
+      r.bestI = allSame ? -1 : bestI;
+    });
+    // nominal column (slip 0)
+    var i0 = R.sites[0].scan.rows.findIndex(function (x) { return x.slip === 0; });
+    if (i0 >= 0) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(labW + i0 * cw, top, Math.max(2, cw), rows.length * rowH); }
+    // x labels
+    ctx.fillStyle = C.text; ctx.textAlign = 'center'; ctx.font = '11px system-ui';
+    var every = Math.max(1, Math.ceil(nS / Math.max(2, Math.floor(pw / 45))));
+    R.sites[0].scan.rows.forEach(function (x, i) { if (i % every === 0) ctx.fillText('+' + x.slip + 'd', labW + (i + 0.5) * cw, f.h - 8); });
+    $('slipLegend').innerHTML = (bySite ? 'Rows: sites, coloured by <b>' + esc(M.label) + '</b> on a common scale.' : 'Rows: metrics for <b>' + esc(R.sites[0].name) + '</b>, each row on its own scale.') +
+      ' Brighter = better. White outline = nominal landing (slip 0); green outline = best in range. Mission ' + R.dur + ' days; sampling ' + R.sites[0].scan.stepMin + ' min. Hover for values, click to open in the Explorer.';
+    var note = $('slipHorizonNote'), anyTerrain = R.sites.some(function (s) { return s.mask; }), allTerrain = R.sites.every(function (s) { return s.mask; });
+    note.className = 'badge ' + (allTerrain ? 'terrain' : 'smooth');
+    note.textContent = allTerrain ? 'Terrain horizons (LOLA)' : anyTerrain ? 'Mixed: some sites smooth Moon - terrain not included' : 'Smooth Moon horizon - terrain not included';
+    renderSlipLine();
+  }
+  function slipLineSite() {
+    var R = SLIP.res; if (!R) return null;
+    for (var i = 0; i < R.sites.length; i++) if (S.site && R.sites[i].site.id && R.sites[i].site.id === S.site.id) return R.sites[i];
+    return R.sites[0];
+  }
+  function renderSlipLine() {
+    var R = SLIP.res, it = slipLineSite(); if (!R || !it) return;
+    var c = $('slipLine'); if (!c.clientWidth) return;
+    var key = $('slipMetric').value, M = SLIP_METRICS[key];
+    var f = fitCanvas(c, 210), ctx = f.ctx, w = f.w, h = f.h, L = 56, Rr = 12, T = 14, B = 28, pw = w - L - Rr, ph = h - T - B;
+    var rows = it.scan.rows, vals = rows.map(function (x) { return slipVal(x, key, R.dur); });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
+    var pad2 = (hi - lo) * 0.08; lo = Math.max(0, lo - pad2); hi += pad2;   // all metrics are >= 0
+    var X = function (i) { return L + (rows.length > 1 ? i / (rows.length - 1) : 0.5) * pw; };
+    var Y = function (v) { return T + (hi - v) / (hi - lo) * ph; };
+    ctx.fillStyle = C.bg; ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = C.grid; ctx.fillStyle = C.text; ctx.font = '11px system-ui'; ctx.textAlign = 'right';
+    for (var g = 0; g <= 4; g++) {
+      var v = lo + (hi - lo) * g / 4; ctx.beginPath(); ctx.moveTo(L, Y(v)); ctx.lineTo(L + pw, Y(v)); ctx.stroke();
+      ctx.fillText(key === 'avgSunFrac' ? (100 * v).toFixed(0) + '%' : key.indexOf('pct') === 0 ? v.toFixed(0) + '%' : fmtHours(Math.max(0, v)), L - 5, Y(v) + 4);
+    }
+    ctx.textAlign = 'center';
+    var every = Math.max(1, Math.ceil(rows.length / Math.max(2, Math.floor(pw / 50))));
+    rows.forEach(function (x, i) { if (i % every === 0) ctx.fillText('+' + x.slip + 'd', X(i), h - 8); });
+    ctx.strokeStyle = '#4cc9f0'; ctx.lineWidth = 2; ctx.beginPath();
+    vals.forEach(function (v, i) { if (i === 0) ctx.moveTo(X(i), Y(v)); else ctx.lineTo(X(i), Y(v)); }); ctx.stroke();
+    var best = M.better === 'max' ? Math.max.apply(null, vals) : Math.min.apply(null, vals), bi = vals.indexOf(best);
+    var i0 = rows.findIndex(function (x) { return x.slip === 0; });
+    if (i0 >= 0) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(X(i0), Y(vals[i0]), 5, 0, 7); ctx.fill(); ctx.textAlign = 'left'; ctx.fillText('nominal', X(i0) + 7, Y(vals[i0]) - 7); }
+    ctx.fillStyle = '#5ee27a'; ctx.beginPath(); ctx.arc(X(bi), Y(best), 5, 0, 7); ctx.fill(); ctx.textAlign = bi > rows.length * 0.8 ? 'right' : 'left';
+    ctx.fillText('best +' + rows[bi].slip + 'd', X(bi) + (bi > rows.length * 0.8 ? -7 : 7), Y(best) + 15);
+    $('slipLineSite').textContent = it.name + ' - ' + M.label;
+    // summary text
+    var r0 = i0 >= 0 ? rows[i0] : null, rb = rows[bi], r14 = rows.filter(function (x) { return x.slip === 14; })[0];
+    var s = '';
+    if (r0) s += 'Nominal landing ' + fmtUTC(r0.landing) + ' UTC: <b>' + slipFmt(r0, key, R.dur) + '</b>. ';
+    s += 'Best in range: <b>+' + rb.slip + ' days</b> (' + fmtUTC(rb.landing) + ' UTC) with <b>' + slipFmt(rb, key, R.dur) + '</b>.';
+    if (r14 && r0) s += ' A 14-day slip gives <b>' + slipFmt(r14, key, R.dur) + '</b>.';
+    $('slipSummary').innerHTML = s;
+  }
+  function slipCellAt(ev) {
+    var L = SLIP.layout, R = SLIP.res; if (!L || !R) return null;
+    var rect = $('slipHeat').getBoundingClientRect(), x = ev.clientX - rect.left, y = ev.clientY - rect.top;
+    var i = Math.floor((x - L.labW) / L.cw), ri = Math.floor((y - L.top) / L.rowH);
+    if (i < 0 || i >= L.nS || ri < 0 || ri >= L.rows.length) return null;
+    return { row: L.rows[ri], i: i, x: x, y: y };
+  }
+  function slipHover(ev) {
+    var hit = slipCellAt(ev), tip = $('slipTip');
+    if (!hit) { tip.hidden = true; return; }
+    var R = SLIP.res, row = hit.row.site.scan.rows[hit.i];
+    var html = '<b>' + esc(hit.row.site.name) + '</b><br>Slip +' + row.slip + ' d · landing ' + fmtUTC(row.landing) + ' UTC<br>';
+    html += SLIP_KEYS.map(function (k) { return (k === hit.row.key ? '<b>' : '') + SLIP_METRICS[k].label + ': ' + slipFmt(row, k, R.dur) + (k === hit.row.key ? '</b>' : ''); }).join('<br>');
+    tip.innerHTML = html; tip.hidden = false;
+    var wrapW = $('slipHeat').clientWidth;
+    tip.style.left = Math.min(hit.x + 14, wrapW - tip.offsetWidth - 4) + 'px';
+    tip.style.top = (hit.y + 14) + 'px';
+  }
+  function slipClick(ev) {
+    var hit = slipCellAt(ev); if (!hit) return;
+    var R = SLIP.res, row = hit.row.site.scan.rows[hit.i], site = hit.row.site.site;
+    openInExplorer(site, row.landing, R.dur, !!hit.row.site.mask);
+  }
+  function ensureWindowOption(days) {
+    var sel = $('windowSel');
+    if (![].some.call(sel.options, function (o) { return +o.value === days; })) {
+      var o = document.createElement('option'); o.value = days; o.textContent = days + ' days'; sel.appendChild(o);
+    }
+    sel.value = String(days);
+  }
+  function openInExplorer(site, start, days, useTerrain) {
+    S.start = new Date(start.getTime()); S.start.setUTCSeconds(0, 0);
+    $('startInput').value = toInput(S.start);
+    S.windowDays = days; ensureWindowOption(days); S.idx = 0;
+    showPage('explorer');
+    selectSite(site);
+    if (!useTerrain && S.useTerrain) { S.useTerrain = false; $('terrainToggle').checked = false; renderBadge(); recompute(); }
+  }
+
+  // ===================================================================== POWER
+  var PW = { res: null };
+  function powerWindow() {
+    var mode = $('pwWindow').value;
+    var site = siteObj(), mask = maskFor(S.site, S.useTerrain);
+    if (mode === 'slip') {
+      var nominal = fromInput($('slipNominal').value) || S.start, dur = Math.max(1, Math.round(+$('slipDuration').value) || 14);
+      var end = new Date(nominal.getTime() + dur * DAY);
+      return { label: S.site.name + ', launch-slip mission: landing ' + fmtUTC(nominal) + ' UTC + ' + dur + ' days', start: nominal, days: dur,
+        series: E.series(site, nominal, end, E.defaultStepMin(nominal, end), mask), mask: mask };
+    }
+    return { label: S.site.name + ', Explorer window: ' + fmtUTC(S.start) + ' UTC + ' + S.windowDays + ' days', start: S.start, days: S.windowDays, series: S.series, mask: mask };
+  }
+  function runPower() {
+    var opts = { area: +$('pwArea').value, eff: (+$('pwEff').value) / 100, mode: $('pwMode').value, faceAz: +$('pwFace').value };
+    var load = +$('pwLoad').value, usable = (+$('pwDod').value) / 100;
+    if (!(opts.area > 0) || !(opts.eff > 0 && opts.eff <= 1) || !(load >= 0) || !(usable > 0 && usable <= 1)) { $('pwVerdict').textContent = 'Check inputs.'; return; }
+    var win = powerWindow(), s = win.series, n = s.t.length, stepH = s.stepMin / 60;
+    var P = new Array(n), peak = 0, zero = 0, maxZero = 0;
+    for (var i = 0; i < n; i++) {
+      P[i] = E.panelPower(opts, s.sunAz[i], s.sunEl[i], s.sunDist[i], s.sunFrac[i]);
+      if (P[i] > peak) peak = P[i];
+      if (P[i] <= 0) { zero++; if (zero > maxZero) maxZero = zero; } else zero = 0;
+    }
+    var Wh = 0; for (i = 1; i < n; i++) Wh += (P[i - 1] + P[i]) / 2 * stepH;   // trapezoid rule
+    var hours = (n - 1) * stepH, loadWh = load * hours;
+    var st = E.stats(s);
+    var darkH = st.longestDarkH, zeroH = maxZero * stepH;
+    var battery = load * darkH / usable, batteryZero = load * zeroH / usable;
+    PW.res = { P: P, t: s.t, load: load, Wh: Wh, loadWh: loadWh, peak: peak, mean: Wh / hours, darkH: darkH, zeroH: zeroH, battery: battery, batteryZero: batteryZero, hours: hours, win: win, opts: opts, usable: usable };
+    var kWh = function (x) { return (x / 1000).toFixed(x < 10000 ? 2 : 1) + ' kWh'; };
+    var cards = [
+      ['Energy generated', kWh(Wh)], ['Energy needed by load', kWh(loadWh)], ['Energy balance', (Wh >= loadWh ? '+' : '−') + kWh(Math.abs(Wh - loadWh))],
+      ['Mean / peak power', PW.res.mean.toFixed(0) + ' / ' + peak.toFixed(0) + ' W'], ['Longest darkness', fmtHours(darkH)],
+      ['Battery for longest darkness', kWh(battery) + ' (' + Math.round(usable * 100) + '% usable)']
+    ];
+    $('pwCards').innerHTML = cards.map(function (x) { return '<div class="card"><div class="cardlbl">' + x[0] + '</div><div class="val mono">' + x[1] + '</div></div>'; }).join('');
+    var v = $('pwVerdict');
+    v.className = 'verdict ' + (Wh >= loadWh ? 'pos' : 'neg');
+    v.textContent = (Wh >= loadWh ? 'Energy positive' : 'Energy negative') + ' over the window: generates ' + kWh(Wh) + ' vs ' + kWh(loadWh) + ' needed.' +
+      (zeroH > darkH + 1e-9 ? ' Note: with this orientation the panel produces nothing for up to ' + fmtHours(zeroH) + ' (Sun behind the panel), which would need ' + kWh(batteryZero) + '.' : '');
+    $('pwWindowNote').textContent = 'Window: ' + win.label + '. ' + (win.mask ? 'LOLA terrain horizon.' : 'Smooth Moon horizon - terrain not included.') + ' Sampling ' + s.stepMin + ' min.';
+    renderPowerChart();
+  }
+  function renderPowerChart() {
+    var R = PW.res, c = $('pwChart'); if (!R || !c.clientWidth) return;
+    var f = fitCanvas(c, 230), ctx = f.ctx, w = f.w, h = f.h, L = 52, Rr = 10, T = 12, B = 26, pw = w - L - Rr, ph = h - T - B;
+    var hi = Math.max(R.peak, R.load) * 1.1 || 1;
+    var X = function (i) { return L + i / (R.P.length - 1) * pw; }, Y = function (v) { return T + (hi - v) / hi * ph; };
+    ctx.fillStyle = C.bg; ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = C.grid; ctx.fillStyle = C.text; ctx.font = '11px system-ui'; ctx.textAlign = 'right';
+    for (var g = 0; g <= 4; g++) { var v = hi * g / 4; ctx.beginPath(); ctx.moveTo(L, Y(v)); ctx.lineTo(L + pw, Y(v)); ctx.stroke(); ctx.fillText(v.toFixed(0) + ' W', L - 4, Y(v) + 4); }
+    ctx.beginPath(); ctx.moveTo(X(0), Y(0));
+    R.P.forEach(function (p, i) { ctx.lineTo(X(i), Y(p)); }); ctx.lineTo(X(R.P.length - 1), Y(0)); ctx.closePath();
+    ctx.fillStyle = 'rgba(255,194,61,.35)'; ctx.fill();
+    ctx.strokeStyle = C.sun; ctx.lineWidth = 1.5; ctx.beginPath(); R.P.forEach(function (p, i) { if (i === 0) ctx.moveTo(X(i), Y(p)); else ctx.lineTo(X(i), Y(p)); }); ctx.stroke();
+    ctx.setLineDash([6, 4]); ctx.strokeStyle = '#ff6b6b'; ctx.beginPath(); ctx.moveTo(L, Y(R.load)); ctx.lineTo(L + pw, Y(R.load)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#ff9b9b'; ctx.textAlign = 'left'; ctx.fillText('load ' + R.load + ' W', L + 4, Y(R.load) - 4);
+    ctx.fillStyle = C.text; ctx.textAlign = 'center';
+    var days = R.hours / 24, tick = days <= 8 ? 1 : days <= 31 ? 5 : days <= 92 ? 15 : 60, t0 = R.t[0], t1 = R.t[R.t.length - 1];
+    var first = new Date(t0); first.setUTCHours(0, 0, 0, 0);
+    for (var td = first.getTime(); td <= t1; td += tick * DAY) { if (td < t0) continue; var x = L + (td - t0) / (t1 - t0) * pw; var d = new Date(td); ctx.fillText(pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()), x, h - 8); }
+  }
+
+  // ============================================================ SHAREABLE URL
+  var hashReady = false;
+  function writeHash() {
+    if (!hashReady || !S.site) return;
+    var tab = (document.querySelector('.tab.active') || {}).dataset || {};
+    var p = [];
+    if (S.site.id) p.push('site=' + encodeURIComponent(S.site.id));
+    else p.push('lat=' + S.site.lat, 'lon=' + S.site.lon);
+    p.push('t=' + toInput(S.start) + 'Z', 'w=' + S.windowDays);
+    if (S.site.id && hasTerrain(S.site) && !S.useTerrain) p.push('terrain=0');
+    if (tab.page && tab.page !== 'explorer') p.push('tab=' + tab.page);
+    try { history.replaceState(null, '', '#' + p.join('&')); } catch (e) { location.hash = p.join('&'); }
+  }
+  function readHash() {
+    var h = (location.hash || '').replace(/^#/, ''), o = {};
+    if (!h) return null;
+    h.split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) o[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1)); });
+    return o;
+  }
+  function applyHash(o) {
+    if (o.t) { var d = new Date(o.t.replace(/Z?$/, ':00Z').replace(/:00:00Z$/, ':00Z')); if (!isNaN(d)) { S.start = d; $('startInput').value = toInput(d); } }
+    if (o.w && +o.w >= 1 && +o.w <= 400) { S.windowDays = Math.round(+o.w); ensureWindowOption(S.windowDays); }
+    var site = o.site ? siteById(o.site) : null;
+    if (!site && o.lat !== undefined && o.lon !== undefined && isFinite(+o.lat) && isFinite(+o.lon) && Math.abs(+o.lat) <= 90) {
+      site = { id: null, name: 'Custom point', lat: +o.lat, lon: +o.lon };
+      $('customLat').value = o.lat; $('customLon').value = o.lon;
+    }
+    selectSite(site || siteById('peak_shackleton') || SITES[0]);
+    if (o.terrain === '0' && S.useTerrain) { S.useTerrain = false; $('terrainToggle').checked = false; renderBadge(); recompute(); }
+    if (o.tab && $('page-' + o.tab)) showPage(o.tab);
+  }
+  function copyLink() {
+    writeHash();
+    var done = function () { $('shareBtn').textContent = 'Link copied'; setTimeout(function () { $('shareBtn').textContent = 'Copy link'; }, 1600); };
+    try { navigator.clipboard.writeText(location.href).then(done, function () { window.prompt('Copy this link:', location.href); }); }
+    catch (e) { window.prompt('Copy this link:', location.href); }
+  }
+
+  // ===================================================================== TOUR
+  var TOUR = { i: 0, hl: null };
+  function highlight(id) {
+    if (TOUR.hl) TOUR.hl.classList.remove('tour-hl');
+    TOUR.hl = id ? $(id) : null;
+    if (TOUR.hl) { TOUR.hl.classList.add('tour-hl'); TOUR.hl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  }
+  function minMax(a) { var lo = Infinity, hi = -Infinity; for (var i = 0; i < a.length; i++) { if (a[i] < lo) lo = a[i]; if (a[i] > hi) hi = a[i]; } return [lo, hi]; }
+  function fmtD(h) { return h >= 48 ? (h / 24).toFixed(1) + ' days' : h.toFixed(0) + ' hours'; }
+  var TOUR_STEPS = [
+    function (done) { // 1. Apollo 11
+      openInExplorer(siteById('apollo11'), S.start, 30, false);
+      var st = S.stats, e = minMax(S.series.earthEl);
+      done('sky', 'Apollo 11, near the lunar equator on the near side. Over these 30 days Earth is above the horizon <b>' + st.pctEarth.toFixed(0) + '%</b> of the time, staying between ' + e[0].toFixed(1) + '° and ' + e[1].toFixed(1) + '° elevation: it barely moves in the sky. The Sun is up ' + st.pctSun.toFixed(0) + '% of the time; the longest night in this window lasts ' + fmtD(st.longestDarkH) + ', the normal lunar day-night cycle.');
+    },
+    function (done) { // 2. Peak near Shackleton
+      openInExplorer(siteById('peak_shackleton'), S.start, 30, true);
+      var st = S.stats, sEl = minMax(S.series.sunEl), m = minMax(HZ.peak_shackleton.elevations);
+      var smooth = E.stats(E.series(siteObj(), S.start, new Date(S.start.getTime() + 30 * DAY), undefined, null));
+      done('sky', 'Peak near Shackleton, 1.2° from the south pole. Over these 30 days the Sun circles the horizon with its centre between ' + fmtDeg(sEl[0], 1) + ' and ' + fmtDeg(sEl[1], 1) + '. The brown silhouette is the real LOLA terrain horizon (from ' + fmtDeg(m[0], 1) + ' to ' + fmtDeg(m[1], 1) + '): with terrain the Sun is up <b>' + st.pctSun.toFixed(0) + '%</b> of the window, against ' + smooth.pctSun.toFixed(0) + '% for a smooth Moon. A few degrees of hill decide everything here.');
+    },
+    function (done) { // 3. countdown
+      showPage('explorer');
+      done('sunCard', 'The countdown cards answer "how long until we lose the Sun or Earth?". At the selected time: <b>' + esc($('sunCountLbl').textContent) + '</b> in <b>' + esc($('sunCount').textContent) + '</b> (' + esc($('sunCountSub').textContent) + '), and <b>' + esc($('earthCountLbl').textContent) + '</b> in ' + esc($('earthCount').textContent) + '. Drag the slider or press play to watch these change.');
+    },
+    function (done) { // 4. launch slip
+      showPage('slip');
+      $('slipSites').value = 'current'; $('slipNominal').value = toInput(S.start); $('slipDuration').value = 14; $('slipFrom').value = 0; $('slipTo').value = 60; $('slipStep').value = 1; $('slipMetric').value = 'pctBoth';
+      runSlip(function () {
+        var rows = SLIP.res.sites[0].scan.rows, r0 = rows[0], r14 = rows.filter(function (x) { return x.slip === 14; })[0];
+        var best = rows.reduce(function (a, b) { return b.pctBoth > a.pctBoth ? b : a; });
+        done('slipHeat', 'Launch slips: each column is a landing date, each row a metric for a 14-day mission. Landing on the nominal date: Sun up <b>' + r0.pctSun.toFixed(0) + '%</b>, power and DTE together <b>' + r0.pctBoth.toFixed(0) + '%</b> of the mission, longest darkness ' + fmtD(r0.longestDarkH) + '. A <b>2-week slip</b> changes that to Sun up <b>' + r14.pctSun.toFixed(0) + '%</b>, both <b>' + r14.pctBoth.toFixed(0) + '%</b>, longest darkness ' + fmtD(r14.longestDarkH) + '. The best landing in the next 60 days is +' + best.slip + ' days with ' + best.pctBoth.toFixed(0) + '%. Click any square to open that date.');
+      });
+    },
+    function (done) { // 5. power
+      showPage('power');
+      $('pwWindow').value = 'slip'; $('pwMode').value = 'track'; $('pwArea').value = 1; $('pwEff').value = 30; $('pwLoad').value = 100; $('pwDod').value = 80;
+      runPower();
+      var R = PW.res;
+      done('pwCards', 'Power check for the nominal 14-day mission: a 1 m², 30%-efficient vertical Sun-tracking panel generates <b>' + (R.Wh / 1000).toFixed(1) + ' kWh</b> against <b>' + (R.loadWh / 1000).toFixed(1) + ' kWh</b> for a 100 W load, so the mission is <b>' + (R.Wh >= R.loadWh ? 'energy positive' : 'energy negative') + '</b>. Surviving the longest darkness (' + fmtD(R.darkH) + ') needs about <b>' + (R.battery / 1000).toFixed(1) + ' kWh</b> of battery at 80% usable capacity. First-order estimate only.');
+    }
+  ];
+  function tourShow(i) {
+    TOUR.i = i;
+    $('tour').hidden = false;
+    $('tourStep').textContent = 'Tour · step ' + (i + 1) + ' of ' + TOUR_STEPS.length;
+    $('tourText').textContent = 'Working...';
+    $('tourPrev').disabled = i === 0;
+    $('tourNext').textContent = i === TOUR_STEPS.length - 1 ? 'Finish' : 'Next';
+    setTimeout(function () { TOUR_STEPS[i](function (hlId, html) { if (TOUR.i !== i) return; $('tourText').innerHTML = html; highlight(hlId); }); }, 30);
+  }
+  function tourClose() { $('tour').hidden = true; highlight(null); }
+
   window.LunaApp = {
     state: S,
-    todo: {
-      // TODO(launch-slip-heatmap): for each candidate landing date (x) and site (y), compute stats(series)
-      // over the surface-ops window and colour by pctBoth / longestDarkH.
-      launchSlipHeatmap: function () { throw new Error('TODO: launch-slip heatmap not implemented yet'); },
-      // TODO(power-calculator): integrate panel output = area * efficiency * 1361 W/m2 * sunFrac * cos(incidence)
-      // over the series, then simulate battery state of charge against a load profile.
-      powerCalculator: function () { throw new Error('TODO: solar power and battery calculator not implemented yet'); }
-    }
+    runSlip: runSlip, slipResults: function () { return SLIP.res; },
+    runPower: runPower, powerResults: function () { return PW.res; },
+    tour: { start: function () { tourShow(0); }, step: function () { return TOUR.i; } }
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

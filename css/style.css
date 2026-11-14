@@ -133,7 +133,7 @@ canvas#sky, canvas#timeline { width: 100%; height: auto; display: block; border-
 .legend { display: flex; gap: 10px; align-items: center; font-size: .8rem; color: var(--muted); flex-wrap: wrap; }
 .lg { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: -4px; }
 .lg.sun { background: var(--sun); } .lg.earth { background: var(--earth); } .lg.both { background: var(--both); } .lg.terrain { background: var(--terrain); }
-.metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
 .metric { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; }
 .metric .v { font-family: var(--mono); font-size: 1.15rem; }
 .metric .k { font-size: .74rem; color: var(--muted); }
@@ -183,4 +183,28 @@ td.pass { color: var(--good); font-weight: 600; } td.fail { color: var(--bad); f
   .cards { grid-template-columns: minmax(0, 1fr); }
   .cards.small, .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .clock { gap: 14px; }
+}
+
+/* ---------------------------------------------------- slip / power / tour */
+.tourbtn { margin-left: 8px; }
+.heatwrap { position: relative; margin-top: 12px; }
+#slipHeat, #slipLine, #pwChart { width: 100%; display: block; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); margin-top: 8px; }
+#slipHeat { cursor: pointer; }
+.tip { position: absolute; pointer-events: none; background: rgba(5, 10, 20, .95); border: 1px solid var(--accent); border-radius: 8px; padding: 7px 9px; font-size: .8rem; white-space: nowrap; z-index: 5; }
+.summary { margin-top: 10px; font-size: .92rem; }
+.summary b { color: #fff; }
+.verdict { margin: 12px 0 4px; font-size: 1.15rem; font-weight: 700; }
+.verdict.pos { color: var(--good); } .verdict.neg { color: var(--bad); }
+.pwcards { margin-top: 12px; }
+.tour { position: fixed; z-index: 50; left: 50%; bottom: 18px; transform: translateX(-50%); width: min(680px, calc(100% - 24px));
+  background: #0b1730; border: 1px solid var(--accent); border-radius: 14px; padding: 14px 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, .6); }
+.tourstep { font-size: .75rem; color: var(--accent); text-transform: uppercase; letter-spacing: .08em; }
+.tourtext { margin: 6px 0 10px; font-size: .98rem; line-height: 1.5; }
+.tourbtns { display: flex; gap: 8px; justify-content: flex-end; }
+.tour-hl { outline: 3px solid var(--accent) !important; outline-offset: 3px; border-radius: 10px; }
+@media (max-width: 860px) {
+  .tourbtn { margin-left: 0; }
+  .topbar { position: static; }                 /* do not cover content on phones */
+  .topbar .btn { padding: 6px 10px; font-size: .85rem; }
+  .tab { padding: 6px 10px; }
 }

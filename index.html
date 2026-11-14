@@ -16,9 +16,13 @@
   <nav class="tabs" role="tablist">
     <button class="tab active" data-page="explorer" role="tab">Explorer</button>
     <button class="tab" data-page="compare" role="tab">Compare</button>
+    <button class="tab" data-page="slip" role="tab">Launch slip</button>
+    <button class="tab" data-page="power" role="tab">Power</button>
     <button class="tab" data-page="validation" role="tab">Validation</button>
     <button class="tab" data-page="about" role="tab">About</button>
   </nav>
+  <button id="tourBtn" class="btn primary tourbtn">&#9654; Take the 60-second tour</button>
+  <button id="shareBtn" class="btn ghost" title="Copy a link that reopens this exact view">Copy link</button>
   <label class="switch" title="Show plain-language explanations">
     <input type="checkbox" id="explainToggle"> <span>Explain mode</span>
   </label>
@@ -65,7 +69,7 @@
           <label>Start (UTC) <input id="startInput" type="datetime-local" step="60"></label>
           <button id="nowBtn" class="btn">Now</button>
           <label>Window
-            <select id="windowSel"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="365">365 days</option></select>
+            <select id="windowSel"><option value="7">7 days</option><option value="14">14 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="365">365 days</option></select>
           </label>
           <span class="stepnote" id="stepNote"></span>
         </div>
@@ -121,12 +125,58 @@
         <div class="metrics" id="metrics"></div>
         <p class="explain"><b>Why does the Earth bob up and down?</b> The Moon always keeps roughly the same face toward Earth, but not exactly: its slightly elliptical, tilted orbit makes Earth appear to wobble by up to about 8&deg; east-west and 7&deg; north-south in the lunar sky (this is called libration). Near the limb of the visible face, or at the poles, that wobble moves Earth above and below the horizon, opening and closing direct-to-Earth (DTE) radio windows.</p>
       </div>
-
-      <!-- TODO(launch-slip-heatmap): heatmap of % "both" (power+DTE) vs launch/landing date (x) and site (y),
-           to help teams react to schedule slips. Hook: LunaApp.todo.launchSlipHeatmap(siteIds, startDates). Not built yet. -->
-      <!-- TODO(power-calculator): solar power + battery calculator (panel area/efficiency/orientation,
-           load profile, battery capacity) driven by sunFrac and Sun elevation series. Hook: LunaApp.todo.powerCalculator(series). Not built yet. -->
     </div>
+  </div>
+</section>
+
+<!-- ============================================================ LAUNCH SLIP -->
+<section id="page-slip" class="page">
+  <div class="panel">
+    <div class="panelhead"><h2>Launch-slip heatmap</h2><span class="badge" id="slipHorizonNote"></span></div>
+    <p class="hint">If the landing slips by N days, how do power and direct-to-Earth (DTE) conditions over the surface mission change? Each column is a landing N days after the nominal date; each mission window starts at landing and lasts the mission duration.</p>
+    <div class="row wrap">
+      <label>Sites <select id="slipSites"><option value="current">Current site</option><option value="compare">All sites in Compare</option><option value="terrain">All south-pole sites with terrain</option></select></label>
+      <label>Nominal landing (UTC) <input id="slipNominal" type="datetime-local" step="60"></label>
+      <label>Mission (Earth days) <input id="slipDuration" type="number" min="1" max="120" step="1" value="14"></label>
+      <label>Slip from <input id="slipFrom" type="number" min="0" max="365" step="1" value="0"></label>
+      <label>to (days) <input id="slipTo" type="number" min="1" max="365" step="1" value="60"></label>
+      <label>step <input id="slipStep" type="number" min="1" max="30" step="1" value="1"></label>
+      <label>Colour by <select id="slipMetric">
+        <option value="pctBoth">% both (power + DTE)</option><option value="pctSun">% sunlit</option><option value="avgSunFrac">Average illumination (disk fraction)</option>
+        <option value="pctEarth">% Earth visible</option><option value="longestDarkH">Longest darkness (h)</option><option value="longestBlackoutH">Longest Earth blackout (h)</option>
+        <option value="hoursToFirstSunset">Hours until first sunset</option></select></label>
+      <button id="slipRun" class="btn primary">Compute</button>
+      <span id="slipProgress" class="hint" role="status"></span>
+    </div>
+    <div class="heatwrap"><canvas id="slipHeat" aria-label="Launch slip heatmap"></canvas><div id="slipTip" class="tip" hidden></div></div>
+    <div id="slipLegend" class="hint"></div>
+    <h3>Chosen metric vs slip: <span id="slipLineSite">current site</span></h3>
+    <canvas id="slipLine" aria-label="Metric versus slip"></canvas>
+    <div id="slipSummary" class="summary"></div>
+    <p class="explain">Each square is one possible landing date. Brighter is better for the selected metric (for darkness and blackout, shorter is better, so the colours are flipped). The white outline marks the nominal date (slip 0) and the green outline the best date in the range. Click a square to open that site and landing date in the Explorer.</p>
+  </div>
+</section>
+
+<!-- ================================================================== POWER -->
+<section id="page-power" class="page">
+  <div class="panel">
+    <div class="panelhead"><h2>Solar power &amp; battery calculator</h2><span class="badge smooth">First-order estimate</span></div>
+    <p class="hint">First-order estimate: no temperature effects, dust, degradation, wiring/conversion losses or light reflected from terrain. Power = 1361 W/m&sup2; (IAU 2015 nominal total solar irradiance) &times; (1 AU / Sun distance)&sup2; &times; area &times; efficiency &times; cos(incidence) &times; visible fraction of the solar disk.</p>
+    <div class="row wrap">
+      <label>Panel area (m&sup2;) <input id="pwArea" type="number" min="0.01" step="0.1" value="1"></label>
+      <label>Cell efficiency (%) <input id="pwEff" type="number" min="1" max="100" step="1" value="30"></label>
+      <label>Orientation <select id="pwMode"><option value="track">Vertical, Sun-tracking in azimuth</option><option value="horizontal">Horizontal (facing up)</option><option value="fixed">Vertical, fixed azimuth</option></select></label>
+      <label id="pwFaceWrap">Facing azimuth (&deg;) <input id="pwFace" type="number" min="0" max="360" step="1" value="0"></label>
+      <label>Average load (W) <input id="pwLoad" type="number" min="0" step="1" value="100"></label>
+      <label>Usable battery (%) <input id="pwDod" type="number" min="1" max="100" step="1" value="80"></label>
+      <label>Mission window <select id="pwWindow"><option value="explorer">Explorer timeline (site, start, window)</option><option value="slip">Launch-slip mission (current site, nominal landing + duration)</option></select></label>
+      <button id="pwRun" class="btn primary">Compute</button>
+    </div>
+    <p class="hint" id="pwWindowNote"></p>
+    <div class="cards small pwcards" id="pwCards"></div>
+    <div id="pwVerdict" class="verdict"></div>
+    <canvas id="pwChart" aria-label="Power versus time"></canvas>
+    <p class="explain">A vertical panel that turns to follow the Sun is the usual choice at the poles because the Sun is always near the horizon: a flat (horizontal) panel would see it almost edge-on. The battery must carry the load through the longest darkness; only part of a battery's capacity is usable, so the needed capacity is load &times; hours of darkness &divide; usable fraction.</p>
   </div>
 </section>
 
@@ -167,6 +217,9 @@
       <li><b>Libration</b> is included automatically: the real rotation model and the real Earth-Moon geometry are used, so Earth's wobble in the lunar sky comes out of the computation.</li>
       <li><b>Events</b> (sunrise/sunset, Earthrise/Earthset) refer to the centre of the Sun or Earth crossing the horizon, found by a 10-20 minute scan and refined by bisection to 1 minute.</li>
       <li><b>Solar disk visible</b>: fraction of the solar disk area above the horizon at the Sun's azimuth, treating the horizon as straight across the 0.53&deg; disk.</li>
+      <li><b>Launch slip</b>: one series covers the whole slip range; each landing date is an exact slice of it, so slip 0 matches the Explorer timeline for the same window.</li>
+      <li><b>Power</b> (first-order estimate): 1361 W/m&sup2; (IAU 2015 Resolution B3 nominal total solar irradiance) &times; (1 AU / Sun distance)&sup2; &times; area &times; efficiency &times; cos(incidence) &times; visible solar-disk fraction. No temperature effects, dust, degradation, losses or terrain reflection. Battery = load &times; longest darkness &divide; usable fraction.</li>
+      <li><b>Terrain illumination cross-check</b>: our 18.6-year averages compared with NASA's published LOLA average-illumination map (PGDA product 69); see the Validation tab.</li>
       <li><b>Terrain horizons</b> (curated south-polar sites only): from LOLA gridded topography (LDEM_85S_20M, 20 m/pixel, and LDEM_80S_80M, 80 m/pixel), ray-marched in 360 directions out to 300 km (or the DEM edge), observer 2 m above the ground, including lunar curvature.</li>
     </ul>
     <h3>Limitations and approximations</h3>
@@ -181,6 +234,7 @@
     <ul>
       <li><a href="https://github.com/cosinekitty/astronomy">Astronomy Engine</a> by Don Cross (MIT License) - ephemeris library.</li>
       <li><a href="https://ssd.jpl.nasa.gov/horizons/">NASA/JPL Horizons</a> - reference ephemeris used for validation.</li>
+      <li><a href="https://pgda.gsfc.nasa.gov/products/69">NASA PGDA LOLA lunar polar illumination maps</a> (Mazarico et al.) - used to cross-check terrain illumination.</li>
       <li><a href="https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/">LRO LOLA gridded polar DEMs</a>, NASA PDS Geosciences Node (LDEM_85S_20M, LDEM_80S_80M).</li>
       <li><a href="https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html">NASA NSSDC Apollo landing site coordinates</a>; <a href="https://lroc.im-ldi.com/">LROC</a> featured images for robotic lander positions; Wikipedia, Mahanti et al. 2024 (PSJ 5, 62) and Pe&ntilde;a-Asensio et al. (arXiv 2406.19863) for south-polar points. Every site lists its source links.</li>
       <li>Useful tools: <a href="https://quickmap.lroc.asu.edu/">LROC Quickmap</a>, <a href="https://trek.nasa.gov/moon/">NASA Moon Trek</a>.</li>
@@ -191,6 +245,11 @@
 </section>
 </main>
 
+<div id="tour" class="tour" hidden role="dialog" aria-live="polite" aria-label="Guided tour">
+  <div class="tourstep" id="tourStep"></div>
+  <div class="tourtext" id="tourText"></div>
+  <div class="tourbtns"><button id="tourPrev" class="btn ghost">Back</button><button id="tourNext" class="btn primary">Next</button><button id="tourClose" class="btn ghost" aria-label="Close tour">Close</button></div>
+</div>
 <footer class="foot">LunaWindow &middot; NASA Space Apps Challenge 2026 &middot; Not endorsed by NASA &middot; Ephemeris validated against JPL Horizons (see Validation)</footer>
 
 <script src="lib/astronomy.browser.min.js"></script>
@@ -206,8 +265,11 @@
 <script src="data/horizons/mons_mouton.js"></script>
 <script src="data/horizons/nobile_rim2_dm2.js"></script>
 <script src="data/horizons/peak_shackleton.js"></script>
+<script src="data/horizons/peak_shackleton_lw.js"></script>
 <script src="data/horizons/shackleton_centre.js"></script>
 <script src="data/illumination.js"></script>
+<script src="data/illum_crosscheck.js"></script>
+<script src="data/illum_crosscheck_meta.js"></script>
 <!-- HORIZON_SCRIPTS_END -->
 <script src="js/app.js"></script>
 </body>
