@@ -1,3 +1,4 @@
+# Generated with Claude Code (Anthropic) under human direction.
 """
 ASTERIA - Phase 3 terrain horizons from LOLA polar DEMs.
 

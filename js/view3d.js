@@ -34,7 +34,7 @@ window.AsteriaView3D = (function () {
     var m = o.tile;
     el.innerHTML =
       '<div class="v3d-stage" id="v3dStage">' +
-      '  <div class="v3d-labels" id="v3dLabels"><span class="v3d-lbl sun" id="v3dLblSun">Sun</span><span class="v3d-lbl earth" id="v3dLblEarth">Earth</span><span class="v3d-lbl site" id="v3dLblSite"><i></i>Site</span><span class="v3d-lbl rover" id="v3dLblRover" hidden>Rover</span></div>' +
+      '  <div class="v3d-labels" id="v3dLabels"><span class="v3d-lbl sun" id="v3dLblSun">Sun</span><span class="v3d-lbl earth" id="v3dLblEarth">Earth</span><span class="v3d-lbl site" id="v3dLblSite"><i></i>Site</span><span class="v3d-lbl rover" id="v3dLblRover" hidden>Rover <span class="aiwm">AI-generated illustration</span></span></div>' +
       '  <div class="v3d-exag" id="v3dExagBadge">Vertical scale 1× (true scale)</div>' +
       '  <div class="v3d-banner" id="v3dBanner" hidden></div>' +
       '  <p class="v3d-shadownote">Near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model.</p>' +
@@ -81,7 +81,7 @@ window.AsteriaView3D = (function () {
       '<b>Fill light</b>: a faint uniform light keeps unlit ground from being pure black. It is not physical (real shadows get only faint light reflected from sunlit terrain and Earthshine).',
       '<b>Stars</b> (off by default): decorative random points, not a star catalogue.',
       '<b>Vertical exaggeration</b> above 1× stretches heights (and therefore shadows and the look of slopes); rover slope readouts always use true heights. The distant skyline ring is never exaggerated.',
-      '<b>Rover</b>: a simple illustration (not a vehicle model; speed not realistic). Slope = gradient of the DEM over one ' + m.spacing_m + ' m grid cell. "Sun over the tile terrain" is a near-field estimate using only this tile.'
+      '<b>Rover</b>: a simple AI-generated illustration (drawn in code by Claude Code; not a vehicle model; speed not realistic). Slope = gradient of the DEM over one ' + m.spacing_m + ' m grid cell. "Sun over the tile terrain" is a near-field estimate using only this tile.'
     ];
     $('v3dNotes').innerHTML = notes.map(function (x) { return '<li>' + x + '</li>'; }).join('');
     return el;

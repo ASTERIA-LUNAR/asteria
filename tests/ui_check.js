@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Generated with Claude Code (Anthropic) under human direction.
 /* Headless UI check: opens index.html via file:// (as a double-click would), exercises every page and
  * feature at laptop and phone sizes, collects console errors/warnings, checks invariants and writes
  * screenshots to tests/screenshots/. Usage: node tests/ui_check.js */

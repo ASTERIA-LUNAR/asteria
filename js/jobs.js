@@ -1,3 +1,4 @@
+// Generated with Claude Code (Anthropic) under human direction.
 /* ASTERIA compute jobs.
  * ASTERIA_JOBS(E) holds every heavy computation. The SAME function source runs either inside a Blob
  * Web Worker (preferred: keeps the page responsive) or on the main thread (fallback if the browser

@@ -5,6 +5,10 @@ Entry for the **NASA Space Apps Challenge 2026** challenge "Lunar Landing Site N
 
 ASTERIA shows, for sites at the Moon's **south pole** and any date, when the **Sun** is above the local terrain horizon (solar power and heat) and when the **Earth** is above it (direct radio contact). At the pole the Sun skims around the horizon, so a few metres of hill decide between light and darkness. Mission planners, educators and the public can compare sites and dates, follow the light and communication windows, and see what a launch slip does to them.
 
+## How this was made
+
+ASTERIA was directed by a single team member. The code, the data-processing scripts, the documentation and the text in the app were generated with [Claude Code](https://www.anthropic.com/claude-code) (Anthropic), an AI coding assistant, under that person's direction. The calculations were validated against NASA/JPL Horizons and NASA's published PGDA illumination maps (see the validation summary below), and all data sources are cited. No image- or audio-generation model was used; the few graphics drawn in code by Claude Code (pixel-art rocket, Earth and Moon; the 3D rover) are marked "AI-generated" where shown. No NASA or NASA Space Apps logos or insignia are used. Details: [AI_DISCLOSURE.md](AI_DISCLOSURE.md). Every AI-written source file starts with "Generated with Claude Code (Anthropic) under human direction", and `index.html` carries `generator` and `ai-disclosure` meta tags.
+
 ## How to open it
 
 Double-click **`index.html`**. It runs offline in any modern browser, with no server, build step or internet connection. All libraries, data and map tiles are loaded from local files. Heavy computations run in a background Web Worker built from inline source (this works from `file://`); if a browser refuses the worker, the same code runs on the page.

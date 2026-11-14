@@ -1,3 +1,4 @@
+// Generated with Claude Code (Anthropic) under human direction.
 // ASTERIA curated sites. Every coordinate below was read from the source URL(s) listed
 // (fetched and re-checked 2026-11-14). Latitude: degrees, north positive. Longitude: degrees EAST positive.
 // "coordKind" says exactly what the point is, because several south-pole entries are

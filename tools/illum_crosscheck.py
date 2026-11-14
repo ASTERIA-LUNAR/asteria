@@ -1,3 +1,4 @@
+# Generated with Claude Code (Anthropic) under human direction.
 """
 Terrain illumination cross-check against the published LOLA average-illumination product
 (Mazarico et al. 2011 method; PGDA product AVGVISIB_85S_060M_201608).

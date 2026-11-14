@@ -1,3 +1,4 @@
+# Generated with Claude Code (Anthropic) under human direction.
 """
 ASTERIA - compact downsampled south-pole DEM for terrain horizons at clicked map points.
 

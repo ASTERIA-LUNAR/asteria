@@ -1,3 +1,4 @@
+// Generated with Claude Code (Anthropic) under human direction.
 /* Shared JPL Horizons client for tests/validate.js and tests/blind_test.js.
  * Observer on the Moon (CENTER='coord@301', geodetic E-lon, lat, height 0 km on the 1737.4 km sphere),
  * apparent azimuth/elevation (QUANTITIES='4', APPARENT='AIRLESS'), UT. Every response is cached in

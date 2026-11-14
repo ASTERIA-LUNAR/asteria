@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Generated with Claude Code (Anthropic) under human direction.
 /* Validation of terrain horizons for CLICKED points (downsampled DEM, data/dem_coarse.js), before enabling them.
  *  (1) Every curated south-pole site: horizon from the downsampled DEM vs the curated 20 m-based horizon
  *      (data/horizons/*.js): mean / max |difference| in degrees, and 2027 % sunlit and % Earth visible

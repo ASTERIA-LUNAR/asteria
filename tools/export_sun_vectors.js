@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Generated with Claude Code (Anthropic) under human direction.
 /* Export hourly apparent Sun directions (Moon body-fixed frame) + Sun distance, as seen from a
  * site, for the offline terrain-illumination cross-check (tools/illum_crosscheck.py).
  * Output: binary little-endian float64 records [t_ms, bx, by, bz, dist_km] (5 doubles).

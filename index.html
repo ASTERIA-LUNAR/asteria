@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Generated with Claude Code (Anthropic) under human direction. See AI_DISCLOSURE.md. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -6,6 +7,8 @@
 <title>ASTERIA - Lunar South Pole Landing Site Navigator</title>
 <meta name="description" content="When is the Sun up and the Earth in view at lunar south-pole landing sites? LOLA terrain horizons, NASA Artemis III candidate regions, power and direct-to-Earth link windows, ephemeris validated against JPL Horizons.">
 <meta name="application-name" content="ASTERIA">
+<meta name="generator" content="Claude Code (Anthropic), AI coding assistant, under human direction">
+<meta name="ai-disclosure" content="Code, data-processing scripts, documentation and in-app text were generated with Claude Code (Anthropic) under the direction of a single team member; results validated against JPL Horizons and NASA PGDA illumination maps. No image- or audio-generation models were used. See AI_DISCLOSURE.md.">
 <meta name="theme-color" content="#070b14">
 <meta property="og:title" content="ASTERIA - Lunar South Pole Landing Site Navigator">
 <meta property="og:description" content="When is the Sun up and the Earth in view at lunar south-pole landing sites? LOLA terrain horizons, ephemeris validated against JPL Horizons. Not endorsed by NASA.">
@@ -15,7 +18,6 @@
 <body class="explain-on">
 <header class="topbar">
   <div class="brand">
-    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 19 Q16 12 29 19" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="22" cy="10" r="3" fill="var(--sun)"/></svg>
     <div><div class="brand-name">ASTERIA</div><div class="brand-sub">Lunar South Pole Landing Site Navigator</div></div>
   </div>
   <nav class="tabs" role="tablist" aria-label="Sections">
@@ -286,9 +288,18 @@
       <li>"Earth link" uses Earth's centre and a geometric line of sight; antennas, power, ground stations on Earth and relay satellites are not modelled.</li>
       <li>The Moon is treated as a sphere of radius 1737.4 km for the Sun/Earth directions. Ignoring a site's height shifts the Earth's direction by at most about height &divide; Earth distance (about 0.001&deg; for 6 km) and the Sun's by far less.</li>
     </ul>
+    <h3 id="howMade">How this was made</h3>
+    <p>ASTERIA was directed by a single team member. The code, the data-processing scripts, the documentation and the text in the app were generated with <a href="https://www.anthropic.com/claude-code" target="_blank" rel="noopener">Claude Code</a> (Anthropic), an AI coding assistant, working under that person's direction. The calculations were validated against <a href="https://ssd.jpl.nasa.gov/horizons/" target="_blank" rel="noopener">NASA/JPL Horizons</a> and NASA's published <a href="https://pgda.gsfc.nasa.gov/products/69" target="_blank" rel="noopener">PGDA illumination maps</a> (see the Validation tab), and all data sources are cited below.</p>
+    <ul>
+      <li>No image- or audio-generation model was used. The small pixel-art rocket, Earth and Moon and the 3D rover are simple graphics drawn in code written by Claude Code; they are marked "AI-generated" where shown. The map tiles and 3D terrain are renderings of NASA LOLA and PGDA data made by AI-written scripts.</li>
+      <li>No NASA or NASA Space Apps logos, insignia or mission patches are used. Text references to NASA data and missions only.</li>
+      <li>Details: AI_DISCLOSURE.md in the project folder.</li>
+    </ul>
+    <p><a href="#" id="replayIntro">Replay intro</a></p>
     <h3>Data sources and credits</h3>
     <ul>
-      <li><a href="https://github.com/cosinekitty/astronomy">Astronomy Engine</a> by Don Cross (MIT License) - ephemeris library. <a href="https://leafletjs.com/">Leaflet</a> 1.9.4 (BSD-2-Clause) - map.</li>
+      <li><a href="https://github.com/cosinekitty/astronomy">Astronomy Engine</a> by Don Cross (MIT License) - ephemeris library. <a href="https://leafletjs.com/">Leaflet</a> 1.9.4 (BSD-2-Clause) - map. <a href="https://threejs.org/">Three.js</a> r149 (MIT) - 3D terrain view, loaded only on Deploy.</li>
+      <li>Development tools: <a href="https://www.python.org/">Python</a> with <a href="https://numpy.org/">NumPy</a> and <a href="https://python-pillow.org/">Pillow</a> (data processing), <a href="https://playwright.dev/">Playwright</a> (automated browser tests), <a href="https://www.anthropic.com/claude-code">Claude Code</a> by Anthropic (AI coding assistant; see "How this was made").</li>
       <li><a href="https://ssd.jpl.nasa.gov/horizons/">NASA/JPL Horizons</a> - reference ephemeris used for validation.</li>
       <li><a href="https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/">LRO LOLA gridded polar DEMs</a>, NASA PDS Geosciences Node.</li>
       <li><a href="https://pgda.gsfc.nasa.gov/products/69">NASA PGDA Lunar Polar Illumination</a> (product 69): AVGVISIB_85S_060M_201608 and AVGVISIB_75S_120M_201608. Please cite Mazarico, E., et al. (2011), Illumination conditions of the lunar polar regions using LOLA topography, Icarus 211, 1066-1081, doi:10.1016/j.icarus.2010.10.030 (as the PGDA page requests).</li>

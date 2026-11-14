@@ -1,3 +1,4 @@
+// Generated with Claude Code (Anthropic) under human direction.
 /* ASTERIA web app. No build step; all data comes from <script> tags (works from file://).
  * Heavy computation runs in a Blob Web Worker via js/jobs.js (main-thread fallback). */
 (function () {

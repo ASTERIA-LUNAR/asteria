@@ -1,3 +1,4 @@
+# Generated with Claude Code (Anthropic) under human direction.
 """
 ASTERIA - south-pole map tiles from the LOLA polar DEMs and the published PGDA illumination map.
 

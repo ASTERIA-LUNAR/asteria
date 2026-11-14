@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Generated with Claude Code (Anthropic) under human direction.
 /* One-year illumination / Earth-visibility statistics for south-polar sites, with LOLA
  * terrain horizon masks vs smooth Moon. Writes data/illumination.js and prints a table.
  * Usage: node tests/illumination.js */

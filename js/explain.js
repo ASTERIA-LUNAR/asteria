@@ -1,3 +1,4 @@
+// Generated with Claude Code (Anthropic) under human direction.
 /* Plain-language explanations for the "?" buttons (Explain mode). what = what it is, why = why it matters.
  * Audited in TEXT_AUDIT.md: no specific numbers unless they are definitions of the app's own settings;
  * claims about NASA's regions cite the NASA release (28 Oct 2024). */

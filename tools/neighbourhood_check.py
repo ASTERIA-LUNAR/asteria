@@ -1,3 +1,4 @@
+# Generated with Claude Code (Anthropic) under human direction.
 # Illumination sensitivity around the published Peak-near-Shackleton point (-88.79, 124.5).
 # Usage: .venv/Scripts/python -I tools/neighbourhood_check.py out.json  (then see GAPS_AND_ISSUES.md)
 import os, sys, json, math, numpy as np

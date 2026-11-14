@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Generated with Claude Code (Anthropic) under human direction.
 /* Unit tests for the solar power model and the launch-slip scan.
  * Usage: node tests/features_test.js */
 'use strict';

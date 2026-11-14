@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Generated with Claude Code (Anthropic) under human direction.
 /* Blind test against JPL Horizons.
  *   node tests/blind_test.js --new   picks 5 NEW random cases (random curated south-pole site with a terrain
  *                                    horizon, random whole-minute UTC time in 2026-2030, chosen with

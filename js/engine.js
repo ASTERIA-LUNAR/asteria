@@ -1,3 +1,4 @@
+// Generated with Claude Code (Anthropic) under human direction.
 /*
  * ASTERIA ephemeris engine
  * ---------------------------------------------------------------------------

@@ -1,3 +1,4 @@
+/* Generated with Claude Code (Anthropic) under human direction. */
 /* ASTERIA styles. One colour per meaning everywhere: Sun = amber, Earth = blue, both = green, neither = grey. */
 :root {
   --bg: #070b14;
@@ -52,7 +53,6 @@ body.expert .b-only { display: none !important; }
   border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--accent); min-width: 0; }
-.logo { width: 32px; height: 32px; flex: none; }
 .brand-name { font-weight: 800; font-size: 1.15rem; color: var(--text); letter-spacing: .14em; }
 .brand-sub { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
 .tabs { display: flex; gap: 2px; margin-left: auto; flex-wrap: wrap; }
@@ -318,7 +318,6 @@ body.computing .tiles, body.computing #metrics { opacity: .6; transition: opacit
   body { font-size: 14px; }
   .brand-sub { display: none; }
   .brand-name { font-size: 1.05rem; }
-  .logo { width: 26px; height: 26px; }
   .topctl { gap: 6px; width: 100%; justify-content: space-between; order: 2; }
   .topctl .btn { padding: 5px 9px; font-size: .82rem; }
   .switch { font-size: .82rem; }
@@ -396,3 +395,5 @@ body.v3d-open { overflow: hidden; }
   .v3d-close { padding: 5px 9px; font-size: .82rem; }
 }
 @media (prefers-reduced-motion: reduce) { .v3d { transition: none; } }
+.aiwm { font-size: .62rem; color: #7f8aa3; letter-spacing: .02em; }
+.loader .aiwm { display: block; margin-top: 1px; }

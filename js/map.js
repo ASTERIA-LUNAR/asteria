@@ -1,3 +1,4 @@
+// Generated with Claude Code (Anthropic) under human direction.
 /* ASTERIA south-pole map (Leaflet 1.9.4, local copy in lib/leaflet).
  * Custom CRS: south polar stereographic on the 1737.4 km sphere, identical to tools/terrain.py,
  * tools/tiles.py and the LOLA PDS products:

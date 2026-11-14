@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Generated with Claude Code (Anthropic) under human direction.
 /*
  * ASTERIA validation (Phase 2).
  *  A) Angles vs JPL Horizons (observer on the Moon, airless apparent az/el).
@@ -208,7 +209,7 @@ function stat(arr) {
 
 function report(r) {
   const f = (x, n) => x.toFixed(n);
-  let md = `# ASTERIA - Validation Report\n\nGenerated ${r.generated} by \`node tests/validate.js\`.\n\n`;
+  let md = `# ASTERIA - Validation Report\n\nGenerated ${r.generated} by \`node tests/validate.js\`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)\n\n`;
   md += `## Overall: **${r.overall ? 'PASS' : 'FAIL'}**\n\n`;
   md += `| Part | Result | Detail |\n|---|---|---|\n`;
   md += `| A. Angles vs JPL Horizons (${r.angles.length} comparisons) | ${r.anglePass ? 'PASS' : 'FAIL'} | elevation max ${f(r.angleStats.el.max, 4)} deg / mean ${f(r.angleStats.el.mean, 4)} deg; azimuth max ${f(r.angleStats.az.max, 4)} deg / mean ${f(r.angleStats.az.mean, 4)} deg |\n`;

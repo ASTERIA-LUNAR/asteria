@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Generated with Claude Code (Anthropic) under human direction.
 /* Custom point, one-year check against JPL Horizons.
  * Point (-70.9457, 67.9235 E), smooth horizon (it is outside the south-pole map, so the app uses a smooth
  * horizon there, as for any typed point outside the map). Horizons apparent azimuth/elevation of the Earth (399)
