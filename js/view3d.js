@@ -655,7 +655,7 @@ window.AsteriaView3D = (function () {
       s.stars.position.copy(cam.position);
       s.renderer.render(s.scene, cam);
       labels(v);
-      hud(v); featureLabels(v); miniMap(v);
+      hud(v); featureLabels(v); miniMap(v); layoutLabels(v);
       if (v.ctl.mode === 'rover') { roverReadout(v, ts); trackPush(v); }
       v.dirty = false;
       v.frames++;
@@ -678,7 +678,7 @@ window.AsteriaView3D = (function () {
       p.set(x, y, z).project(cam);
       var el = $(id), ok = p.z < 1 && p.z > -1 && Math.abs(p.x) < 1.2 && Math.abs(p.y) < 1.2;
       el.style.display = ok ? '' : 'none';
-      if (ok) el.style.transform = 'translate(' + ((p.x + 1) / 2 * w).toFixed(1) + 'px,' + ((1 - p.y) / 2 * h).toFixed(1) + 'px)';
+      if (ok) setPos(el, (p.x + 1) / 2 * w, (1 - p.y) / 2 * h);
     };
     // Sun and Earth: when outside the picture, their labels sit at the edge, with an arrow pointing toward them
     var edge = function (id, obj) {
@@ -688,15 +688,56 @@ window.AsteriaView3D = (function () {
       el.style.display = '';
       el.classList.toggle('edge', !inside);
       var arrow = el.querySelector('.arw');
-      if (inside) { el.style.transform = 'translate(' + ((p.x + 1) / 2 * w).toFixed(1) + 'px,' + ((1 - p.y) / 2 * h).toFixed(1) + 'px)'; return; }
+      if (inside) { setPos(el, (p.x + 1) / 2 * w, (1 - p.y) / 2 * h); return; }
       var ang = Math.atan2(q.y, q.x), cx = Math.cos(ang), cy = Math.sin(ang), sc = Math.min((w / 2 - 70) / Math.max(1e-6, Math.abs(cx)), (h / 2 - 40) / Math.max(1e-6, Math.abs(cy)));
-      el.style.transform = 'translate(' + (w / 2 + cx * sc).toFixed(1) + 'px,' + (h / 2 - cy * sc).toFixed(1) + 'px)';
+      setPos(el, w / 2 + cx * sc, h / 2 - cy * sc);
       arrow.style.transform = 'rotate(' + (-ang * 180 / Math.PI).toFixed(0) + 'deg)';
     };
     edge('v3dLblSun', s.sunDisk);
     edge('v3dLblEarth', s.earth);
     put('v3dLblSite', 0, 40, 0);
     if (v.ctl.mode === 'rover') put('v3dLblRover', s.rover.position.x, s.rover.position.y + 2.5, s.rover.position.z);
+  }
+  function setPos(el, x, y) { el._x = x; el._y = y; el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)'; }
+  // Keep every on-screen label inside the picture and off the panels drawn over it (mini-map, compass/scale box,
+  // buttons, messages) and off each other (round 5). Order of priority: Sun, Earth, site, rover, then feature names.
+  // A label is moved up or down in steps of its own height (and to the left of a panel it would cover); a feature name
+  // that cannot be placed without overlapping is hidden for that frame, never drawn over something else.
+  function layoutLabels(v) {
+    var st = v.stage.getBoundingClientRect(), W = st.width, H = st.height, MG = 4;
+    if (!W || !H) return;
+    var rel = function (r) { return { l: r.left - st.left, t: r.top - st.top, r: r.right - st.left, b: r.bottom - st.top }; };
+    var vis = function (e) { return e && !e.hidden && e.style.display !== 'none' && e.offsetParent !== null; };
+    var obst = ['v3dMini', 'v3dHud', 'v3dClose', 'v3dExagBadge', 'v3dBanner', 'v3dTip', 'v3dQNote', 'v3dPad'].map($).filter(vis).map(function (e) { return rel(e.getBoundingClientRect()); });
+    var hit = function (a, b) { return a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t; };
+    var placed = [], out = [];
+    var list = [['sun', $('v3dLblSun')], ['earth', $('v3dLblEarth')], ['site', $('v3dLblSite')], ['rover', $('v3dLblRover')]].concat((v.s.featEls || []).map(function (e) { return ['feat', e]; }));
+    list.forEach(function (it) {
+      var el = it[1]; if (!vis(el) || el._x === undefined) return;
+      var r = rel(el.getBoundingClientRect()), w = r.r - r.l, h = r.b - r.t;
+      var dx0 = r.l < MG ? MG - r.l : r.r > W - MG ? W - MG - r.r : 0;
+      var free = function (q) { return q.t >= MG && q.b <= H - MG && q.l >= MG && q.r <= W - MG && !obst.concat(placed).some(function (o) { return hit(q, o); }); };
+      var best = null;
+      // candidates: the same x first (nearest rows first), then left/right of any panel it covers, then a scan across
+      var xs = [dx0];
+      obst.forEach(function (o) { xs.push(o.l - MG - r.r, o.r + MG - r.l); });
+      for (var sx = MG; sx + w <= W - MG; sx += 24) xs.push(sx - r.l);
+      xs.sort(function (a, b) { return Math.abs(a - dx0) - Math.abs(b - dx0); });
+      for (var k = 0; k <= 30 && !best; k++) {
+        var dy = (k % 2 ? 1 : -1) * Math.ceil(k / 2) * (h + 3);
+        for (var xi = 0; xi < xs.length; xi++) {
+          var q = { l: r.l + xs[xi], r: r.r + xs[xi], t: r.t + dy, b: r.b + dy };
+          if (free(q)) { best = [xs[xi], dy]; break; }
+          if (it[0] === 'feat' && xi > 2) break;     // feature names stay near their point (or are hidden)
+        }
+      }
+      if (!best && it[0] === 'feat') { el.style.display = 'none'; out.push({ kind: it[0], text: el.textContent, hidden: true }); return; }
+      if (!best) best = [dx0, Math.max(MG - r.t, Math.min(0, H - MG - r.b))];
+      setPos(el, el._x + best[0], el._y + best[1]);
+      var fin = { l: r.l + best[0], r: r.r + best[0], t: r.t + best[1], b: r.b + best[1] };
+      placed.push(fin); out.push({ kind: it[0], text: el.textContent, hidden: false, rect: fin });
+    });
+    v.labelLayout = { stage: { w: W, h: H }, obstacles: obst, labels: out };
   }
   function roverReadout(v, ts) {
     if (ts - (v.lastRead || 0) < 150) return;
@@ -971,7 +1012,7 @@ window.AsteriaView3D = (function () {
       p.set(pos[0], pos[1], pos[2]).project(s.camera);
       var ok = on && p.z < 1 && p.z > -1 && Math.abs(p.x) < 1 && Math.abs(p.y) < 1;
       el.style.display = ok ? '' : 'none';
-      if (ok) el.style.transform = 'translate(' + ((p.x + 1) / 2 * w).toFixed(1) + 'px,' + ((1 - p.y) / 2 * h).toFixed(1) + 'px)';
+      if (ok) setPos(el, (p.x + 1) / 2 * w, (1 - p.y) / 2 * h);
       el.classList.toggle('far', !onGround);
       out.push({ name: f.name, onGround: onGround, shown: ok, text: el.textContent });
     });
@@ -1248,7 +1289,7 @@ window.AsteriaView3D = (function () {
       vertices: s.geo.attributes.position.count, triangles: s.geo.index.count / 3, extVertices: s.extVertices || 0, extError: s.extError || null,
       layers: s.layers.map(function (L) { return { name: L.name, vertices: L.vertices, cast: L.mesh.castShadow, receive: L.mesh.receiveShadow }; }),
       shadowCamera: { left: s.sun.shadow.camera.left, right: s.sun.shadow.camera.right, top: s.sun.shadow.camera.top, bottom: s.sun.shadow.camera.bottom, near: s.sun.shadow.camera.near, far: s.sun.shadow.camera.far, texel: s.shadowTexel },
-      memory: { geometries: s.renderer.info.memory.geometries, textures: s.renderer.info.memory.textures }, rover: v.roverState || null,
+      memory: { geometries: s.renderer.info.memory.geometries, textures: s.renderer.info.memory.textures }, rover: v.roverState || null, labelLayout: v.labelLayout || null,
       tileCentreY: M.groundWorld(s.TM, 0, 0).y,
       camera: [cam.x, cam.y, cam.z], eyeAboveGround: cam.y - M.groundWorld(s.TM, cam.x, cam.z).y
     };

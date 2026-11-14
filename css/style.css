@@ -350,6 +350,18 @@ body.expert div.metricx.x-only { display: contents !important; }
 /* ---------------------------------------------------------------- 3D view (Deploy) */
 .deployrow { margin: 10px 0 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .btn.deploy { background: #1d3a5c; border-color: #3c6fa5; font-weight: 600; }
+
+/* round 5: tour spotlight after Getting started (page dimmed except the Tour button) */
+.spot { position: static; }   /* no stacking context: dim below the top bar, callout above it */
+.spotdim { position: fixed; inset: 0; z-index: 1500; background: rgba(2, 5, 12, .78); }
+body.spot-on .topbar { position: sticky; z-index: 1600; background: transparent; border-color: transparent; }
+body.spot-on .topbar > *:not(.topctl), body.spot-on .topctl > *:not(#tourBtn) { opacity: .12; pointer-events: none; }
+body.spot-on #tourBtn { position: relative; z-index: 1; box-shadow: 0 0 0 3px #fff, 0 0 22px 8px var(--accent); animation: spotglow 1.6s ease-in-out infinite alternate; }
+@keyframes spotglow { from { box-shadow: 0 0 0 3px #fff, 0 0 10px 3px var(--accent); } to { box-shadow: 0 0 0 3px #fff, 0 0 26px 10px var(--accent); } }
+@media (prefers-reduced-motion: reduce) { body.spot-on #tourBtn { animation: none; } }
+.spotcall { position: fixed; z-index: 1700; width: min(300px, calc(100% - 24px)); background: #0b1730; border: 1px solid var(--accent); border-radius: 12px; padding: 12px 14px; box-shadow: 0 14px 40px rgba(0, 0, 0, .7); }
+.spotcall::before { content: ''; position: absolute; top: -8px; left: calc(var(--arrow-x, 50%) - 8px); border: 8px solid transparent; border-top: 0; border-bottom-color: var(--accent); }
+.spottitle { font-weight: 700; font-size: 1.05rem; margin-bottom: 10px; }
 .btn.deploy:disabled { cursor: progress; }
 body.v3d-open { overflow: hidden; }
 .v3d { position: fixed; inset: 0; z-index: 1100; display: flex; background: #000; opacity: 0; transition: opacity .3s ease; }
@@ -404,7 +416,8 @@ body.v3d-open { overflow: hidden; }
 .v3d-scale { display: flex; align-items: center; gap: 6px; } .v3d-scale i { display: inline-block; height: 6px; border: 2px solid #fff; border-top: 0; min-width: 8px; }
 .v3d-mini { position: absolute; right: 12px; top: 56px; margin: 0; width: 170px; background: rgba(7, 11, 20, .8); border: 1px solid var(--line); border-radius: 8px; padding: 4px; }
 .v3d-mini canvas { width: 160px; height: 160px; display: block; margin: 0 auto; border-radius: 4px; cursor: default; }
-.v3d-mini figcaption { font-size: .66rem; color: #a9b6cc; margin-top: 3px; line-height: 1.25; }
+.v3d-mini figcaption { font-size: .66rem; color: #a9b6cc; margin-top: 3px; line-height: 1.25; overflow-wrap: anywhere; }
+@media (max-height: 620px) { .v3d-mini figcaption { display: none; } }   /* short windows: the caption would reach the compass box */
 .v3d-legend { margin-top: 6px; font-size: .78rem; color: #c3cee2; display: flex; flex-direction: column; gap: 3px; }
 .v3d-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin: 0 3px 0 6px; vertical-align: -1px; }
 .v3d-legend i.cl { height: 2px; width: 16px; vertical-align: 3px; margin-left: 0; background: #59d9ff; }

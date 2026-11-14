@@ -1536,6 +1536,29 @@
     try { localStorage.setItem(HINT_KEY, '1'); } catch (e) { /* storage unavailable: the hint just shows again next time */ }
   }
 
+  // ======================================================= TOUR SPOTLIGHT (round 5)
+  // After the first-visit hint is completed with Done (not when it is skipped), dim the page except the Tour button and
+  // offer the tour once. Remembered in localStorage (try/catch). Not shown in automated browsers unless a test sets
+  // window.ASTERIA_SPOTLIGHT_TEST before the page loads. With reduced motion the glow does not pulse (CSS).
+  var SPOT_KEY = 'asteria.spotlightShown';
+  function spotMaybe() {
+    if (navigator.webdriver && !window.ASTERIA_SPOTLIGHT_TEST) return;
+    try { if (localStorage.getItem(SPOT_KEY) === '1') return; localStorage.setItem(SPOT_KEY, '1'); } catch (e) { /* storage blocked: may show again next visit */ }
+    window.scrollTo(0, 0);
+    document.body.classList.add('spot-on');
+    $('spot').hidden = false;
+    spotPlace();
+    setTimeout(function () { $('spotStart').focus({ preventScroll: true }); }, 30);
+  }
+  function spotPlace() {
+    if ($('spot').hidden) return;
+    var r = $('tourBtn').getBoundingClientRect(), c = $('spotCall'), w = c.offsetWidth;
+    c.style.top = Math.round(r.bottom + 14) + 'px';
+    c.style.left = Math.round(Math.max(12, Math.min(window.innerWidth - w - 12, r.left + r.width / 2 - w / 2))) + 'px';
+    c.style.setProperty('--arrow-x', Math.round(r.left + r.width / 2 - parseFloat(c.style.left)) + 'px');
+  }
+  function spotClose() { if ($('spot').hidden) return; $('spot').hidden = true; document.body.classList.remove('spot-on'); }
+
   // ===================================================================== TOUR
   var TOUR = { i: 0, hl: null };
   function highlight(id) {
@@ -1596,6 +1619,7 @@
   ];
   function tourShow(i) {
     TOUR.i = i;
+    spotClose();
     if (!$('hint').hidden) hintClose();
     $('tour').hidden = false;
     $('tourStep').textContent = 'Tour · step ' + (i + 1) + ' of ' + TOUR_STEPS.length;
@@ -1702,11 +1726,16 @@
     $('tourNext').addEventListener('click', function () { if (TOUR.i < TOUR_STEPS.length - 1) tourShow(TOUR.i + 1); else tourClose(); });
     $('tourPrev').addEventListener('click', function () { if (TOUR.i > 0) tourShow(TOUR.i - 1); });
     $('tourClose').addEventListener('click', tourClose);
-    $('hintNext').addEventListener('click', function () { if (hintI < HINTS.length - 1) hintShow(hintI + 1); else hintClose(); });
+    $('hintNext').addEventListener('click', function () { if (hintI < HINTS.length - 1) hintShow(hintI + 1); else { hintClose(); spotMaybe(); } });
+    $('spotStart').addEventListener('click', function () { tourShow(0); });
+    $('spotNo').addEventListener('click', spotClose);
+    $('spot').addEventListener('click', function (ev) { if (ev.target.classList.contains('spotdim')) spotClose(); });
+    window.addEventListener('resize', spotPlace);
     $('hintClose').addEventListener('click', hintClose);
     document.addEventListener('keydown', function (ev) {
       if (ev.key !== 'Escape') return;
       if (!$('tour').hidden) tourClose();
+      spotClose();
       if (!$('hint').hidden) hintClose();
       $('qpop').hidden = true; togglePicker(false);
     });

@@ -107,6 +107,106 @@ function loadData(file, name) { const w = {}; new Function('window', fs.readFile
     expect(`${tag} 3D "Light up" is not remembered and switches off when the Sun is up at the site`, lu.b1 === 3 && lu.ls1 === lu.ls0 && (lu.i < 0 || (lu.b2 < 3 && /switched off/.test(lu.note))), JSON.stringify(lu));
     await page.evaluate(() => AsteriaView3D.close(true));
 
+    // ---- Part 5: Deploy icon; no warning-like triangle used as a button icon outside the 3D arrow pad
+    await page.goto('about:blank'); await open('');
+    const dep = await page.evaluate(() => ({ t: document.getElementById('deployBtn').textContent, tri: [...document.querySelectorAll('button')].filter(b => /▲/.test(b.textContent) && !b.closest('#v3dPad')).map(b => b.id || b.textContent) }));
+    expect(`${tag} Deploy button reads "» Deploy: 3D terrain view"; no ▲ button icon elsewhere`, dep.t === '» Deploy: 3D terrain view' && dep.tri.length === 0, JSON.stringify(dep));
+    // ---- Part 5: 3D labels and mini-map caption stay inside the picture and do not overlap
+    for (const sid of ['peak_shackleton_lw', 'shackleton_centre', 'im2', 'mons_mouton']) {
+      await page.goto('about:blank'); await open('site=' + sid);
+      await page.evaluate(() => AsteriaApp.openDeploy());
+      await page.waitForFunction(() => window.AsteriaView3D && AsteriaView3D.debug().open && !AsteriaView3D.debug().refining, null, { timeout: 30000 });
+      for (const mode of ['orbit', 'walk']) {
+        await page.evaluate(m => AsteriaView3D.testMode(m), mode); await page.waitForTimeout(700);
+        const L = await page.evaluate(() => {
+          const d = AsteriaView3D.debug().labelLayout, st = document.getElementById('v3dStage').getBoundingClientRect();
+          const cap = document.getElementById('v3dMiniCap'), cr = cap.getBoundingClientRect(), capVis = cap.offsetParent !== null && cr.height > 0;
+          const hud = document.getElementById('v3dHud').getBoundingClientRect();
+          return { d, cap: capVis ? { l: cr.left - st.left, t: cr.top - st.top, r: cr.right - st.left, b: cr.bottom - st.top } : null, hud: { l: hud.left - st.left, t: hud.top - st.top, r: hud.right - st.left, b: hud.bottom - st.top } };
+        });
+        const hit = (a, b) => a.l < b.r - 0.5 && a.r > b.l + 0.5 && a.t < b.b - 0.5 && a.b > b.t + 0.5;
+        const shown = L.d.labels.filter(x => !x.hidden), W = L.d.stage.w, H = L.d.stage.h, probs = [];
+        shown.forEach((x, i) => {
+          if (x.rect.l < 0 || x.rect.t < 0 || x.rect.r > W || x.rect.b > H) probs.push('cut: ' + x.text);
+          shown.slice(i + 1).forEach(y => { if (hit(x.rect, y.rect)) probs.push('overlap: ' + x.text + ' / ' + y.text); });
+          L.d.obstacles.forEach(o => { if (hit(x.rect, o)) probs.push('over a panel: ' + x.text); });
+        });
+        if (L.cap && (L.cap.r > W || L.cap.b > H || L.cap.l < 0 || hit(L.cap, L.hud))) probs.push('mini-map caption cut off or over the compass box');
+        expect(`${tag} 3D ${sid} ${mode}: ${shown.length} labels (${L.d.labels.filter(x => x.hidden).length} feature names hidden to avoid overlap) inside the picture, not overlapping each other or the panels; mini-map caption inside`, probs.length === 0, probs.join('; '));
+      }
+      await page.evaluate(() => AsteriaView3D.close(true));
+    }
+
+    // ---- Part 5: tour spotlight (opt-in for tests), once, only after Getting started is completed
+    const spotCtx = async (opts) => {
+      const c = await browser.newContext(Object.assign({ viewport: { width: vp.width, height: vp.height }, isMobile: !!vp.isMobile, hasTouch: !!vp.hasTouch }, opts.ctx || {}));
+      await c.addInitScript(o => { window.ASTERIA_V3D_NOPROBE = true; if (o.optIn) window.ASTERIA_SPOTLIGHT_TEST = true; }, { optIn: opts.optIn !== false });
+      const p = await c.newPage();
+      p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`${tag} console.${m.type()}: ${m.text()}`); });
+      p.on('pageerror', e => errors.push(`${tag} pageerror: ${e.message}`));
+      await p.goto(base); await p.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series);
+      await p.waitForSelector('#hint:not([hidden])', { timeout: 15000 });
+      return { c, p };
+    };
+    const finishHint = async p => { for (let k = 0; k < 3; k++) await p.click('#hintNext'); await p.waitForTimeout(200); };
+    const spotState = p => p.evaluate(() => {
+      const b = document.getElementById('tourBtn').getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2;
+      const atBtn = document.elementFromPoint(x, y), atMid = document.elementFromPoint(innerWidth / 2, innerHeight * 0.7);
+      return { shown: !document.getElementById('spot').hidden, on: document.body.classList.contains('spot-on'), title: document.getElementById('spotTitle').textContent,
+        btns: [document.getElementById('spotStart').textContent, document.getElementById('spotNo').textContent], btnOnTop: !!atBtn && atBtn.closest('#tourBtn') !== null, dimmed: !!atMid && atMid.classList.contains('spotdim'),
+        glow: getComputedStyle(document.getElementById('tourBtn')).boxShadow !== 'none', anim: getComputedStyle(document.getElementById('tourBtn')).animationName,
+        stored: localStorage.getItem('asteria.spotlightShown'), tour: !document.getElementById('tour').hidden, step: document.getElementById('tourStep').textContent };
+    });
+    {
+      const { c, p } = await spotCtx({});
+      await finishHint(p);
+      const s1 = await spotState(p);
+      expect(`${tag} spotlight after Getting started: page dimmed, Tour button highlighted and clickable, "Take the 60-second tour" with "Start tour" / "Not now"`, s1.shown && s1.on && s1.btnOnTop && s1.dimmed && s1.glow && s1.title === 'Take the 60-second tour' && s1.btns.join('|') === 'Start tour|Not now' && s1.stored === '1', JSON.stringify(s1));
+      if (SHOTS) await p.screenshot({ path: path.join(out, `r5_spotlight_${vp.name}.png`) });
+      await p.click('#spotStart'); await p.waitForTimeout(200);
+      const s2 = await spotState(p);
+      expect(`${tag} spotlight "Start tour" opens "Tour · step 1 of 5" and removes the dimming`, !s2.shown && !s2.on && s2.tour && /step 1 of 5/.test(s2.step), JSON.stringify(s2));
+      await p.reload(); await p.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series); await p.waitForTimeout(1500);
+      const s3 = await spotState(p);
+      expect(`${tag} spotlight shown only once (not again after reload)`, !s3.shown && await p.isHidden('#hint'), JSON.stringify(s3));
+      await c.close();
+    }
+    {
+      const { c, p } = await spotCtx({});
+      await finishHint(p); await p.click('#tourBtn'); await p.waitForTimeout(200);
+      const s = await spotState(p);
+      expect(`${tag} clicking the highlighted Tour button starts the tour`, !s.shown && s.tour && /step 1 of 5/.test(s.step), JSON.stringify(s));
+      await c.close();
+    }
+    {
+      const { c, p } = await spotCtx({});
+      await finishHint(p); await p.click('#spotNo'); await p.waitForTimeout(150);
+      const s = await spotState(p);
+      expect(`${tag} "Not now" closes the spotlight without starting the tour`, !s.shown && !s.on && !s.tour, JSON.stringify(s));
+      await c.close();
+    }
+    {
+      const { c, p } = await spotCtx({});
+      await p.click('#hintClose'); await p.waitForTimeout(300);
+      const s = await spotState(p);
+      expect(`${tag} Getting started skipped early ("Got it" at step 1): no spotlight`, !s.shown && !s.on, JSON.stringify(s));
+      await c.close();
+    }
+    {
+      const { c, p } = await spotCtx({ optIn: false });
+      await finishHint(p);
+      const s = await spotState(p);
+      expect(`${tag} automated browser without opt-in: no spotlight`, !s.shown, JSON.stringify(s));
+      await c.close();
+    }
+    {
+      const { c, p } = await spotCtx({ ctx: { reducedMotion: 'reduce' } });
+      await finishHint(p);
+      const s = await spotState(p);
+      expect(`${tag} reduced motion: spotlight without the pulsing animation`, s.shown && s.anim === 'none', JSON.stringify({ shown: s.shown, anim: s.anim }));
+      await c.close();
+    }
+
     // ---- Part 4: jump to the next sunlight / Earth view / both
     const jump = async (sel, msgId) => {
       await page.click(sel);

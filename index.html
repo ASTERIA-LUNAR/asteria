@@ -78,7 +78,7 @@
       <div id="siteKind" class="sitekind"></div>
       <div id="siteMeta" class="meta"></div>
       <div class="deployrow" id="deployRow" hidden>
-        <button id="deployBtn" class="btn deploy" type="button">&#9650; Deploy: 3D terrain view</button>
+        <button id="deployBtn" class="btn deploy" type="button">&raquo; Deploy: 3D terrain view</button>
         <span class="hint">Real LOLA terrain, 6 km around this site, with the Sun and Earth at their computed positions.</span>
         <div class="hint" id="deployNote" role="status"></div>
       </div>
@@ -329,6 +329,13 @@
   <div class="hintstep" id="hintStep"></div>
   <div class="hinttext" id="hintText"></div>
   <div class="tourbtns"><button id="hintNext" class="btn primary">Next</button><button id="hintClose" class="btn ghost">Got it</button></div>
+</div>
+<div id="spot" class="spot" hidden>
+  <div class="spotdim"></div>
+  <div class="spotcall" id="spotCall" role="dialog" aria-modal="false" aria-labelledby="spotTitle">
+    <div class="spottitle" id="spotTitle">Take the 60-second tour</div>
+    <div class="tourbtns"><button id="spotStart" class="btn primary">Start tour</button><button id="spotNo" class="btn ghost">Not now</button></div>
+  </div>
 </div>
 <div id="qpop" class="qpop" hidden role="tooltip"></div>
 <footer class="foot">ASTERIA &middot; NASA Space Apps Challenge 2026 &middot; Not endorsed by NASA &middot; Not affiliated with NASA's ASTERIA CubeSat mission &middot; Ephemeris validated against JPL Horizons (see Validation)</footer>
