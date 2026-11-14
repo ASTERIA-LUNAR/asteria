@@ -67,25 +67,70 @@ window.LUNA_SITES = [
     status: 'candidate', year: null, coordKind: 'DERIVED by ASTERIA (not a published coordinate): the 50 m grid point within 500 m of the published point where our terrain model and the published LOLA average-illumination map agree it is best lit',
     sources: ['https://pgda.gsfc.nasa.gov/products/69', 'https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/', 'https://iopscience.iop.org/article/10.3847/PSJ/ad1b50'],
     notes: '150 m north and 100 m west of the published (-88.79, 124.5). Average illumination over 18.6 years: ASTERIA 59.8% (observer 2 m), published map AVGVISIB_85S_060M_201608 59.2% (its maximum within 500 m). An illustration of how much illumination changes over a few hundred metres, not a landing recommendation.' },
-  { id: 'nobile_rim2_dm2', name: 'Nobile Rim 2 (site DM2)', mission: 'Artemis III candidate region', agency: 'NASA', country: 'USA', lat: -84.20156, lon: 60.69989,
-    status: 'candidate', year: null, coordKind: 'Published optimal point within the region from a research study (not the region centre)',
+  { id: 'nobile_rim2_dm2', name: 'Nobile Rim 2 (site DM2)', mission: 'Artemis III candidate region (Oct 2024): Nobile Rim 2', agency: 'NASA (region); point from an independent study', country: 'USA', lat: -84.20156, lon: 60.69989,
+    status: 'candidate', year: null, artemisRegions: ['Nobile Rim 2'], regionPoint: true, coordKind: 'Published optimal point within the region from a research study (not the region centre)',
     sources: ['https://arxiv.org/abs/2406.19863', 'https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/'],
     notes: 'Peña-Asensio et al. (arXiv 2406.19863) "Evaluating potential landing sites for the Artemis III mission using a multi-criteria decision making approach": site DM2 is their optimal point. Independent study, not a NASA selection.' },
-  { id: 'mons_mouton', name: 'Mons Mouton', mission: 'Artemis III candidate region; VIPER destination', agency: 'NASA', country: 'USA', lat: -84.6, lon: 31.0,
-    status: 'candidate', year: null, coordKind: 'Named-feature coordinate (approximate region reference), not the region centre',
-    sources: ['https://en.wikipedia.org/wiki/Mons_Mouton', 'https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/', 'https://science.nasa.gov/mission/viper'],
-    notes: '"Mons Mouton" and "Mons Mouton Plateau" are both in NASA\'s October 2024 list of nine Artemis III regions. NASA gives no numeric region coordinates.' },
+  { id: 'mons_mouton', name: 'Mons Mouton (feature)', mission: 'Artemis III candidate regions (Oct 2024): Mons Mouton / Mons Mouton Plateau; VIPER destination', agency: 'NASA (region); IAU (feature name)', country: 'USA', lat: -84.6, lon: 31.0,
+    status: 'candidate', year: null, artemisRegions: ['Mons Mouton', 'Mons Mouton Plateau'], featureOnly: true,
+    coordKind: 'Named feature in/near this region (not a landing point): IAU Gazetteer centre of Mons Mouton (mons, diameter 130.00 km)',
+    sources: ['https://planetarynames.wr.usgs.gov/Feature/16070', 'https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/', 'https://science.nasa.gov/mission/viper'],
+    notes: 'IAU Gazetteer feature 16070: centre -84.60, 31.00 (+East). "Mons Mouton" and "Mons Mouton Plateau" are separate regions in NASA\'s 28 Oct 2024 list of nine; both are represented by this one feature centre. NASA gives no numeric region coordinates. IM-2 Athena landed in this area (listed separately).' },
+
+  // ------------------------------------------- Artemis III regions (NASA, 28 Oct 2024): IAU named features
+  { id: 'cabeus_b', name: 'Cabeus B (feature)', mission: 'Artemis III candidate region (Oct 2024): Peak near Cabeus B', agency: 'NASA (region); IAU (feature name)', country: 'USA', lat: -82.26, lon: -54.58,
+    status: 'candidate', year: null, artemisRegions: ['Peak near Cabeus B'], featureOnly: true,
+    coordKind: 'Named feature in/near this region (not a landing point): IAU Gazetteer centre of Cabeus B (crater, satellite feature of Cabeus, diameter 59.62 km)',
+    sources: ['https://planetarynames.wr.usgs.gov/Feature/8058', 'https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/'],
+    notes: 'IAU Gazetteer of Planetary Nomenclature, feature 8058: centre -82.26, -54.58 (planetographic = planetocentric on the spherical Moon, +East). NASA (28 Oct 2024) gives no numeric coordinates for the region. The region is a peak near this crater; the crater centre itself is a crater floor, so its illumination and Earth visibility do not represent the region.' },
+  { id: 'haworth', name: 'Haworth (feature)', mission: 'Artemis III candidate region (Oct 2024): Haworth', agency: 'NASA (region); IAU (feature name)', country: 'USA', lat: -87.45, lon: -5.17,
+    status: 'candidate', year: null, artemisRegions: ['Haworth'], featureOnly: true,
+    coordKind: 'Named feature in/near this region (not a landing point): IAU Gazetteer centre of Haworth (crater, diameter 51.42 km)',
+    sources: ['https://planetarynames.wr.usgs.gov/Feature/14502', 'https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/'],
+    notes: 'IAU Gazetteer of Planetary Nomenclature, feature 14502: centre -87.45, -5.17 (planetographic = planetocentric on the spherical Moon, +East). NASA (28 Oct 2024) gives no numeric coordinates for the region. The landing region lies near this crater; the crater centre is a permanently shadowed floor and does not represent the region.' },
+  { id: 'mons_malapert', name: 'Mons Malapert (feature)', mission: 'Artemis III candidate region (Oct 2024): Malapert Massif', agency: 'NASA (region); IAU (feature name)', country: 'USA', lat: -85.98, lon: -1.67,
+    status: 'candidate', year: null, artemisRegions: ['Malapert Massif'], featureOnly: true,
+    coordKind: 'Named feature in/near this region (not a landing point): IAU Gazetteer centre of Mons Malapert (mons, adopted 26 Aug 2024, diameter 67.00 km)',
+    sources: ['https://planetarynames.wr.usgs.gov/Feature/16338', 'https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/'],
+    notes: 'IAU Gazetteer of Planetary Nomenclature, feature 16338: centre -85.98, -1.67 (planetographic = planetocentric on the spherical Moon, +East). NASA (28 Oct 2024) gives no numeric coordinates for the region. "Malapert Massif" is not an IAU name; Mons Malapert ("named for nearby crater, Malapert") is the IAU name of the massif.' },
+  { id: 'nobile', name: 'Nobile (feature)', mission: 'Artemis III candidate region (Oct 2024): Nobile Rim 1 / Nobile Rim 2', agency: 'NASA (region); IAU (feature name)', country: 'USA', lat: -85.28, lon: 53.27,
+    status: 'candidate', year: null, artemisRegions: ['Nobile Rim 1', 'Nobile Rim 2'], featureOnly: true,
+    coordKind: 'Named feature in/near this region (not a landing point): IAU Gazetteer centre of Nobile (crater, diameter 79.27 km)',
+    sources: ['https://planetarynames.wr.usgs.gov/Feature/4321', 'https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/'],
+    notes: 'IAU Gazetteer of Planetary Nomenclature, feature 4321: centre -85.28, 53.27 (planetographic = planetocentric on the spherical Moon, +East). NASA (28 Oct 2024) gives no numeric coordinates for the region. Both regions are on the rim of this crater; the crater centre is a crater floor and does not represent the rim regions. For Nobile Rim 2 a published point (site DM2) is listed separately.' },
+  { id: 'de_gerlache', name: 'de Gerlache (feature)', mission: 'Artemis III candidate region (Oct 2024): de Gerlache Rim 2', agency: 'NASA (region); IAU (feature name)', country: 'USA', lat: -88.48, lon: -88.34,
+    status: 'candidate', year: null, artemisRegions: ['de Gerlache Rim 2'], featureOnly: true,
+    coordKind: 'Named feature in/near this region (not a landing point): IAU Gazetteer centre of de Gerlache (crater, diameter 32.71 km)',
+    sources: ['https://planetarynames.wr.usgs.gov/Feature/1439', 'https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/'],
+    notes: 'IAU Gazetteer of Planetary Nomenclature, feature 1439: centre -88.48, -88.34 (planetographic = planetocentric on the spherical Moon, +East). NASA (28 Oct 2024) gives no numeric coordinates for the region. The region is on the rim of this crater; the crater centre is a permanently shadowed floor and does not represent the rim region.' },
+  { id: 'slater', name: 'Slater (feature)', mission: 'Artemis III candidate region (Oct 2024): Slater Plain', agency: 'NASA (region); IAU (feature name)', country: 'USA', lat: -88.08, lon: 111.29,
+    status: 'candidate', year: null, artemisRegions: ['Slater Plain'], featureOnly: true,
+    coordKind: 'Named feature in/near this region (not a landing point): IAU Gazetteer centre of Slater (crater, diameter 25.12 km)',
+    sources: ['https://planetarynames.wr.usgs.gov/Feature/15325', 'https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/'],
+    notes: 'IAU Gazetteer of Planetary Nomenclature, feature 15325: centre -88.08, 111.29 (planetographic = planetocentric on the spherical Moon, +East). NASA (28 Oct 2024) gives no numeric coordinates for the region. The region is a plain near this crater; the crater centre does not represent the region.' },
 
   // ---------------------------------------------------- reference features
   { id: 'shackleton_centre', name: 'Shackleton crater centre (floor)', mission: 'Reference feature', agency: '-', country: '-', lat: -89.67, lon: 129.78,
-    status: 'reference', year: null, coordKind: 'Crater centre (IAU feature coordinate via Wikipedia)',
-    sources: ['https://en.wikipedia.org/wiki/Shackleton_(crater)'],
+    status: 'reference', year: null, coordKind: 'Crater centre (IAU Gazetteer feature 5450)',
+    sources: ['https://planetarynames.wr.usgs.gov/Feature/5450', 'https://en.wikipedia.org/wiki/Shackleton_(crater)'],
     notes: 'Permanently shadowed crater floor - a contrast case for the sunlit rim and ridge points.' }
 ];
 
-// Artemis III regions (NASA, Oct 2024) that we could NOT plot because no numeric coordinate
-// was found in any fetched source. Listed so the UI can show them honestly.
-window.LUNA_UNPLOTTED_REGIONS = {
+// NASA's 28 Oct 2024 list of nine Artemis III candidate regions (in NASA's order, names verbatim from
+// the release). NASA gives no numeric coordinates; each region is represented by the IAU named
+// feature it is named after (and, for Nobile Rim 2, also a published point from a research study).
+window.LUNA_ARTEMIS_REGIONS = {
   source: 'https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/',
-  names: ['Peak near Cabeus B', 'Haworth', 'Malapert Massif', 'Mons Mouton Plateau', 'Nobile Rim 1', 'de Gerlache Rim 2', 'Slater Plain']
+  date: '2024-10-28',
+  regions: [
+    { name: 'Peak near Cabeus B', sites: ['cabeus_b'] },
+    { name: 'Haworth', sites: ['haworth'] },
+    { name: 'Malapert Massif', sites: ['mons_malapert'] },
+    { name: 'Mons Mouton Plateau', sites: ['mons_mouton'] },
+    { name: 'Mons Mouton', sites: ['mons_mouton'] },
+    { name: 'Nobile Rim 1', sites: ['nobile'] },
+    { name: 'Nobile Rim 2', sites: ['nobile', 'nobile_rim2_dm2'] },
+    { name: 'de Gerlache Rim 2', sites: ['de_gerlache'] },
+    { name: 'Slater Plain', sites: ['slater'] }
+  ]
 };

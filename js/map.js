@@ -1,0 +1,172 @@
+/* ASTERIA south-pole map (Leaflet 1.9.4, local copy in lib/leaflet).
+ * Custom CRS: south polar stereographic on the 1737.4 km sphere, identical to tools/terrain.py,
+ * tools/tiles.py and the LOLA PDS products:
+ *   r = 2R tan((90 + lat)/2),  x = r sin(lon),  y = r cos(lon)   (lon 0 up, 90E right)
+ * Leaflet pixel at zoom z:  px = (x + H) * 256 * 2^z / (2H),  py = (H - y) * 256 * 2^z / (2H),
+ * exactly the tile grid written by tools/tiles.py, so markers and tiles share one georeference. */
+window.AsteriaMap = (function () {
+  'use strict';
+  var R = 1737400, DEG = Math.PI / 180;
+  var TM = window.LUNA_TILES;
+  var map = null, layers = {}, markerLayer = null, pickMarker = null, opts = {}, sites = [], selId = null, readout = null;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function project(lat, lon) {
+    var r = 2 * R * Math.tan((90 + lat) * DEG / 2);
+    return { x: r * Math.sin(lon * DEG), y: r * Math.cos(lon * DEG) };
+  }
+  function unproject(x, y) {
+    var r = Math.sqrt(x * x + y * y);
+    return { lat: -90 + 2 * Math.atan(r / (2 * R)) / DEG, lon: Math.atan2(x, y) / DEG };
+  }
+  function makeCRS(H) {
+    var P = {
+      bounds: L.bounds([-H, -H], [H, H]),
+      project: function (ll) { var p = project(ll.lat, ll.lng); return L.point(p.x, p.y); },
+      unproject: function (pt) { var q = unproject(pt.x, pt.y); return L.latLng(q.lat, q.lon); }
+    };
+    var a = 256 / (2 * H);
+    return L.extend({}, L.CRS.Simple, {
+      code: 'ASTERIA:SPS', projection: P, transformation: new L.Transformation(a, 128, -a, 128),
+      infinite: false, wrapLng: undefined, wrapLat: undefined
+    });
+  }
+  // Tile layer limited to explicit per-zoom tile ranges (detail and PGDA layers cover only part of the square).
+  var RangedTiles = null;   // created in init() so this file loads even without Leaflet (Node tests)
+  function makeRangedTiles() {
+    return L.TileLayer.extend({
+      _isValidTile: function (c) {
+        var r = this.options.ranges && this.options.ranges[c.z];
+        if (!r) return false;
+        return c.x >= r[0] && c.x <= r[1] && c.y >= r[2] && c.y <= r[3];
+      }
+    });
+  }
+
+  function markerKind(s) {
+    if (s.artemisRegions && s.featureOnly) return 'feature';
+    if (/^DERIVED/.test(s.coordKind || '')) return 'derived';
+    if (s.status === 'reference') return 'reference';
+    return 'point';
+  }
+  function iconHtml(kind, sel, count) {
+    return '<span class="mk mk-' + kind + (sel ? ' sel' : '') + '">' + (count > 1 ? '<b>' + count + '</b>' : '') + '</span>';
+  }
+
+  // Group markers that are closer than 16 px on screen into one marker with a count; clicking opens a list.
+  function renderMarkers() {
+    if (!map) return;
+    markerLayer.clearLayers();
+    var pts = sites.filter(function (s) { return s.lat <= -79; }).map(function (s) { return { s: s, p: map.latLngToLayerPoint([s.lat, s.lon]) }; });
+    var groups = [];
+    pts.forEach(function (it) {
+      for (var g = 0; g < groups.length; g++) if (groups[g].p.distanceTo(it.p) < 16) { groups[g].items.push(it); return; }
+      groups.push({ p: it.p, items: [it] });
+    });
+    groups.forEach(function (g) {
+      var first = g.items[0].s, isSel = g.items.some(function (i) { return i.s.id === selId; });
+      var kind = g.items.length > 1 ? 'group' : markerKind(first);
+      var m = L.marker([first.lat, first.lon], {
+        icon: L.divIcon({ className: 'mkwrap', html: iconHtml(kind, isSel, g.items.length), iconSize: [18, 18], iconAnchor: [9, 9] }),
+        keyboard: true, title: g.items.map(function (i) { return i.s.name; }).join(' / '), riseOnHover: true, zIndexOffset: isSel ? 1000 : 0
+      });
+      if (g.items.length === 1) {
+        m.on('click', function (e) { L.DomEvent.stopPropagation(e); opts.onSelectSite(first); });
+        if (isSel) m.bindTooltip(esc(first.name), { permanent: true, direction: 'right', offset: [10, 0], className: 'mklabel' });
+      } else {
+        var html = '<div class="grouppop"><div class="gp-h">' + g.items.length + ' sites close together</div>' +
+          g.items.map(function (i) { return '<button class="gp-i" data-id="' + i.s.id + '">' + esc(i.s.name) + '</button>'; }).join('') + '</div>';
+        m.bindPopup(html, { closeButton: true, autoPan: true });
+        m.on('popupopen', function (e) {
+          e.popup.getElement().querySelectorAll('.gp-i').forEach(function (b) {
+            b.addEventListener('click', function () { map.closePopup(); opts.onSelectSite(opts.siteById(b.dataset.id)); });
+          });
+        });
+        var selItem = g.items.filter(function (i) { return i.s.id === selId; })[0];
+        if (selItem) m.bindTooltip(esc(selItem.s.name) + ' <span class="mkmore">+' + (g.items.length - 1) + '</span>', { permanent: true, direction: 'right', offset: [10, 0], className: 'mklabel' });
+      }
+      m.addTo(markerLayer);
+    });
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function init(el, o) {
+    opts = o;
+    if (!window.L || !TM) { el.innerHTML = '<p class="hint" style="padding:16px">Map unavailable (lib/leaflet or data/tiles_meta.js missing).</p>'; return null; }
+    var H = TM.halfExtent_m, LY = TM.layers;
+    RangedTiles = RangedTiles || makeRangedTiles();
+    map = L.map(el, {
+      crs: makeCRS(H), minZoom: 0, maxZoom: 9, zoomSnap: 0.5, zoomDelta: 0.5, wheelPxPerZoomLevel: 90,
+      attributionControl: true, zoomAnimation: !reduce, fadeAnimation: !reduce, markerZoomAnimation: !reduce,
+      inertia: !reduce
+    });
+    // (Leaflet maxBounds is a lat/lon box, meaningless in a polar CRS: the view is kept inside the
+    //  projected square on 'moveend' below instead.)
+    var ZMAX = 9;
+    layers.hill = L.tileLayer(LY.hill.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.hill.full[1], noWrap: true,
+      attribution: 'LOLA DEMs: NASA LRO/LOLA, PDS Geosciences Node' }).addTo(map);
+    Object.keys(LY.hill.ranges).forEach(function (z) {
+      layers['hill' + z] = new RangedTiles(LY.hill.path, { tileSize: 256, minZoom: +z, maxZoom: ZMAX, minNativeZoom: +z, maxNativeZoom: +z, ranges: (function () { var o = {}; o[z] = LY.hill.ranges[z]; return o; })() }).addTo(map);
+    });
+    layers.slope = L.tileLayer(LY.slope.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.slope.maxNativeZoom, opacity: 0.62, noWrap: true });
+    layers.illum = new RangedTiles(LY.illum.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.illum.maxNativeZoom, opacity: 0.85, ranges: LY.illum.ranges,
+      attribution: 'Illumination: NASA PGDA product 69 (Mazarico et al. 2011)' });
+    markerLayer = L.layerGroup().addTo(map);
+    // tile loading -> loader (only shown if still loading after 250 ms)
+    Object.keys(layers).forEach(function (k) {
+      layers[k].on('loading', function () { if (!layers[k]._asLoading) { layers[k]._asLoading = true; window.AsteriaLoader && AsteriaLoader.begin('Loading map tiles…'); } });
+      var done = function () { if (layers[k]._asLoading) { layers[k]._asLoading = false; window.AsteriaLoader && AsteriaLoader.end(); } };
+      layers[k].on('load', done);
+      layers[k].on('remove', done);   // a layer removed while loading never fires 'load'
+    });
+    map.on('click', function (e) { opts.onPickPoint(e.latlng.lat, e.latlng.lng); });
+    map.on('zoomend', renderMarkers);
+    map.on('mousemove', function (e) { if (readout) readout.textContent = fmtLL(e.latlng.lat, e.latlng.lng); });
+    map.on('mouseout', function () { if (readout) readout.textContent = 'Click anywhere to pick a point'; });
+    // readout box
+    var Rd = L.Control.extend({ options: { position: 'bottomleft' }, onAdd: function () { var d = L.DomUtil.create('div', 'mapreadout'); d.textContent = 'Click anywhere to pick a point'; readout = d; return d; } });
+    map.addControl(new Rd());
+    // keep the view inside the square
+    map.on('moveend', function () {
+      var c = map.options.crs.project(map.getCenter());
+      var cx = Math.max(-H, Math.min(H, c.x)), cy = Math.max(-H, Math.min(H, c.y));
+      if (cx !== c.x || cy !== c.y) map.panTo(map.options.crs.unproject(L.point(cx, cy)), { animate: !reduce });
+    });
+    home(false);
+    return map;
+  }
+  function fmtLL(lat, lon) { return lat.toFixed(4) + '°, ' + (((lon + 540) % 360) - 180).toFixed(4) + '°E'; }
+  function home(animate) {
+    if (!map) return;
+    var size = Math.min(map.getSize().x, map.getSize().y) || 400;
+    // fit the 80S circle (radius 2R tan(5 deg) ~ 304 km)
+    var z = Math.log(size / (256 * 0.97)) / Math.LN2;
+    map.setView([-90, 0], Math.max(0, Math.floor(z * 2) / 2), { animate: !!animate && !reduce });
+  }
+  function setSites(list) { sites = list; renderMarkers(); }
+  function select(site, fly) {
+    selId = site && site.id;
+    if (!map) return;
+    if (pickMarker) { map.removeLayer(pickMarker); pickMarker = null; }
+    if (site && !site.id && site.lat <= -79) {
+      pickMarker = L.marker([site.lat, site.lon], { icon: L.divIcon({ className: 'mkwrap', html: '<span class="mk mk-pick"></span>', iconSize: [18, 18], iconAnchor: [9, 9] }), interactive: false }).addTo(map);
+    }
+    renderMarkers();
+    if (fly && site && site.lat <= -79) {
+      var z = Math.max(map.getZoom(), 5);
+      if (reduce) map.setView([site.lat, site.lon], z, { animate: false });
+      else map.flyTo([site.lat, site.lon], z, { duration: 1.1 });
+    }
+  }
+  function setOverlay(name) {
+    ['slope', 'illum'].forEach(function (k) { if (map && map.hasLayer(layers[k]) && k !== name) map.removeLayer(layers[k]); });
+    if (map && layers[name] && !map.hasLayer(layers[name])) layers[name].addTo(map);
+  }
+  function setMarkersVisible(v) { if (!map) return; if (v) markerLayer.addTo(map); else map.removeLayer(markerLayer); }
+  function invalidate() { if (map) { map.invalidateSize(); renderMarkers(); } }
+  return {
+    init: init, setSites: setSites, select: select, setOverlay: setOverlay, setMarkersVisible: setMarkersVisible,
+    invalidate: invalidate, home: home, project: project, unproject: unproject,
+    leaflet: function () { return map; }
+  };
+})();

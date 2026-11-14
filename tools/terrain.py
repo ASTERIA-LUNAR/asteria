@@ -12,7 +12,8 @@ polar stereographic (spherical, R = 1737.4 km), centre -90, lon 0 up, 90E right
 Usage (from the project root):
   .venv/Scripts/python -I tools/terrain.py check       # projection/elevation sanity checks
   .venv/Scripts/python -I tools/terrain.py horizons    # write data/horizons/<site>.js
-  .venv/Scripts/python -I tools/terrain.py hillshade   # write data/southpole_hillshade.png + data/map_meta.js
+  .venv/Scripts/python -I tools/terrain.py hillshade   # legacy single-image hillshade (not used by the app;
+                                                        #   the map uses tools/tiles.py tile pyramids)
 """
 import json
 import math

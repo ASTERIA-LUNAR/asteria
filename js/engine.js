@@ -172,13 +172,16 @@
   }
 
   // Time series. Returns arrays (fast to chart).
-  function series(site, startDate, endDate, stepMin, mask) {
+  // earthMask (optional, ASTERIA round 2): separate horizon for the Earth test, e.g. the terrain mask
+  // plus a minimum link elevation. When omitted, Earth uses 'mask' exactly as before.
+  function series(site, startDate, endDate, stepMin, mask, earthMask) {
+    if (earthMask === undefined) earthMask = mask;
     stepMin = stepMin || defaultStepMin(startDate, endDate);
     var out = { t: [], sunAz: [], sunEl: [], sunFrac: [], sunDist: [], earthAz: [], earthEl: [], sunUp: [], earthUp: [], stepMin: stepMin };
     var t0 = startDate.getTime(), t1 = endDate.getTime(), dt = stepMin * 60000;
     for (var ms = t0; ms <= t1; ms += dt) {
       var r = sunEarthAt(site, new Date(ms));
-      var hs = maskAt(mask, r.sun.az), he = maskAt(mask, r.earth.az);
+      var hs = maskAt(mask, r.sun.az), he = maskAt(earthMask, r.earth.az);
       out.t.push(ms);
       out.sunAz.push(r.sun.az); out.sunEl.push(r.sun.el);
       out.sunFrac.push(diskFractionAbove(r.sun.el, r.sun.radius_deg, hs));
@@ -271,12 +274,12 @@
   // One series covering [nominal + slipMin, nominal + slipMax + duration] at the same step the
   // main timeline uses for a window of 'durationDays' (10 min <= 30 d, else 60 min); each slip's
   // mission window is an exact sub-range of samples, so slip 0 reproduces the timeline metrics.
-  function slipScan(site, nominal, durationDays, slipMin, slipMax, slipStep, mask) {
+  function slipScan(site, nominal, durationDays, slipMin, slipMax, slipStep, mask, earthMask) {
     var stepMin = defaultStepMin(nominal, new Date(nominal.getTime() + durationDays * 86400000));
     var perDay = 1440 / stepMin;
     var start = new Date(nominal.getTime() + slipMin * 86400000);
     var end = new Date(nominal.getTime() + (slipMax + durationDays) * 86400000);
-    var s = series(site, start, end, stepMin, mask);
+    var s = series(site, start, end, stepMin, mask, earthMask);
     var nWin = Math.round(durationDays * perDay) + 1;
     var rows = [];
     for (var slip = slipMin; slip <= slipMax + 1e-9; slip += slipStep) {
