@@ -75,6 +75,36 @@ function loadData(file, name) { const w = {}; new Function('window', fs.readFile
       if (!ok) pbad.push(`${p.e.toFixed(0)},${p.n.toFixed(0)}: shown ${got.pos} ${got.elev}; checked ${p.latTxt}, ${p.lonTxt} ${p.elevTxt} (LOLA ${p.demH.toFixed(2)})`);
     }
     expect(`${tag} 3D rover: displayed lat/lon and elevation at ${posList.length} checked positions = the values verified against LOLA (Validation, 3D terrain accuracy)`, posList.length > 0 && pbad.length === 0, pbad.join('; '));
+    // ---- Part 3: relief shading is display only (Walk/Rover default on, Orbit default off)
+    const snap = () => page.evaluate(async () => {
+      await new Promise(r => setTimeout(r, 350));
+      const d = AsteriaView3D.debug();
+      return { relief: d.relief, dir: d.sunLightDir, inten: d.sunIntensity, earth: d.earthAzEl, tiles: ['v3dTileSun', 'v3dTileEarth'].map(id => document.getElementById(id).className + '|' + document.getElementById(id).textContent),
+        rover: d.rover && { h: d.rover.h, slope: d.rover.slope, lat: d.rover.lat }, layers: d.layers.map(l => l.name + l.vertices).join(), centre: d.tileCentreY, note: document.getElementById('v3dReliefNote').textContent, box: document.getElementById('v3dRelief').checked };
+    });
+    const sOn = await snap();
+    await page.click('#v3dRelief');
+    const sOff = await snap();
+    await page.click('#v3dRelief');
+    const same = (a, b) => JSON.stringify([a.dir, a.inten, a.earth, a.tiles, a.rover, a.layers, a.centre]) === JSON.stringify([b.dir, b.inten, b.earth, b.tiles, b.rover, b.layers, b.centre]);
+    expect(`${tag} 3D relief shading: on by default in Rover, toggles off/on; heights, slopes, rover readout, light direction and status tiles identical; labelled`,
+      sOn.relief && sOn.box && !sOff.relief && same(sOn, sOff) && sOn.note === 'Relief shading: display contrast only; heights and slopes are the LOLA data.', JSON.stringify({ on: sOn.relief, off: sOff.relief, rover: [sOn.rover, sOff.rover] }));
+    const fine = await page.evaluate(() => { const d = AsteriaView3D.debug(); return { stride: d.stride, phone: d.phone, fine: d.fine, patch: d.patch5m, site: AsteriaApp.state.site.id }; });
+    expect(`${tag} 3D Walk/Rover use the finest data (laptop: full 20 m tile, 5 m patch where it exists; phone: unchanged)`, fine.phone ? true : (fine.stride === 1 && fine.fine && fine.patch === ['peak_shackleton', 'peak_shackleton_lw', 'shackleton_centre'].includes(fine.site)), JSON.stringify(fine));
+    await page.evaluate(() => { AsteriaView3D.testRelief(null); AsteriaView3D.testMode('orbit'); });
+    const orb = await page.evaluate(() => AsteriaView3D.debug().relief);
+    expect(`${tag} 3D relief shading off by default in Orbit`, orb === false);
+    // "Light up": session only; switches itself off when the validated status says the Sun is up
+    const lu = await page.evaluate(async () => {
+      const S = AsteriaApp.state, up = S.series.sunUp, i = up.findIndex(x => x), j = up.findIndex((x, k) => x && k !== i);
+      const ls0 = localStorage.getItem('asteria.v3dBrightness');
+      document.getElementById('v3dLightUp').click(); await new Promise(r => setTimeout(r, 100));
+      const b1 = AsteriaView3D.debug().brightness;
+      if (i >= 0) AsteriaApp.setIdx(j >= 0 ? j : i);
+      await new Promise(r => setTimeout(r, 200));
+      return { i, b1, b2: AsteriaView3D.debug().brightness, ls0, ls1: localStorage.getItem('asteria.v3dBrightness'), note: document.getElementById('v3dQNote').textContent };
+    });
+    expect(`${tag} 3D "Light up" is not remembered and switches off when the Sun is up at the site`, lu.b1 === 3 && lu.ls1 === lu.ls0 && (lu.i < 0 || (lu.b2 < 3 && /switched off/.test(lu.note))), JSON.stringify(lu));
     await page.evaluate(() => AsteriaView3D.close(true));
 
     await ctx.close();

@@ -160,7 +160,7 @@
     stride = stride || 1;
     var S = nsrc || G, dd = S.d;
     var m = Math.floor((G.n - 1) / stride) + 1, pos = new Float32Array(m * m * 3), H = new Float32Array(m * m), k = 0, eps = 1e-6;
-    var nor = new Float32Array(m * m * 3), slope = new Float32Array(m * m);
+    var nor = new Float32Array(m * m * 3), nsm = new Float32Array(m * m * 3), slope = new Float32Array(m * m), RS = 4 * dd;
     for (var jj = 0; jj < m; jj++) for (var ii = 0; ii < m; ii++) {
       var i = ii * stride, j = jj * stride, e = (i - G.c) * G.d, n = (G.c - j) * G.d, h = node(G, i, j);
       if (hole > 0 && inner && Math.abs(e) <= hole + eps && Math.abs(n) <= hole + eps && Math.max(Math.abs(e), Math.abs(n)) >= hole - eps) h = nodeOrMesh(inner, e, n);
@@ -173,6 +173,12 @@
       var cx = ty * uz - tz * uy, cy = tz * ux - tx * uz, cz = tx * uy - ty * ux, cl = Math.sqrt(cx * cx + cy * cy + cz * cz) || 1;
       var nt = toThree([cx / cl, cy / cl, cz / cl]);
       nor[k] = nt[0]; nor[k + 1] = nt[1]; nor[k + 2] = nt[2];
+      // smoothed normal (central differences over +-4 cells), used only by the relief-shading display option
+      var sa1 = enu(G, e + RS, n, heightAt(S, e + RS, n)), sa0 = enu(G, e - RS, n, heightAt(S, e - RS, n)), sb1 = enu(G, e, n + RS, heightAt(S, e, n + RS)), sb0 = enu(G, e, n - RS, heightAt(S, e, n - RS));
+      var stx = sa1[0] - sa0[0], sty = sa1[1] - sa0[1], stz = sa1[2] - sa0[2], sux = sb1[0] - sb0[0], suy = sb1[1] - sb0[1], suz = sb1[2] - sb0[2];
+      var scx = sty * suz - stz * suy, scy = stz * sux - stx * suz, scz = stx * suy - sty * sux, scl = Math.sqrt(scx * scx + scy * scy + scz * scz) || 1;
+      var st = toThree([scx / scl, scy / scl, scz / scl]);
+      nsm[k] = st[0]; nsm[k + 1] = st[1]; nsm[k + 2] = st[2];
       pos[k++] = p[0]; pos[k++] = p[1]; pos[k++] = p[2];
     }
     var idx = [], dd = G.d * stride;
@@ -182,7 +188,7 @@
       var a = j2 * m + i2, b = a + 1, c = a + m, d = c + 1;
       idx.push(a, c, b, b, c, d);
     }
-    return { m: m, pos: pos, H: H, normal: nor, slope: slope, index: (m * m > 65535 ? new Uint32Array(idx) : new Uint16Array(idx)), spacing: G.d * stride };
+    return { m: m, pos: pos, H: H, normal: nor, normalSmooth: nsm, slope: slope, index: (m * m > 65535 ? new Uint32Array(idx) : new Uint16Array(idx)), spacing: G.d * stride };
   }
   // Skirt: a vertical strip hanging 'drop' metres below the outer edge of grid G (every 'stride'-th node), so the
   // T-junctions where a finer mesh meets a coarser one show terrain-coloured skirt instead of gaps.
@@ -210,7 +216,7 @@
       H[2 * q] = h; H[2 * q + 1] = h;   // contour lines would not run down the skirt
       if (q < ring.length - 1) { var t0 = 2 * q, b0i = t0 + 1, t1 = t0 + 2, b1i = t0 + 3; idx.push(t0, b0i, t1, t1, b0i, b1i); }
     }
-    return { pos: pos, normal: nor, H: H, slope: sl, index: new Uint32Array(idx) };
+    return { pos: pos, normal: nor, normalSmooth: nor, H: H, slope: sl, index: new Uint32Array(idx) };
   }
 
   // ------------------------------------------------------------ stars (round 4)

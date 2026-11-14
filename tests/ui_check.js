@@ -137,8 +137,8 @@ const path = require('path'), fs = require('fs'), url = require('url');
     await page.click('#v3dLightUp'); await page.waitForTimeout(150);
     const b1 = await page.evaluate(() => ({ d: AsteriaView3D.debug(), t: [document.getElementById('v3dTileSun').className, document.getElementById('v3dTileEarth').className], ls: localStorage.getItem('asteria.v3dBrightness'), note: document.getElementById('v3dBrightNote').textContent }));
     const sameDir = b0.d.sunLightDir.every((x, k) => x === b1.d.sunLightDir[k]) && b0.d.sunLight.el === b1.d.sunLight.el && b0.d.sunIntensity === b1.d.sunIntensity;
-    expect(`${tag} 3D brightness: "Light up" changes only display brightness (exposure ${b0.d.exposure} -> ${b1.d.exposure}, fill ${b0.d.fillIntensity.toFixed(2)} -> ${b1.d.fillIntensity.toFixed(2)}); Sun light direction, Sun intensity and status tiles unchanged; remembered; labelled`,
-      b1.d.exposure > b0.d.exposure && sameDir && JSON.stringify(b0.t) === JSON.stringify(b1.t) && +b1.ls === b1.d.brightness && /Display brightness only \(like camera exposure\)\. Real polar shadows are almost black; this does not change the computed lighting\./.test(b1.note));
+    expect(`${tag} 3D brightness: "Light up" changes only display brightness (exposure ${b0.d.exposure} -> ${b1.d.exposure}, fill ${b0.d.fillIntensity.toFixed(2)} -> ${b1.d.fillIntensity.toFixed(2)}); Sun light direction, Sun intensity and status tiles unchanged; not remembered (session only, round 5); labelled`,
+      b1.d.exposure > b0.d.exposure && sameDir && JSON.stringify(b0.t) === JSON.stringify(b1.t) && b1.ls !== String(b1.d.brightness) && /Display brightness only \(like camera exposure\)\. Real polar shadows are almost black; this does not change the computed lighting\./.test(b1.note));
     await page.evaluate(() => AsteriaView3D.testBrightness(1));
     // real-data overlays: contour lines (interval labelled) and slope shading from the DEM; regolith shading + uniform albedo stated
     await page.click('#v3dContours'); await page.click('#v3dSlope'); await page.waitForTimeout(150);
