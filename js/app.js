@@ -328,24 +328,41 @@
     $('missionWhy').textContent = why;
     var ns = nextEventAfter('sun', t), ne = nextEventAfter('earth', t);
     var nx = [ns, ne].filter(Boolean).sort(function (a, b) { return a.time - b.time; })[0];
-    $('missionCountLbl').textContent = 'Changes in';
-    $('missionCount').textContent = nx ? fmtDur(nx.time.getTime() - t) : '> ' + Math.round((s.t[s.t.length - 1] - t) / DAY + Jobs.local().SEARCH_DAYS_AFTER) + ' days';
+    if (nx) {
+      $('missionCountLbl').textContent = 'Changes in';
+      $('missionCount').textContent = fmtDur(nx.time.getTime() - t); $('missionCount').className = 'mono';
+      $('missionLimitWhy').textContent = '';
+    } else {
+      var md = searchDaysAhead(t);
+      $('missionCountLbl').textContent = 'Next change:';
+      $('missionCount').textContent = notWithinText(md); $('missionCount').className = 'nolimit';
+      $('missionLimitWhy').textContent = limitWhy('change of sunlight or Earth link', md);
+    }
     renderSky(r);
     drawTimelineCursor();
     drawChartCursors();
     markCurrentWindows();
   }
   function tile(id, cls, stateEl, text) { $(id).className = 'tile ' + cls; stateEl.textContent = text; }
+  // Days ahead of time t that the next-event search covers: the rest of the window, then SEARCH_DAYS_AFTER more.
+  function searchDaysAhead(t) { return Math.round((S.series.t[S.series.t.length - 1] - t) / DAY) + Jobs.local().SEARCH_DAYS_AFTER; }
+  function notWithinText(days) { return 'Not within the next ' + days + ' days (search limit)'; }
+  function limitWhy(what, days) {
+    return 'ASTERIA searched ' + days + ' days ahead (the selected window, then ' + Jobs.local().SEARCH_DAYS_AFTER + ' more days in 60-minute steps) and found no ' + what + '; if there is one, it is later.';
+  }
   function countdown(body, up, t, setW, riseW) {
-    var ev = nextEventAfter(body, t);
-    $(body + 'CountLbl').textContent = up ? setW : riseW;
+    var ev = nextEventAfter(body, t), c = $(body + 'Count');
     if (ev) {
-      $(body + 'Count').textContent = fmtDur(ev.time.getTime() - t);
-      $(body + 'Count').title = 'at ' + fmtUTC(ev.time) + ' UTC';
+      $(body + 'CountLbl').textContent = up ? setW : riseW;
+      c.textContent = fmtDur(ev.time.getTime() - t); c.className = 'mono';
+      c.title = 'at ' + fmtUTC(ev.time) + ' UTC';
+      $(body + 'LimitWhy').textContent = '';
     } else {
-      var maxD = Math.round((S.series.t[S.series.t.length - 1] - t) / DAY) + Jobs.local().SEARCH_DAYS_AFTER;
-      $(body + 'Count').textContent = '> ' + maxD + ' days';
-      $(body + 'Count').title = (up ? 'No change' : body === 'sun' ? 'No sunrise' : 'No Earthrise') + ' found within the search range';
+      var maxD = searchDaysAhead(t), what = up ? (body === 'sun' ? 'sunset' : 'Earthset') : (body === 'sun' ? 'sunrise' : 'Earthrise');
+      $(body + 'CountLbl').textContent = 'Next ' + what + ':';
+      c.textContent = notWithinText(maxD); c.className = 'nolimit';
+      c.title = 'No ' + what + ' found within the search limit';
+      $(body + 'LimitWhy').textContent = limitWhy(what, maxD);
     }
   }
 
@@ -723,7 +740,7 @@
     return Loader.track(Promise.all(jobs), 'Comparing scenarios…').then(function (res) {
       CMPRES = res;
       var pctF = function (v) { return v.toFixed(1) + '%'; };
-      var left = function (lbl) { return function (v) { return v >= days * 24 ? '> window' : v === 0 ? lbl : fmtHours(v); }; };
+      var left = function (lbl, setW) { return function (v) { return v >= days * 24 ? 'Whole ' + days + '-day window (no ' + setW + ' within it)' : v === 0 ? lbl : fmtHours(v); }; };
       var rows = [
         ['Site', function (r) { return esc(r.s.name); }],
         ['Start (UTC)', function (r) { return fmtUTC(r.c.start); }],
@@ -731,14 +748,14 @@
         ['§sun', 'Sunlight'],
         ['Sunlit', function (r) { return r.st.pctSun; }, 'max', pctF],
         ['Average illumination', function (r) { return 100 * r.st.avgSunFrac; }, 'max', pctF],
-        ['Sunlight left at start', function (r) { return r.sunLeftH; }, 'max', left('Sun down')],
+        ['Sunlight left at start', function (r) { return r.sunLeftH; }, 'max', left('Sun down', 'sunset')],
         ['Longest darkness', function (r) { return r.st.longestDarkH; }, 'min', fmtHours],
         ['Sunlight windows', function (r) { return r.sw.n; }, null, String],
         ['Average sunlight window', function (r) { return r.sw.avgH; }, 'max', function (v) { return v ? fmtHours(v) : '-'; }],
         ['Max Sun elevation', function (r) { return r.maxSun; }, 'max', function (v) { return v.toFixed(2) + '°'; }],
         ['§earth', 'Earth link' + (S.minEl ? ' (≥ ' + S.minEl + '° above terrain)' : '')],
         ['Earth link', function (r) { return r.st.pctEarth; }, 'max', pctF],
-        ['Earth link left at start', function (r) { return r.earthLeftH; }, 'max', left('Earth hidden')],
+        ['Earth link left at start', function (r) { return r.earthLeftH; }, 'max', left('Earth hidden', 'Earthset')],
         ['Longest Earth blackout', function (r) { return r.st.longestBlackoutH; }, 'min', fmtHours],
         ['Earth link windows', function (r) { return r.ew.n; }, null, String],
         ['Average Earth link window', function (r) { return r.ew.avgH; }, 'max', function (v) { return v ? fmtHours(v) : '-'; }],
@@ -762,6 +779,7 @@
         }).join('') + '</tr>';
       });
       html += '</tbody></table><p class="hint">Highlighted = best in row (higher % and longer windows are better; shorter darkness/blackout is better). Ties are not highlighted. Windows cut by the period start/end count only their part inside it.</p>' +
+        (res.some(function (r) { return r.sunLeftH >= days * 24 || r.earthLeftH >= days * 24; }) ? '<p class="explain">"Whole ' + days + '-day window": the Sun (or Earth) was up at the start and no sunset (or Earthset) was found within the compared window, so the next one, if any, is later. Compare searches only inside its window.</p>' : '') +
         '<p class="hint x-only">Basis: validated engine, one series per scenario sampled every ' + res[0].ser.stepMin + ' min, horizon as in the "Horizon model" row, events refined to 1 min; statistics accurate to about one sampling step.</p>';
       $('cmpResult').innerHTML = html;
       $('cmpBars').innerHTML = res.map(function (r, k) { return '<div class="cmpbar"><div class="lbl">Scenario ' + (k + 1) + ': ' + esc(r.s.name) + ' from ' + fmtUTC(r.c.start) + ' UTC</div><canvas id="cmpc' + k + '" style="width:100%"></canvas></div>'; }).join('');
@@ -793,6 +811,8 @@
     h += '<tr><td>Event times vs Horizons (' + V.events.length + ')</td><td class="' + (V.eventPass ? 'pass' : 'fail') + '">' + (V.eventPass ? 'PASS' : 'FAIL') + '</td><td>Max ' + f(V.eventStats.max, 2) + ' min (mean ' + f(V.eventStats.mean, 2) + ' min), limit ' + V.tolerances.eventMin + ' min.</td></tr>';
     h += '<tr><td>Physics sanity tests (' + V.sanity.tests.length + ')</td><td class="' + (V.sanityPass ? 'pass' : 'fail') + '">' + (V.sanityPass ? 'PASS' : 'FAIL') + '</td><td>' + esc(V.sanity.period) + '</td></tr>';
     if (V.blind) h += '<tr><td>Blind test vs Horizons (' + V.blind.rows.length + ' comparisons)</td><td class="' + (V.blind.pass ? 'pass' : 'fail') + '">' + (V.blind.pass ? 'PASS' : 'FAIL') + '</td><td>' + V.blind.cases.length + ' new random cases fetched fresh; elevation max ' + f(V.blind.el.max, 4) + '°, azimuth max ' + f(V.blind.az.max, 4) + '°.</td></tr>';
+    var OY = V.oneYear;
+    if (OY) h += '<tr><td>Custom point, one-year check (' + OY.rows + ' hourly rows × 2 bodies)</td><td class="' + (OY.pass ? 'pass' : 'fail') + '">' + (OY.pass ? 'PASS' : 'FAIL') + '</td><td>Elevation error max ' + f(Math.max(OY.angles.earth.el.max, OY.angles.sun.el.max), 4) + '°, azimuth max ' + f(Math.max(OY.angles.earth.az.max, OY.angles.sun.az.max), 4) + '°; sunrise/sunset max ' + f(OY.events.sun.maxAbsMin, 2) + ' min.</td></tr>';
     h += '</tbody></table></div>';
     h += '<h3>Method</h3><p>Our engine vs Horizons with the observer on the Moon (<code>CENTER=\'coord@301\'</code>, <code>COORD_TYPE=\'GEODETIC\'</code>, height 0 km on the 1737.4 km sphere), targets Sun (10) and Earth (399), quantity 4 (apparent azimuth/elevation), <code>APPARENT=\'AIRLESS\'</code>. Azimuth tolerance is relaxed (' + V.tolerances.azDeg + '°/cos el) only above 80° elevation, where azimuth becomes ill-defined near the zenith.</p>';
     h += '<details><summary>Angle cases (' + V.angles.length + ')</summary><div class="tablewrap"><table><thead><tr><th>Site</th><th class="num">Lat</th><th class="num">E-lon</th><th>UTC</th><th>Body</th><th class="num">Az ours</th><th class="num">Az Horizons</th><th class="num">ΔAz</th><th class="num">El ours</th><th class="num">El Horizons</th><th class="num">ΔEl</th><th>Pass</th></tr></thead><tbody>';
@@ -814,6 +834,21 @@
     h += '<h3>Physics sanity tests</h3><div class="tablewrap"><table><thead><tr><th>Test</th><th>Result</th><th>Pass</th></tr></thead><tbody>';
     V.sanity.tests.forEach(function (t) { h += '<tr><td>' + esc(t.name) + '</td><td>' + esc(t.value) + '</td><td class="' + (t.pass ? 'pass' : 'fail') + '">' + (t.pass ? 'PASS' : 'FAIL') + '</td></tr>'; });
     h += '</tbody></table></div>';
+    var SM = V.sanity.sunMax;
+    if (SM) {
+      h += '<details><summary>Maximum Sun elevation at ' + SM.rows.length + ' random southern latitudes (seed ' + SM.seed + ')</summary><p class="hint">Rule: over one year the Sun’s centre should reach within 0.2° of 90° − |lat| + 1.54° and never exceed 90° − |lat| + 1.6°. The IAU/WGCCRE Moon orientation model used by the engine tilts the Moon’s equator ' + f(SM.tiltMin, 3) + '-' + f(SM.tiltMax, 3) + '° to the J2000 ecliptic over the period.</p><div class="tablewrap"><table><thead><tr><th class="num">Lat</th><th class="num">E-lon</th><th class="num">Max Sun el</th><th>When (UTC)</th><th class="num">90° − |lat| + 1.54°</th><th class="num">Δ</th><th>Pass</th></tr></thead><tbody>';
+      SM.rows.forEach(function (x) { h += '<tr><td class="num">' + x.lat + '</td><td class="num">' + x.lon + '</td><td class="num">' + f(x.maxEl, 4) + '°</td><td>' + x.when.slice(0, 16).replace('T', ' ') + '</td><td class="num">' + f(x.expected, 4) + '°</td><td class="num">' + f(x.dev, 4) + '°</td><td class="' + (x.pass ? 'pass' : 'fail') + '">' + (x.pass ? 'PASS' : 'FAIL') + '</td></tr>'; });
+      h += '</tbody></table></div></details>';
+    }
+    if (OY) {
+      var m = OY.earthMin, E1 = OY.events.earth, S1 = OY.events.sun, ts = function (x) { return x.slice(0, 16).replace('T', ' '); };
+      h += '<h3>Custom point, one-year check</h3><p>Point ' + OY.site.lat + '°, ' + OY.site.lon + '°E, smooth horizon (outside the south-pole map). JPL Horizons Earth and Sun apparent azimuth/elevation every hour from ' + ts(OY.period.start) + ' to ' + ts(OY.period.stop) + ' UTC (' + OY.rows + ' rows each), compared with the engine at every row. Result: <b class="' + (OY.pass ? 'pass' : 'fail') + '">' + (OY.pass ? 'PASS' : 'FAIL') + '</b>.</p>';
+      h += '<div class="tablewrap"><table><thead><tr><th>Body</th><th class="num">|ΔEl| max</th><th class="num">|ΔEl| mean</th><th class="num">|ΔAz| max</th><th class="num">|ΔAz| mean</th><th>Pass</th></tr></thead><tbody>';
+      ['earth', 'sun'].forEach(function (b) { var a = OY.angles[b]; h += '<tr><td>' + (b === 'earth' ? 'Earth' : 'Sun') + '</td><td class="num">' + f(a.el.max, 4) + '°</td><td class="num">' + f(a.el.mean, 4) + '°</td><td class="num">' + f(a.az.max, 4) + '°</td><td class="num">' + f(a.az.mean, 4) + '°</td><td class="' + (a.pass ? 'pass' : 'fail') + '">' + (a.pass ? 'PASS' : 'FAIL') + '</td></tr>'; });
+      h += '</tbody></table></div>';
+      h += '<p>Horizons’ lowest Earth elevation in the year: <b>' + f(m.el, 4) + '°</b> at ' + ts(m.time) + ' UTC (engine ' + f(m.engineEl, 4) + '°). ' + (m.setsAtAll ? 'Earth goes below 0° in ' + m.hoursBelow0 + ' hourly rows.' : 'Earth never goes below 0° in the year according to Horizons, so there is no Earthset or Earthrise; the app finds none either and shows "Not within the next N days (search limit)".') +
+        ' Sunrises and sunsets: Horizons ' + S1.horizonsCount + ', app ' + S1.appCount + ', largest difference ' + f(S1.maxAbsMin, 2) + ' min (limit ' + OY.tolerances.eventMin + ' min); the app’s next-event predictions for 30-day windows every 14 days agree in ' + (S1.next.filter(function (n) { return n.pass; }).length + E1.next.filter(function (n) { return n.pass; }).length) + ' of ' + (S1.next.length + E1.next.length) + ' cases.</p>';
+    }
     var I = window.LUNA_ILLUMINATION;
     if (I) {
       h += '<h3>Terrain illumination and Earth visibility (one year, LOLA horizons)</h3><p class="hint">' + esc(I.period) + ', ' + I.stepMin + '-minute steps, Sun/Earth centre vs horizon (Earth minimum elevation 0°), observer ' + I.observerHeight_m + ' m above ground. Artemis III points are landform centres or a published point inside a region, not landing sites.</p>';
@@ -905,7 +940,7 @@
   var SLIP = { res: null, layout: null };
   function slipVal(row, key, durDays) { var v = row[key]; return (key === 'hoursToFirstSunset' && v === null) ? durDays * 24 : v; }
   function slipFmt(row, key) {
-    if (key === 'hoursToFirstSunset') { var v = row[key]; return v === null ? 'no sunset in mission' : v === 0 ? 'Sun down at landing' : fmtHours(v); }
+    if (key === 'hoursToFirstSunset') { var v = row[key]; return v === null ? 'No sunset within the ' + (SLIP.res && SLIP.res.dur ? SLIP.res.dur + '-day ' : '') + 'mission' : v === 0 ? 'Sun down at landing' : fmtHours(v); }
     return SLIP_METRICS[key].fmt(row[key]);
   }
   function slipSites(mode) {
@@ -1269,7 +1304,7 @@
       showPage('explorer');
       (S.ready || Promise.resolve()).then(function () {
         var w = WIN.earth, st = S.stats, t = S.series.t[S.idx], ev = nextEventAfter('earth', t), up = S.series.earthUp[S.idx];
-        var nextTxt = ev ? (up ? 'The next <b>Earthset</b> is in <b>' + fmtDur(ev.time.getTime() - t) + '</b> (' + fmtUTC(ev.time) + ' UTC).' : 'Earth is hidden now; the next <b>Earthrise</b> is in <b>' + fmtDur(ev.time.getTime() - t) + '</b> (' + fmtUTC(ev.time) + ' UTC).') : 'No Earth event in the search range.';
+        var nextTxt = ev ? (up ? 'The next <b>Earthset</b> is in <b>' + fmtDur(ev.time.getTime() - t) + '</b> (' + fmtUTC(ev.time) + ' UTC).' : 'Earth is hidden now; the next <b>Earthrise</b> is in <b>' + fmtDur(ev.time.getTime() - t) + '</b> (' + fmtUTC(ev.time) + ' UTC).') : (up ? 'Next Earthset: ' : 'Earth is hidden now. Next Earthrise: ') + notWithinText(searchDaysAhead(t)).replace(/^N/, 'n') + '.';
         var eEl = minMax(S.series.earthEl);
         done('earthPanel', 'Earth link: seen from the pole, Earth stays near the horizon and moves up and down a little as the Moon\'s orientation toward Earth changes (libration), so a direct line of sight comes and goes. In these 30 days Earth\'s centre moves between ' + fmtDeg(eEl[0], 1) + ' and ' + fmtDeg(eEl[1], 1) + ' elevation and is in view <b>' + st.pctEarth.toFixed(0) + '%</b> of the time in <b>' + w.length + '</b> window(s); the longest blackout lasts ' + fmtD(st.longestBlackoutH) + '. ' + nextTxt + ' You can require a minimum elevation above the terrain for a usable link.');
       });

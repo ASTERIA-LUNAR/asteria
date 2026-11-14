@@ -1,4 +1,4 @@
-Status as of 2026-11-14 (round 2B: accuracy audit and map fixes). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
+Status as of 2026-11-14 (round 2C: map fit, search-limit wording, one-year Horizons check of a custom point, Sun-elevation rule; builds on round 2B). This file lists what is missing, what is approximate, and what could not be sourced. Everything listed here is also labelled in the app where it applies.
 
 ## 1. Sites and coordinates
 
@@ -55,7 +55,7 @@ Status as of 2026-11-14 (round 2B: accuracy audit and map fixes). This file list
   * Events are found by a 10-minute scan (60 min for windows over 30 days) and refined to 1 minute. Visibility periods shorter than one step can be missed.
   * Statistics and "max elevation" in the window lists come from the samples, so they are accurate to about one step.
   * Windows cut by the start or end of the period count only their part inside it, and are marked "before"/"after" and "+".
-  * Beyond the selected window, the next event is searched for up to 400 days with 60-minute steps.
+  * Beyond the selected window, the next event is searched for up to 400 days with 60-minute steps. If none is found, the tiles say "Not within the next N days (search limit)" (N = rest of the window + 400) instead of "> N days", and Explain mode explains the limit. Compare and Launch slip search only inside their own window and say so ("Whole N-day window (no sunset within it)", "No sunset within the N-day mission").
 * **Sunrise/sunset and Earthrise/Earthset** use the centre of the body. "Average illumination" averages the visible fraction of the solar disk, treating the horizon as a straight line across the disk (its diameter is computed at each step from the Sun distance and shown in Expert view).
 * **Earth link**: Earth's centre is above the terrain horizon plus the user's minimum elevation (default 0°). It is a geometric line of sight only; antennas, power, Earth ground-station coverage and relay satellites are not modelled.
 * **Moon frame**: the Moon orientation uses the IAU/WGCCRE rotation model; Horizons uses the DE-based Mean-Earth frame. The difference is well under 0.01° in the validation tables.
@@ -65,6 +65,7 @@ Status as of 2026-11-14 (round 2B: accuracy audit and map fixes). This file list
   * The hillshade uses synthetic lighting (from the upper left at 25° altitude). It is not real illumination at any date.
   * Slope is computed by central differences on a 37 m sample grid and shown as 74 m pixels (coarser zooms are averages). Real slopes over a few metres can be steeper.
   * The published-illumination layer is classed into 10 bins. NASA's 60 m map (AVGVISIB_85S_060M_201608) covers only about 85°S-90°S; its coverage is drawn as a dashed yellow square and the legend says so. **PGDA product 69 does provide an average-illumination map that covers 80-85°S**: AVGVISIB_75S_120M_201608 (120 m/px, 75°S-90°S, same two definitions in its label). It is shown as an outer layer under the 60 m map, with its own source and resolution label, on 148 m pixels (zoom 4). It is coarser, so it can differ from the 60 m map (for example 43% vs 39% at the Mons Malapert landform centre). The cross-check now also compares every site with it, including IM-1 and Nobile Rim 2 (DM2), which the 60 m map does not reach.
+  * First load and **Whole pole** zoom the map so the data square covers the whole map panel (fractional zoom; the same value is the minimum zoom). On a non-square panel a strip of the square along the longer side is off-screen (reachable by panning); at that zoom no area outside the data is visible, so the outside-click message mainly matters while panning near the edge.
   * The tile square reaches about 80°S on the axes and about 76°S in the corners. Panning and zooming are limited to it; the area outside is hatched and its edge drawn as a dashed orange line. A click outside it selects nothing and says "No elevation data here - this map covers the lunar south pole (about 80°S to the pole)." 
 
 ### Launch-slip heatmap
@@ -113,6 +114,9 @@ Status as of 2026-11-14 (round 2B: accuracy audit and map fixes). This file list
 * **Map tiles**: 63.9 MB in 8,195 files, under the 80 MB target. On disk they take about 77 MB because of file-system block size. Above zoom 7 the map overzooms (it enlarges zoom-7 tiles).
 
 ## 5. Verification aids
+
+* **Custom point, one-year check** (round 2C, `tests/one_year_check.js`, section E of VALIDATION_REPORT.md): at (-70.9457, 67.9235 E), smooth horizon, hourly Horizons rows for a year agree with the engine to 0.0028° in elevation and 0.0039° in azimuth. Horizons' lowest Earth elevation there is 1.634° (2026-12-08 05:31 UTC): Earth never sets in that year, and the app correctly shows "Not within the next 430 days (search limit)" for the next Earthset. All 24 sunrises/sunsets agree within 1.42 min (limit 2 min). At this latitude the Sun crosses the horizon at only about 0.003° per minute, so these event times are more sensitive to tiny elevation differences than at lower latitudes. No engine change was needed.
+* **Sun-elevation rule** (round 2C, `tests/validate.js` test 5): at 20 seeded random latitudes between -60° and -90°, the 2027 maximum Sun elevation is 1.504°-1.550° above 90 - |lat| (rule: within 0.2° of +1.54°, never above +1.6°). The 1.54° comes from the test specification; the Validation page also shows the tilt computed from the engine's IAU/WGCCRE model (1.52°-1.57° to the J2000 ecliptic over 2027).
 
 * VERIFY_YOURSELF.md: step-by-step checks for non-programmers (Horizons URL for a blind-test case and the matching share link, LROC Quickmap, NASA's illumination layer, a raw cached Horizons response).
 * LROC Quickmap's controls were described from general knowledge of the site, not re-checked in a browser this round; the guide says to look for the closest-named control if a label differs.

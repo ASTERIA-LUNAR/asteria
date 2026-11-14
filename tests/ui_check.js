@@ -31,6 +31,10 @@ const path = require('path'), fs = require('fs'), url = require('url');
     expect(`${tag} title is ASTERIA`, def.title.startsWith('ASTERIA - Lunar South Pole Landing Site Navigator'));
     const ping = await page.evaluate(() => AsteriaJobs.run('ping', {}));
     expect(`${tag} computations run in a Blob Web Worker under file://`, def.mode === 'worker' && ping.inWorker && ping.engine, def.mode + ' ' + JSON.stringify(ping));
+    // ---- map fit: the data square fills the map panel on first load (no empty margins)
+    const fitOk = m => m && m.left <= 1 && m.top <= 1 && m.right <= 1 && m.bottom <= 1 && (Math.abs(m.left + m.right) <= 2 || Math.abs(m.top + m.bottom) <= 2);
+    const m0 = await page.evaluate(() => AsteriaMap.margins());
+    expect(`${tag} first load: the data-coverage square fills the map panel (no empty margins)`, fitOk(m0), JSON.stringify(m0));
     expect(`${tag} first-visit hint shows`, await page.isVisible('#hint'));
     await shot(page, vp.name + '_1_first_visit', false);
     await page.click('#hintNext'); await page.click('#hintNext'); await page.click('#hintNext');
@@ -74,17 +78,24 @@ const path = require('path'), fs = require('fs'), url = require('url');
     const pick = await page.evaluate(() => ({ id: AsteriaApp.state.site.id, lat: AsteriaApp.state.site.lat, lon: AsteriaApp.state.site.lon, name: document.getElementById('siteName').textContent, kind: document.getElementById('siteKind').textContent }));
     const pickMsg = await page.evaluate(() => ({ badge: document.getElementById('horizonBadge').textContent, msg: (document.querySelector('.custommsg') || {}).textContent || '', hz: !!AsteriaApp.state.site.hz }));
     expect(`${tag} clicking inside the map picks a custom point with a terrain horizon from 240 m data (validated), clearly labelled`, pick.id === null && pick.lat < -85 && pickMsg.hz && /terrain from coarser 240 m data \(less precise than curated sites\)/.test(pick.kind) && /240 m data/.test(pickMsg.badge) && /may differ from reality/.test(pickMsg.msg), JSON.stringify(pick) + ' ' + JSON.stringify(pickMsg).slice(0, 200));
-    // clicking outside the data square selects nothing and shows the coverage message
-    const outPx = await page.evaluate(() => { const m = AsteriaMap.leaflet(), H = LUNA_TILES.halfExtent_m, q = AsteriaMap.unproject(H * 1.03, 0), pt = m.latLngToContainerPoint([q.lat, q.lon]); return { x: pt.x, y: pt.y, w: m.getSize().x, h: m.getSize().y }; });
-    if (outPx.x > 2 && outPx.x < outPx.w - 2 && outPx.y > 2 && outPx.y < outPx.h - 2) {
-      await page.mouse.click(box.x + outPx.x, box.y + outPx.y); await page.waitForTimeout(300);
-      const o = await page.evaluate(() => ({ note: document.getElementById('mapNote').hidden ? '' : document.getElementById('mapNote').textContent, lat: AsteriaApp.state.site.lat }));
-      expect(`${tag} click outside the map data: no point selected, coverage message shown`, o.lat === pick.lat && /No elevation data here - this map covers the lunar south pole \(about 80°S to the pole\)\./.test(o.note), JSON.stringify(o));
-    } else console.log(`${tag} (map box shows no area outside the data at this size; outside-click check skipped)`);
+    // clicking outside the data square selects nothing and shows the coverage message. At the fitted zoom no
+    // area outside the data is on screen, so the click is delivered through Leaflet's own click event.
+    const selBefore = await page.evaluate(() => ({ lat: AsteriaApp.state.site.lat, lon: AsteriaApp.state.site.lon }));
+    for (const f of [1.03, 1.5]) {
+      await page.evaluate(f => { const m = AsteriaMap.leaflet(), H = LUNA_TILES.halfExtent_m, q = AsteriaMap.unproject(H * f, -H * 0.2), ll = L.latLng(q.lat, q.lon); m.fire('click', { latlng: ll, layerPoint: m.latLngToLayerPoint(ll), containerPoint: m.latLngToContainerPoint(ll) }); }, f);
+      await page.waitForTimeout(250);
+      const o = await page.evaluate(() => ({ note: document.getElementById('mapNote').hidden ? '' : document.getElementById('mapNote').textContent, lat: AsteriaApp.state.site.lat, lon: AsteriaApp.state.site.lon, computing: AsteriaApp.state.computing }));
+      expect(`${tag} click outside the map data (${f} x half-width): no point selected, coverage message shown`, o.lat === selBefore.lat && o.lon === selBefore.lon && !o.computing && /No elevation data here - this map covers the lunar south pole \(about 80°S to the pole\)\./.test(o.note), JSON.stringify(o));
+    }
     // panning is limited to the data square
     const cen = await page.evaluate(() => { const m = AsteriaMap.leaflet(); m.panBy([6000, 6000], { animate: false }); const c = m.getCenter(), p = AsteriaMap.project(c.lat, c.lng), H = LUNA_TILES.halfExtent_m; return { x: p.x / H, y: p.y / H }; });
     expect(`${tag} panning is limited to the area covered by the map data`, Math.abs(cen.x) <= 1.0001 && Math.abs(cen.y) <= 1.0001, JSON.stringify(cen));
-    await page.evaluate(() => AsteriaMap.home(false));
+    // "Whole pole" after zooming in: fills the panel again
+    await page.evaluate(() => AsteriaMap.leaflet().setZoom(5, { animate: false }));
+    await page.click('#homeBtn'); await page.waitForTimeout(900);
+    const m1 = await page.evaluate(() => AsteriaMap.margins());
+    const mc = await page.evaluate(() => { const c = AsteriaMap.leaflet().getCenter(); return Math.abs(c.lat + 90) < 1e-6; });
+    expect(`${tag} "Whole pole" button: data-coverage square fills the map panel, centred on the pole`, fitOk(m1) && mc, JSON.stringify(m1));
     // typed coordinates outside the map stay allowed, with a smooth horizon
     await page.click('#pickBtn'); await page.fill('#customLat', '-60'); await page.fill('#customLon', '10'); await page.click('#customGo'); await ready(page); await page.waitForTimeout(200);
     const ty = await page.evaluate(() => ({ kind: document.getElementById('siteKind').textContent, badge: document.getElementById('horizonBadge').textContent, hz: !!AsteriaApp.state.site.hz, msg: (document.querySelector('.custommsg') || {}).textContent || '' }));
@@ -102,6 +113,19 @@ const path = require('path'), fs = require('fs'), url = require('url');
     await pickSite('apollo11');
     const ap = await page.evaluate(() => ({ note: document.getElementById('mapNote').hidden ? '' : document.getElementById('mapNote').textContent, badge: document.getElementById('horizonBadge').textContent }));
     expect(`${tag} reference site outside the pole: map note + "smooth horizon, terrain not included"`, /outside this south-pole map/.test(ap.note) && /terrain not included/.test(ap.badge) && /terrain not included/.test(ap.note), JSON.stringify(ap));
+    // ---- long countdowns: plain "Not within the next N days (search limit)" text, never "> N days"
+    await pickSite('shackleton_centre');
+    const lim = await page.evaluate(() => ({ sl: document.getElementById('sunCountLbl').textContent, s: document.getElementById('sunCount').textContent, el: document.getElementById('earthCountLbl').textContent, e: document.getElementById('earthCount').textContent,
+      ml: document.getElementById('missionCountLbl').textContent, m: document.getElementById('missionCount').textContent, why: document.getElementById('sunLimitWhy').textContent,
+      whyShown: getComputedStyle(document.getElementById('sunLimitWhy')).display !== 'none', w: AsteriaApp.state.windowDays }));
+    const lim430 = 'Not within the next ' + (lim.w + 400) + ' days (search limit)';
+    expect(`${tag} no sunrise/Earthrise found: tiles say "${lim430}" (no "> N days"), with a one-line explanation in Explain mode`,
+      lim.sl === 'Next sunrise:' && lim.s === lim430 && lim.el === 'Next Earthrise:' && lim.e === lim430 && lim.ml === 'Next change:' && lim.m === lim430 &&
+      ![lim.s, lim.e, lim.m].some(x => /^>/.test(x)) && lim.whyShown && /searched \d+ days ahead/.test(lim.why), JSON.stringify(lim));
+    await page.uncheck('#explainToggle'); await page.waitForTimeout(100);
+    expect(`${tag} limit explanation hidden when Explain mode is off`, await page.evaluate(() => getComputedStyle(document.getElementById('sunLimitWhy')).display === 'none'));
+    await page.check('#explainToggle');
+    await shot(page, vp.name + '_2b_search_limit', false);
     await pickSite('peak_shackleton_lw');
 
     // ---- long window: loader appears, UI stays responsive (worker)
@@ -189,6 +213,8 @@ const path = require('path'), fs = require('fs'), url = require('url');
     const ct = await page.textContent('#cmpResult');
     expect(`${tag} Compare shows Earth-link metrics next to sunlight metrics`, /Sunlight windows/.test(ct) && /Earth link windows/.test(ct) && /Longest Earth blackout/.test(ct) && /Average Earth link window/.test(ct));
     await shot(page, vp.name + '_8_compare');
+    const cmpLim = await page.evaluate(() => /> window/.test(document.getElementById('cmpResult').textContent));
+    expect(`${tag} Compare never shows "> window"`, !cmpLim);
     await page.click('.tab[data-page="validation"]'); await page.waitForTimeout(200);
     const vt = await page.textContent('#validationContent');
     expect(`${tag} Validation cross-check lists the landform centres and no removed crater-centre points`, /Overall: PASS/.test(vt) && /Mons Malapert \(landform centre\)/.test(vt) && !/Haworth \(feature\)|Cabeus B|Slater \(|de Gerlache \(/.test(vt));

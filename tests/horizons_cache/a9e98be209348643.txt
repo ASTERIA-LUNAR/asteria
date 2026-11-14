@@ -1,0 +1,217 @@
+# https://ssd.jpl.nasa.gov/api/horizons.api?format=text&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27coord%40301%27&COORD_TYPE=%27GEODETIC%27&QUANTITIES=%274%27&APPARENT=%27AIRLESS%27&ANG_FORMAT=%27DEG%27&EXTRA_PREC=%27YES%27&CSV_FORMAT=%27YES%27&TIME_TYPE=%27UT%27&COMMAND=%2710%27&SITE_COORD=%2767.9235%2C-70.9457%2C0%27&START_TIME=%272027-10-01+21%3A50%27&STOP_TIME=%272027-10-01+23%3A10%27&STEP_SIZE=%271m%27
+API VERSION: 1.2
+API SOURCE: NASA/JPL Horizons API
+
+
+
+*******************************************************************************
+Ephemeris / API_USER Sat Nov 14 03:12:19 2026 Pasadena, USA      / Horizons    
+*******************************************************************************
+Target body name: Sun (10)                        {source: DE441}
+Center body name: Moon (301)                      {source: DE441}
+Center-site name: (user defined site below)
+*******************************************************************************
+Start time      : A.D. 2027-Oct-01 21:50:00.0000 UT      
+Stop  time      : A.D. 2027-Oct-01 23:10:00.0000 UT      
+Step-size       : 1 minutes
+*******************************************************************************
+Target pole/equ : IAU_SUN                         {East-longitude positive}
+Target radii    : 695700.0, 695700.0, 695700.0 km {Equator_a, b, pole_c}       
+Center geodetic : 67.9235, -70.9457, 4.00566E-13  {E-lon(deg),Lat(deg),Alt(km)}
+Center cylindric: 67.9235, 567.19871, -1642.2072  {E-lon(deg),Dxy(km),Dz(km)}
+Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}
+Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       
+Target primary  : Sun
+Vis. interferer : EARTH (R_eq= 6378.137) km       {source: DE441}
+Rel. light bend : Sun, EARTH                      {source: DE441}
+Rel. lght bnd GM: 1.3271E+11, 3.9860E+05 km^3/s^2                              
+Atmos refraction: NO (AIRLESS)
+RA format       : DEG
+Time format     : CAL 
+Calendar mode   : Mixed Julian/Gregorian
+EOP file        : eop.261113.p270209                                           
+EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08
+Units conversion: 1 au= 149597870.700 km, c= 299792.458 km/s, 1 day= 86400.0 s 
+Table cut-offs 1: Elevation (-90.0deg=NO ),Airmass     n.a.    , Daylight (NO )
+Table cut-offs 2: Solar elongation (  0.0,180.0=NO ),Local Hour Angle( 0.0=NO )
+Table cut-offs 3: RA/DEC angular rate (     0.0=NO )                           
+Table format    : Comma Separated Values (spreadsheet)
+*******************************************************************************
+ Date__(UT)__HR:MN, , ,Azimuth_(a-app), Elevation_(a-app),
+**********************************************************
+$$SOE
+ 2027-Oct-01 21:50,*,i,   94.236732292,      -0.055365944,
+ 2027-Oct-01 21:51,*,i,   94.228713243,      -0.052591191,
+ 2027-Oct-01 21:52,*,i,   94.220694205,      -0.049816411,
+ 2027-Oct-01 21:53,*,i,   94.212675180,      -0.047041603,
+ 2027-Oct-01 21:54,*,i,   94.204656166,      -0.044266767,
+ 2027-Oct-01 21:55,*,i,   94.196637163,      -0.041491903,
+ 2027-Oct-01 21:56,*,i,   94.188618172,      -0.038717011,
+ 2027-Oct-01 21:57,*,i,   94.180599193,      -0.035942092,
+ 2027-Oct-01 21:58,*,i,   94.172580225,      -0.033167146,
+ 2027-Oct-01 21:59,*,i,   94.164561268,      -0.030392172,
+ 2027-Oct-01 22:00,*,i,   94.156542323,      -0.027617170,
+ 2027-Oct-01 22:01,*,i,   94.148523389,      -0.024842141,
+ 2027-Oct-01 22:02,*,i,   94.140504466,      -0.022067085,
+ 2027-Oct-01 22:03,*,i,   94.132485555,      -0.019292001,
+ 2027-Oct-01 22:04,*,i,   94.124466655,      -0.016516890,
+ 2027-Oct-01 22:05,*,i,   94.116447766,      -0.013741752,
+ 2027-Oct-01 22:06,*,i,   94.108428889,      -0.010966587,
+ 2027-Oct-01 22:07,*,i,   94.100410022,      -0.008191395,
+ 2027-Oct-01 22:08,*,i,   94.092391167,      -0.005416175,
+ 2027-Oct-01 22:09,*,i,   94.084372322,      -0.002640929,
+ 2027-Oct-01 22:10,*,i,   94.076353489,       0.000134344,
+ 2027-Oct-01 22:11,*,i,   94.068334667,       0.002909644,
+ 2027-Oct-01 22:12,*,i,   94.060315855,       0.005684971,
+ 2027-Oct-01 22:13,*,i,   94.052297055,       0.008460325,
+ 2027-Oct-01 22:14,*,i,   94.044278265,       0.011235705,
+ 2027-Oct-01 22:15,*,i,   94.036259486,       0.014011112,
+ 2027-Oct-01 22:16,*,i,   94.028240718,       0.016786546,
+ 2027-Oct-01 22:17,*,i,   94.020221961,       0.019562006,
+ 2027-Oct-01 22:18,*,i,   94.012203214,       0.022337492,
+ 2027-Oct-01 22:19,*,i,   94.004184479,       0.025113005,
+ 2027-Oct-01 22:20,*,i,   93.996165753,       0.027888544,
+ 2027-Oct-01 22:21,*,i,   93.988147039,       0.030664110,
+ 2027-Oct-01 22:22,*,i,   93.980128335,       0.033439702,
+ 2027-Oct-01 22:23,*,i,   93.972109641,       0.036215320,
+ 2027-Oct-01 22:24,*,i,   93.964090958,       0.038990964,
+ 2027-Oct-01 22:25,*,i,   93.956072286,       0.041766635,
+ 2027-Oct-01 22:26,*,i,   93.948053623,       0.044542331,
+ 2027-Oct-01 22:27,*,i,   93.940034972,       0.047318054,
+ 2027-Oct-01 22:28,*,i,   93.932016330,       0.050093802,
+ 2027-Oct-01 22:29,*,i,   93.923997699,       0.052869576,
+ 2027-Oct-01 22:30,*,i,   93.915979078,       0.055645376,
+ 2027-Oct-01 22:31,*,i,   93.907960468,       0.058421202,
+ 2027-Oct-01 22:32,*,i,   93.899941868,       0.061197054,
+ 2027-Oct-01 22:33,*,i,   93.891923277,       0.063972931,
+ 2027-Oct-01 22:34,*,i,   93.883904697,       0.066748834,
+ 2027-Oct-01 22:35,*,i,   93.875886127,       0.069524762,
+ 2027-Oct-01 22:36,*,i,   93.867867567,       0.072300716,
+ 2027-Oct-01 22:37,*,i,   93.859849017,       0.075076695,
+ 2027-Oct-01 22:38,*,i,   93.851830478,       0.077852700,
+ 2027-Oct-01 22:39,*,i,   93.843811948,       0.080628730,
+ 2027-Oct-01 22:40,*,i,   93.835793427,       0.083404785,
+ 2027-Oct-01 22:41,*,i,   93.827774917,       0.086180866,
+ 2027-Oct-01 22:42,*,i,   93.819756417,       0.088956971,
+ 2027-Oct-01 22:43,*,i,   93.811737926,       0.091733102,
+ 2027-Oct-01 22:44,*,i,   93.803719445,       0.094509258,
+ 2027-Oct-01 22:45,*,i,   93.795700974,       0.097285439,
+ 2027-Oct-01 22:46,*,i,   93.787682513,       0.100061645,
+ 2027-Oct-01 22:47,*,i,   93.779664061,       0.102837876,
+ 2027-Oct-01 22:48,*,i,   93.771645619,       0.105614131,
+ 2027-Oct-01 22:49,*,i,   93.763627186,       0.108390412,
+ 2027-Oct-01 22:50,*,i,   93.755608763,       0.111166717,
+ 2027-Oct-01 22:51,*,i,   93.747590350,       0.113943047,
+ 2027-Oct-01 22:52,*,i,   93.739571946,       0.116719401,
+ 2027-Oct-01 22:53,*,i,   93.731553551,       0.119495780,
+ 2027-Oct-01 22:54,*,i,   93.723535166,       0.122272184,
+ 2027-Oct-01 22:55,*,i,   93.715516790,       0.125048612,
+ 2027-Oct-01 22:56,*,i,   93.707498423,       0.127825065,
+ 2027-Oct-01 22:57,*,i,   93.699480066,       0.130601541,
+ 2027-Oct-01 22:58,*,i,   93.691461718,       0.133378042,
+ 2027-Oct-01 22:59,*,i,   93.683443379,       0.136154568,
+ 2027-Oct-01 23:00,*,i,   93.675425049,       0.138931117,
+ 2027-Oct-01 23:01,*,i,   93.667406728,       0.141707691,
+ 2027-Oct-01 23:02,*,i,   93.659388417,       0.144484289,
+ 2027-Oct-01 23:03,*,i,   93.651370114,       0.147260911,
+ 2027-Oct-01 23:04,*,i,   93.643351821,       0.150037557,
+ 2027-Oct-01 23:05,*,i,   93.635333536,       0.152814226,
+ 2027-Oct-01 23:06,*,i,   93.627315261,       0.155590920,
+ 2027-Oct-01 23:07,*,i,   93.619296994,       0.158367637,
+ 2027-Oct-01 23:08,*,i,   93.611278736,       0.161144379,
+ 2027-Oct-01 23:09,*,i,   93.603260487,       0.163921144,
+ 2027-Oct-01 23:10,*,i,   93.595242247,       0.166697932,
+$$EOE
+*******************************************************************************
+Column meaning:
+ 
+TIME
+
+  Times PRIOR to 1962 are UT1, a mean-solar time closely related to the
+prior but now-deprecated GMT. Times AFTER 1962 are in UTC, the current
+civil or "wall-clock" time-scale. UTC is kept within 0.9 seconds of UT1
+using integer leap-seconds for 1972 and later years.
+
+  Conversion from the internal Barycentric Dynamical Time (TDB) of solar
+system dynamics to the non-uniform civil UT time-scale requested for output
+has not been determined for UTC times after the next July or January 1st.
+Therefore, the last known leap-second is used as a constant over future
+intervals.
+
+  Time tags refer to the UT time-scale conversion from TDB on Earth
+regardless of observer location within the solar system, although clock
+rates may differ due to the local gravity field and no analog to "UT"
+may be defined for that location.
+
+  Any 'b' symbol in the 1st-column denotes a B.C. date. First-column blank
+(" ") denotes an A.D. date.
+ 
+CALENDAR SYSTEM
+
+  Mixed calendar mode was active such that calendar dates after AD 1582-Oct-15
+(if any) are in the modern Gregorian system. Dates prior to 1582-Oct-5 (if any)
+are in the Julian calendar system, which is automatically extended for dates
+prior to its adoption on 45-Jan-1 BC.  The Julian calendar is useful for
+matching historical dates. The Gregorian calendar more accurately corresponds
+to the Earth's orbital motion and seasons. A "Gregorian-only" calendar mode is
+available if such physical events are the primary interest.
+
+  NOTE: "n.a." in output means quantity "not available" at the print-time.
+ 
+SOLAR PRESENCE (OBSERVING SITE)
+  Time tag is followed by a blank, then a solar-presence symbol:
+
+       '*'  Daylight (solar upper-limb on or above apparent horizon)
+       ' '  Night OR geocentric ephemeris
+
+INTEFERING BODY PRESENCE WITH TARGET RISE/TRANSIT/SET MARKER (OBSERVING SITE)
+  The solar-presence symbol is immediately followed by an "interfering body"
+presence OR target rise/transit/set symbol.
+
+       'i'  Upper-limb of interfering body on or above apparent horizon
+       ' '  Upper-limb of interfering body below apparent horizon OR body
+               centered ephemeris
+
+       'r'  Rise          (target body on or above cut-off RTS elevation)
+       'e'  Elevation max (target body maximum elevation angle has occurred)
+       't'  Transit       (target body at or past local maximum RTS elevation)
+       's'  Set           (target body on or below cut-off RTS elevation)
+
+  An "interfering body" is the largest other body in the immediate
+planet/satellite system, potentially compromising visual observations due to
+its brightness. Any such body is identified in the print-out header.
+ 
+RTS MARKERS (TVH)
+  Rise and set are with respect to the reference ellipsoid true visual horizon
+defined by the elevation cut-off angle. Horizon dip and yellow-light refraction
+(Earth only) are considered. Accuracy is < or = to twice the requested search
+step-size.
+ 
+ 'Azimuth_(a-app), Elevation_(a-app),' =
+  Airless apparent azimuth and elevation of target center. Compensated
+for light-time, the gravitational deflection of light, stellar aberration,
+precession and nutation. Azimuth is measured clockwise from north:
+
+  North(0) -> East(90) -> South(180) -> West(270) -> North (360)
+
+Elevation angle is with respect to a plane perpendicular to the reference
+surface local zenith direction. TOPOCENTRIC ONLY.  Units: DEGREES
+
+Computations by ...
+
+    Solar System Dynamics Group, Horizons On-Line Ephemeris System
+    4800 Oak Grove Drive, Jet Propulsion Laboratory
+    Pasadena, CA  91109   USA
+
+    General site: https://ssd.jpl.nasa.gov/
+    Mailing list: https://ssd.jpl.nasa.gov/email_list.html
+    System news : https://ssd.jpl.nasa.gov/horizons/news.html
+    User Guide  : https://ssd.jpl.nasa.gov/horizons/manual.html
+    Connect     : browser        https://ssd.jpl.nasa.gov/horizons/app.html#/x
+                  API            https://ssd-api.jpl.nasa.gov/doc/horizons.html
+                  command-line   telnet ssd.jpl.nasa.gov 6775
+                  e-mail/batch   https://ssd.jpl.nasa.gov/ftp/ssd/horizons_batch.txt
+                  scripts        https://ssd.jpl.nasa.gov/ftp/ssd/SCRIPTS
+    Inquiries   : Jon.D.Giorgini@jpl.nasa.gov
+
+*******************************************************************************

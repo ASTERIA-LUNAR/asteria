@@ -146,24 +146,38 @@ window.AsteriaMap = (function () {
     map.addControl(new Rd());
     fitMinZoom();
     map.on('resize', fitMinZoom);
+    // The panel can change size without a window resize (layout, fonts): keep Leaflet's size in step.
+    if (window.ResizeObserver) new ResizeObserver(function () { map.invalidateSize(); }).observe(el);
     home(false);
     return map;
   }
-  // Smallest zoom = the whole data square fills the shorter side of the map box (no zooming out into emptiness).
-  function fitMinZoom() {
-    var size = map.getSize(), s = Math.min(size.x, size.y) || 400;
-    var z = Math.floor(Math.log(s / 256) / Math.LN2 * 2) / 2;
-    map.setMinZoom(Math.max(0, z));
+  // Zoom at which the data square exactly covers the map box: its side equals the longer side of the box,
+  // so no area outside the data shows (on a non-square box a strip of the square along the longer axis is
+  // off-screen and reachable by panning). This is also the smallest zoom (no zooming out into emptiness).
+  // Fractional: Leaflet clamps to minZoom after snapping, so this exact value is kept.
+  function coverZoom() {
+    var size = map.getSize(), s = Math.max(size.x, size.y) || 400;
+    return Math.max(0, Math.log((s + 1) / 256) / Math.LN2);
   }
+  function fitMinZoom() { map.setMinZoom(coverZoom()); }
   // Is (lat, lon) inside the map data (the tile square)?
   function inData(lat, lon) { var p = project(lat, lon), H = TM ? TM.halfExtent_m : 0; return lat < 0 && Math.abs(p.x) <= H && Math.abs(p.y) <= H; }
   function fmtLL(lat, lon) { return lat.toFixed(4) + '°, ' + (((lon + 540) % 360) - 180).toFixed(4) + '°E'; }
+  // "Whole pole": centre on the pole at the zoom where the data square fills the map box.
   function home(animate) {
     if (!map) return;
-    var size = Math.min(map.getSize().x, map.getSize().y) || 400;
-    // fit the 80S circle (radius 2R tan(5 deg) ~ 304 km)
-    var z = Math.log(size / (256 * 0.97)) / Math.LN2;
-    map.setView([-90, 0], Math.max(map.getMinZoom(), Math.floor(z * 2) / 2), { animate: !!animate && !reduce });
+    fitMinZoom();
+    // Leaflet rounds to zoomSnap before clamping to minZoom, which could round up past the cover zoom.
+    var snap = map.options.zoomSnap; map.options.zoomSnap = 0;
+    map.setView([-90, 0], coverZoom(), { animate: !!animate && !reduce });
+    map.options.zoomSnap = snap;
+  }
+  // How much of the map box shows area outside the data (px), for the UI test.
+  function margins() {
+    if (!map) return null;
+    var H = TM.halfExtent_m, crs = map.options.crs, s = map.getSize();
+    var a = map.latLngToContainerPoint(crs.unproject(L.point(-H, H))), b = map.latLngToContainerPoint(crs.unproject(L.point(H, -H)));
+    return { left: a.x, top: a.y, right: s.x - b.x, bottom: s.y - b.y, w: s.x, h: s.y, zoom: map.getZoom() };
   }
   function setSites(list) { sites = list; renderMarkers(); }
   function select(site, fly) {
@@ -188,10 +202,10 @@ window.AsteriaMap = (function () {
     if (illumEdge) { if (name === 'illum') illumEdge.addTo(map); else map.removeLayer(illumEdge); }
   }
   function setMarkersVisible(v) { if (!map) return; if (v) markerLayer.addTo(map); else map.removeLayer(markerLayer); }
-  function invalidate() { if (map) { map.invalidateSize(); renderMarkers(); } }
+  function invalidate() { if (map) { map.invalidateSize(); fitMinZoom(); renderMarkers(); } }
   return {
     init: init, setSites: setSites, select: select, setOverlay: setOverlay, setMarkersVisible: setMarkersVisible,
-    invalidate: invalidate, home: home, project: project, unproject: unproject, inData: inData,
+    invalidate: invalidate, home: home, margins: margins, project: project, unproject: unproject, inData: inData,
     leaflet: function () { return map; }
   };
 })();

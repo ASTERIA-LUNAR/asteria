@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-14T10:58:35.369Z by `node tests/validate.js`.
+Generated 2026-11-14T11:17:08.577Z by `node tests/validate.js`.
 
 ## Overall: **PASS**
 
@@ -8,7 +8,8 @@ Generated 2026-11-14T10:58:35.369Z by `node tests/validate.js`.
 |---|---|---|
 | A. Angles vs JPL Horizons (52 comparisons) | PASS | elevation max 0.0038 deg / mean 0.0009 deg; azimuth max 0.0554 deg / mean 0.0025 deg |
 | A. Event times vs Horizons (4 events) | PASS | max 0.76 min / mean 0.42 min |
-| B. Physics sanity tests (4) | PASS | see below |
+| B. Physics sanity tests (5) | PASS | see below |
+| E. Custom point, one-year check vs JPL Horizons (8761 hourly rows x 2 bodies) | PASS | elevation max 0.0028 deg; azimuth max 0.0039 deg; sunrise/sunset max 1.42 min; Earth min elevation 1.63 deg |
 | C. Blind test vs JPL Horizons (5 new random cases, 10 comparisons, fetched fresh) | PASS | elevation max 0.0029 deg; azimuth max 0.0038 deg |
 
 ## Method
@@ -89,7 +90,7 @@ Our time: coarse 10-minute scan + bisection to 1 minute. Horizons time: 1-minute
 
 ## B. Physics sanity tests
 
-Period: 2027-01-01 to 2028-01-01 UTC, 10-minute steps. Smooth-Moon horizon (0 deg everywhere).
+Period: 2027-01-01 to 2028-01-01 UTC, 10-minute steps (test 5: 30-minute scan refined to 1 minute). Smooth-Moon horizon (0 deg everywhere).
 
 | Test | Result | Pass |
 |---|---|---|
@@ -97,6 +98,74 @@ Period: 2027-01-01 to 2028-01-01 UTC, 10-minute steps. Smooth-Moon horizon (0 de
 | Apollo 11: Earth above smooth horizon 100% of the year | 100.000% (min Earth el 57.96 deg) | PASS |
 | Chang'e-4 (far side): Earth below smooth horizon 100% of the year | Earth up 0.000% (max Earth el -37.72 deg) | PASS |
 | Equatorial near-side (0, 0): Sun above smooth horizon 45-55% of the year | 48.62% | PASS |
+| Max Sun elevation at 20 random latitudes -60 to -90 (seed 20261114): never above 90 - abs(lat) + 1.6 deg, and within 0.2 deg of 90 - abs(lat) + 1.54 deg | max - (90 - abs(lat)): 1.504 to 1.550 deg; largest deviation from 90 - abs(lat) + 1.54: 0.036 deg | PASS |
+
+**Test 5 detail: maximum Sun elevation over 2027** (smooth horizon). Rule (from the test specification): the maximum should come within 0.2 deg of 90 - |lat| + 1.54 deg and never exceed 90 - |lat| + 1.6 deg. Reason: the Sun stays close to the ecliptic, and the Moon's equator is tilted only slightly to it; the IAU/WGCCRE orientation model used by the engine gives a tilt of 1.522-1.572 deg to the J2000 ecliptic over the period (Astronomy Engine `RotationAxis`, sampled every 30 days). Random latitudes uniform in -60 to -90, longitudes uniform; 30-minute scan, then 1-minute steps within 30 minutes of the highest sample.
+
+| lat | E-lon | Max Sun el (deg) | When (UTC) | 90 - abs(lat) + 1.54 | Difference | Limit | Pass |
+|---|---|---|---|---|---|---|---|
+| -63.8852 | -42.432 | 27.6218 | 2027-10-18 16:33 | 27.6548 | -0.0330 | 27.7148 | PASS |
+| -82.7161 | -109.2031 | 8.7890 | 2027-10-24 04:18 | 8.8239 | -0.0349 | 8.8839 | PASS |
+| -67.1705 | -103.7412 | 24.3341 | 2027-10-23 17:28 | 24.3695 | -0.0354 | 24.4295 | PASS |
+| -82.119 | -31.2649 | 9.3876 | 2027-10-17 18:33 | 9.4210 | -0.0334 | 9.4810 | PASS |
+| -82.4992 | -124.8207 | 9.0084 | 2027-10-25 11:07 | 9.0408 | -0.0324 | 9.1008 | PASS |
+| -60.48 | -146.8452 | 31.0339 | 2027-10-27 06:19 | 31.0600 | -0.0261 | 31.1200 | PASS |
+| -61.6381 | -13.6863 | 29.8660 | 2027-10-16 07:51 | 29.9019 | -0.0359 | 29.9619 | PASS |
+| -77.4549 | 118.8098 | 14.0910 | 2027-11-03 23:54 | 14.0851 | 0.0059 | 14.1451 | PASS |
+| -78.4664 | 95.8685 | 13.0832 | 2027-11-05 21:03 | 13.0736 | 0.0096 | 13.1336 | PASS |
+| -66.5553 | -97.9049 | 24.9490 | 2027-10-23 05:57 | 24.9847 | -0.0357 | 25.0447 | PASS |
+| -81.5603 | 9.0086 | 9.9606 | 2027-11-12 23:46 | 9.9797 | -0.0191 | 10.0397 | PASS |
+| -78.7905 | 2.5158 | 12.7240 | 2027-11-13 12:44 | 12.7495 | -0.0255 | 12.8095 | PASS |
+| -69.8723 | -16.5567 | 21.6324 | 2027-10-16 13:32 | 21.6677 | -0.0353 | 21.7277 | PASS |
+| -63.942 | -113.2937 | 27.5637 | 2027-10-24 12:17 | 27.5980 | -0.0343 | 27.6580 | PASS |
+| -84.5852 | -62.113 | 6.9206 | 2027-10-20 07:18 | 6.9548 | -0.0342 | 7.0148 | PASS |
+| -65.7253 | 108.7597 | 25.8226 | 2027-11-04 19:38 | 25.8147 | 0.0079 | 25.8747 | PASS |
+| -85.4873 | -151.5557 | 6.0282 | 2027-10-27 16:01 | 6.0527 | -0.0245 | 6.1127 | PASS |
+| -68.2113 | 137.3532 | 23.3299 | 2027-11-02 11:23 | 23.3287 | 0.0012 | 23.3887 | PASS |
+| -88.8353 | 136.2311 | 2.7063 | 2027-11-02 15:04 | 2.7047 | 0.0016 | 2.7647 | PASS |
+| -84.6636 | -175.8287 | 6.8611 | 2027-10-29 15:42 | 6.8764 | -0.0153 | 6.9364 | PASS |
+
+## E. Custom point, one-year check: **PASS**
+
+Point -70.9457, 67.9235 E, smooth horizon (it is outside the south-pole map, so the app uses a smooth horizon there). JPL Horizons apparent azimuth/elevation of the Earth (399) and the Sun (10), same settings as part A, every hour from 2026-11-14 00:00 to 2027-11-14 00:00 UT: 8761 rows per body. Cache files: `tests/horizons_cache/ca37b62ceaf11412.txt` (Earth), `tests/horizons_cache/419c9ccaca1fe9ba.txt` (Sun). Run alone with `node tests/one_year_check.js`.
+
+| Body | max abs dEl (deg) | mean abs dEl | max abs dAz (deg) | mean abs dAz | Pass |
+|---|---|---|---|---|---|
+| Earth | 0.0026 | 0.0010 | 0.0032 | 0.0009 | PASS |
+| Sun | 0.0028 | 0.0011 | 0.0039 | 0.0011 | PASS |
+
+**Earth elevation (Horizons).** Minimum over the year **1.6344 deg** at 2026-12-08 05:31 UTC (1-minute Horizons table around the hourly minimum, 1.6345 deg at 2026-12-08 06:00; `tests/horizons_cache/b5f0cc1e60818953.txt`). The engine gives 1.6344 deg at that minute. Earth is below 0 deg in 0 of 8761 hourly rows: **according to Horizons, Earth never goes below 0 deg (smooth horizon) in this year**. There is therefore no Earthset or Earthrise to compare; the app finds none either, and its countdown shows "Not within the next N days (search limit)".
+
+**Events.** Every 0 deg crossing in the hourly Horizons table was refined with a 1-minute Horizons table (crossing linearly interpolated) and compared with the events from the app's own Explore job (`js/jobs.js`: 365-day window, 60-minute scan refined to 1 minute, smooth horizon, minimum elevation 0). Earthset/Earthrise: Horizons 0, app 0. Sunset/sunrise: Horizons 24, app 24; difference max **1.42 min**, mean 0.52 min; unmatched 0, extra 0 (tolerance 2 min). At this latitude the Sun's centre crosses the horizon slowly (about 0.003 deg per minute), so a 0.003 deg elevation difference moves a crossing by about a minute, on top of the app's 1-minute refinement.
+
+**Next-event predictions.** For 30-day windows started every 14 days, the next event the app's countdown would show (inside the window, otherwise from the 400-day search after it) was compared with the first refined Horizons crossing after the window start: Earth 24/24 agree (Horizons has no crossing in the year and the app shows none), Sun 24/24 agree within 2 min.
+
+| Horizons sunrise/sunset (UTC) | App (UTC) | Difference (min) | Pass |
+|---|---|---|---|
+| set 2026-11-26 14:16:27 | 2026-11-26 14:15:28 | -1.00 | PASS |
+| rise 2026-12-10 16:30:00 | 2026-12-10 16:30:28 | 0.46 | PASS |
+| set 2026-12-26 02:40:27 | 2026-12-26 02:39:50 | -0.61 | PASS |
+| rise 2027-01-09 10:14:54 | 2027-01-09 10:14:31 | -0.38 | PASS |
+| set 2027-01-24 13:14:15 | 2027-01-24 13:14:31 | 0.27 | PASS |
+| rise 2027-02-08 05:20:30 | 2027-02-08 05:20:09 | -0.35 | PASS |
+| set 2027-02-22 22:42:46 | 2027-02-22 22:42:39 | -0.12 | PASS |
+| rise 2027-03-09 23:53:50 | 2027-03-09 23:52:58 | -0.87 | PASS |
+| set 2027-03-24 08:08:03 | 2027-03-24 08:07:58 | -0.09 | PASS |
+| rise 2027-04-08 16:16:22 | 2027-04-08 16:15:28 | -0.91 | PASS |
+| set 2027-04-22 18:27:16 | 2027-04-22 18:27:39 | 0.37 | PASS |
+| rise 2027-05-08 05:33:19 | 2027-05-08 05:32:20 | -0.99 | PASS |
+| set 2027-05-22 06:16:46 | 2027-05-22 06:17:20 | 0.57 | PASS |
+| rise 2027-06-06 15:43:06 | 2027-06-06 15:42:39 | -0.45 | PASS |
+| set 2027-06-20 19:45:39 | 2027-06-20 19:45:28 | -0.18 | PASS |
+| rise 2027-07-05 23:30:14 | 2027-07-05 23:30:28 | 0.23 | PASS |
+| set 2027-07-20 10:38:10 | 2027-07-20 10:37:58 | -0.21 | PASS |
+| rise 2027-08-04 06:10:24 | 2027-08-04 06:10:46 | 0.37 | PASS |
+| set 2027-08-19 02:19:56 | 2027-08-19 02:19:13 | -0.73 | PASS |
+| rise 2027-09-02 13:14:02 | 2027-09-02 13:14:31 | 0.49 | PASS |
+| set 2027-09-17 18:04:12 | 2027-09-17 18:03:16 | -0.93 | PASS |
+| rise 2027-10-01 22:09:57 | 2027-10-01 22:09:50 | -0.11 | PASS |
+| set 2027-10-17 09:00:00 | 2027-10-17 08:58:35 | -1.42 | PASS |
+| rise 2027-10-31 10:05:48 | 2027-10-31 10:06:05 | 0.28 | PASS |
 
 ## C. Blind test
 

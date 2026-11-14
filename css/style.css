@@ -236,6 +236,9 @@ body.explain-on .q { display: inline-flex; }
 .qpop p { margin: 6px 0 0; color: #cfe3f5; }
 .explain { display: none; background: #0f2236; border: 1px solid #1f4a6e; border-left: 3px solid var(--accent); border-radius: 8px; padding: 9px 12px; font-size: .88rem; color: #cfe3f5; margin: 8px 0 0; }
 body.explain-on .explain { display: block; }
+body.explain-on .explain.limitx:empty { display: none; }
+.explain.limitx { font-size: .8rem; padding: 6px 9px; margin-top: 6px; }
+.tcount b.nolimit { font-family: inherit; font-weight: 600; font-size: .9em; }
 
 /* ---------------------------------------------------------------- compare */
 .scenarios { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin: 12px 0; }

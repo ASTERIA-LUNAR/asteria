@@ -18,12 +18,14 @@ Double-click **`index.html`**. It runs offline in any modern browser, with no se
   * **Slope** in degrees from the DEM, with a legend: sampled every 37 m and averaged over 74 m pixels (larger pixels when zoomed out).
   * **Average illumination**: NASA's published PGDA maps (product 69). The 60 m map AVGVISIB_85S_060M_201608 covers about 85°S-90°S only (dashed yellow outline); outside it, the coarser 120 m map AVGVISIB_75S_120M_201608 (75°S-90°S) is shown, each with its source, resolution, and a note that the documentation gives two different definitions.
   * **Site markers**: markers that overlap on screen are grouped with a count, and a click lists them.
+  * On first load and with **Whole pole**, the map is zoomed so the data-coverage square fills the map panel (no empty margins, laptop and phone). On a panel that is not square, a strip of the square along the longer side is off-screen and can be reached by panning.
   * Panning and zooming are limited to the area covered by the map data; outside it is hatched and the edge is drawn. A click outside the data selects nothing and shows "No elevation data here - this map covers the lunar south pole (about 80°S to the pole)."
   * Clicking inside the map selects a custom point. It gets a terrain horizon computed in the browser from a downsampled 240 m DEM, labelled "terrain from coarser 240 m data (less precise than curated sites)". This was shipped only because it passed validation (see below). Typed points outside the map use a smooth horizon (a Moon without mountains), also labelled.
 * **Site Card** with three status tiles. Each has a plain-English line and a countdown:
   * **Sunlight** (amber): Sun up or down, time to the next sunset or sunrise.
   * **Earth link** (blue): Earth in view or hidden, time to the next Earthset or Earthrise.
   * **Mission status**: green for both, amber or blue for only one, grey for neither.
+  * If no change is found within the search limit (the window plus 400 days), the tile says e.g. "Next Earthset: Not within the next 430 days (search limit)", and Explain mode adds a one-line explanation. Compare and Launch slip, which only look inside their own window, say "Whole N-day window (no sunset within it)" or "No sunset within the N-day mission".
 * **Sky view**: a 360° horizon panorama with the terrain skyline and the Sun and Earth at their computed positions. Play steps through computed samples only; nothing is interpolated.
 * **Timeline** of sunlight, Earth link and both, with summary metrics.
 * **Earth link windows** and **Sunlight windows**:
@@ -110,10 +112,12 @@ Other south-pole sites:
 | `node tests/validate.js`: 52 angle comparisons vs JPL Horizons | elevation error max 0.0038°, azimuth max 0.055° (Sun at 89° elevation) |
 | 4 event times vs Horizons | max 0.76 min |
 | Physics sanity tests (pole Sun ±1.55°, Apollo 11 Earth 100 %, Chang'e-4 Earth 0 %, equator Sun 48.6 %) | pass |
+| Maximum Sun elevation at 20 random latitudes -60° to -90° (2027, smooth horizon): ≤ 90 - \|lat\| + 1.6°, within 0.2° of 90 - \|lat\| + 1.54° | pass: max - (90 - \|lat\|) between 1.504° and 1.550°, largest deviation from +1.54° is 0.036° |
+| **Custom point, one-year check** (`node tests/one_year_check.js`): (-70.9457, 67.9235 E), smooth horizon, Earth and Sun every hour 2026-11-14 to 2027-11-14 vs fresh Horizons fetches (8,761 rows each) | elevation max 0.0028°, azimuth max 0.0039°; Horizons' lowest Earth elevation 1.634° (2026-12-08 05:31 UTC), so Earth never sets there that year, and the app shows no Earthset either; 24/24 sunrises/sunsets within 1.42 min |
 | **Blind test** (`node tests/blind_test.js --new`): 5 new random south-pole site/time cases in 2026-2030, fetched fresh from Horizons, 10 comparisons | 10/10 pass; elevation max 0.0029°, azimuth max 0.0038° |
 | **Terrain for clicked points** (`node tests/coarse_validation.js`), 240 m data | curated sites: % sunlit differs from the 20 m horizons by 2.0 points on average, 6.9 at most (limits 5 / 10); 50 random points in 85-90°S vs NASA's map: 1.5 points on average (limit 5) -> PASS, shipped |
 | `node tests/features_test.js` | power model, slip = timeline, minimum-elevation logic, worker job = engine, `js/core.js` in sync, all 8,536 requestable tiles exist, tiles < 80 MB, map projection, site sources and Artemis region rules, downsampled DEM size/decoding/gating |
-| `node tests/ui_check.js` | laptop and phone via file://, every feature, tour, worker, loader, reduced motion, map coverage limits, clicked-point terrain, the VERIFY_YOURSELF share link; no console errors |
+| `node tests/ui_check.js` | laptop and phone via file://, every feature, tour, worker, loader, reduced motion, map fit (data square fills the panel on first load and after "Whole pole"), map coverage limits, search-limit wording, clicked-point terrain, the VERIFY_YOURSELF share link; no console errors |
 
 Terrain illumination cross-check against NASA's published average-illumination maps (PGDA product 69; 18.6 years, observer 2 m):
 
@@ -173,6 +177,7 @@ data/coarse_validation.js, data/blind_test.js                        generated r
 tests/validate.js        Horizons + sanity + blind test -> VALIDATION_REPORT.md
 tests/horizons_api.js    shared JPL Horizons client and cache (tests/horizons_cache/)
 tests/blind_test.js      picks and fetches new random blind-test cases (--new)
+tests/one_year_check.js  custom point, one year of hourly Horizons rows (run by validate.js; writes data/one_year_check.js)
 tests/coarse_validation.js  validation of terrain for clicked points
 tests/illumination.js    one-year terrain statistics
 tests/features_test.js   unit tests
@@ -204,6 +209,7 @@ node tools/export_sun_vectors.js -88.79 124.5 2027-01-01T00:00:00Z 2045-08-08T00
 .venv\Scripts\python -I tools\coarse_dem.py check 240     # terrain.py on the same grid (implementation check)
 node tests/coarse_validation.js              # must PASS for clicked-point terrain to be enabled
 node tests/blind_test.js                     # offline re-check; "--new" picks and fetches new cases
+node tests/one_year_check.js                 # custom point, one-year check (fetches once, then from the cache)
 node tests/validate.js
 node tools/build_core.js                     # after any change to js/engine.js
 node tests/features_test.js

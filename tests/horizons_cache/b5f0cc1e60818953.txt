@@ -1,0 +1,257 @@
+# https://ssd.jpl.nasa.gov/api/horizons.api?format=text&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27coord%40301%27&COORD_TYPE=%27GEODETIC%27&QUANTITIES=%274%27&APPARENT=%27AIRLESS%27&ANG_FORMAT=%27DEG%27&EXTRA_PREC=%27YES%27&CSV_FORMAT=%27YES%27&TIME_TYPE=%27UT%27&COMMAND=%27399%27&SITE_COORD=%2767.9235%2C-70.9457%2C0%27&START_TIME=%272026-12-08+05%3A00%27&STOP_TIME=%272026-12-08+07%3A00%27&STEP_SIZE=%271m%27
+API VERSION: 1.2
+API SOURCE: NASA/JPL Horizons API
+
+
+
+*******************************************************************************
+Ephemeris / API_USER Sat Nov 14 03:13:02 2026 Pasadena, USA      / Horizons    
+*******************************************************************************
+Target body name: Earth (399)                     {source: DE441}
+Center body name: Moon (301)                      {source: DE441}
+Center-site name: (user defined site below)
+*******************************************************************************
+Start time      : A.D. 2026-Dec-08 05:00:00.0000 UT      
+Stop  time      : A.D. 2026-Dec-08 07:00:00.0000 UT      
+Step-size       : 1 minutes
+*******************************************************************************
+Target pole/equ : ITRF93 (high precision)         {East-longitude positive}
+Target radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       
+Center geodetic : 67.9235, -70.9457, 4.00566E-13  {E-lon(deg),Lat(deg),Alt(km)}
+Center cylindric: 67.9235, 567.19871, -1642.2072  {E-lon(deg),Dxy(km),Dz(km)}
+Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}
+Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       
+Target primary  : Sun
+Vis. interferer : EARTH (R_eq= 6378.137) km       {source: DE441}
+Rel. light bend : Sun, EARTH                      {source: DE441}
+Rel. lght bnd GM: 1.3271E+11, 3.9860E+05 km^3/s^2                              
+Atmos refraction: NO (AIRLESS)
+RA format       : DEG
+Time format     : CAL 
+Calendar mode   : Mixed Julian/Gregorian
+EOP file        : eop.261113.p270209                                           
+EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08
+Units conversion: 1 au= 149597870.700 km, c= 299792.458 km/s, 1 day= 86400.0 s 
+Table cut-offs 1: Elevation (-90.0deg=NO ),Airmass     n.a.    , Daylight (NO )
+Table cut-offs 2: Solar elongation (  0.0,180.0=NO ),Local Hour Angle( 0.0=NO )
+Table cut-offs 3: RA/DEC angular rate (     0.0=NO )                           
+Table format    : Comma Separated Values (spreadsheet)
+*******************************************************************************
+ Date__(UT)__HR:MN, , ,Azimuth_(a-app), Elevation_(a-app),
+**********************************************************
+$$SOE
+ 2026-Dec-08 05:00, ,i,  295.934323555,       1.634468593,
+ 2026-Dec-08 05:01, ,i,  295.933539676,       1.634465198,
+ 2026-Dec-08 05:02, ,i,  295.932755700,       1.634461914,
+ 2026-Dec-08 05:03, ,i,  295.931971628,       1.634458742,
+ 2026-Dec-08 05:04, ,i,  295.931187459,       1.634455682,
+ 2026-Dec-08 05:05, ,i,  295.930403194,       1.634452734,
+ 2026-Dec-08 05:06, ,i,  295.929618831,       1.634449897,
+ 2026-Dec-08 05:07, ,i,  295.928834371,       1.634447172,
+ 2026-Dec-08 05:08, ,i,  295.928049815,       1.634444559,
+ 2026-Dec-08 05:09, ,i,  295.927265162,       1.634442058,
+ 2026-Dec-08 05:10, ,i,  295.926480412,       1.634439668,
+ 2026-Dec-08 05:11, ,i,  295.925695566,       1.634437390,
+ 2026-Dec-08 05:12, ,i,  295.924910622,       1.634435224,
+ 2026-Dec-08 05:13, ,i,  295.924125581,       1.634433170,
+ 2026-Dec-08 05:14, ,i,  295.923340444,       1.634431227,
+ 2026-Dec-08 05:15, ,i,  295.922555211,       1.634429396,
+ 2026-Dec-08 05:16, ,i,  295.921769880,       1.634427677,
+ 2026-Dec-08 05:17, ,i,  295.920984453,       1.634426069,
+ 2026-Dec-08 05:18, ,i,  295.920198928,       1.634424573,
+ 2026-Dec-08 05:19, ,i,  295.919413308,       1.634423189,
+ 2026-Dec-08 05:20, ,i,  295.918627590,       1.634421916,
+ 2026-Dec-08 05:21, ,i,  295.917841775,       1.634420755,
+ 2026-Dec-08 05:22, ,i,  295.917055864,       1.634419706,
+ 2026-Dec-08 05:23, ,i,  295.916269856,       1.634418769,
+ 2026-Dec-08 05:24, ,i,  295.915483752,       1.634417943,
+ 2026-Dec-08 05:25, ,i,  295.914697550,       1.634417228,
+ 2026-Dec-08 05:26, ,i,  295.913911253,       1.634416626,
+ 2026-Dec-08 05:27, ,i,  295.913124858,       1.634416135,
+ 2026-Dec-08 05:28, ,i,  295.912338367,       1.634415755,
+ 2026-Dec-08 05:29, ,i,  295.911551778,       1.634415487,
+ 2026-Dec-08 05:30, ,i,  295.910765093,       1.634415331,
+ 2026-Dec-08 05:31, ,i,  295.909978312,       1.634415287,
+ 2026-Dec-08 05:32, ,i,  295.909191433,       1.634415354,
+ 2026-Dec-08 05:33, ,i,  295.908404458,       1.634415532,
+ 2026-Dec-08 05:34, ,i,  295.907617387,       1.634415822,
+ 2026-Dec-08 05:35, ,i,  295.906830218,       1.634416224,
+ 2026-Dec-08 05:36, ,i,  295.906042953,       1.634416737,
+ 2026-Dec-08 05:37, ,i,  295.905255592,       1.634417362,
+ 2026-Dec-08 05:38, ,i,  295.904468134,       1.634418099,
+ 2026-Dec-08 05:39, ,i,  295.903680579,       1.634418947,
+ 2026-Dec-08 05:40, ,i,  295.902892927,       1.634419906,
+ 2026-Dec-08 05:41, ,i,  295.902105179,       1.634420977,
+ 2026-Dec-08 05:42, ,i,  295.901317334,       1.634422160,
+ 2026-Dec-08 05:43, ,i,  295.900529392,       1.634423454,
+ 2026-Dec-08 05:44, ,i,  295.899741354,       1.634424860,
+ 2026-Dec-08 05:45, ,i,  295.898953219,       1.634426377,
+ 2026-Dec-08 05:46, ,i,  295.898164988,       1.634428006,
+ 2026-Dec-08 05:47, ,i,  295.897376660,       1.634429746,
+ 2026-Dec-08 05:48, ,i,  295.896588235,       1.634431597,
+ 2026-Dec-08 05:49, ,i,  295.895799714,       1.634433561,
+ 2026-Dec-08 05:50, ,i,  295.895011096,       1.634435635,
+ 2026-Dec-08 05:51, ,i,  295.894222381,       1.634437821,
+ 2026-Dec-08 05:52, ,i,  295.893433570,       1.634440119,
+ 2026-Dec-08 05:53, ,i,  295.892644663,       1.634442528,
+ 2026-Dec-08 05:54, ,i,  295.891855659,       1.634445048,
+ 2026-Dec-08 05:55, ,i,  295.891066558,       1.634447680,
+ 2026-Dec-08 05:56, ,i,  295.890277360,       1.634450424,
+ 2026-Dec-08 05:57, ,i,  295.889488067,       1.634453278,
+ 2026-Dec-08 05:58, ,i,  295.888698676,       1.634456245,
+ 2026-Dec-08 05:59, ,i,  295.887909189,       1.634459322,
+ 2026-Dec-08 06:00, ,i,  295.887119606,       1.634462511,
+ 2026-Dec-08 06:01, ,i,  295.886329925,       1.634465812,
+ 2026-Dec-08 06:02, ,i,  295.885540149,       1.634469224,
+ 2026-Dec-08 06:03, ,i,  295.884750276,       1.634472747,
+ 2026-Dec-08 06:04, ,i,  295.883960306,       1.634476382,
+ 2026-Dec-08 06:05, ,i,  295.883170239,       1.634480128,
+ 2026-Dec-08 06:06, ,i,  295.882380077,       1.634483985,
+ 2026-Dec-08 06:07, ,i,  295.881589818,       1.634487954,
+ 2026-Dec-08 06:08, ,i,  295.880799462,       1.634492034,
+ 2026-Dec-08 06:09, ,i,  295.880009010,       1.634496226,
+ 2026-Dec-08 06:10, ,i,  295.879218461,       1.634500528,
+ 2026-Dec-08 06:11, ,i,  295.878427815,       1.634504943,
+ 2026-Dec-08 06:12, ,i,  295.877637074,       1.634509468,
+ 2026-Dec-08 06:13, ,i,  295.876846235,       1.634514105,
+ 2026-Dec-08 06:14, ,i,  295.876055301,       1.634518853,
+ 2026-Dec-08 06:15, ,i,  295.875264269,       1.634523713,
+ 2026-Dec-08 06:16, ,i,  295.874473142,       1.634528683,
+ 2026-Dec-08 06:17, ,i,  295.873681918,       1.634533766,
+ 2026-Dec-08 06:18, ,i,  295.872890597,       1.634538959,
+ 2026-Dec-08 06:19, ,i,  295.872099180,       1.634544264,
+ 2026-Dec-08 06:20, ,i,  295.871307666,       1.634549680,
+ 2026-Dec-08 06:21, ,i,  295.870516057,       1.634555207,
+ 2026-Dec-08 06:22, ,i,  295.869724350,       1.634560846,
+ 2026-Dec-08 06:23, ,i,  295.868932547,       1.634566595,
+ 2026-Dec-08 06:24, ,i,  295.868140648,       1.634572456,
+ 2026-Dec-08 06:25, ,i,  295.867348652,       1.634578429,
+ 2026-Dec-08 06:26, ,i,  295.866556560,       1.634584512,
+ 2026-Dec-08 06:27, ,i,  295.865764372,       1.634590707,
+ 2026-Dec-08 06:28, ,i,  295.864972087,       1.634597013,
+ 2026-Dec-08 06:29, ,i,  295.864179706,       1.634603430,
+ 2026-Dec-08 06:30, ,i,  295.863387228,       1.634609959,
+ 2026-Dec-08 06:31, ,i,  295.862594654,       1.634616598,
+ 2026-Dec-08 06:32, ,i,  295.861801984,       1.634623349,
+ 2026-Dec-08 06:33, ,i,  295.861009217,       1.634630211,
+ 2026-Dec-08 06:34, ,i,  295.860216353,       1.634637185,
+ 2026-Dec-08 06:35, ,i,  295.859423394,       1.634644269,
+ 2026-Dec-08 06:36, ,i,  295.858630338,       1.634651465,
+ 2026-Dec-08 06:37, ,i,  295.857837186,       1.634658772,
+ 2026-Dec-08 06:38, ,i,  295.857043937,       1.634666189,
+ 2026-Dec-08 06:39, ,i,  295.856250592,       1.634673719,
+ 2026-Dec-08 06:40, ,i,  295.855457150,       1.634681359,
+ 2026-Dec-08 06:41, ,i,  295.854663613,       1.634689110,
+ 2026-Dec-08 06:42, ,i,  295.853869979,       1.634696973,
+ 2026-Dec-08 06:43, ,i,  295.853076248,       1.634704947,
+ 2026-Dec-08 06:44, ,i,  295.852282422,       1.634713032,
+ 2026-Dec-08 06:45, ,i,  295.851488499,       1.634721228,
+ 2026-Dec-08 06:46, ,i,  295.850694480,       1.634729534,
+ 2026-Dec-08 06:47, ,i,  295.849900364,       1.634737953,
+ 2026-Dec-08 06:48, ,i,  295.849106152,       1.634746482,
+ 2026-Dec-08 06:49, ,i,  295.848311844,       1.634755122,
+ 2026-Dec-08 06:50, ,i,  295.847517439,       1.634763874,
+ 2026-Dec-08 06:51, ,i,  295.846722938,       1.634772736,
+ 2026-Dec-08 06:52, ,i,  295.845928341,       1.634781710,
+ 2026-Dec-08 06:53, ,i,  295.845133648,       1.634790795,
+ 2026-Dec-08 06:54, ,i,  295.844338858,       1.634799990,
+ 2026-Dec-08 06:55, ,i,  295.843543972,       1.634809297,
+ 2026-Dec-08 06:56, ,i,  295.842748990,       1.634818715,
+ 2026-Dec-08 06:57, ,i,  295.841953912,       1.634828244,
+ 2026-Dec-08 06:58, ,i,  295.841158737,       1.634837884,
+ 2026-Dec-08 06:59, ,i,  295.840363466,       1.634847635,
+ 2026-Dec-08 07:00, ,i,  295.839568099,       1.634857497,
+$$EOE
+*******************************************************************************
+Column meaning:
+ 
+TIME
+
+  Times PRIOR to 1962 are UT1, a mean-solar time closely related to the
+prior but now-deprecated GMT. Times AFTER 1962 are in UTC, the current
+civil or "wall-clock" time-scale. UTC is kept within 0.9 seconds of UT1
+using integer leap-seconds for 1972 and later years.
+
+  Conversion from the internal Barycentric Dynamical Time (TDB) of solar
+system dynamics to the non-uniform civil UT time-scale requested for output
+has not been determined for UTC times after the next July or January 1st.
+Therefore, the last known leap-second is used as a constant over future
+intervals.
+
+  Time tags refer to the UT time-scale conversion from TDB on Earth
+regardless of observer location within the solar system, although clock
+rates may differ due to the local gravity field and no analog to "UT"
+may be defined for that location.
+
+  Any 'b' symbol in the 1st-column denotes a B.C. date. First-column blank
+(" ") denotes an A.D. date.
+ 
+CALENDAR SYSTEM
+
+  Mixed calendar mode was active such that calendar dates after AD 1582-Oct-15
+(if any) are in the modern Gregorian system. Dates prior to 1582-Oct-5 (if any)
+are in the Julian calendar system, which is automatically extended for dates
+prior to its adoption on 45-Jan-1 BC.  The Julian calendar is useful for
+matching historical dates. The Gregorian calendar more accurately corresponds
+to the Earth's orbital motion and seasons. A "Gregorian-only" calendar mode is
+available if such physical events are the primary interest.
+
+  NOTE: "n.a." in output means quantity "not available" at the print-time.
+ 
+SOLAR PRESENCE (OBSERVING SITE)
+  Time tag is followed by a blank, then a solar-presence symbol:
+
+       '*'  Daylight (solar upper-limb on or above apparent horizon)
+       ' '  Night OR geocentric ephemeris
+
+INTEFERING BODY PRESENCE WITH TARGET RISE/TRANSIT/SET MARKER (OBSERVING SITE)
+  The solar-presence symbol is immediately followed by an "interfering body"
+presence OR target rise/transit/set symbol.
+
+       'i'  Upper-limb of interfering body on or above apparent horizon
+       ' '  Upper-limb of interfering body below apparent horizon OR body
+               centered ephemeris
+
+       'r'  Rise          (target body on or above cut-off RTS elevation)
+       'e'  Elevation max (target body maximum elevation angle has occurred)
+       't'  Transit       (target body at or past local maximum RTS elevation)
+       's'  Set           (target body on or below cut-off RTS elevation)
+
+  An "interfering body" is the largest other body in the immediate
+planet/satellite system, potentially compromising visual observations due to
+its brightness. Any such body is identified in the print-out header.
+ 
+RTS MARKERS (TVH)
+  Rise and set are with respect to the reference ellipsoid true visual horizon
+defined by the elevation cut-off angle. Horizon dip and yellow-light refraction
+(Earth only) are considered. Accuracy is < or = to twice the requested search
+step-size.
+ 
+ 'Azimuth_(a-app), Elevation_(a-app),' =
+  Airless apparent azimuth and elevation of target center. Compensated
+for light-time, the gravitational deflection of light, stellar aberration,
+precession and nutation. Azimuth is measured clockwise from north:
+
+  North(0) -> East(90) -> South(180) -> West(270) -> North (360)
+
+Elevation angle is with respect to a plane perpendicular to the reference
+surface local zenith direction. TOPOCENTRIC ONLY.  Units: DEGREES
+
+Computations by ...
+
+    Solar System Dynamics Group, Horizons On-Line Ephemeris System
+    4800 Oak Grove Drive, Jet Propulsion Laboratory
+    Pasadena, CA  91109   USA
+
+    General site: https://ssd.jpl.nasa.gov/
+    Mailing list: https://ssd.jpl.nasa.gov/email_list.html
+    System news : https://ssd.jpl.nasa.gov/horizons/news.html
+    User Guide  : https://ssd.jpl.nasa.gov/horizons/manual.html
+    Connect     : browser        https://ssd.jpl.nasa.gov/horizons/app.html#/x
+                  API            https://ssd-api.jpl.nasa.gov/doc/horizons.html
+                  command-line   telnet ssd.jpl.nasa.gov 6775
+                  e-mail/batch   https://ssd.jpl.nasa.gov/ftp/ssd/horizons_batch.txt
+                  scripts        https://ssd.jpl.nasa.gov/ftp/ssd/SCRIPTS
+    Inquiries   : Jon.D.Giorgini@jpl.nasa.gov
+
+*******************************************************************************
