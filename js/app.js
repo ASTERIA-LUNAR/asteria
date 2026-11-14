@@ -110,26 +110,38 @@
   function nextEventAfter(body, t) {
     var ev = S.events[body];
     for (var i = 0; i < ev.length; i++) if (ev[i].time.getTime() > t) return ev[i];
-    return S.after[body];
+    return S.after ? S.after[body] : null;
   }
   // Recompute the Explore window (worker). Returns a promise resolved when rendered.
+  // Two jobs: the window itself (S.seriesReady, enough for the 3D view), then the search for the first event
+  // after the window (S.ready = both). Until the search returns, countdowns beyond the window say "Searching…".
   function recompute() {
     var token = ++S.token;
     var end = new Date(S.start.getTime() + S.windowDays * DAY);
     var step = E.defaultStepMin(S.start, end);
     var args = { site: siteObj(), start: S.start.getTime(), end: end.getTime(), step: step, mask: maskFor(S.site, S.useTerrain), minEl: S.minEl };
     S.computing = true; document.body.classList.add('computing');
-    var p = Loader.track(Jobs.run('explorer', args), S.windowDays >= 90 ? 'Computing ' + S.windowDays + ' days…' : 'Computing…').then(function (r) {
+    S.seriesSite = null;
+    var p1 = Jobs.run('explorer', Object.assign({ noAfter: true }, args)).then(function (r) {
       if (token !== S.token) return;
-      S.series = r.series; S.events = r.events; S.after = r.after; S.stats = r.stats;
-      S.computing = false; document.body.classList.remove('computing');
+      S.series = r.series; S.events = r.events; S.after = null; S.afterPending = true; S.stats = r.stats; S.seriesSite = S.site;
       var sl = $('timeSlider');
       sl.max = S.series.t.length - 1;
       if (S.idx > S.series.t.length - 1) S.idx = 0;
       sl.value = S.idx;
       $('stepNote').textContent = 'Basis: validated engine (Sun and Earth centre vs horizon); horizon = ' + (args.mask ? terrainName(S.site) + ' (observer 2 m above ground)' : 'smooth Moon (0°)') + (S.minEl ? '; Earth needs ' + S.minEl + '° above it' : '') + '. Sampling every ' + step + ' min (' + S.series.t.length + ' samples); rise/set events refined to 1 min; statistics accurate to about one sampling step. ' + (Jobs.mode() === 'worker' ? 'Computed in a background Web Worker.' : 'Computed on the main thread (' + Jobs.mode() + ').');
       renderMetrics(); renderTimeline(); renderWindows(); renderInstant(); writeHash();
-    }, function (e) { S.computing = false; document.body.classList.remove('computing'); console.error(e); });
+    });
+    var p = Loader.track(p1.then(function () {
+      if (token !== S.token) return;
+      return Jobs.run('explorerAfter', args).then(function (a) {
+        if (token !== S.token) return;
+        S.after = a; S.afterPending = false;
+        S.computing = false; document.body.classList.remove('computing');
+        renderInstant();
+      });
+    }), S.windowDays >= 90 ? 'Computing ' + S.windowDays + ' days…' : 'Computing…').then(null, function (e) { S.computing = false; document.body.classList.remove('computing'); console.error(e); });
+    S.seriesReady = p1.then(null, function () {});
     S.ready = p;
     return p;
   }
@@ -335,6 +347,10 @@
       $('missionCountLbl').textContent = 'Changes in';
       $('missionCount').textContent = fmtDur(nx.time.getTime() - t); $('missionCount').className = 'mono';
       $('missionLimitWhy').textContent = '';
+    } else if (S.afterPending) {
+      $('missionCountLbl').textContent = 'Next change:';
+      $('missionCount').textContent = 'Searching…'; $('missionCount').className = 'nolimit';
+      $('missionLimitWhy').textContent = '';
     } else {
       var md = searchDaysAhead(t);
       $('missionCountLbl').textContent = 'Next change:';
@@ -363,6 +379,10 @@
       $(body + 'CountLbl').textContent = up ? setW : riseW;
       c.textContent = fmtDur(ev.time.getTime() - t); c.className = 'mono';
       c.title = 'at ' + fmtUTC(ev.time) + ' UTC';
+      $(body + 'LimitWhy').textContent = '';
+    } else if (S.afterPending) {
+      $(body + 'CountLbl').textContent = up ? setW : riseW;
+      c.textContent = 'Searching…'; c.className = 'nolimit'; c.title = '';
       $(body + 'LimitWhy').textContent = '';
     } else {
       var maxD = searchDaysAhead(t), what = up ? (body === 'sun' ? 'sunset' : 'Earthset') : (body === 'sun' ? 'sunrise' : 'Earthrise');
@@ -1213,7 +1233,7 @@
     return scriptCache[src];
   }
   function currentInstant() {
-    if (!S.series) return null;
+    if (!S.series || S.seriesSite !== S.site) return null;
     var i = S.idx, t = S.series.t[i], r = E.sunEarthAt(siteObj(), new Date(t)), mask = maskFor(S.site, S.useTerrain);
     return { idx: i, n: S.series.t.length, t: t, r: r, sunUp: S.series.sunUp[i], earthUp: S.series.earthUp[i], hzSun: E.maskAt(mask, r.sun.az), hzEarth: E.maskAt(mask, r.earth.az), minEl: S.minEl };
   }
@@ -1221,9 +1241,9 @@
     var site = S.site;
     if (!has3D(site)) return Promise.resolve(null);
     var btn = $('deployBtn'); btn.disabled = true;
-    var load = (S.ready || Promise.resolve()).then(function () {
-      return Promise.all([loadScript('lib/three/three.min.js'), loadScript('js/view3d_math.js'), loadScript('data/terrain3d/' + site.id + '.js')]);
-    }).then(function () { return loadScript('js/view3d.js'); });
+    // Only the window's series is needed (not the slower search beyond the window); scripts load meanwhile.
+    var load = Promise.all([S.seriesReady || S.ready || Promise.resolve(), loadScript('lib/three/three.min.js'), loadScript('js/view3d_math.js'), loadScript('data/terrain3d/' + site.id + '.js')])
+      .then(function () { return loadScript('js/view3d.js'); });
     return Loader.track(load, 'Loading 3D terrain…').then(function () {
       btn.disabled = false;
       if (S.site !== site) return null;

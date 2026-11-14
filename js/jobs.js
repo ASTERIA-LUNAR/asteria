@@ -106,11 +106,21 @@ window.ASTERIA_JOBS = function (E) {
       var em = earthMaskFor(a.mask, a.minEl);
       var s = E.series(a.site, start, end, a.step, a.mask, em);
       var ev = { sun: eventsFromSeries(a.site, s, 'sun', a.mask), earth: eventsFromSeries(a.site, s, 'earth', em) };
-      var after = {
+      // a.noAfter: skip the first-event-after-the-window search (run separately as 'explorerAfter', so the
+      // window's series is available quickly; the search can take ~1 s at sites where nothing changes).
+      var after = a.noAfter ? null : {
         sun: E.nextEvent(a.site, 'sun', end, a.mask, SEARCH_DAYS_AFTER, 60).event,
         earth: E.nextEvent(a.site, 'earth', end, em, SEARCH_DAYS_AFTER, 60).event
       };
       return { series: s, events: ev, after: after, stats: E.stats(s) };
+    },
+    // The first event after the window (same calls as in 'explorer').
+    explorerAfter: function (a) {
+      var end = new Date(a.end), em = earthMaskFor(a.mask, a.minEl);
+      return {
+        sun: E.nextEvent(a.site, 'sun', end, a.mask, SEARCH_DAYS_AFTER, 60).event,
+        earth: E.nextEvent(a.site, 'earth', end, em, SEARCH_DAYS_AFTER, 60).event
+      };
     },
 
     // Launch-slip scan for one site (rows only; the long series is not sent back).

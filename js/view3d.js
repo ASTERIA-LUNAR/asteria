@@ -17,6 +17,7 @@ window.AsteriaView3D = (function () {
   var M = window.AsteriaView3DMath;
   var RING_M = 60000, SUN_D = 500000, EARTH_D = 450000, STAR_D = 800000, EYE_M = 2;   // eye = horizon-model observer height
   var V = null;           // current view (null when closed)
+  var TILE_CACHE = {};    // decoded tiles by site id (re-opening or changing quality does not decode again)
   var lastClosed = null;  // stats captured while closing (tests)
 
   function $(id) { return document.getElementById(id); }
@@ -90,15 +91,13 @@ window.AsteriaView3D = (function () {
   // ----------------------------------------------------------------- scene
   function buildScene(o) {
     var THREE = window.THREE;
-    var T = M.decodeTile(o.tile);
+    var T = TILE_CACHE[o.tile.siteId] || (TILE_CACHE[o.tile.siteId] = M.decodeTile(o.tile));
+    T.k = 1;
     var stride = o.stride;
-    // mesh tile (decimated on phones); readouts always use the full tile T
-    var TM = T;
-    if (stride > 1) {
-      var mm = Math.floor((T.n - 1) / stride) + 1, H2 = new Float32Array(mm * mm);
-      for (var j = 0; j < mm; j++) for (var i = 0; i < mm; i++) H2[j * mm + i] = T.H[(j * stride) * T.n + i * stride];
-      TM = { id: T.id, n: mm, d: T.d * stride, c: (mm - 1) / 2, h0: T.h0, R: T.R, half: (mm - 1) / 2 * T.d * stride, H: H2, meta: T.meta, k: 1 };
-    }
+    // mesh tile (decimated on phones); readouts always use the full tile T.
+    // Progressive loading: the first frame uses a coarse mesh (4x the stride); refine() swaps in the final mesh.
+    var TM = decimate(T, stride);
+    var coarse = T.n > 200 ? stride * 4 : stride;
     var renderer = new THREE.WebGLRenderer({ antialias: !o.phone, logarithmicDepthBuffer: true, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, o.phone ? 1.5 : 2));
     renderer.shadowMap.enabled = true;
@@ -109,12 +108,7 @@ window.AsteriaView3D = (function () {
     var camera = new THREE.PerspectiveCamera(55, 1, 0.3, 2000000);
 
     // terrain
-    var P = M.buildPositions(TM, 1);
-    var geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(P.pos, 3));
-    geo.setIndex(new THREE.BufferAttribute(M.buildIndex(P.m), 1));
-    geo.computeVertexNormals();
-    geo.computeBoundingBox();
+    var geo = terrainGeometry(THREE, decimate(T, coarse));
     var terrainMat = new THREE.MeshLambertMaterial({ color: 0x9c9a95 });
     var terrain = new THREE.Mesh(geo, terrainMat);
     terrain.castShadow = true; terrain.receiveShadow = true;
@@ -186,8 +180,33 @@ window.AsteriaView3D = (function () {
     });
     rover.visible = false; scene.add(rover);
 
-    return { THREE: THREE, T: T, TM: TM, renderer: renderer, scene: scene, camera: camera, terrain: terrain, geo: geo, fill: fill, sun: sun,
+    return { THREE: THREE, T: T, TM: TM, refinePending: coarse !== stride, renderer: renderer, scene: scene, camera: camera, terrain: terrain, geo: geo, fill: fill, sun: sun,
       sunDisk: sunDisk, earth: earth, ring: ring, stars: stars, marker: marker, markerMat: markerMat, rover: rover };
+  }
+
+  function decimate(T, stride) {
+    if (stride <= 1) return T;
+    var mm = Math.floor((T.n - 1) / stride) + 1, H2 = new Float32Array(mm * mm);
+    for (var j = 0; j < mm; j++) for (var i = 0; i < mm; i++) H2[j * mm + i] = T.H[(j * stride) * T.n + i * stride];
+    return { id: T.id, n: mm, d: T.d * stride, c: (mm - 1) / 2, h0: T.h0, R: T.R, half: (mm - 1) / 2 * T.d * stride, H: H2, meta: T.meta, k: T.k };
+  }
+  function terrainGeometry(THREE, TM) {
+    var P = M.buildPositions(TM, 1);
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(P.pos, 3));
+    geo.setIndex(new THREE.BufferAttribute(M.buildIndex(P.m), 1));
+    geo.computeVertexNormals();
+    geo.computeBoundingBox();
+    return geo;
+  }
+  // Second step of progressive loading: replace the coarse first-frame mesh with the final one.
+  function refine(v) {
+    var s = v.s; if (!s || !s.refinePending) return;
+    var old = s.geo;
+    s.geo = terrainGeometry(s.THREE, s.TM);
+    s.terrain.geometry = s.geo; old.dispose();
+    s.refinePending = false;
+    fitShadow(s); v.dirty = true;
   }
 
   // Tighten the shadow camera to the tile's bounding box seen from the Sun (much better resolution at grazing angles).
@@ -458,6 +477,7 @@ window.AsteriaView3D = (function () {
   }
   function setExag(v, k) {
     var s = v.s;
+    refine(v);
     s.T.k = k; s.TM.k = k;
     var P = M.buildPositions(s.TM, 1);
     s.geo.attributes.position.array.set(P.pos); s.geo.attributes.position.needsUpdate = true;
@@ -503,6 +523,10 @@ window.AsteriaView3D = (function () {
     syncPlay(v);
     v.off = o.app.onInstant(function (inst) { if (V === v) { setInstant(v, inst); syncPlay(v); } });
     v.raf = requestAnimationFrame(function (t) { frame(v, t); });
+    if (v.s.refinePending) {
+      var waitFirst = function () { if (V !== v) return; if (v.frames < 1) return setTimeout(waitFirst, 16); refine(v); };
+      setTimeout(waitFirst, 16);
+    }
     // smooth transition in
     if (REDUCE) el.classList.add('on'); else requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('on'); }); });
     setTimeout(function () { var b = $('v3dClose'); if (b && V === v) b.focus({ preventScroll: true }); }, 50);
@@ -546,7 +570,7 @@ window.AsteriaView3D = (function () {
     var cam = s.camera.position, ep = s.earth.position.clone().sub(cam).normalize();
     var DEG = Math.PI / 180;
     return {
-      open: true, frames: v.frames, mode: v.ctl.mode, stride: v.stride, phone: v.phone, exaggeration: s.T.k,
+      open: true, frames: v.frames, refining: !!s.refinePending, mode: v.ctl.mode, stride: v.stride, phone: v.phone, exaggeration: s.T.k,
       sunLightDir: [lp.x, lp.y, lp.z], sunLight: M.azElFromDir([lp.x, lp.y, lp.z]), sunDiskRadiusDeg: Math.asin(s.sunDisk.scale.x / SUN_D) / DEG,
       earthDir: [ep.x, ep.y, ep.z], earthAzEl: M.azElFromDir([ep.x, ep.y, ep.z]), earthRadiusDeg: Math.asin(s.earth.scale.x / EARTH_D) / DEG,
       sunIntensity: s.sun.intensity, earthPhase: v.phase, instant: v.inst && { idx: v.inst.idx, t: v.inst.t, sunUp: v.inst.sunUp, earthUp: v.inst.earthUp, sun: { az: v.inst.r.sun.az, el: v.inst.r.sun.el, radius_deg: v.inst.r.sun.radius_deg }, earth: { az: v.inst.r.earth.az, el: v.inst.r.earth.el, radius_deg: v.inst.r.earth.radius_deg } },

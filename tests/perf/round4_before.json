@@ -1,0 +1,162 @@
+[
+ {
+  "viewport": "laptop",
+  "site": "im1",
+  "quality": "-",
+  "firstFrameMs": 820,
+  "refinedMs": 827,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 0
+ },
+ {
+  "viewport": "laptop",
+  "site": "im2",
+  "quality": "-",
+  "firstFrameMs": 414,
+  "refinedMs": 421,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 0
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton",
+  "quality": "-",
+  "firstFrameMs": 540,
+  "refinedMs": 557,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 0
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton_lw",
+  "quality": "-",
+  "firstFrameMs": 442,
+  "refinedMs": 450,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 0
+ },
+ {
+  "viewport": "laptop",
+  "site": "nobile_rim2_dm2",
+  "quality": "-",
+  "firstFrameMs": 326,
+  "refinedMs": 333,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 0
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_mouton",
+  "quality": "-",
+  "firstFrameMs": 485,
+  "refinedMs": 492,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 0
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_malapert",
+  "quality": "-",
+  "firstFrameMs": 810,
+  "refinedMs": 818,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 0
+ },
+ {
+  "viewport": "laptop",
+  "site": "shackleton_centre",
+  "quality": "-",
+  "firstFrameMs": 1088,
+  "refinedMs": 1096,
+  "fps": 60,
+  "vertices": 90601,
+  "extVertices": 0
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "im1",
+  "quality": "-",
+  "firstFrameMs": 688,
+  "refinedMs": 692,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 0
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "im2",
+  "quality": "-",
+  "firstFrameMs": 296,
+  "refinedMs": 303,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 0
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "peak_shackleton",
+  "quality": "-",
+  "firstFrameMs": 288,
+  "refinedMs": 291,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 0
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "peak_shackleton_lw",
+  "quality": "-",
+  "firstFrameMs": 286,
+  "refinedMs": 291,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 0
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "nobile_rim2_dm2",
+  "quality": "-",
+  "firstFrameMs": 265,
+  "refinedMs": 272,
+  "fps": 60,
+  "vertices": 5929,
+  "extVertices": 0
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "mons_mouton",
+  "quality": "-",
+  "firstFrameMs": 291,
+  "refinedMs": 296,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 0
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "mons_malapert",
+  "quality": "-",
+  "firstFrameMs": 658,
+  "refinedMs": 662,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 0
+ },
+ {
+  "viewport": "phone (emulated)",
+  "site": "shackleton_centre",
+  "quality": "-",
+  "firstFrameMs": 1071,
+  "refinedMs": 1079,
+  "fps": 60,
+  "vertices": 22801,
+  "extVertices": 0
+ }
+]
