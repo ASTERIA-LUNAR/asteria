@@ -145,3 +145,24 @@ Note for the owner: the science.nasa.gov VIPER page (updated 21 Sep 2026) still 
 **Remaining limitations**: the model is a simplified shape (boxes and cylinders); wheel size, panels and mast are approximate; the tilt shows the DEM-scale slope, not rover-scale roughness; headlights are not light sources.
 
 **Classification**: rover model - Illustrative; wheel contact and body tilt - Calculated (from LOLA heights at the DEM's resolution); driving - Illustrative.
+
+## Part 3 - Exploration and inspection - DONE
+
+**What changed** (3D panel, `js/view3d.js`; 2D map `js/map.js`; hook in `js/app.js`)
+* **Camera presets**: Overview (the default oblique Orbit view), Site eye level (Walk at the site marker, eye 2 m above the ground as in the horizon model, facing the Sun's azimuth), Look at Sun, Look at Earth (Walk, view direction = the engine's az/el; elevation limited to ±80°). Directions come from the validated engine values, not from the picture.
+* **Pointer inspection**: hovering with a mouse (or tapping / clicking without dragging) shows height (m above the 1737.4 km sphere), slope (central differences over the grid spacing - the same function as the Rover readout), latitude/longitude, distance from the site, and the data resolution and product at that point ("Data here: 25 m LOLA grid (LDEM_85S_20M), ring A (to 16 km), drawn at 50 m"), plus "real slopes over a few metres can be steeper". The point is found by marching the view ray to the drawn surface; the numbers come from the stored LOLA grid at that point (true heights, also with vertical exaggeration).
+* **Hazard view** (checkbox + limit): colours slopes above the user's limit (the same setting as the Rover slope warning; changing one changes the other); legend states the grid spacings in view and "Real slopes over a few metres can be steeper. Not a traversability prediction."
+* **2D-3D link**: the 3D mini-map now draws the camera position and its horizontal field of view (all modes); **Show on 2D map** closes the 3D view, switches to Explore and centres the 2D south-pole map on the 3D view position (Orbit: view centre; Walk: you; Rover: the rover) with a labelled marker ("Position from the 3D view: lat, lon").
+* Fixed: the Rover readout could stay stale after a single move (it was throttled to 150 ms and only ran on frames that redraw); a skipped readout is now retried. Found as an intermittent failure of `tests/ui_round5.js` (1 in 4 runs before; 0 in 3 after).
+
+**Files changed**: `js/view3d.js`, `js/map.js` (showPoint), `js/app.js` (showOn2D hook), `css/style.css`, `tests/ui_round6.js`.
+
+**Scientific data used**: none new (LOLA grids already in the view; engine Sun/Earth directions).
+
+**Existing calculations affected**: none.
+
+**Tests** (`node tests/ui_round6.js`, laptop + phone, ALL PASS): Site eye level = Walk at the marker, eye 2.00 m, Sun azimuth; Look at Sun / Earth: camera direction within 0.05° of the engine's az/el; Overview = Orbit default; inspection at the site marker's pixel reports distance < 1 cell and the LOLA height within 1 m (0.0 m); tooltip contents; hazard uniform = 100 + limit, limit shared with the rover, legend text; mini-map camera heading = HUD heading; Show on 2D map: 3D closed, map centre within 1e-4° of the 3D position, marker and label present; no console errors. `tests/ui_check.js` PASS, `tests/ui_round5.js` ALL PASS (3 runs).
+
+**Remaining limitations**: inspection uses the drawn mesh to find the point under the pointer (at grazing views a point can be a few metres off where the mesh is coarser than the data grid); the 2D marker stays until the next "Show on 2D map"; hover inspection is mouse-only (touch: tap).
+
+**Classification**: presets - Calculated (directions from the validated engine); inspection values - Calculated (from LOLA); hazard view - Calculated (DEM slope vs a user threshold; not a traversability prediction); camera wedge and 2D link - Illustrative (navigation aids).

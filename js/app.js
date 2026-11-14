@@ -1532,7 +1532,9 @@
       app: {
         instant: currentInstant, setIdx: setIdx, setPlaying: setPlaying, playing: function () { return S.playing; }, jump: jumpNext,
         onInstant: function (fn) { INSTANT_FNS.push(fn); return function () { var k = INSTANT_FNS.indexOf(fn); if (k >= 0) INSTANT_FNS.splice(k, 1); }; },
-        onClose: function () { setTimeout(function () { btn.focus({ preventScroll: true }); }, 0); }
+        onClose: function () { setTimeout(function () { btn.focus({ preventScroll: true }); }, 0); },
+        // round 6: "Show on 2D map" (the 3D view closes itself first)
+        showOn2D: function (lat, lon) { showPage('explorer'); Map.invalidate(); var r = Map.showPoint(lat, lon); var el = $('mapPanel'); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' }); return r; }
       }
     });
   }

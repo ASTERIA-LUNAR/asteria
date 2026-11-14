@@ -85,6 +85,7 @@ window.AsteriaView3D = (function () {
       '  <div class="v3d-msgs"><div class="v3d-banner" id="v3dBanner" hidden></div>' +
       '  <div class="v3d-tip" id="v3dTip" hidden>The site is in shadow, so the ground looks almost black. <button class="btn small" id="v3dTipBtn">Light up</button> <span class="fineprint">(display brightness only)</span> <button class="btn small jump-sun" id="v3dTipJump" type="button" data-jump="sun">Jump to next sunlight</button></div></div>' +
       '  <div class="v3d-qnote" id="v3dQNote" hidden></div>' +
+      '  <div class="v3d-inspect" id="v3dInspect" hidden role="status" aria-live="polite"></div>' +
       '  <p class="v3d-shadownote">Near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model.</p>' +
       '  <div class="v3d-pad" id="v3dPad" hidden><button data-k="fwd" aria-label="Forward">&#9650;</button><button data-k="left" aria-label="Turn left">&#9664;</button><button data-k="back" aria-label="Back">&#9660;</button><button data-k="right" aria-label="Turn right">&#9654;</button></div>' +
       '  <button class="btn v3d-close" id="v3dClose" aria-label="Close the 3D view">&#10005; Close 3D</button>' +
@@ -112,6 +113,10 @@ window.AsteriaView3D = (function () {
       '  </div>' +
       '  <div class="v3d-ctl">' +
       '    <div class="seg" role="radiogroup" aria-label="Camera mode"><button data-mode="orbit" class="on">Orbit</button><button data-mode="walk">Walk</button><button data-mode="rover">Rover</button></div>' +
+      '  </div>' +
+      '  <div class="v3d-ctl v3d-presets" role="group" aria-label="Camera presets"><span class="lbl">View</span><button class="btn small" data-preset="overview">Overview</button><button class="btn small" data-preset="eye">Site eye level (2 m)</button><button class="btn small" data-preset="sun">Look at Sun</button><button class="btn small" data-preset="earth">Look at Earth</button><button class="btn small" id="v3dTo2D" type="button">Show on 2D map</button></div>' +
+      '  <p class="fineprint">Point at (or tap) the terrain to read its height, slope, position and data resolution.</p>' +
+      '  <div class="v3d-ctl">' +
       '    <label>Vertical exaggeration <select id="v3dExag"><option value="1" selected>1× (true scale)</option><option value="2">2×</option><option value="3">3×</option><option value="5">5×</option></select></label>' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dShadows" checked> shadows</label>' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dRing" checked> distant skyline</label>' +
@@ -131,6 +136,7 @@ window.AsteriaView3D = (function () {
       '    <select id="v3dContourInt" aria-label="Contour interval"><option value="10">10 m</option><option value="25">25 m</option><option value="50">50 m</option><option value="100">100 m</option><option value="250">250 m</option></select>' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dSlope"> slope shading</label>' +
       '  </div>' +
+      '  <div class="v3d-ctl"><label class="smallswitch"><input type="checkbox" id="v3dHazard"> hazard view: slopes above</label> <span class="inl"><input id="v3dHazMax" type="number" min="1" max="45" step="1" value="15" aria-label="Hazard view slope limit in degrees"> &deg;</span></div>' +
       '  <div class="v3d-ctl"><label class="smallswitch"><input type="checkbox" id="v3dRelief"> Relief shading</label></div>' +
       '  <p class="fineprint" id="v3dReliefNote">Relief shading: display contrast only; heights and slopes are the LOLA data.</p>' +
       '  <div class="v3d-legend" id="v3dLegend" hidden></div>' +
@@ -410,7 +416,7 @@ window.AsteriaView3D = (function () {
             'if ( uBandMix > 0.0 && dot( vNs, vNs ) > 0.25 ) normal = normalize( mix( normal, normalize( vNs ), uBandMix * asBand ) );')
           .replace('#include <color_fragment>', '#include <color_fragment>\n' +
             'if ( uSlope > 0.5 ) {\n' +
-            '  vec3 sc = uSlope > 1.5 ? ( vS > uSlope ? vec3( 0.95, 0.15, 0.55 ) : diffuseColor.rgb ) : vS < 10.0 ? diffuseColor.rgb : vS < 20.0 ? vec3( 0.93, 0.80, 0.25 ) : vS < 30.0 ? vec3( 0.95, 0.50, 0.15 ) : vec3( 0.85, 0.18, 0.18 );\n' +
+            '  vec3 sc = uSlope > 99.0 ? ( vS > uSlope - 100.0 ? vec3( 0.95, 0.15, 0.55 ) : diffuseColor.rgb ) : vS < 10.0 ? diffuseColor.rgb : vS < 20.0 ? vec3( 0.93, 0.80, 0.25 ) : vS < 30.0 ? vec3( 0.95, 0.50, 0.15 ) : vec3( 0.85, 0.18, 0.18 );\n' +
             '  diffuseColor.rgb = mix( diffuseColor.rgb, sc, 0.6 );\n}')
           .replace('#include <dithering_fragment>', '#include <dithering_fragment>\n' +
             'if ( uContour > 0.0 ) {\n' +
@@ -791,7 +797,7 @@ window.AsteriaView3D = (function () {
     v.roverPose = { pitch: pitch, roll: roll, wheels: c.map(function (p) { return { x: p.x, z: p.z, h: p.h, drawnY: p.y, hub: s.roverWheels[c.indexOf(p)].position.y }; }) };
   }
 
-  function setMode(v, mode) {
+  function setMode(v, mode, keepView) {
     var c = v.ctl;
     c.mode = mode;
     v.s.rover.visible = mode === 'rover';
@@ -810,7 +816,7 @@ window.AsteriaView3D = (function () {
     $('v3dHelp').textContent = help;
     applyRelief(v);
     if (mode !== 'orbit') ensureFine(v);
-    if (mode === 'walk' && c.walk.x === 0 && c.walk.z === 0) c.walk.yaw = v.inst ? v.inst.r.sun.az : 0;
+    if (mode === 'walk' && c.walk.x === 0 && c.walk.z === 0 && !keepView) c.walk.yaw = v.inst ? v.inst.r.sun.az : 0;
     if (mode === 'rover' && c.rov.dist === 0) { c.rov.yaw = v.inst ? v.inst.r.sun.az + 90 : 0; c.rov.x = 25; c.rov.z = 0; }
     v.dirty = true;
   }
@@ -882,6 +888,7 @@ window.AsteriaView3D = (function () {
       v.dirty = false;
       v.frames++;
     }
+    else if (v.readPending && v.ctl.mode === 'rover' && ts - (v.lastRead || 0) >= 150) roverReadout(v, ts);
     v.raf = requestAnimationFrame(function (t) { frame(v, t); });
   }
   // Sun / Earth label text from the validated status (never looks visible when it is not).
@@ -962,8 +969,8 @@ window.AsteriaView3D = (function () {
     v.labelLayout = { stage: { w: W, h: H }, obstacles: obst, labels: out };
   }
   function roverReadout(v, ts) {
-    if (ts - (v.lastRead || 0) < 150) return;
-    v.lastRead = ts;
+    if (ts - (v.lastRead || 0) < 150) { v.readPending = true; return; }   // retried by frame() (round 6: a single move left it stale)
+    v.lastRead = ts; v.readPending = false;
     var T = v.s.T, r = v.ctl.rov, g = M.gridFromWorld(v.s.TM, r.x, r.z, true);
     var h = M.heightAt(T, g.e, g.n), sl = M.slopeAt(T, g.e, g.n), ll = M.latLonAt(T.meta.lat, T.meta.lon, g.e, g.n, T.R);
     $('v3dRPos').textContent = (g.e >= 0 ? '+' : '') + g.e.toFixed(0) + ' m E, ' + (g.n >= 0 ? '+' : '') + g.n.toFixed(0) + ' m N (' + ll.lat.toFixed(4) + '°, ' + ll.lon.toFixed(4) + '°E)';
@@ -1048,7 +1055,24 @@ window.AsteriaView3D = (function () {
     add($('v3dRings'), 'change', function () { v.s.distRings.visible = this.checked && v.ctl.mode !== 'orbit'; v.dirty = true; });
     add($('v3dContours'), 'change', function () { overlays(v); });
     add($('v3dContourInt'), 'change', function () { overlays(v); });
-    add($('v3dSlope'), 'change', function () { overlays(v); });
+    add($('v3dSlope'), 'change', function () { if (this.checked) $('v3dHazard').checked = false; overlays(v); });
+    add($('v3dHazard'), 'change', function () { if (this.checked) $('v3dSlope').checked = false; overlays(v); });
+    // the hazard limit and the rover's slope-warning limit are the same user setting
+    add($('v3dHazMax'), 'change', function () { $('v3dSlopeMax').value = hazardLimit(); v.lastRead = 0; overlays(v); });
+    v.el.querySelectorAll('[data-preset]').forEach(function (b) { add(b, 'click', function () { preset(v, b.dataset.preset); }); });
+    add($('v3dTo2D'), 'click', function () { showOn2D(v); });
+    // pointer inspection: hover with a mouse (no button pressed), or a short tap / click without dragging
+    add(cvs, 'pointermove', function (e) {
+      if (e.pointerType !== 'mouse' || e.buttons) return;
+      var now = performance.now(); if (now - (v.lastInspect || 0) < 90) return; v.lastInspect = now;
+      showInspect(v, inspectAt(v, e.clientX, e.clientY));
+    });
+    add(cvs, 'pointerleave', function (e) { if (e.pointerType === 'mouse' && !v.inspectPinned) showInspect(v, null); });
+    add(cvs, 'pointerdown', function (e) { v.tapStart = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+    add(cvs, 'pointerup', function (e) {
+      var t = v.tapStart; if (!t) return;
+      if (Math.hypot(e.clientX - t.x, e.clientY - t.y) < 6 && performance.now() - t.t < 500) { v.inspectPinned = true; showInspect(v, inspectAt(v, e.clientX, e.clientY), true); }
+    });
     add($('v3dRelief'), 'change', function () { v.reliefPref = this.checked; applyRelief(v); });
     add($('v3dRing'), 'change', function () { v.s.ring.visible = this.checked; v.dirty = true; });
     add($('v3dGlare'), 'change', function () { v.s.glare.visible = this.checked && !!(v.inst && v.inst.sunUp); v.dirty = true; });
@@ -1057,7 +1081,7 @@ window.AsteriaView3D = (function () {
       if (on) ensureStars(v).then(function () { if (V === v) { v.s.stars.visible = $('v3dStars').checked; v.dirty = true; } });
       else { v.s.stars.visible = false; v.dirty = true; }
     });
-    add($('v3dSlopeMax'), 'change', function () { v.lastRead = 0; v.dirty = true; });
+    add($('v3dSlopeMax'), 'change', function () { v.lastRead = 0; $('v3dHazMax').value = Math.max(1, Math.min(45, +this.value || 15)); overlays(v); });
     add($('v3dSlider'), 'input', function () { v.app.setIdx(+this.value); });
     add($('v3dPlay'), 'click', function () { v.app.setPlaying(!v.app.playing()); syncPlay(v); });
     add(window, 'resize', function () { resize(v); });
@@ -1260,7 +1284,7 @@ window.AsteriaView3D = (function () {
       }
       var off = document.createElement('canvas'); off.width = off.height = W; off.getContext('2d').putImageData(img, 0, 0);
       s.miniBase = off; s.miniHalf = half;
-      $('v3dMiniCap').textContent = 'Top view, north up, ' + (2 * half / 1000).toFixed(0) + ' km across; shade = LOLA height (lighter = higher); square = 6 km tile; white dot = site; pink = you; yellow / blue = Sun / Earth direction (hollow = hidden)';
+      $('v3dMiniCap').textContent = 'Top view, north up, ' + (2 * half / 1000).toFixed(0) + ' km across; shade = LOLA height (lighter = higher); square = 6 km tile; white dot = site; pink = you; white square and wedge = camera and its view; yellow / blue = Sun / Earth direction (hollow = hidden)';
     }
     var k = W / (2 * s.miniHalf), X = function (e) { return W / 2 + e * k; }, Y = function (n) { return W / 2 - n * k; };
     ctx.drawImage(s.miniBase, 0, 0);
@@ -1277,6 +1301,13 @@ window.AsteriaView3D = (function () {
     if (c.mode === 'orbit') { px = c.target[0]; pz = c.target[2]; yaw = c.yaw + 180; }
     else if (c.mode === 'walk') { px = c.walk.x; pz = c.walk.z; yaw = c.walk.yaw; }
     else { px = c.rov.x; pz = c.rov.z; yaw = c.rov.yaw; }
+    // round 6: the camera's position and its horizontal field of view (all modes)
+    var cam = s.camera, fw = new s.THREE.Vector3(); cam.getWorldDirection(fw);
+    var hd = Math.atan2(fw.x, -fw.z), hf = Math.atan(Math.tan(cam.fov * Math.PI / 360) * cam.aspect), cxp = X(cam.position.x), cyp = Y(-cam.position.z), Lw = W * 0.28;
+    ctx.fillStyle = 'rgba(255,255,255,0.16)'; ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cxp, cyp); ctx.lineTo(cxp + Math.sin(hd - hf) * Lw, cyp - Math.cos(hd - hf) * Lw); ctx.lineTo(cxp + Math.sin(hd + hf) * Lw, cyp - Math.cos(hd + hf) * Lw); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#000'; ctx.beginPath(); ctx.rect(cxp - 4, cyp - 4, 8, 8); ctx.fill(); ctx.stroke();
+    v.miniCam = { x: cxp, y: cyp, heading: (hd * 180 / Math.PI + 360) % 360 };
     var gx = X(px), gy = Y(-pz), ya = yaw * Math.PI / 180;
     ctx.save(); ctx.translate(gx, gy); ctx.rotate(ya);
     ctx.fillStyle = '#ff5c8a'; ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
@@ -1351,10 +1382,11 @@ window.AsteriaView3D = (function () {
 
   // ------------------------------------------------- real-data overlays (contours, slope)
   function overlays(v) {
-    var U = v.s.terrainMat.userData.uniforms, c = $('v3dContours').checked, sl = $('v3dSlope').checked, iv = +$('v3dContourInt').value;
-    U.uContour.value = c ? iv : 0; U.uSlope.value = sl ? 1 : 0;
+    var U = v.s.terrainMat.userData.uniforms, c = $('v3dContours').checked, sl = $('v3dSlope').checked, iv = +$('v3dContourInt').value, hz = $('v3dHazard').checked;
+    U.uContour.value = c ? iv : 0; U.uSlope.value = hz ? 100 + hazardLimit() : sl ? 1 : 0;
     var L = $('v3dLegend'), parts = [];
     if (c) parts.push('<span><i class="cl"></i>Contour lines every ' + iv + ' m (every 5th brighter), from the LOLA heights</span>');
+    if (hz) parts.push('<span><i style="background:#f22a8c"></i>Hazard view: slope above ' + hazardLimit() + '° (your limit) from the LOLA heights, by central differences over each area\'s grid (' + (v.s.areas || []).map(function (a) { return a.geom + ' m'; }).join(', ') + '). Real slopes over a few metres can be steeper. Not a traversability prediction.</span>');
     if (sl) parts.push('<span>Slope from the DEM: <i style="background:#9c9a95"></i>&lt; 10° <i style="background:#edcc40"></i>10-20° <i style="background:#f28026"></i>20-30° <i style="background:#d92e2e"></i>&gt; 30°</span>');
     L.innerHTML = parts.join('');
     L.hidden = !parts.length;
@@ -1366,6 +1398,83 @@ window.AsteriaView3D = (function () {
     [10, 25, 50, 100, 250].forEach(function (x) { if (r / x >= 25) best = x; });
     return best;
   }
+
+  // ------------------------------------------------- exploration and inspection (round 6, Part 3)
+  // Camera presets. Directions of the Sun and Earth from the engine (validated az/el), never from the picture.
+  function preset(v, name) {
+    var c = v.ctl, i = v.inst; v.userMoved = true;
+    if (name === 'overview') { setMode(v, 'orbit'); defaultView(v); }
+    else {
+      var keep = c.mode === 'walk' ? { x: c.walk.x, z: c.walk.z } : { x: 0, z: 0 };
+      if (name === 'eye') keep = { x: 0, z: 0 };
+      var az = 0, el = 2;
+      if (i && name === 'eye') { az = i.r.sun.az; el = 2; }
+      if (i && name === 'sun') { az = i.r.sun.az; el = i.r.sun.el; }
+      if (i && name === 'earth') { az = i.r.earth.az; el = i.r.earth.el; }
+      c.walk = { x: keep.x, z: keep.z, yaw: az, pitch: Math.max(-80, Math.min(80, el)) };
+      setMode(v, 'walk', true);
+    }
+    v.lastPreset = name; v.dirty = true;
+  }
+  // Ground point under (x, z) on the finest DATA grid there (5 m patch, tile, ring A, ring B): heights, slopes and
+  // lat/lon come from the stored LOLA grids (true heights, also with vertical exaggeration).
+  function dataGridAt(s, x, z) {
+    var c = [[s.T, 'tile'], [s.ringA ? (s.lightA || s.gridA) : null, 'ringA'], [s.ringBG ? s.gridB : null, 'ringB']];
+    for (var q = 0; q < c.length; q++) {
+      var G = c[q][0]; if (!G) continue;
+      var g = M.gridFromWorld(G, x, z, false);
+      if (M.inside(G, g.e, g.n)) {
+        var P = G === s.T && s.T.patch && Math.abs(g.e) <= s.T.patch.half && Math.abs(g.n) <= s.T.patch.half ? s.T.patch : null;
+        var drawn = q === 0 ? (P ? P.d : s.TM.d) : q === 1 ? s.ringA.d : s.ringBG.d;
+        return { G: G, e: g.e, n: g.n, area: P ? '5 m patch' : ['6 km tile', 'ring A (to 16 km)', 'ring B (to 40 km)'][q], d: P ? P.d : G.d, product: (P || G).meta.demProduct, drawn: drawn };
+      }
+    }
+    return null;
+  }
+  // Pointer inspection: the first point of the drawn terrain along the ray through the pixel (ray march, then bisection).
+  function inspectAt(v, cx, cy) {
+    var s = v.s, THREE = s.THREE, rc = v.stage.getBoundingClientRect();
+    var ndc = new THREE.Vector2((cx - rc.left) / rc.width * 2 - 1, -((cy - rc.top) / rc.height) * 2 + 1);
+    var ray = new THREE.Raycaster(); ray.setFromCamera(ndc, s.camera);
+    var o = ray.ray.origin, d = ray.ray.direction, t0 = 0, hit = null;
+    var below = function (t) { var x = o.x + d.x * t, z = o.z + d.z * t, gy = groundY(s, x, z); return gy > -1e8 && o.y + d.y * t <= gy; };
+    for (var t = 0.5; t < 90000; t += Math.max(0.5, t * 0.005)) {
+      if (below(t)) { var a = t0, b = t; for (var k = 0; k < 30; k++) { var m = (a + b) / 2; if (below(m)) b = m; else a = m; } hit = b; break; }
+      t0 = t;
+    }
+    if (hit === null) return null;
+    var x = o.x + d.x * hit, z = o.z + d.z * hit, D = dataGridAt(s, x, z);
+    if (!D) return null;
+    var h = M.heightAt(D.G, D.e, D.n), sl = M.slopeAt(D.G, D.e, D.n), ll = M.latLonAt(s.T.meta.lat, s.T.meta.lon, D.e, D.n, s.T.R);
+    return { x: x, z: z, e: D.e, n: D.n, h: h, slope: sl.slope, lat: ll.lat, lon: ll.lon, dist: Math.sqrt(D.e * D.e + D.n * D.n), area: D.area, d: D.d, product: D.product, drawn: D.drawn, px: cx - rc.left, py: cy - rc.top };
+  }
+  function showInspect(v, r, pinned) {
+    var el = $('v3dInspect'); if (!el) return;
+    v.inspect = r;
+    if (!r) { el.hidden = true; return; }
+    var dist = r.dist >= 1000 ? (r.dist / 1000).toFixed(2) + ' km' : r.dist.toFixed(0) + ' m';
+    el.innerHTML = '<b>Height</b> ' + r.h.toFixed(1) + ' m <span class="fineprint">(above the 1737.4 km sphere)</span><br><b>Slope</b> ' + r.slope.toFixed(1) + '° <span class="fineprint">(central differences over ' + r.d + ' m)</span><br>' +
+      r.lat.toFixed(4) + '°, ' + r.lon.toFixed(4) + '°E · ' + dist + ' from the site<br><span class="fineprint">Data here: ' + r.d + ' m LOLA grid (' + esc(r.product) + '), ' + esc(r.area) + (r.drawn !== r.d ? ', drawn at ' + r.drawn + ' m' : '') + '. Calculated from LOLA; real slopes over a few metres can be steeper.</span>' + (pinned ? '' : '');
+    el.hidden = false;
+    var W = v.stage.clientWidth, H = v.stage.clientHeight, w = el.offsetWidth, h = el.offsetHeight;
+    el.style.left = Math.max(4, Math.min(W - w - 4, r.px + 14)) + 'px'; el.style.top = Math.max(4, Math.min(H - h - 4, r.py + 14)) + 'px';
+  }
+  // Ground position of the current view (Orbit: the view centre; Walk/Rover: you / the rover) as lat/lon.
+  function viewLatLon(v) {
+    var c = v.ctl, x, z;
+    if (c.mode === 'orbit') { x = c.target[0]; z = c.target[2]; } else if (c.mode === 'walk') { x = c.walk.x; z = c.walk.z; } else { x = c.rov.x; z = c.rov.z; }
+    var g = M.gridFromWorld(v.s.TM, x, z, true), ll = M.latLonAt(v.s.T.meta.lat, v.s.T.meta.lon, g.e, g.n, v.s.T.R);
+    return { lat: ll.lat, lon: ll.lon, e: g.e, n: g.n };
+  }
+  function showOn2D(v) {
+    var ll = viewLatLon(v), app = v.app;
+    close();
+    if (app.showOn2D) app.showOn2D(ll.lat, ll.lon);
+    return ll;
+  }
+  // Hazard view: slopes above the user's limit (the rover's slope-warning threshold), from the DEM-derived slope of
+  // each mesh vertex (central differences over that grid's spacing). Calculated; real slopes over a few metres can be steeper.
+  function hazardLimit() { return Math.max(1, Math.min(45, +$('v3dHazMax').value || 15)); }
 
   // ------------------------------------------------- quality and brightness
   function initDisplay(v) {
@@ -1552,6 +1661,7 @@ window.AsteriaView3D = (function () {
       labelSun: $('v3dLblSun').querySelector('.t').textContent, labelEarth: $('v3dLblEarth').querySelector('.t').textContent, instant: v.inst && { idx: v.inst.idx, t: v.inst.t, sunUp: v.inst.sunUp, earthUp: v.inst.earthUp, sun: { az: v.inst.r.sun.az, el: v.inst.r.sun.el, radius_deg: v.inst.r.sun.radius_deg }, earth: { az: v.inst.r.earth.az, el: v.inst.r.earth.el, radius_deg: v.inst.r.earth.radius_deg } },
       vertices: s.geo.attributes.position.count, triangles: s.geo.index.count / 3, extVertices: s.extVertices || 0, extError: s.extError || null,
       layers: s.layers.map(function (L) { return { name: L.name, vertices: L.vertices, cast: L.mesh.castShadow, receive: L.mesh.receiveShadow, normalMap: L.nmap || 0 }; }),
+      inspect: v.inspect || null, miniCam: v.miniCam || null, preset: v.lastPreset || null, viewLatLon: viewLatLon(v), walk: v.ctl.walk,
       areas: s.areas || [], nmap: !!s.nmapOK, cascade: s.sunNear ? { box: s.nearBox || null, texel: s.nearTexel || null, mapSize: s.sunNear.shadow.mapSize.x } : null, earthshine: v.earthshine || null, noShadow: s.U.uNoShadow.value === 1,
       shadowCamera: { left: s.sun.shadow.camera.left, right: s.sun.shadow.camera.right, top: s.sun.shadow.camera.top, bottom: s.sun.shadow.camera.bottom, near: s.sun.shadow.camera.near, far: s.sun.shadow.camera.far, texel: s.shadowTexel },
       memory: { geometries: s.renderer.info.memory.geometries, textures: s.renderer.info.memory.textures }, rover: v.roverState || null, labelLayout: v.labelLayout || null,
@@ -1562,6 +1672,7 @@ window.AsteriaView3D = (function () {
   // Test hooks: drive the controls without real key presses.
   function testKey(code, down) { if (V) { if (down) V.ctl.keys[code] = true; else delete V.ctl.keys[code]; V.dirty = true; } }
   function testMode(m) { if (V) setMode(V, m); }
+  function testInspect(cx, cy) { if (!V) return null; var r = inspectAt(V, cx, cy); showInspect(V, r, true); return r; }
 
   // Test hook (shading-consistency check): set the time t (ms), render, and read the rendered shadow map at the site
   // marker (2 m above the ground, as the horizon model's observer). Returns the shadow-map verdict, the validated
@@ -1629,5 +1740,5 @@ window.AsteriaView3D = (function () {
     if ('tileShadow' in o) { v.s.diagTileShadow = !!o.tileShadow; fitShadow(v.s); }
     v.dirty = true;
   }
-  return { ROVER: ROVER, starAzEl: starAzEl, testScene: testScene, QUALITY: QUALITY, shadowProbe: shadowProbe, testCamera: testCamera, testQuality: testQuality, testBrightness: testBrightness, testRelief: testRelief, testDiag: testDiag, open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
+  return { testInspect: testInspect, ROVER: ROVER, starAzEl: starAzEl, testScene: testScene, QUALITY: QUALITY, shadowProbe: shadowProbe, testCamera: testCamera, testQuality: testQuality, testBrightness: testBrightness, testRelief: testRelief, testDiag: testDiag, open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
 })();

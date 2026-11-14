@@ -204,9 +204,19 @@ window.AsteriaMap = (function () {
   }
   function setMarkersVisible(v) { if (!map) return; if (v) markerLayer.addTo(map); else map.removeLayer(markerLayer); }
   function invalidate() { if (map) { map.invalidateSize(); fitMinZoom(); renderMarkers(); } }
+  // Round 6: "Show on 2D map" from the 3D view - centre the map on that ground point with a marker (kept until the next one).
+  var point3d = null;
+  function showPoint(lat, lon) {
+    if (!map || !inData(lat, lon)) return null;
+    if (point3d) map.removeLayer(point3d);
+    point3d = L.marker([lat, lon], { icon: L.divIcon({ className: 'mkwrap', html: '<span class="mk mk-3d"></span>', iconSize: [22, 22], iconAnchor: [11, 11] }), interactive: false, keyboard: false })
+      .bindTooltip('Position from the 3D view: ' + fmtLL(lat, lon), { permanent: true, direction: 'top', offset: [0, -10], className: 'tip3d' }).addTo(map);
+    map.setView([lat, lon], Math.max(map.getZoom(), 7), { animate: false });
+    return { lat: lat, lon: lon, zoom: map.getZoom(), centre: map.getCenter() };
+  }
   return {
     init: init, setSites: setSites, select: select, setOverlay: setOverlay, setMarkersVisible: setMarkersVisible,
-    invalidate: invalidate, home: home, margins: margins, project: project, unproject: unproject, inData: inData,
+    invalidate: invalidate, home: home, showPoint: showPoint, margins: margins, project: project, unproject: unproject, inData: inData,
     leaflet: function () { return map; }
   };
 })();

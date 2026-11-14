@@ -67,6 +67,49 @@ async function open3d(page, site, t, q) {
     if (SHOTS) await page.screenshot({ path: path.join(OUT, `r6_${vp.name}_rover.png`) });
     await page.evaluate(() => AsteriaView3D.close(true));
 
+    // ---------------------------------------------------------------- Part 3: presets, inspection, hazard, 2D-3D link
+    await open3d(page, 'peak_shackleton', '2028-09-25T10:04', 'medium');
+    const camDir = () => page.evaluate(() => { const s = AsteriaView3D.testScene(), f = new THREE.Vector3(); s.camera.getWorldDirection(f); const M = window.AsteriaView3DMath; return Object.assign(M.azElFromDir([f.x, f.y, f.z]), { d: AsteriaView3D.debug() }); });
+    const angDiff = (a, b) => Math.abs(((a - b) % 360 + 540) % 360 - 180);
+    await page.click('[data-preset="eye"]'); await page.waitForTimeout(300);
+    let cd = await camDir();
+    expect(`${tag} preset "Site eye level (2 m)": Walk at the site marker, eye 2 m above the ground, facing the Sun's azimuth`, cd.d.mode === 'walk' && Math.abs(cd.d.eyeAboveGround - 2) < 0.01 && Math.hypot(cd.d.walk.x, cd.d.walk.z) < 1e-6 && angDiff(cd.az, cd.d.instant.sun.az) < 0.05, JSON.stringify({ eye: cd.d.eyeAboveGround, az: cd.az, sunAz: cd.d.instant.sun.az }));
+    await page.click('[data-preset="sun"]'); await page.waitForTimeout(300);
+    cd = await camDir();
+    expect(`${tag} preset "Look at Sun": view direction = the engine's Sun az/el (${cd.d.instant.sun.az.toFixed(2)}°, ${cd.d.instant.sun.el.toFixed(2)}°)`, angDiff(cd.az, cd.d.instant.sun.az) < 0.05 && Math.abs(cd.el - cd.d.instant.sun.el) < 0.05, `${cd.az.toFixed(3)}, ${cd.el.toFixed(3)}`);
+    await page.click('[data-preset="earth"]'); await page.waitForTimeout(300);
+    cd = await camDir();
+    expect(`${tag} preset "Look at Earth": view direction = the engine's Earth az/el (${cd.d.instant.earth.az.toFixed(2)}°, ${cd.d.instant.earth.el.toFixed(2)}°)`, angDiff(cd.az, cd.d.instant.earth.az) < 0.05 && Math.abs(cd.el - cd.d.instant.earth.el) < 0.05, `${cd.az.toFixed(3)}, ${cd.el.toFixed(3)}`);
+    await page.click('[data-preset="overview"]'); await page.waitForTimeout(400);
+    cd = await camDir();
+    expect(`${tag} preset "Overview": Orbit, the default oblique view of the site`, cd.d.mode === 'orbit' && cd.d.preset === 'overview');
+    // inspection at the pixel of the site marker's ground point: must report the site (distance ~0, LOLA height there)
+    const ins = await page.evaluate(() => {
+      const s = AsteriaView3D.testScene(), d = AsteriaView3D.debug(), M = window.AsteriaView3DMath, cv = s.renderer.domElement.getBoundingClientRect();
+      const p = new THREE.Vector3(0, d.tileCentreY, 0).project(s.camera), cx = cv.left + (p.x + 1) / 2 * cv.width, cy = cv.top + (1 - p.y) / 2 * cv.height;
+      const r = AsteriaView3D.testInspect(cx, cy), h0 = M.heightAt(s.T, 0, 0);
+      // a second point: the view centre on screen; its numbers must equal the DEM functions on the reported grid point
+      const r2 = AsteriaView3D.testInspect(cv.left + cv.width * 0.5, cv.top + cv.height * 0.7);
+      return { r, h0, r2, tip: document.getElementById('v3dInspect').textContent, shown: !document.getElementById('v3dInspect').hidden };
+    });
+    expect(`${tag} pointer inspection at the site marker: distance ${ins.r && ins.r.dist.toFixed(1)} m (< one 20 m cell), height ${ins.r && ins.r.h.toFixed(1)} m vs LOLA ${ins.h0.toFixed(1)} m (within 1 m)`, ins.r && ins.r.dist < 20 && Math.abs(ins.r.h - ins.h0) < 1, JSON.stringify(ins.r));
+    expect(`${tag} pointer inspection shows height above the 1737.4 km sphere, slope (central differences), lat/lon, distance from the site and the data resolution`, ins.shown && /Height .* m \(above the 1737\.4 km sphere\)/.test(ins.tip) && /Slope .*° \(central differences over \d+ m\)/.test(ins.tip) && /°E · .* from the site/.test(ins.tip) && /Data here: \d+ m LOLA grid \(LDEM_/.test(ins.tip) && /can be steeper/.test(ins.tip), ins.tip);
+    // hazard view: threshold = the rover's slope limit; legend with resolution and the steeper-slopes caveat
+    await page.check('#v3dHazard'); await page.fill('#v3dHazMax', '12'); await page.dispatchEvent('#v3dHazMax', 'change');
+    const hz = await page.evaluate(() => ({ u: AsteriaView3D.debug().overlays.slope, rov: document.getElementById('v3dSlopeMax').value, leg: document.getElementById('v3dLegend').textContent, slopeOn: document.getElementById('v3dSlope').checked }));
+    expect(`${tag} hazard view: slopes above the user's limit (12°, shared with the rover's slope warning) coloured; legend states the grid and "real slopes over a few metres can be steeper"`, hz.u === 112 && hz.rov === '12' && /slope above 12°/.test(hz.leg) && /can be steeper/.test(hz.leg) && /\d+ m/.test(hz.leg) && !hz.slopeOn, JSON.stringify(hz));
+    if (SHOTS) await page.screenshot({ path: path.join(OUT, `r6_${vp.name}_hazard.png`) });
+    await page.uncheck('#v3dHazard');
+    // mini-map shows the camera and its view direction
+    const mc = await page.evaluate(() => { const d = AsteriaView3D.debug(); return { mc: d.miniCam, head: d.hud && d.hud.heading }; });
+    expect(`${tag} mini-map: camera position and view direction drawn (heading ${mc.mc && mc.mc.heading.toFixed(0)}° = HUD heading ${mc.head && mc.head.toFixed(0)}°)`, mc.mc && Math.abs(((mc.mc.heading - mc.head) % 360 + 540) % 360 - 180) < 0.5, JSON.stringify(mc));
+    // "Show on 2D map": closes 3D and centres the 2D map on the 3D position with a marker
+    const ll = await page.evaluate(() => AsteriaView3D.debug().viewLatLon);
+    await page.click('#v3dTo2D'); await page.waitForTimeout(600);
+    const m2 = await page.evaluate(() => { const L = AsteriaMap.leaflet(), c = L.getCenter(); return { open: AsteriaView3D.isOpen(), lat: c.lat, lon: c.lng, marker: !!document.querySelector('.mk-3d'), tip: (document.querySelector('.tip3d') || {}).textContent || '', zoom: L.getZoom() }; });
+    expect(`${tag} "Show on 2D map": 3D closed, 2D map centred on the 3D view position (${ll.lat.toFixed(4)}, ${ll.lon.toFixed(4)}) with a marker`, !m2.open && Math.abs(m2.lat - ll.lat) < 1e-4 && Math.abs(((m2.lon - ll.lon) % 360 + 540) % 360 - 180) < 1e-3 && m2.marker && /Position from the 3D view/.test(m2.tip), JSON.stringify(m2));
+    if (SHOTS) await page.screenshot({ path: path.join(OUT, `r6_${vp.name}_show2d.png`) });
+
     expect(`${tag} no console errors or warnings`, errors.length === 0, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }
