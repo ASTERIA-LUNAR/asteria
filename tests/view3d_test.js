@@ -1,0 +1,126 @@
+#!/usr/bin/env node
+/* Unit tests for the 3D view geometry (js/view3d_math.js) and the terrain tiles (data/terrain3d).
+ * Generated with Claude Code (Anthropic) under human direction.
+ * Usage: node tests/view3d_test.js */
+'use strict';
+const fs = require('fs'), path = require('path'), vm = require('vm');
+const E = require('../js/engine.js');
+const M = require('../js/view3d_math.js');
+const ROOT = path.join(__dirname, '..');
+let fails = 0;
+const expect = (name, ok, detail) => { console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail ? ' - ' + detail : '')); if (!ok) fails++; };
+const DEG = Math.PI / 180;
+const angle = (a, b) => {
+  const d = (a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) / Math.hypot(...a) / Math.hypot(...b);
+  return Math.acos(Math.max(-1, Math.min(1, d))) / DEG;
+};
+function loadWin(file) {
+  const ctx = { window: {} }; vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(ROOT, file), 'utf8'), ctx);
+  return ctx.window;
+}
+
+// ---------------------------------------------------------------- 1. Sun / Earth direction vectors
+// The 3D direction for the engine's (az, el) must equal the engine's own apparent direction vector (body-fixed 'bf',
+// projected on the site's East-North-Up basis built here independently) within 0.01 deg.
+(function () {
+  const ids = loadWin('data/terrain3d/index.js').ASTERIA_TERRAIN3D_IDS;
+  let worstSun = 0, worstEarth = 0, worstRound = 0, n = 0, seed = 42;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  for (const id of ids) {
+    const hz = loadWin('data/horizons/' + id + '.js').LUNA_HORIZONS[id];
+    for (let k = 0; k < 12; k++) {
+      const t = new Date(Date.UTC(2026, 0, 1) + rnd() * 5 * 365.25 * 86400000);
+      const r = E.sunEarthAt({ lat: hz.lat, lon: hz.lon }, t);
+      const la = hz.lat * DEG, lo = hz.lon * DEG;
+      const up = [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)];
+      const east = [-Math.sin(lo), Math.cos(lo), 0];
+      const north = [up[1] * east[2] - up[2] * east[1], up[2] * east[0] - up[0] * east[2], up[0] * east[1] - up[1] * east[0]];
+      const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+      for (const [body, set] of [['sun', v => { worstSun = Math.max(worstSun, v); }], ['earth', v => { worstEarth = Math.max(worstEarth, v); }]]) {
+        const b = r[body], bf = b.bf;
+        const want = [dot(bf, east), dot(bf, up), -dot(bf, north)];          // Three.js: x = E, y = U, z = -N
+        const got = M.dirFromAzEl(b.az, b.el);
+        set(angle(got, want));
+        const back = M.azElFromDir(got);
+        const daz = Math.abs(((back.az - b.az + 540) % 360) - 180) * Math.cos(b.el * DEG);
+        worstRound = Math.max(worstRound, daz, Math.abs(back.el - b.el));
+      }
+      n++;
+    }
+  }
+  expect('3D Sun direction vector = engine az/el (vs the engine\'s raw apparent vector, ' + n + ' site/time cases) within 0.01°', worstSun < 0.01, 'worst ' + worstSun.toExponential(2) + '°');
+  expect('3D Earth direction vector = engine az/el within 0.01°', worstEarth < 0.01, 'worst ' + worstEarth.toExponential(2) + '°');
+  expect('direction -> az/el round trip within 0.01°', worstRound < 0.01, 'worst ' + worstRound.toExponential(2) + '°');
+  // explicit convention checks
+  const nrt = M.dirFromAzEl(0, 0), est = M.dirFromAzEl(90, 0), zen = M.dirFromAzEl(123, 90);
+  expect('convention: az 0 = north = -z, az 90 = east = +x, el 90 = +y', Math.abs(nrt[2] + 1) < 1e-12 && Math.abs(est[0] - 1) < 1e-12 && Math.abs(zen[1] - 1) < 1e-12);
+})();
+
+// ---------------------------------------------------------------- 2. terrain tiles
+(function () {
+  const ids = loadWin('data/terrain3d/index.js').ASTERIA_TERRAIN3D_IDS;
+  const hzIds = loadWin('data/horizons/index.js').LUNA_HORIZON_IDS;
+  expect('every south-pole site with a terrain horizon has a 3D tile', hzIds.every(id => ids.includes(id)) && ids.length === hzIds.length, ids.length + ' tiles');
+  let worst = 0, worstCentre = 0, worstCurv = 0, worstInv = 0, sizes = [];
+  for (const id of ids) {
+    const meta = loadWin('data/terrain3d/' + id + '.js').ASTERIA_TERRAIN3D[id];
+    const hz = loadWin('data/horizons/' + id + '.js').LUNA_HORIZONS[id];
+    const T = M.decodeTile(meta);
+    sizes.push(meta.size_m);
+    for (const p of meta.checkPoints) worst = Math.max(worst, Math.abs(T.H[p.j * T.n + p.i] - p.h_dem_m));
+    worstCentre = Math.max(worstCentre, Math.abs(T.H[T.c * T.n + T.c] - hz.siteHeight_m));
+    // ENU geometry: exact vs small-angle expectation (U = h - h0 - (R + h) theta^2 / 2, theta = s / R; error ~ theta^4)
+    for (const [i, j] of [[0, 0], [T.n - 1, 0], [T.c, T.c], [7, T.n - 3]]) {
+      const e = (i - T.c) * T.d, n = (T.c - j) * T.d, h = T.H[j * T.n + i], s = Math.hypot(e, n);
+      const p = M.enu(T, e, n, h);
+      worstCurv = Math.max(worstCurv, Math.abs(p[2] - (h - T.h0 - (T.R + h) * (s / T.R) * (s / T.R) / 2)));   // small-angle form of (R+h)cos(s/R) - (R+h0)
+      const w = M.toThree(p), g = M.gridFromWorld(T, w[0], w[2], false);
+      worstInv = Math.max(worstInv, Math.hypot(g.e - e, g.n - n));
+    }
+  }
+  expect('JS decoder: tile heights at the stored check points (site centre + 3 others) match direct DEM samples within 1 m', worst <= 1, 'worst ' + worst.toFixed(3) + ' m');
+  expect('tile centre height = horizon file site height (same DEM) within 1 m', worstCentre <= 1, 'worst ' + worstCentre.toFixed(3) + ' m');
+  expect('tile size about 6 km', sizes.every(s => s >= 6000 && s <= 6200), sizes.join(', '));
+  expect('ENU vertex = h - h0 minus the curvature drop (R+h)θ²/2 (within 1 cm)', worstCurv < 0.01, 'worst ' + (worstCurv * 1000).toFixed(2) + ' mm');
+  expect('world -> grid inverse (walk/rover ground lookup) round trip within 1 cm', worstInv < 0.01, 'worst ' + (worstInv * 1000).toFixed(2) + ' mm');
+})();
+
+// ---------------------------------------------------------------- 3. slope, mesh height, near-field Sun, Earth phase
+(function () {
+  // synthetic tile: a plane rising 10 deg toward the east
+  const n = 101, d = 20, c = 50, H = new Float32Array(n * n), tan10 = Math.tan(10 * DEG);
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) H[j * n + i] = 1000 + (i - c) * d * tan10;
+  const T = { n, d, c, h0: 1000, R: 1737400, half: c * d, H, k: 1 };
+  const s1 = M.slopeAt(T, 123.4, -456.7);
+  expect('slope of a 10° plane = 10.00° with the downhill direction west (270°)', Math.abs(s1.slope - 10) < 1e-3 && Math.abs(s1.downhillAz - 270) < 1e-3, s1.slope.toFixed(6) + '°, ' + s1.downhillAz.toFixed(3) + '°');
+  expect('mesh height = bilinear height on a plane', Math.abs(M.meshHeightAt(T, 33.3, 71.1) - M.heightAt(T, 33.3, 71.1)) < 1e-6);
+  // near-field Sun: plane rising to the east blocks a low Sun in the east, not one in the west
+  const east = M.nearFieldSunUp(T, 0, 0, 90, 5, 2), west = M.nearFieldSunUp(T, 0, 0, 270, 1, 2);
+  expect('near-field estimate: a 10° slope blocks a Sun at 5° on the uphill side, not a Sun at 1° on the downhill side', !east.up && west.up, JSON.stringify({ east: east.tileHorizon.toFixed(2), west: west.tileHorizon.toFixed(2) }));
+  // Earth phase: Sun behind the observer -> full Earth; Sun behind Earth -> new Earth
+  const full = M.earthPhase({ az: 180, el: 0, dist_km: 1.496e8 }, { az: 0, el: 0, dist_km: 384400 });
+  const neu = M.earthPhase({ az: 0, el: 0, dist_km: 1.496e8 }, { az: 0, el: 0, dist_km: 384400 });
+  expect('Earth phase: Sun opposite Earth -> fully lit; Sun behind Earth -> unlit', full.illuminated > 0.9999 && neu.illuminated < 1e-4, full.illuminated.toFixed(5) + ' / ' + neu.illuminated.toFixed(5));
+  // phase from the engine vs. a direct computation with the engine's raw vectors
+  const r = E.sunEarthAt({ lat: -88.79, lon: 124.5 }, new Date('2027-03-10T00:00:00Z'));
+  const sv = r.sun.bf.map(x => x * r.sun.dist_km), ev = r.earth.bf.map(x => x * r.earth.dist_km);
+  const es = sv.map((x, k) => x - ev[k]), eo = ev.map(x => -x);
+  const ph = angle(es, eo), p2 = M.earthPhase(r.sun, r.earth);
+  expect('Earth phase from az/el equals the engine-vector computation within 0.01°', Math.abs(ph - p2.phaseAngle) < 0.01, ph.toFixed(4) + '° vs ' + p2.phaseAngle.toFixed(4) + '°');
+  // lat/lon of grid points: the centre is the site, and 1 km north moves toward the pole-facing meridian
+  const ll = M.latLonAt(-85.98, -1.67, 0, 0), ln = M.latLonAt(-85.98, -1.67, 0, 1000);
+  expect('grid -> lat/lon: centre is the site; 1 km north is 1000/R rad further north', Math.abs(ll.lat + 85.98) < 1e-9 && Math.abs(ll.lon + 1.67) < 1e-9 && Math.abs((ln.lat - ll.lat) - 1000 / 1737400 / DEG) < 1e-9);
+})();
+
+// ---------------------------------------------------------------- 4. lazy loading: the main page does not load the 3D code
+(function () {
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const tags = [...html.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]);
+  const bad = tags.filter(s => /three|view3d|terrain3d\/(?!index\.js)/.test(s));
+  expect('index.html does not load Three.js, the 3D code or any terrain tile (only the 3D site list)', bad.length === 0, bad.join(', ') || tags.filter(s => /terrain3d/.test(s)).join(', '));
+  expect('Three.js is a local file (lib/three/three.min.js, r149, MIT licence alongside)', fs.existsSync(path.join(ROOT, 'lib/three/three.min.js')) && /Copyright 2010-2023 Three.js Authors/.test(fs.readFileSync(path.join(ROOT, 'lib/three/three.min.js'), 'utf8').slice(0, 300)) && fs.existsSync(path.join(ROOT, 'lib/three/LICENSE')));
+})();
+
+console.log(fails ? `\n${fails} FAILED` : '\nALL PASS');
+process.exit(fails ? 1 : 0);

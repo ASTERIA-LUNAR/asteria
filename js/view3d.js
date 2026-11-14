@@ -1,0 +1,564 @@
+/* ASTERIA 3D terrain view ("Deploy"). Loaded lazily by js/app.js only when the user clicks Deploy, together with
+ * lib/three/three.min.js, js/view3d_math.js and data/terrain3d/<site>.js. Nothing here runs before that.
+ * Generated with Claude Code (Anthropic) under human direction.
+ *
+ * What is shown, and on what basis:
+ *  - Terrain: the site's 6 km LOLA tile (tools/terrain3d.py) at true scale (vertical exaggeration selectable,
+ *    default 1x), exact ENU positions including lunar curvature.
+ *  - Sun: directional light + disk at the engine's azimuth/elevation (js/engine.js, validated against JPL Horizons),
+ *    angular radius from the engine. Earth: sphere at the engine's azimuth/elevation with the engine's angular radius;
+ *    its lit side comes from the same Sun direction (phase computed from real geometry, see earthPhase()).
+ *  - Distant skyline: the site's terrain horizon mask (data/horizons) drawn as a ring, exact from the site marker.
+ *  - Shadows: shadow mapping of the tile only (visual approximation). Sunlit / Earth-visible status at the site marker
+ *    comes from the validated horizon model of the main app, never from the rendering.
+ */
+window.AsteriaView3D = (function () {
+  'use strict';
+  var M = window.AsteriaView3DMath;
+  var RING_M = 60000, SUN_D = 500000, EARTH_D = 450000, STAR_D = 800000, EYE_M = 2;   // eye = horizon-model observer height
+  var V = null;           // current view (null when closed)
+  var lastClosed = null;  // stats captured while closing (tests)
+
+  function $(id) { return document.getElementById(id); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function fmtUTC(d) { return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()) + ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+  function fmtDeg(x, n) { return (x >= 0 ? '+' : '') + x.toFixed(n === undefined ? 2 : n) + '°'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function isPhone() { return (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth < 700; }
+
+  // ------------------------------------------------------------------- DOM
+  function buildDom(o) {
+    var el = document.createElement('div');
+    el.id = 'v3d'; el.className = 'v3d'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '3D terrain view');
+    var m = o.tile;
+    el.innerHTML =
+      '<div class="v3d-stage" id="v3dStage">' +
+      '  <div class="v3d-labels" id="v3dLabels"><span class="v3d-lbl sun" id="v3dLblSun">Sun</span><span class="v3d-lbl earth" id="v3dLblEarth">Earth</span><span class="v3d-lbl site" id="v3dLblSite"><i></i>Site</span><span class="v3d-lbl rover" id="v3dLblRover" hidden>Rover</span></div>' +
+      '  <div class="v3d-exag" id="v3dExagBadge">Vertical scale 1× (true scale)</div>' +
+      '  <div class="v3d-banner" id="v3dBanner" hidden></div>' +
+      '  <p class="v3d-shadownote">Near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model.</p>' +
+      '  <div class="v3d-pad" id="v3dPad" hidden><button data-k="fwd" aria-label="Forward">&#9650;</button><button data-k="left" aria-label="Turn left">&#9664;</button><button data-k="back" aria-label="Back">&#9660;</button><button data-k="right" aria-label="Turn right">&#9654;</button></div>' +
+      '  <button class="btn v3d-close" id="v3dClose" aria-label="Close the 3D view">&#10005; Close 3D</button>' +
+      '</div>' +
+      '<aside class="v3d-panel" id="v3dPanel">' +
+      '  <div class="v3d-head"><div><div class="v3d-kicker">3D terrain view</div><h2 id="v3dTitle">' + esc(o.site.name) + '</h2></div><button class="btn small ghost" id="v3dToggle" aria-expanded="true" aria-controls="v3dBody">Hide panel</button></div>' +
+      '  <div id="v3dBody">' +
+      '  <div class="v3d-time"><span class="lbl">Showing</span> <b class="mono" id="v3dTime">-</b></div>' +
+      '  <div class="row slider-row"><button class="btn play" id="v3dPlay" aria-label="Play">&#9654;</button><input id="v3dSlider" type="range" min="0" max="1" value="0" aria-label="Time within window (synced with the main view)"></div>' +
+      '  <div class="tiles v3d-tiles">' +
+      '    <div class="tile" id="v3dTileSun"><div class="tlabel">Sunlight at the site marker</div><div class="tstate" id="v3dSun">-</div><div class="tx x-only mono" id="v3dSunX"></div></div>' +
+      '    <div class="tile" id="v3dTileEarth"><div class="tlabel">Earth link at the site marker</div><div class="tstate" id="v3dEarth">-</div><div class="tx x-only mono" id="v3dEarthX"></div></div>' +
+      '  </div>' +
+      '  <p class="fineprint">Status from the validated horizon model (same as the main view), not from the 3D rendering.</p>' +
+      '  <div class="v3d-ctl">' +
+      '    <div class="seg" role="radiogroup" aria-label="Camera mode"><button data-mode="orbit" class="on">Orbit</button><button data-mode="walk">Walk</button><button data-mode="rover">Rover</button></div>' +
+      '    <label>Vertical exaggeration <select id="v3dExag"><option value="1" selected>1× (true scale)</option><option value="2">2×</option><option value="3">3×</option><option value="5">5×</option></select></label>' +
+      '    <label class="smallswitch"><input type="checkbox" id="v3dShadows" checked> shadows</label>' +
+      '    <label class="smallswitch"><input type="checkbox" id="v3dRing" checked> distant skyline</label>' +
+      '    <label class="smallswitch"><input type="checkbox" id="v3dStars"> stars (decorative)</label>' +
+      '  </div>' +
+      '  <p class="hint" id="v3dHelp"></p>' +
+      '  <div class="v3d-rover" id="v3dRover" hidden>' +
+      '    <div class="cards small"><div class="card"><div class="cardlbl">Position from site</div><div class="val mono" id="v3dRPos">-</div></div>' +
+      '    <div class="card"><div class="cardlbl">Terrain elevation</div><div class="val mono" id="v3dRElev">-</div></div>' +
+      '    <div class="card"><div class="cardlbl">Local slope</div><div class="val mono" id="v3dRSlope">-</div></div>' +
+      '    <div class="card"><div class="cardlbl">Sun over the tile terrain</div><div class="val" id="v3dRSun">-</div></div></div>' +
+      '    <label>Slope warning above <span class="inl"><input id="v3dSlopeMax" type="number" min="1" max="45" step="1" value="15" aria-label="Slope warning threshold in degrees"> &deg;</span></label>' +
+      '    <div class="v3d-warn" id="v3dRWarn" hidden></div>' +
+      '    <p class="fineprint" id="v3dRNote"></p>' +
+      '  </div>' +
+      '  <details class="v3d-notes"><summary>What is accurate, what is approximate</summary><ul id="v3dNotes"></ul></details>' +
+      '  </div>' +
+      '</aside>';
+    document.body.appendChild(el);
+    var notes = [
+      '<b>Terrain</b>: LOLA ' + esc(m.demProduct) + ', ' + m.spacing_m + ' m grid' + (o.stride > 1 ? ' (shown at ' + m.spacing_m * o.stride + ' m on this device for speed; readouts use ' + m.spacing_m + ' m)' : '') + ', ' + (m.size_m / 1000).toFixed(1) + ' km square centred on the site; heights within 0.05 m of direct DEM samples (tools/terrain3d.py check). Lunar curvature is included (about ' + m.curvatureDropAtCorner_m.toFixed(0) + ' m drop at the corners). Features smaller than the grid, boulders and the lander are not represented.',
+      '<b>Sun</b>: direction and disk size from the validated engine (the light direction matches it to better than 0.01°).',
+      '<b>Earth</b>: position and size (about ' + (2 * (o.earthRadiusDeg || 0.95)).toFixed(1) + '° across) from the engine; plain blue sphere (no clouds or continents). Its lit side is the computed phase from the Sun direction; the unlit side is drawn very faintly so Earth can be found.',
+      '<b>Distant skyline</b>: the site\'s terrain horizon (data/horizons, rays to 300 km) drawn as the top edge of a dark ring ' + RING_M / 1000 + ' km away. It is exact only when seen from the site marker; elsewhere on the tile it is approximate. Terrain between the tile edge and the skyline is not drawn (dark).',
+      '<b>Shadows</b>: near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model.',
+      '<b>Fill light</b>: a faint uniform light keeps unlit ground from being pure black. It is not physical (real shadows get only faint light reflected from sunlit terrain and Earthshine).',
+      '<b>Stars</b> (off by default): decorative random points, not a star catalogue.',
+      '<b>Vertical exaggeration</b> above 1× stretches heights (and therefore shadows and the look of slopes); rover slope readouts always use true heights. The distant skyline ring is never exaggerated.',
+      '<b>Rover</b>: a simple illustration (not a vehicle model; speed not realistic). Slope = gradient of the DEM over one ' + m.spacing_m + ' m grid cell. "Sun over the tile terrain" is a near-field estimate using only this tile.'
+    ];
+    $('v3dNotes').innerHTML = notes.map(function (x) { return '<li>' + x + '</li>'; }).join('');
+    return el;
+  }
+
+  // ----------------------------------------------------------------- scene
+  function buildScene(o) {
+    var THREE = window.THREE;
+    var T = M.decodeTile(o.tile);
+    var stride = o.stride;
+    // mesh tile (decimated on phones); readouts always use the full tile T
+    var TM = T;
+    if (stride > 1) {
+      var mm = Math.floor((T.n - 1) / stride) + 1, H2 = new Float32Array(mm * mm);
+      for (var j = 0; j < mm; j++) for (var i = 0; i < mm; i++) H2[j * mm + i] = T.H[(j * stride) * T.n + i * stride];
+      TM = { id: T.id, n: mm, d: T.d * stride, c: (mm - 1) / 2, h0: T.h0, R: T.R, half: (mm - 1) / 2 * T.d * stride, H: H2, meta: T.meta, k: 1 };
+    }
+    var renderer = new THREE.WebGLRenderer({ antialias: !o.phone, logarithmicDepthBuffer: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, o.phone ? 1.5 : 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setClearColor(0x000000, 1);
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+    var camera = new THREE.PerspectiveCamera(55, 1, 0.3, 2000000);
+
+    // terrain
+    var P = M.buildPositions(TM, 1);
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(P.pos, 3));
+    geo.setIndex(new THREE.BufferAttribute(M.buildIndex(P.m), 1));
+    geo.computeVertexNormals();
+    geo.computeBoundingBox();
+    var terrainMat = new THREE.MeshLambertMaterial({ color: 0x9c9a95 });
+    var terrain = new THREE.Mesh(geo, terrainMat);
+    terrain.castShadow = true; terrain.receiveShadow = true;
+    scene.add(terrain);
+
+    var fill = new THREE.AmbientLight(0xffffff, 0.05);
+    scene.add(fill);
+    var sun = new THREE.DirectionalLight(0xffffff, 1.7);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(o.phone ? 1024 : 2048, o.phone ? 1024 : 2048);
+    sun.shadow.bias = -0.0003;
+    sun.shadow.normalBias = TM.d * 0.08;
+    scene.add(sun); scene.add(sun.target);
+
+    // Sun disk and Earth (positioned relative to the camera every frame: they are at "infinity")
+    var sunDisk = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), new THREE.MeshBasicMaterial({ color: 0xfff4d6 }));
+    scene.add(sunDisk);
+    var earth = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 32), new THREE.MeshLambertMaterial({ color: 0x4ea8ff, emissive: 0x06101e }));
+    scene.add(earth);
+
+    // distant skyline ring from the horizon mask (site observer = 2 m above the ground at the centre)
+    var ring = new THREE.Group();
+    if (o.mask) {
+      var nA = 361, rp = new Float32Array(nA * 2 * 3), lp = new Float32Array(nA * 3), ri = [];
+      for (var a = 0; a < nA; a++) {
+        var el = o.mask[a % 360];
+        // top edge: the skyline exactly as seen from the site marker; below it a dark wall down to 80 km, so the area
+        // beyond the tile (not drawn) reads as dark distant terrain instead of sky
+        var top = M.dirFromAzEl(a, el);
+        rp.set([top[0] * RING_M, EYE_M + top[1] * RING_M, top[2] * RING_M], a * 6);
+        rp.set([top[0] * RING_M, -80000, top[2] * RING_M], a * 6 + 3);
+        lp.set([top[0] * RING_M, EYE_M + top[1] * RING_M, top[2] * RING_M], a * 3);
+        if (a < nA - 1) { var t0 = 2 * a, b0 = t0 + 1, t1 = t0 + 2, b1 = t0 + 3; ri.push(t0, b0, t1, t1, b0, b1); }
+      }
+      var rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.BufferAttribute(rp, 3)); rg.setIndex(ri);
+      ring.add(new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ color: 0x14120f, side: THREE.DoubleSide })));
+      var lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.BufferAttribute(lp, 3));
+      ring.add(new THREE.Line(lg, new THREE.LineBasicMaterial({ color: 0x9c8670 })));
+    }
+    scene.add(ring);
+
+    // decorative stars (seeded, not a catalogue), off by default
+    var sp = new Float32Array(1500 * 3), seed = 7;
+    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    for (var k = 0; k < 1500; k++) {
+      var z = 2 * rnd() - 1, ph = 2 * Math.PI * rnd(), rr = Math.sqrt(1 - z * z);
+      sp.set([rr * Math.cos(ph) * STAR_D, z * STAR_D, rr * Math.sin(ph) * STAR_D], k * 3);
+    }
+    var sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+    var stars = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0x9fb0cc, size: 1.3, sizeAttenuation: false }));
+    stars.visible = false; scene.add(stars);
+
+    // site marker: a thin post (not to scale) at the site
+    var mg = new THREE.BufferGeometry(); mg.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0, 0, 40, 0]), 3));
+    var markerMat = new THREE.LineBasicMaterial({ color: 0x6f7890 });
+    var marker = new THREE.Line(mg, markerMat); scene.add(marker);
+
+    // rover (simple illustration, about 2 m long)
+    var rover = new THREE.Group();
+    var body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 2.0), new THREE.MeshLambertMaterial({ color: 0xe8e8e8 }));
+    body.position.y = 0.75; body.castShadow = true; rover.add(body);
+    var mast = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.8, 0.12), new THREE.MeshLambertMaterial({ color: 0xffc23d }));
+    mast.position.set(0, 1.4, -0.7); rover.add(mast);
+    var panel = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.04, 1.0), new THREE.MeshLambertMaterial({ color: 0x24406e }));
+    panel.position.set(0, 1.05, 0.3); panel.castShadow = true; rover.add(panel);
+    var wheelGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 16), wheelMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
+    [[-0.8, -0.7], [0.8, -0.7], [-0.8, 0.7], [0.8, 0.7]].forEach(function (w) {
+      var wh = new THREE.Mesh(wheelGeo, wheelMat); wh.rotation.z = Math.PI / 2; wh.position.set(w[0], 0.32, w[1]); wh.castShadow = true; rover.add(wh);
+    });
+    rover.visible = false; scene.add(rover);
+
+    return { THREE: THREE, T: T, TM: TM, renderer: renderer, scene: scene, camera: camera, terrain: terrain, geo: geo, fill: fill, sun: sun,
+      sunDisk: sunDisk, earth: earth, ring: ring, stars: stars, marker: marker, markerMat: markerMat, rover: rover };
+  }
+
+  // Tighten the shadow camera to the tile's bounding box seen from the Sun (much better resolution at grazing angles).
+  function fitShadow(v) {
+    var THREE = v.THREE, sun = v.sun, bb = v.geo.boundingBox, cam = sun.shadow.camera;
+    // a camera (lookAt points its -z at the target, exactly like the shadow camera; Object3D.lookAt would point +z)
+    var tmp = new THREE.OrthographicCamera(); tmp.position.copy(sun.position); tmp.lookAt(sun.target.position); tmp.updateMatrixWorld(true);
+    var inv = new THREE.Matrix4().copy(tmp.matrixWorld).invert(), p = new THREE.Vector3();
+    var lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    for (var c = 0; c < 8; c++) {
+      p.set(c & 1 ? bb.max.x : bb.min.x, c & 2 ? bb.max.y + 3 : bb.min.y, c & 4 ? bb.max.z : bb.min.z).applyMatrix4(inv);
+      lo = [Math.min(lo[0], p.x), Math.min(lo[1], p.y), Math.min(lo[2], p.z)]; hi = [Math.max(hi[0], p.x), Math.max(hi[1], p.y), Math.max(hi[2], p.z)];
+    }
+    cam.left = lo[0] - 5; cam.right = hi[0] + 5; cam.bottom = lo[1] - 5; cam.top = hi[1] + 5;
+    cam.near = Math.max(1, -hi[2] - 10); cam.far = -lo[2] + 10;
+    cam.updateProjectionMatrix();
+  }
+
+  // ------------------------------------------------------------- controls
+  function Controls(v) {
+    var c = {
+      mode: 'orbit', target: [0, 0, 0], dist: 4200, yaw: 0, pitch: 24,         // orbit (yaw = camera azimuth seen from the target)
+      walk: { x: 0, z: 0, yaw: 0, pitch: 2 },                                   // walk (yaw = viewing azimuth)
+      rov: { x: 0, z: 0, yaw: 0, dist: 0, camYaw: 0, lastX: 0, lastZ: 0 },
+      keys: {}, pointers: {}, pinch: null
+    };
+    return c;
+  }
+  function moveKeys(k) {
+    return {
+      fwd: k.KeyW || k.ArrowUp || k.pad_fwd, back: k.KeyS || k.ArrowDown || k.pad_back,
+      left: k.KeyA || k.ArrowLeft || k.pad_left, right: k.KeyD || k.ArrowRight || k.pad_right,
+      strafeL: k.KeyQ, strafeR: k.KeyE, fast: k.ShiftLeft || k.ShiftRight, zin: k.Equal || k.NumpadAdd, zout: k.Minus || k.NumpadSubtract
+    };
+  }
+  function anyKey(k) { for (var x in k) if (k[x]) return true; return false; }
+  function clampTile(T, x, z) {
+    var g = M.gridFromWorld(T, x, z, true), lim = T.half - T.d;
+    if (Math.abs(g.e) <= lim && Math.abs(g.n) <= lim) return [x, z];
+    var e = Math.max(-lim, Math.min(lim, g.e)), n = Math.max(-lim, Math.min(lim, g.n));
+    var p = M.toThree(M.enu(T, e, n, M.meshHeightAt(T, e, n)));
+    return [p[0], p[2]];
+  }
+  function stepControls(v, dt) {
+    var c = v.ctl, k = moveKeys(c.keys), DEG = Math.PI / 180, TM = v.s.TM, cam = v.s.camera;
+    var sp = (k.fast ? 5 : 1);
+    if (c.mode === 'orbit') {
+      if (k.left) c.yaw -= 60 * dt; if (k.right) c.yaw += 60 * dt;
+      if (k.fwd) c.pitch = Math.min(89, c.pitch + 40 * dt); if (k.back) c.pitch = Math.max(1, c.pitch - 40 * dt);
+      if (k.zin) c.dist = Math.max(30, c.dist * Math.exp(-1.5 * dt)); if (k.zout) c.dist = Math.min(30000, c.dist * Math.exp(1.5 * dt));
+      var cy = c.yaw * DEG, cp = c.pitch * DEG;
+      var px = c.target[0] + c.dist * Math.cos(cp) * Math.sin(cy), pz = c.target[2] - c.dist * Math.cos(cp) * Math.cos(cy);
+      var py = c.target[1] + c.dist * Math.sin(cp);
+      var gnd = M.inside(TM, px, -pz) ? M.groundWorld(TM, px, pz).y : -1e9;
+      if (py < gnd + 15) py = gnd + 15;
+      cam.position.set(px, py, pz); cam.lookAt(c.target[0], c.target[1], c.target[2]);
+    } else if (c.mode === 'walk') {
+      var w = c.walk, speed = 12 * sp;
+      if (k.left) w.yaw -= 70 * dt; if (k.right) w.yaw += 70 * dt;
+      var f = (k.fwd ? 1 : 0) - (k.back ? 1 : 0), s = (k.strafeR ? 1 : 0) - (k.strafeL ? 1 : 0), y = w.yaw * DEG;
+      if (f || s) {
+        var nx = w.x + (Math.sin(y) * f + Math.cos(y) * s) * speed * dt, nz = w.z + (-Math.cos(y) * f + Math.sin(y) * s) * speed * dt;
+        var cl = clampTile(TM, nx, nz); w.x = cl[0]; w.z = cl[1];
+      }
+      var g = M.groundWorld(TM, w.x, w.z);
+      cam.position.set(w.x, g.y + EYE_M, w.z);
+      var p = w.pitch * DEG;
+      cam.lookAt(w.x + Math.cos(p) * Math.sin(y), g.y + EYE_M + Math.sin(p), w.z - Math.cos(p) * Math.cos(y));
+    } else {
+      var r = c.rov, rs = 4 * sp;
+      if (k.left) r.yaw -= 50 * dt; if (k.right) r.yaw += 50 * dt;
+      var fr = (k.fwd ? 1 : 0) - (k.back ? 1 : 0), ry = r.yaw * DEG;
+      if (fr) {
+        var cl2 = clampTile(TM, r.x + Math.sin(ry) * fr * rs * dt, r.z - Math.cos(ry) * fr * rs * dt);
+        r.dist += Math.hypot(cl2[0] - r.x, cl2[1] - r.z); r.x = cl2[0]; r.z = cl2[1];
+      }
+      placeRover(v);
+      var gy = M.groundWorld(TM, r.x, r.z).y, cyaw = (r.yaw + r.camYaw) * DEG;
+      var bx = r.x - Math.sin(cyaw) * 14, bz = r.z + Math.cos(cyaw) * 14;
+      var bg = M.inside(TM, bx, -bz) ? M.groundWorld(TM, bx, bz).y : gy;
+      cam.position.set(bx, Math.max(gy + 6, bg + 3), bz); cam.lookAt(r.x, gy + 1.2, r.z);
+    }
+  }
+  function placeRover(v) {
+    var THREE = v.s.THREE, r = v.ctl.rov, TM = v.s.TM, ro = v.s.rover, DEG = Math.PI / 180, y = r.yaw * DEG;
+    var g = function (dx, dz) { var x = r.x + dx, z = r.z + dz; return new THREE.Vector3(x, M.groundWorld(TM, x, z).y, z); };
+    var fw = [Math.sin(y) * 1.0, -Math.cos(y) * 1.0], rt = [Math.cos(y) * 0.8, Math.sin(y) * 0.8];
+    var pf = g(fw[0], fw[1]), pb = g(-fw[0], -fw[1]), pr = g(rt[0], rt[1]), pl = g(-rt[0], -rt[1]);
+    var fwd = pf.clone().sub(pb).normalize(), right = pr.clone().sub(pl).normalize();
+    var up = new THREE.Vector3().crossVectors(right, fwd).normalize();
+    right.crossVectors(fwd, up).normalize();
+    var m = new THREE.Matrix4().makeBasis(right, up, fwd.clone().negate());
+    ro.quaternion.setFromRotationMatrix(m);
+    ro.position.set(r.x, (pf.y + pb.y + pr.y + pl.y) / 4, r.z);
+  }
+
+  function setMode(v, mode) {
+    var c = v.ctl;
+    c.mode = mode;
+    v.s.rover.visible = mode === 'rover';
+    $('v3dLblRover').hidden = mode !== 'rover';
+    $('v3dRover').hidden = mode !== 'rover';
+    $('v3dPad').hidden = mode === 'orbit';
+    v.el.querySelectorAll('.seg button').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === mode); b.setAttribute('aria-pressed', b.dataset.mode === mode ? 'true' : 'false'); });
+    var help = {
+      orbit: 'Orbit: drag to rotate, right-drag or Shift+drag to pan, wheel or pinch to zoom. Keys: arrows rotate, + / - zoom.',
+      walk: 'Walk (eye 2 m above the ground, as in the horizon model): W/S or ↑/↓ move, A/D or ←/→ turn, Q/E step sideways, Shift faster; drag to look. On touch screens use the arrow buttons.',
+      rover: 'Rover: W/S or ↑/↓ drive, A/D or ←/→ steer, Shift faster; drag to look around. On touch screens use the arrow buttons.'
+    }[mode];
+    $('v3dHelp').textContent = help;
+    if (mode === 'walk' && c.walk.x === 0 && c.walk.z === 0) c.walk.yaw = v.inst ? v.inst.r.sun.az : 0;
+    if (mode === 'rover' && c.rov.dist === 0) { c.rov.yaw = v.inst ? v.inst.r.sun.az + 90 : 0; c.rov.x = 25; c.rov.z = 0; }
+    v.dirty = true;
+  }
+
+  // ---------------------------------------------------------- time update
+  function setInstant(v, inst) {
+    v.inst = inst;
+    var r = inst.r, s = v.s, T = s.T;
+    var d = M.dirFromAzEl(r.sun.az, r.sun.el);
+    s.sun.target.position.set(0, 0, 0);
+    s.sun.position.set(d[0] * 20000, d[1] * 20000, d[2] * 20000);
+    s.sun.intensity = r.sun.el > -r.sun.radius_deg - 1 ? 1.7 : 0;
+    s.sun.updateMatrixWorld(); fitShadow(s);
+    v.sunDir = d; v.earthDir = M.dirFromAzEl(r.earth.az, r.earth.el);
+    var ph = M.earthPhase(r.sun, r.earth);
+    v.phase = ph;
+    // status tiles: from the validated horizon model (main app series)
+    var tile = function (id, cls, stEl, text) { $(id).className = 'tile ' + cls; $(stEl).textContent = text; };
+    tile('v3dTileSun', inst.sunUp ? 'on-sun' : 'off', 'v3dSun', inst.sunUp ? 'Sun up' : 'Sun down');
+    tile('v3dTileEarth', inst.earthUp ? 'on-earth' : 'off', 'v3dEarth', inst.earthUp ? 'Earth in view' : 'Earth hidden');
+    $('v3dSunX').textContent = 'Sun el ' + fmtDeg(r.sun.el) + ' · az ' + r.sun.az.toFixed(1) + '° · terrain horizon ' + fmtDeg(inst.hzSun, 1) + ' · disk ' + (2 * r.sun.radius_deg).toFixed(3) + '°';
+    $('v3dEarthX').textContent = 'Earth el ' + fmtDeg(r.earth.el) + ' · az ' + r.earth.az.toFixed(1) + '° · terrain horizon ' + fmtDeg(inst.hzEarth, 1) + (inst.minEl ? ' + ' + inst.minEl + '° min' : '') + ' · disk ' + (2 * r.earth.radius_deg).toFixed(2) + '° · ' + (100 * ph.illuminated).toFixed(0) + '% lit (phase)';
+    $('v3dTime').textContent = fmtUTC(new Date(inst.t)) + ' UTC';
+    var sl = $('v3dSlider'); sl.max = inst.n - 1; sl.value = inst.idx;
+    var col = inst.sunUp && inst.earthUp ? 0x5ee27a : inst.sunUp ? 0xffc23d : inst.earthUp ? 0x4ea8ff : 0x6f7890;
+    s.markerMat.color.setHex(col);
+    $('v3dLblSite').className = 'v3d-lbl site ' + (inst.sunUp && inst.earthUp ? 'on-both' : inst.sunUp ? 'on-sun' : inst.earthUp ? 'on-earth' : 'off');
+    var b = $('v3dBanner');
+    if (!inst.sunUp && r.sun.el > -r.sun.radius_deg) {
+      b.hidden = false;
+      b.textContent = 'At the site marker the Sun is hidden behind terrain (validated horizon model, Sun ' + fmtDeg(r.sun.el, 1) + ' vs horizon ' + fmtDeg(inst.hzSun, 1) + '). This view does not render shadows cast by terrain outside the 6 km tile, so parts of the tile may look lit.';
+    } else b.hidden = true;
+    v.dirty = true;
+  }
+
+  // -------------------------------------------------------------- render
+  function frame(v, ts) {
+    if (V !== v) return;
+    var dt = Math.min(0.1, v.lastTs ? (ts - v.lastTs) / 1000 : 0); v.lastTs = ts;
+    var moving = anyKey(v.ctl.keys);
+    if (moving || v.dirty) {
+      stepControls(v, dt);
+      var s = v.s, cam = s.camera, r = v.inst && v.inst.r;
+      if (r) {
+        var sd = v.sunDir, ed = v.earthDir;
+        s.sunDisk.position.set(cam.position.x + sd[0] * SUN_D, cam.position.y + sd[1] * SUN_D, cam.position.z + sd[2] * SUN_D);
+        s.sunDisk.scale.setScalar(SUN_D * Math.sin(r.sun.radius_deg * Math.PI / 180));
+        s.earth.position.set(cam.position.x + ed[0] * EARTH_D, cam.position.y + ed[1] * EARTH_D, cam.position.z + ed[2] * EARTH_D);
+        s.earth.scale.setScalar(EARTH_D * Math.sin(r.earth.radius_deg * Math.PI / 180));
+      }
+      s.stars.position.copy(cam.position);
+      s.renderer.render(s.scene, cam);
+      labels(v);
+      if (v.ctl.mode === 'rover') roverReadout(v, ts);
+      v.dirty = false;
+      v.frames++;
+    }
+    v.raf = requestAnimationFrame(function (t) { frame(v, t); });
+  }
+  function labels(v) {
+    var s = v.s, cam = s.camera, w = v.stage.clientWidth, h = v.stage.clientHeight, THREE = s.THREE, p = new THREE.Vector3();
+    var put = function (id, x, y, z) {
+      p.set(x, y, z).project(cam);
+      var el = $(id), ok = p.z < 1 && p.z > -1 && Math.abs(p.x) < 1.2 && Math.abs(p.y) < 1.2;
+      el.style.display = ok ? '' : 'none';
+      if (ok) el.style.transform = 'translate(' + ((p.x + 1) / 2 * w).toFixed(1) + 'px,' + ((1 - p.y) / 2 * h).toFixed(1) + 'px)';
+    };
+    put('v3dLblSun', s.sunDisk.position.x, s.sunDisk.position.y, s.sunDisk.position.z);
+    put('v3dLblEarth', s.earth.position.x, s.earth.position.y, s.earth.position.z);
+    put('v3dLblSite', 0, 40, 0);
+    if (v.ctl.mode === 'rover') put('v3dLblRover', s.rover.position.x, s.rover.position.y + 2.5, s.rover.position.z);
+  }
+  function roverReadout(v, ts) {
+    if (ts - (v.lastRead || 0) < 150) return;
+    v.lastRead = ts;
+    var T = v.s.T, r = v.ctl.rov, g = M.gridFromWorld(v.s.TM, r.x, r.z, true);
+    var h = M.heightAt(T, g.e, g.n), sl = M.slopeAt(T, g.e, g.n), ll = M.latLonAt(T.meta.lat, T.meta.lon, g.e, g.n, T.R);
+    $('v3dRPos').textContent = (g.e >= 0 ? '+' : '') + g.e.toFixed(0) + ' m E, ' + (g.n >= 0 ? '+' : '') + g.n.toFixed(0) + ' m N (' + ll.lat.toFixed(4) + '°, ' + ll.lon.toFixed(4) + '°E)';
+    $('v3dRElev').textContent = h.toFixed(1) + ' m';
+    $('v3dRSlope').textContent = sl.slope.toFixed(1) + '°';
+    var lim = Math.max(1, Math.min(45, +$('v3dSlopeMax').value || 15)), warn = $('v3dRWarn');
+    warn.hidden = !(sl.slope > lim);
+    if (!warn.hidden) warn.textContent = 'Slope ' + sl.slope.toFixed(1) + '° is above your limit of ' + lim + '°.';
+    var inst = v.inst, ns = inst ? M.nearFieldSunUp(T, g.e, g.n, inst.r.sun.az, inst.r.sun.el, EYE_M) : null;
+    $('v3dRSun').innerHTML = ns ? (ns.up ? '<span class="c-sun">above</span>' : 'blocked') + ' <span class="fineprint">near-field estimate</span>' : '-';
+    v.roverState = { e: g.e, n: g.n, h: h, slope: sl.slope, lat: ll.lat, lon: ll.lon, nearFieldSunUp: ns && ns.up, warn: !warn.hidden, dist: r.dist };
+  }
+
+  // -------------------------------------------------------------- events
+  function bind(v) {
+    var c = v.ctl, cvs = v.s.renderer.domElement, on = [];
+    function add(t, ev, fn, opt) { t.addEventListener(ev, fn, opt); on.push([t, ev, fn, opt]); }
+    var formTag = function (e) { var t = e.target && e.target.tagName; return t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA'; };
+    add(window, 'keydown', function (e) {
+      if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+      if (formTag(e)) return;
+      if (/^(Arrow|Key[WASDQE]|Shift|Equal|Minus|Numpad(Add|Subtract))/.test(e.code)) { c.keys[e.code] = true; v.dirty = true; if (/^Arrow/.test(e.code)) e.preventDefault(); }
+    });
+    add(window, 'keyup', function (e) { delete c.keys[e.code]; });
+    add(window, 'blur', function () { c.keys = {}; });
+    cvs.style.touchAction = 'none';
+    add(cvs, 'contextmenu', function (e) { e.preventDefault(); });
+    add(cvs, 'pointerdown', function (e) {
+      cvs.setPointerCapture && cvs.setPointerCapture(e.pointerId);
+      c.pointers[e.pointerId] = { x: e.clientX, y: e.clientY, pan: e.button === 2 || e.shiftKey };
+      var ids = Object.keys(c.pointers);
+      if (ids.length === 2) { var a = c.pointers[ids[0]], b = c.pointers[ids[1]]; c.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 }; }
+    });
+    var up = function (e) { delete c.pointers[e.pointerId]; if (Object.keys(c.pointers).length < 2) c.pinch = null; };
+    add(cvs, 'pointerup', up); add(cvs, 'pointercancel', up);
+    add(cvs, 'pointermove', function (e) {
+      var p = c.pointers[e.pointerId]; if (!p) return;
+      var dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+      var ids = Object.keys(c.pointers);
+      if (ids.length >= 2 && c.pinch) {
+        var a = c.pointers[ids[0]], b = c.pointers[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y), cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+        if (c.mode === 'orbit') { c.dist = Math.max(30, Math.min(30000, c.dist * c.pinch.d / Math.max(1, d))); pan(v, cx - c.pinch.cx, cy - c.pinch.cy); }
+        c.pinch = { d: d, cx: cx, cy: cy }; v.dirty = true; return;
+      }
+      if (c.mode === 'orbit') { if (p.pan) pan(v, dx, dy); else { c.yaw += dx * 0.3; c.pitch = Math.max(1, Math.min(89, c.pitch + dy * 0.25)); } }
+      else if (c.mode === 'walk') { c.walk.yaw += dx * 0.25; c.walk.pitch = Math.max(-80, Math.min(80, c.walk.pitch - dy * 0.25)); }
+      else c.rov.camYaw += dx * 0.3;
+      v.dirty = true;
+    });
+    add(cvs, 'wheel', function (e) { e.preventDefault(); if (c.mode === 'orbit') { c.dist = Math.max(30, Math.min(30000, c.dist * Math.exp(e.deltaY * 0.0012))); v.dirty = true; } }, { passive: false });
+    // on-screen pad (hold to move)
+    v.el.querySelectorAll('#v3dPad button').forEach(function (b) {
+      var k = 'pad_' + b.dataset.k;
+      add(b, 'pointerdown', function (e) { e.preventDefault(); c.keys[k] = true; v.dirty = true; });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) { add(b, ev, function () { delete c.keys[k]; }); });
+    });
+    add($('v3dClose'), 'click', function () { close(); });
+    add($('v3dToggle'), 'click', function () {
+      var body = $('v3dBody'), open = body.hidden; body.hidden = !open;
+      this.textContent = open ? 'Hide panel' : 'Show panel'; this.setAttribute('aria-expanded', open ? 'true' : 'false');
+      v.el.classList.toggle('collapsed', !open); setTimeout(function () { resize(v); }, 0);
+    });
+    v.el.querySelectorAll('.seg button').forEach(function (b) { add(b, 'click', function () { setMode(v, b.dataset.mode); }); });
+    add($('v3dExag'), 'change', function () { setExag(v, +this.value); });
+    add($('v3dShadows'), 'change', function () { v.s.sun.castShadow = this.checked; v.s.terrain.receiveShadow = this.checked; v.s.terrain.material.needsUpdate = true; v.dirty = true; });
+    add($('v3dRing'), 'change', function () { v.s.ring.visible = this.checked; v.dirty = true; });
+    add($('v3dStars'), 'change', function () { v.s.stars.visible = this.checked; v.dirty = true; });
+    add($('v3dSlopeMax'), 'change', function () { v.lastRead = 0; v.dirty = true; });
+    add($('v3dSlider'), 'input', function () { v.app.setIdx(+this.value); });
+    add($('v3dPlay'), 'click', function () { v.app.setPlaying(!v.app.playing()); syncPlay(v); });
+    add(window, 'resize', function () { resize(v); });
+    v.unbind = function () { on.forEach(function (x) { x[0].removeEventListener(x[1], x[2], x[3]); }); };
+  }
+  function syncPlay(v) { var p = v.app.playing(); $('v3dPlay').innerHTML = p ? '&#10074;&#10074;' : '&#9654;'; $('v3dPlay').setAttribute('aria-label', p ? 'Pause' : 'Play'); }
+  function pan(v, dx, dy) {
+    var c = v.ctl, s = c.dist * 0.0012, y = c.yaw * Math.PI / 180;
+    // screen right = (cos yaw, 0, sin yaw); screen up (on the ground) = toward the target from the camera
+    c.target[0] += (-dx * Math.cos(y) + dy * -Math.sin(y)) * s;
+    c.target[2] += (-dx * Math.sin(y) + dy * Math.cos(y)) * s;
+    var cl = clampTile(v.s.TM, c.target[0], c.target[2]); c.target[0] = cl[0]; c.target[2] = cl[1];
+    c.target[1] = M.groundWorld(v.s.TM, c.target[0], c.target[2]).y;
+  }
+  function setExag(v, k) {
+    var s = v.s;
+    s.T.k = k; s.TM.k = k;
+    var P = M.buildPositions(s.TM, 1);
+    s.geo.attributes.position.array.set(P.pos); s.geo.attributes.position.needsUpdate = true;
+    s.geo.computeVertexNormals(); s.geo.computeBoundingBox(); s.geo.computeBoundingSphere();
+    fitShadow(s);
+    var b = $('v3dExagBadge');
+    b.textContent = k === 1 ? 'Vertical scale 1× (true scale)' : 'Vertical exaggeration ' + k + '× - heights stretched, not true scale';
+    b.classList.toggle('warn', k !== 1);
+    v.ctl.target[1] = M.groundWorld(s.TM, v.ctl.target[0], v.ctl.target[2]).y;
+    v.dirty = true;
+  }
+  function resize(v) {
+    var w = v.stage.clientWidth, h = v.stage.clientHeight;
+    if (!w || !h) return;
+    v.s.renderer.setSize(w, h, false);
+    v.s.camera.aspect = w / h; v.s.camera.updateProjectionMatrix();
+    v.dirty = true;
+  }
+
+  // ---------------------------------------------------------- open/close
+  // o = { site, tile, mask, app: { instant(), setIdx(i), onInstant(fn) -> unsubscribe, setPlaying(b), playing() } }
+  function open(o) {
+    if (V) close(true);
+    if (!window.THREE || !M) throw new Error('3D libraries not loaded');
+    var phone = isPhone(), stride = phone && o.tile.n > 200 ? 2 : 1;
+    var inst0 = o.app.instant();
+    var el = buildDom({ site: o.site, tile: o.tile, stride: stride, earthRadiusDeg: inst0 && inst0.r.earth.radius_deg });
+    var v = { el: el, stage: $('v3dStage'), app: o.app, site: o.site, dirty: true, frames: 0, raf: 0 };
+    v.s = buildScene({ tile: o.tile, mask: o.mask, phone: phone, stride: stride });
+    v.stride = stride; v.phone = phone;
+    v.stage.insertBefore(v.s.renderer.domElement, v.stage.firstChild);
+    v.s.renderer.domElement.setAttribute('aria-label', '3D view of the terrain around ' + o.site.name + ' with the Sun and Earth at their computed positions');
+    v.ctl = Controls(v);
+    V = v;
+    document.body.classList.add('v3d-open');
+    bind(v);
+    resize(v);
+    if (inst0) {
+      setInstant(v, inst0);
+      v.ctl.yaw = inst0.r.sun.az + 115;
+    }
+    setMode(v, 'orbit');
+    syncPlay(v);
+    v.off = o.app.onInstant(function (inst) { if (V === v) { setInstant(v, inst); syncPlay(v); } });
+    v.raf = requestAnimationFrame(function (t) { frame(v, t); });
+    // smooth transition in
+    if (REDUCE) el.classList.add('on'); else requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('on'); }); });
+    setTimeout(function () { var b = $('v3dClose'); if (b && V === v) b.focus({ preventScroll: true }); }, 50);
+    return v;
+  }
+  function dispose(v) {
+    cancelAnimationFrame(v.raf);
+    if (v.unbind) v.unbind();
+    if (v.off) v.off();
+    var s = v.s, seen = [];
+    s.scene.traverse(function (obj) {
+      if (obj.geometry && seen.indexOf(obj.geometry) < 0) { seen.push(obj.geometry); obj.geometry.dispose(); }
+      var mats = obj.material ? (Array.isArray(obj.material) ? obj.material : [obj.material]) : [];
+      mats.forEach(function (m) { if (seen.indexOf(m) < 0) { seen.push(m); for (var key in m) if (m[key] && m[key].isTexture) m[key].dispose(); m.dispose(); } });
+    });
+    if (s.sun.shadow && s.sun.shadow.map) s.sun.shadow.map.dispose();
+    var mem = { geometries: s.renderer.info.memory.geometries, textures: s.renderer.info.memory.textures };
+    s.renderer.renderLists.dispose();
+    s.renderer.dispose();
+    s.renderer.forceContextLoss();
+    if (v.el.parentNode) v.el.parentNode.removeChild(v.el);
+    lastClosed = { afterDispose: mem, frames: v.frames, at: Date.now() };
+    v.s = null;
+  }
+  function close(immediate) {
+    var v = V; if (!v) return;
+    V = null;
+    document.body.classList.remove('v3d-open');
+    if (v.app.playing()) v.app.setPlaying(false);
+    var done = function () { dispose(v); if (v.onClosed) v.onClosed(); };
+    if (immediate || REDUCE) done();
+    else { v.el.classList.remove('on'); cancelAnimationFrame(v.raf); setTimeout(done, 320); }
+    if (v.app.onClose) v.app.onClose();
+  }
+
+  // For the automated tests: the scene's actual Sun/Earth directions and state.
+  function debug() {
+    var v = V;
+    if (!v || !v.s) return { open: false, lastClosed: lastClosed };
+    var s = v.s, lp = s.sun.position.clone().sub(s.sun.target.position).normalize();
+    var cam = s.camera.position, ep = s.earth.position.clone().sub(cam).normalize();
+    var DEG = Math.PI / 180;
+    return {
+      open: true, frames: v.frames, mode: v.ctl.mode, stride: v.stride, phone: v.phone, exaggeration: s.T.k,
+      sunLightDir: [lp.x, lp.y, lp.z], sunLight: M.azElFromDir([lp.x, lp.y, lp.z]), sunDiskRadiusDeg: Math.asin(s.sunDisk.scale.x / SUN_D) / DEG,
+      earthDir: [ep.x, ep.y, ep.z], earthAzEl: M.azElFromDir([ep.x, ep.y, ep.z]), earthRadiusDeg: Math.asin(s.earth.scale.x / EARTH_D) / DEG,
+      sunIntensity: s.sun.intensity, earthPhase: v.phase, instant: v.inst && { idx: v.inst.idx, t: v.inst.t, sunUp: v.inst.sunUp, earthUp: v.inst.earthUp, sun: { az: v.inst.r.sun.az, el: v.inst.r.sun.el, radius_deg: v.inst.r.sun.radius_deg }, earth: { az: v.inst.r.earth.az, el: v.inst.r.earth.el, radius_deg: v.inst.r.earth.radius_deg } },
+      vertices: s.geo.attributes.position.count, triangles: s.geo.index.count / 3,
+      memory: { geometries: s.renderer.info.memory.geometries, textures: s.renderer.info.memory.textures }, rover: v.roverState || null,
+      tileCentreY: M.groundWorld(s.TM, 0, 0).y,
+      camera: [cam.x, cam.y, cam.z], eyeAboveGround: cam.y - M.groundWorld(s.TM, cam.x, cam.z).y
+    };
+  }
+  // Test hooks: drive the controls without real key presses.
+  function testKey(code, down) { if (V) { if (down) V.ctl.keys[code] = true; else delete V.ctl.keys[code]; V.dirty = true; } }
+  function testMode(m) { if (V) setMode(V, m); }
+
+  return { open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
+})();

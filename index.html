@@ -72,6 +72,11 @@
       <h1 id="siteName">-</h1>
       <div id="siteKind" class="sitekind"></div>
       <div id="siteMeta" class="meta"></div>
+      <div class="deployrow" id="deployRow" hidden>
+        <button id="deployBtn" class="btn deploy" type="button">&#9650; Deploy: 3D terrain view</button>
+        <span class="hint">Real LOLA terrain, 6 km around this site, with the Sun and Earth at their computed positions.</span>
+        <div class="hint" id="deployNote" role="status"></div>
+      </div>
 
       <div class="whenrow">
         <div class="when"><span class="lbl">Showing</span> <span id="curUtc" class="mono">-</span> <span class="x-only hint" id="curRiyadh"></span></div>
@@ -327,6 +332,7 @@
 <script src="data/horizons/peak_shackleton_lw.js"></script>
 <script src="data/horizons/shackleton_centre.js"></script>
 <!-- HORIZON_SCRIPTS_END -->
+<script src="data/terrain3d/index.js"></script>
 <script src="data/illumination.js"></script>
 <script src="data/illum_crosscheck.js"></script>
 <script src="data/illum_crosscheck_meta.js"></script>

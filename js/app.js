@@ -11,6 +11,7 @@
   var DAY = 86400000;
   var DEFAULT_SITE = 'peak_shackleton_lw';
   var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var T3D_IDS = window.ASTERIA_TERRAIN3D_IDS || [];   // sites with a 3D terrain tile (data/terrain3d/index.js)
 
   var $ = function (id) { return document.getElementById(id); };
   // One colour per meaning, everywhere: Sun amber, Earth blue, both green, neither grey.
@@ -193,6 +194,7 @@
       if (s.hz) m += '<div class="x-only">Terrain: downsampled LOLA DEM, ' + COARSE_PX + ' m pixels (area mean of LDEM_85S_20M / 80S_80M / 75S_120M); site height ' + s.hz.siteHeight_m.toFixed(0) + ' m above the 1737.4 km sphere; observer 2 m above ground; horizon from ' + fmtDeg(minMax(s.hz.elevations)[0], 1) + ' to ' + fmtDeg(minMax(s.hz.elevations)[1], 1) + '; rays reach ' + minMax(s.hz.reach_km)[0].toFixed(0) + '-300 km (they stop at the edge of the map data). Method: same as tools/terrain.py; validation on the Validation tab.</div>';
     }
     $('siteMeta').innerHTML = m;
+    $('deployRow').hidden = !has3D(s);
     renderBadge();
   }
   function renderBadge() {
@@ -342,6 +344,10 @@
     drawTimelineCursor();
     drawChartCursors();
     markCurrentWindows();
+    if (INSTANT_FNS.length) {
+      var inst = { idx: i, n: s.t.length, t: t, r: r, sunUp: sunUp, earthUp: earthUp, hzSun: hs, hzEarth: he, minEl: S.minEl };
+      INSTANT_FNS.slice().forEach(function (fn) { fn(inst); });
+    }
   }
   function tile(id, cls, stateEl, text) { $(id).className = 'tile ' + cls; stateEl.textContent = text; }
   // Days ahead of time t that the next-event search covers: the rest of the window, then SEARCH_DAYS_AFTER more.
@@ -1190,6 +1196,56 @@
     dateTicks(ctx, L, pw, R.t[0], R.t[R.t.length - 1], h - 8, T + ph, T + ph + 4);
   }
 
+  // ============================================================ 3D VIEW (Deploy)
+  // Everything for the 3D view (Three.js, js/view3d*.js, the terrain tile) is loaded only when Deploy is clicked.
+  var INSTANT_FNS = [], scriptCache = {};
+  function has3D(s) { return !!(s && s.id && T3D_IDS.indexOf(s.id) >= 0 && HZ[s.id]); }
+  function loadScript(src) {
+    if (!scriptCache[src]) {
+      scriptCache[src] = new Promise(function (resolve, reject) {
+        var sc = document.createElement('script'); sc.src = src;
+        sc.onload = function () { resolve(); };
+        sc.onerror = function () { delete scriptCache[src]; reject(new Error(src + ' could not be loaded')); };
+        document.head.appendChild(sc);
+      });
+    }
+    return scriptCache[src];
+  }
+  function currentInstant() {
+    if (!S.series) return null;
+    var i = S.idx, t = S.series.t[i], r = E.sunEarthAt(siteObj(), new Date(t)), mask = maskFor(S.site, S.useTerrain);
+    return { idx: i, n: S.series.t.length, t: t, r: r, sunUp: S.series.sunUp[i], earthUp: S.series.earthUp[i], hzSun: E.maskAt(mask, r.sun.az), hzEarth: E.maskAt(mask, r.earth.az), minEl: S.minEl };
+  }
+  function openDeploy() {
+    var site = S.site;
+    if (!has3D(site)) return Promise.resolve(null);
+    var btn = $('deployBtn'); btn.disabled = true;
+    var load = (S.ready || Promise.resolve()).then(function () {
+      return Promise.all([loadScript('lib/three/three.min.js'), loadScript('js/view3d_math.js'), loadScript('data/terrain3d/' + site.id + '.js')]);
+    }).then(function () { return loadScript('js/view3d.js'); });
+    return Loader.track(load, 'Loading 3D terrain…').then(function () {
+      btn.disabled = false;
+      if (S.site !== site) return null;
+      try { return open3D(site); } catch (e) { fail3D(e); return null; }
+    }, function (e) { btn.disabled = false; fail3D(e); return null; });
+  }
+  function fail3D(e) {
+    $('deployNote').textContent = 'The 3D view could not be opened (' + (e && e.message || e) + '). The rest of ASTERIA is unaffected.';
+    console.error(e);
+  }
+  function open3D(site) {
+    var btn = $('deployBtn');
+    $('deployNote').textContent = '';
+    return window.AsteriaView3D.open({
+      site: site, tile: window.ASTERIA_TERRAIN3D[site.id], mask: maskFor(site, true),
+      app: {
+        instant: currentInstant, setIdx: setIdx, setPlaying: setPlaying, playing: function () { return S.playing; },
+        onInstant: function (fn) { INSTANT_FNS.push(fn); return function () { var k = INSTANT_FNS.indexOf(fn); if (k >= 0) INSTANT_FNS.splice(k, 1); }; },
+        onClose: function () { setTimeout(function () { btn.focus({ preventScroll: true }); }, 0); }
+      }
+    });
+  }
+
   // ============================================================ SHAREABLE URL
   var hashReady = false;
   function writeHash() {
@@ -1382,6 +1438,7 @@
     $('siteList').addEventListener('click', function (ev) { var it = ev.target.closest('.siteitem'); if (it) selectSite(siteById(it.dataset.id)); });
     $('siteList').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { var it = ev.target.closest('.siteitem'); if (it) selectSite(siteById(it.dataset.id)); } });
     $('customGo').addEventListener('click', function () { useCustom(); });
+    $('deployBtn').addEventListener('click', function () { openDeploy(); });
     $('fullSky').addEventListener('change', function () { S.fullSky = this.checked; renderInstant(); });
     $('startInput').addEventListener('change', function () { var d = fromInput(this.value); if (d) { S.start = d; S.idx = 0; recompute(); } });
     $('nowBtn').addEventListener('click', function () { var d = new Date(); d.setUTCSeconds(0, 0); S.start = d; S.idx = 0; $('startInput').value = toInput(d); recompute(); });
@@ -1462,6 +1519,7 @@
     windows: function (body) { return WIN[body]; },
     jobsMode: function () { return Jobs.mode(); },
     selectSiteById: function (id) { return selectSite(siteById(id)); },
+    setIdx: setIdx, openDeploy: openDeploy, has3D: function () { return has3D(S.site); },
     tour: { start: function () { tourShow(0); }, step: function () { return TOUR.i; } }
   };
   window.AsteriaApp = window.LunaApp;   // product name alias (internal LunaApp kept for compatibility)

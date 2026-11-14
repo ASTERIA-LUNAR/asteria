@@ -9,7 +9,9 @@ const path = require('path'), fs = require('fs'), url = require('url');
 (async () => {
   const out = path.join(__dirname, 'screenshots'); fs.mkdirSync(out, { recursive: true });
   const base = url.pathToFileURL(path.join(__dirname, '..', 'index.html')).href;
-  const browser = await chromium.launch();
+  // On Windows, WebGL runs on the GPU through ANGLE/D3D11. (Chromium's software GL fallback logs
+  // "GPU stall due to ReadPixels" driver notices as console warnings, which this check would count.)
+  const browser = await chromium.launch({ args: process.platform === 'win32' ? ['--use-angle=d3d11'] : [] });
   const errors = [], fails = [];
   const expect = (name, ok, detail) => { console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail ? ' - ' + detail : '')); if (!ok) fails.push(name); };
   const ready = page => page.evaluate(() => window.AsteriaApp.ready());
@@ -51,6 +53,87 @@ const path = require('path'), fs = require('fs'), url = require('url');
     const mExp = tiles.su && tiles.eu ? 'on-both' : tiles.su ? 'on-sun' : tiles.eu ? 'on-earth' : 'off';
     expect(`${tag} status tiles match the computed state (Sun amber / Earth blue / both green / neither grey)`, tiles.sun.includes(tiles.su ? 'on-sun' : 'off') && tiles.earth.includes(tiles.eu ? 'on-earth' : 'off') && tiles.mission.includes(mExp) && /\d/.test(tiles.cnt), JSON.stringify(tiles));
     await shot(page, vp.name + '_2_explore');
+
+    // ---- 3D view (Deploy): lazy loading, Sun/Earth at the engine's az/el, time sync, controls, GPU memory freed
+    const pre = await page.evaluate(() => ({ three: typeof window.THREE, v3d: typeof window.AsteriaView3D, tile: typeof window.ASTERIA_TERRAIN3D, scripts: [...document.scripts].map(s => s.src).filter(s => /three|view3d|terrain3d\/(?!index)/.test(s)).length }));
+    expect(`${tag} 3D: Three.js, the 3D code and terrain tiles are not loaded before Deploy`, pre.three === 'undefined' && pre.v3d === 'undefined' && pre.tile === 'undefined' && pre.scripts === 0, JSON.stringify(pre));
+    expect(`${tag} 3D: Deploy button shown for a curated south-pole site with a terrain tile`, await page.isVisible('#deployBtn'));
+    const tOpen = Date.now();
+    await page.click('#deployBtn');
+    await page.waitForFunction(() => window.AsteriaView3D && AsteriaView3D.debug().frames >= 1, null, { timeout: 30000 });
+    const openMs = Date.now() - tOpen;
+    await page.waitForTimeout(450);
+    const v3at = () => page.evaluate(() => {
+      const d = AsteriaView3D.debug(), S = AsteriaApp.state, r = LunaEngine.sunEarthAt({ lat: S.site.lat, lon: S.site.lon }, new Date(S.series.t[S.idx]));
+      return { d, idx: S.idx, sunUp: S.series.sunUp[S.idx], earthUp: S.series.earthUp[S.idx], sun: { az: r.sun.az, el: r.sun.el, rad: r.sun.radius_deg }, earth: { az: r.earth.az, el: r.earth.el, rad: r.earth.radius_deg },
+        tiles: [document.getElementById('v3dTileSun').className, document.getElementById('v3dTileEarth').className], slider: +document.getElementById('timeSlider').value };
+    });
+    const dAz = (a, b, el) => Math.abs(((a - b + 540) % 360) - 180) * Math.cos(el * Math.PI / 180);
+    const errs = v => ({
+      sun: Math.max(dAz(v.d.sunLight.az, v.sun.az, v.sun.el), Math.abs(v.d.sunLight.el - v.sun.el)),
+      earth: Math.max(dAz(v.d.earthAzEl.az, v.earth.az, v.earth.el), Math.abs(v.d.earthAzEl.el - v.earth.el)),
+      size: Math.max(Math.abs(v.d.sunDiskRadiusDeg - v.sun.rad), Math.abs(v.d.earthRadiusDeg - v.earth.rad))
+    });
+    let v3 = await v3at(), e3 = errs(v3);
+    console.log(`${tag} 3D opened in ${openMs} ms (incl. loading Three.js and the ${v3.d.vertices}-vertex tile; stride ${v3.d.stride})`);
+    expect(`${tag} 3D: Sun light direction = engine az/el within 0.01° (light ${v3.d.sunLight.az.toFixed(4)}°/${v3.d.sunLight.el.toFixed(4)}°, engine ${v3.sun.az.toFixed(4)}°/${v3.sun.el.toFixed(4)}°)`, e3.sun < 0.01, 'error ' + e3.sun.toExponential(2) + '°');
+    expect(`${tag} 3D: Earth at engine az/el within 0.01°, Sun and Earth angular sizes from the engine`, e3.earth < 0.01 && e3.size < 1e-6 && v3.d.earthRadiusDeg > 0.85 && v3.d.earthRadiusDeg < 1.05, 'error ' + e3.earth.toExponential(2) + '°, Earth diameter ' + (2 * v3.d.earthRadiusDeg).toFixed(3) + '°');
+    expect(`${tag} 3D: status tiles = validated horizon model at the same time (same colours as the main app)`, v3.tiles[0] === 'tile ' + (v3.sunUp ? 'on-sun' : 'off') && v3.tiles[1] === 'tile ' + (v3.earthUp ? 'on-earth' : 'off') && v3.d.instant.idx === v3.idx, JSON.stringify(v3.tiles));
+    const lbl = await page.evaluate(() => ({ note: document.querySelector('.v3d-shadownote').textContent, badge: document.getElementById('v3dExagBadge').textContent, notes: document.getElementById('v3dNotes').textContent }));
+    expect(`${tag} 3D: shadow label, true-scale badge and the accurate/approximate notes are shown`, /Near-field shadows \(visual approximation\); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model/.test(lbl.note) && lbl.badge === 'Vertical scale 1× (true scale)' && /near-field estimate/.test(lbl.notes), JSON.stringify(lbl).slice(0, 200));
+    await shot(page, vp.name + '_11_3d_orbit', false);
+    // time slider in 3D drives the main app (and back)
+    const target = 37;
+    await page.evaluate(i => { const s = document.getElementById('v3dSlider'); s.value = i; s.dispatchEvent(new Event('input', { bubbles: true })); }, target);
+    await page.waitForTimeout(150);
+    v3 = await v3at(); e3 = errs(v3);
+    expect(`${tag} 3D: time slider synced with the main app; Sun/Earth/lighting updated (error ${e3.sun.toExponential(1)}°)`, v3.idx === target && v3.slider === target && v3.d.instant.idx === target && e3.sun < 0.01 && e3.earth < 0.01, JSON.stringify({ idx: v3.idx, slider: v3.slider, d: v3.d.instant.idx }));
+    await page.evaluate(() => AsteriaApp.setIdx(5)); await page.waitForTimeout(100);
+    expect(`${tag} 3D: main-app time change updates the 3D view`, await page.evaluate(() => AsteriaView3D.debug().instant.idx === 5 && +document.getElementById('v3dSlider').value === 5));
+    // vertical exaggeration is clearly shown
+    await page.selectOption('#v3dExag', '3'); await page.waitForTimeout(120);
+    const ex3 = await page.evaluate(() => ({ b: document.getElementById('v3dExagBadge').textContent, k: AsteriaView3D.debug().exaggeration }));
+    await page.selectOption('#v3dExag', '1'); await page.waitForTimeout(120);
+    expect(`${tag} 3D: vertical exaggeration toggle (default 1×) is labelled on screen`, ex3.k === 3 && /Vertical exaggeration 3×/.test(ex3.b) && await page.evaluate(() => AsteriaView3D.debug().exaggeration === 1));
+    // orbit: keyboard and mouse
+    const cam0 = (await v3at()).d.camera;
+    await page.evaluate(() => AsteriaView3D.testKey('ArrowLeft', true)); const tf = Date.now(), f0 = (await v3at()).d.frames;
+    await page.waitForTimeout(1500);
+    const f1 = (await v3at()).d.frames, fps = (f1 - f0) / ((Date.now() - tf) / 1000);
+    await page.evaluate(() => AsteriaView3D.testKey('ArrowLeft', false));
+    const cam1 = (await v3at()).d.camera;
+    console.log(`${tag} 3D: ${fps.toFixed(0)} frames/s while orbiting (headless Chromium, ${process.platform === 'win32' ? 'GPU via ANGLE/D3D11' : 'default GL'})`);
+    expect(`${tag} 3D: orbit camera moves with the keyboard and renders continuously while moving`, Math.hypot(cam1[0] - cam0[0], cam1[2] - cam0[2]) > 50 && fps > 10, fps.toFixed(0) + ' fps');
+    const cb = await page.locator('#v3dStage canvas').boundingBox();
+    await page.mouse.move(cb.x + cb.width / 2, cb.y + cb.height / 2); await page.mouse.down(); await page.mouse.move(cb.x + cb.width / 2 + 120, cb.y + cb.height / 2 + 30, { steps: 5 }); await page.mouse.up(); await page.waitForTimeout(100);
+    const cam2 = (await v3at()).d.camera;
+    expect(`${tag} 3D: mouse drag rotates the orbit camera`, Math.hypot(cam2[0] - cam1[0], cam2[2] - cam1[2]) > 50);
+    // walk mode follows the terrain (eye 2 m above the mesh), on-screen pad works
+    await page.click('.v3d .seg button[data-mode="walk"]'); await page.waitForTimeout(100);
+    const w0 = (await v3at()).d.camera;
+    await page.dispatchEvent('#v3dPad button[data-k="fwd"]', 'pointerdown'); await page.waitForTimeout(900); await page.dispatchEvent('#v3dPad button[data-k="fwd"]', 'pointerup'); await page.waitForTimeout(100);
+    const w1 = (await v3at()).d;
+    expect(`${tag} 3D: walk mode (on-screen button) moves over the terrain with the eye 2 m above the ground`, Math.hypot(w1.camera[0] - w0[0], w1.camera[2] - w0[2]) > 3 && Math.abs(w1.eyeAboveGround - 2) < 0.05, 'eye ' + w1.eyeAboveGround.toFixed(3) + ' m');
+    await shot(page, vp.name + '_12_3d_walk', false);
+    // rover: drive, readouts, slope warning, near-field label
+    await page.click('.v3d .seg button[data-mode="rover"]');
+    await page.evaluate(() => AsteriaView3D.testKey('KeyW', true)); await page.waitForTimeout(1200); await page.evaluate(() => AsteriaView3D.testKey('KeyW', false));
+    await page.fill('#v3dSlopeMax', '1'); await page.dispatchEvent('#v3dSlopeMax', 'change'); await page.waitForTimeout(400);
+    const rv = await page.evaluate(() => ({ r: AsteriaView3D.debug().rover, warn: !document.getElementById('v3dRWarn').hidden, wt: document.getElementById('v3dRWarn').textContent, sun: document.getElementById('v3dRSun').textContent, slope: document.getElementById('v3dRSlope').textContent }));
+    expect(`${tag} 3D rover: drives, shows position / DEM elevation / slope, warns above the user's threshold, near-field Sun labelled`, rv.r && rv.r.dist > 2 && isFinite(rv.r.h) && isFinite(rv.r.slope) && rv.warn === (rv.r.slope > 1) && /near-field estimate/.test(rv.sun), JSON.stringify(rv).slice(0, 260));
+    await page.fill('#v3dSlopeMax', '15'); await page.dispatchEvent('#v3dSlopeMax', 'change');
+    await shot(page, vp.name + '_13_3d_rover', false);
+    // close (button on laptop, Escape on phone): GPU resources released, DOM removed, app untouched
+    if (vp.isMobile) await page.keyboard.press('Escape'); else await page.click('#v3dClose');
+    await page.waitForTimeout(700);
+    const cl = await page.evaluate(() => ({ d: AsteriaView3D.debug(), el: !!document.getElementById('v3d'), cls: document.body.classList.contains('v3d-open'), canv: document.querySelectorAll('canvas[data-engine]').length + document.querySelectorAll('.v3d-stage canvas').length }));
+    expect(`${tag} 3D: leaving 3D (${vp.isMobile ? 'Escape' : 'Close button'}) frees GPU memory (0 geometries, 0 textures) and removes the view`, !cl.d.open && cl.d.lastClosed.afterDispose.geometries === 0 && cl.d.lastClosed.afterDispose.textures === 0 && !cl.el && !cl.cls && cl.canv === 0, JSON.stringify(cl));
+    expect(`${tag} 3D: on phones the mesh resolution is reduced automatically`, vp.isMobile ? v3.d.stride === 2 : v3.d.stride === 1, 'stride ' + v3.d.stride + ', ' + v3.d.vertices + ' vertices');
+    await page.evaluate(() => AsteriaApp.setIdx(0));
+    // the Deploy button is hidden for sites without a 3D tile (reference site outside the pole)
+    await page.evaluate(() => AsteriaApp.selectSiteById('apollo11')); await ready(page);
+    expect(`${tag} 3D: no Deploy button for a site without a terrain tile`, await page.isHidden('#deployBtn'));
+    await page.evaluate(() => AsteriaApp.selectSiteById('peak_shackleton_lw')); await ready(page);
 
     // ---- map: projection, markers, layers, click-to-pick
     const proj = await page.evaluate(() => {

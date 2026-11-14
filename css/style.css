@@ -347,3 +347,52 @@ body.expert div.metricx.x-only { display: contents !important; }
 .examplenote { font-size: .84rem; color: #ffd27a; background: rgba(255, 194, 61, .08); border: 1px dashed rgba(255, 194, 61, .5); border-radius: 8px; padding: 6px 10px; margin: 6px 0 10px; }
 .custommsg { margin-top: 6px; font-size: .82rem; color: var(--text); background: rgba(78, 168, 255, .08); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; line-height: 1.45; }
 .badge.terrain.coarse { opacity: .85; border-style: dashed; }
+
+/* ---------------------------------------------------------------- 3D view (Deploy) */
+.deployrow { margin: 10px 0 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.btn.deploy { background: #1d3a5c; border-color: #3c6fa5; font-weight: 600; }
+.btn.deploy:disabled { cursor: progress; }
+body.v3d-open { overflow: hidden; }
+.v3d { position: fixed; inset: 0; z-index: 1100; display: flex; background: #000; opacity: 0; transition: opacity .3s ease; }
+.v3d.on { opacity: 1; }
+.v3d-stage { position: relative; flex: 1 1 auto; min-width: 0; overflow: hidden; }
+.v3d-stage canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+.v3d-stage canvas:active { cursor: grabbing; }
+.v3d-labels { position: absolute; inset: 0; pointer-events: none; }
+.v3d-lbl { position: absolute; left: 0; top: 0; font-size: .78rem; font-weight: 600; padding: 1px 6px; margin: -26px 0 0 8px; border-radius: 6px; background: rgba(7, 11, 20, .7); white-space: nowrap; }
+.v3d-lbl.sun { color: var(--sun); } .v3d-lbl.earth { color: var(--earth); } .v3d-lbl.rover { color: #fff; }
+.v3d-lbl.site { color: #fff; } .v3d-lbl.site i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; background: var(--neither); }
+.v3d-lbl.site.on-sun i { background: var(--sun); } .v3d-lbl.site.on-earth i { background: var(--earth); } .v3d-lbl.site.on-both i { background: var(--both); }
+.v3d-exag { position: absolute; left: 12px; top: 12px; font-size: .82rem; padding: 4px 10px; border-radius: 999px; background: rgba(16, 26, 44, .85); border: 1px solid var(--line); color: var(--text); }
+.v3d-exag.warn { border-color: var(--sun); color: #ffe3a3; font-weight: 600; }
+.v3d-banner { position: absolute; left: 12px; right: 12px; top: 48px; max-width: 640px; font-size: .82rem; padding: 7px 10px; border-radius: 8px; background: rgba(42, 33, 16, .92); border: 1px solid #6d5520; color: #ffe3a3; }
+.v3d-shadownote { position: absolute; left: 12px; right: 12px; bottom: 8px; margin: 0; font-size: .74rem; color: #a9b6cc; text-shadow: 0 1px 2px #000; pointer-events: none; }
+.v3d-close { position: absolute; right: 12px; top: 12px; background: rgba(16, 26, 44, .9); }
+.v3d-pad { position: absolute; right: 16px; bottom: 40px; display: grid; grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(2, 52px); gap: 6px; }
+.v3d-pad button { font-size: 1.2rem; border-radius: 12px; border: 1px solid var(--line); background: rgba(16, 26, 44, .85); color: var(--text); touch-action: none; user-select: none; -webkit-user-select: none; }
+.v3d-pad button:active { background: #1a5f86; }
+.v3d-pad button[data-k=fwd] { grid-column: 2; grid-row: 1; } .v3d-pad button[data-k=left] { grid-column: 1; grid-row: 2; }
+.v3d-pad button[data-k=back] { grid-column: 2; grid-row: 2; } .v3d-pad button[data-k=right] { grid-column: 3; grid-row: 2; }
+.v3d-panel { flex: 0 0 360px; max-width: 360px; overflow-y: auto; background: var(--panel); border-left: 1px solid var(--line); padding: 12px 14px; }
+.v3d-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.v3d-kicker { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.v3d-time { margin: 6px 0; font-size: .9rem; } .v3d-time .lbl { color: var(--muted); }
+.v3d-tiles { grid-template-columns: minmax(0, 1fr) !important; }
+.v3d-ctl { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 8px; font-size: .85rem; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { background: transparent; color: var(--text); border: 0; padding: 6px 12px; font: inherit; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: #1a5f86; }
+.v3d-rover .cards.small { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; margin: 8px 0; }
+.v3d-rover .val { font-size: .92rem; }
+.v3d-warn { margin-top: 6px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--bad); color: #ffd0d0; background: rgba(255, 107, 107, .12); font-weight: 600; }
+.v3d-notes { margin-top: 10px; font-size: .8rem; color: #c3cee2; } .v3d-notes summary { cursor: pointer; color: var(--accent); } .v3d-notes li { margin: 4px 0; }
+@media (max-width: 700px) {
+  .v3d { flex-direction: column; }
+  .v3d-panel { flex: 0 0 auto; max-width: none; max-height: 46vh; border-left: 0; border-top: 1px solid var(--line); padding: 10px 12px; }
+  .v3d.collapsed .v3d-panel { max-height: none; }
+  .v3d-pad { bottom: 34px; right: 10px; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(2, 48px); }
+  .v3d-shadownote { font-size: .68rem; right: 180px; }
+  .v3d-close { padding: 5px 9px; font-size: .82rem; }
+}
+@media (prefers-reduced-motion: reduce) { .v3d { transition: none; } }
