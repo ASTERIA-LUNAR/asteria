@@ -35,9 +35,12 @@ window.AsteriaView3D = (function () {
   // ------------------------------------------------------------ quality levels
   // Display settings only: none of them changes a computed value (Sun/Earth directions, status tiles, readouts).
   var QUALITY = {
-    low:    { label: 'Low',    stride: 2, ringA: 2, ringB: false, extShadow: false, shadow: 1024, pr: 1,   aa: false, starMag: 3.5, earthTex: 512,  patch5m: false },
-    medium: { label: 'Medium', stride: 1, ringA: 1, ringB: false, extShadow: true,  shadow: 2048, pr: 1.5, aa: true,  starMag: 4.5, earthTex: 1024, patch5m: false },
-    high:   { label: 'High',   stride: 1, ringA: 1, ringB: true,  extShadow: true,  shadow: 4096, pr: 2,   aa: true,  starMag: 5.0, earthTex: 2048, patch5m: true }
+    // round 6: fine = finer ring grids where they exist (ring A 25 m from LDEM_85S_20M drawn every afStride-th node,
+    // ring B 100 m drawn every 2nd node); nmap = normal maps baked from the finest loaded grid; cascade = second,
+    // camera-centred Sun shadow map of nearShadow px; earthShadow = earthshine casts shadows.
+    low:    { label: 'Low',    stride: 2, ringA: 2, ringB: false, extShadow: false, shadow: 1024, pr: 1,   aa: false, starMag: 3.5, earthTex: 512,  patch5m: false, fine: false, nmap: false, cascade: false, earthShadow: false },
+    medium: { label: 'Medium', stride: 1, ringA: 1, ringB: false, extShadow: true,  shadow: 2048, pr: 1.5, aa: true,  starMag: 4.5, earthTex: 1024, patch5m: false, fine: true, afGeom: false, nmap: true, cascade: true, nearShadow: 2048, earthShadow: true },
+    high:   { label: 'High',   stride: 1, ringA: 1, ringB: true,  extShadow: true,  shadow: 4096, pr: 2,   aa: true,  starMag: 5.0, earthTex: 2048, patch5m: true,  fine: true, afGeom: true, afStride: 2, nmap: true, cascade: true, nearShadow: 4096, earthShadow: true }
   };
   var QORDER = ['low', 'medium', 'high'];
   // Starting level from device hints: phone-like devices (touch pointer, small screen, little memory or few cores) or a
@@ -110,6 +113,8 @@ window.AsteriaView3D = (function () {
       '    <label class="smallswitch"><input type="checkbox" id="v3dStars"> stars</label>' +
       '    <label class="smallswitch" title="camera glare (display effect); there is no atmosphere on the Moon"><input type="checkbox" id="v3dGlare" checked> Sun glare <span class="fineprint">(camera glare (display effect); there is no atmosphere on the Moon)</span></label>' +
       '  </div>' +
+      '  <div class="v3d-ctl"><label class="smallswitch" title="Sunlight reflected by Earth onto the Moon (physically scaled, approximate)"><input type="checkbox" id="v3dEarthshine"> Earthshine</label></div>' +
+      '  <p class="fineprint" id="v3dEsNote" hidden></p>' +
       '  <p class="fineprint" id="v3dStarNote" hidden>Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view.</p>' +
       '  <div class="v3d-ctl">' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dFeatOn" checked> feature names (IAU)</label>' +
@@ -151,7 +156,8 @@ window.AsteriaView3D = (function () {
     var list = [
       '<b>Terrain (6 km tile)</b>: LOLA ' + esc(m.demProduct) + ', ' + m.spacing_m + ' m grid' + (v.stride > 1 ? ' (drawn at ' + m.spacing_m * v.stride + ' m at ' + Q.label + ' quality; readouts use ' + m.spacing_m + ' m)' : '') + ', ' + (m.size_m / 1000).toFixed(1) + ' km square centred on the site; heights within 0.05 m of direct DEM samples (tools/terrain3d.py check). Lunar curvature is included (about ' + m.curvatureDropAtCorner_m.toFixed(0) + ' m drop at the corners). Features smaller than the grid, boulders and the lander are not represented.',
       P5 ? '<b>Sharper ground near the site</b>: a 2 km × 2 km patch at 5 m from LOLA ' + esc(P5.meta.demProduct) + ' (heights within 0.05 m of direct samples; tools/terrain3d_ext.py check). The label of this product says it is made from preliminary LOLA data.' : null,
-      A ? '<b>Extended terrain</b>: real LOLA heights to ' + km + ' km from the site: ' + esc(A.meta.demProduct) + ' on a ' + A.d * Q.ringA + ' m grid to 16 km' + (B ? ', and ' + esc(B.meta.demProduct) + ' on a ' + B.d + ' m grid to 40 km' : '') + ' (stored heights within 0.1 m of direct DEM samples; tools/terrain3d_ext.py check). Same site-centred frame and curvature as the tile; the meshes share their edge vertices, and short vertical skirts hide the joins.' : (s.extError ? '<b>Extended terrain</b>: could not be loaded (' + esc(s.extError) + ').' : '<b>Extended terrain</b>: loading…'),
+      A ? '<b>Extended terrain</b>: real LOLA heights to ' + km + ' km from the site: ' + esc((s.gridA || A).meta.demProduct) + ' to 16 km' + (B ? ', and ' + esc((s.gridB || B).meta.demProduct) + ' to 40 km' : '') + ' (stored heights within 0.1 m of direct DEM samples: every grid point checked, tests/accuracy3d.js). Same site-centred frame and curvature as the tile; the meshes share their edge vertices, and short vertical skirts hide the joins.' : (s.extError ? '<b>Extended terrain</b>: could not be loaded (' + esc(s.extError) + ').' : '<b>Extended terrain</b>: loading…'),
+      s.areas && s.areas.length ? '<b>Resolution by area</b> (Calculated from measured LOLA heights): ' + s.areas.map(function (a) { return esc(a.name) + ' - geometry: ' + a.geom + ' m grid; lighting detail' + (a.light < a.geom ? ' (normal map)' : '') + ': ' + a.light + ' m LOLA data (' + esc(a.product) + ')'; }).join('; ') + '. A normal map is baked from the same LOLA grid (central differences of the stored heights, never finer than that grid) and gives a coarser mesh the lighting detail of the finer data; it does not change any height. ' + (s.nmapOK ? 'Toward a coarser neighbouring area the lighting detail fades gradually (averaged real normals) instead of changing in a visible step; the meshes themselves keep their exact DEM heights (they are not morphed).' : 'Normal maps are used at Medium and High quality (WebGL2).') : null,
       '<b>Surface shading</b>: Lommel-Seeliger law (a standard photometric model for lunar regolith: brightness proportional to cos i / (cos i + cos e)), with surface normals from the DEM at full resolution. <b>Uniform albedo</b>: no public LOLA 1064 nm normal-albedo map of the south pole at 250 m/pixel or finer was found (LOLA\'s published albedo maps are about 2 km/pixel near the poles; the PDS LOLA polar products named LDRM are roughness maps), so brightness differences come from the terrain\'s shape only. No synthetic rocks, small craters or textures are added. <b>Relief shading</b> (on by default in Walk and Rover): display contrast only; heights and slopes are the LOLA data. It keeps the Lommel-Seeliger brightness at 70 % and adds the difference in sunlight between the DEM normal and a smoothed DEM normal (over ±4 grid cells), because at the grazing views of Walk and Rover the Lommel-Seeliger law makes slopes facing toward and away from the low Sun look almost alike. In Walk and Rover on laptops the 6 km tile is drawn at full resolution and the 5 m patch is used where it exists, at every quality level.',
       '<b>Contour lines and slope shading</b> (optional): computed from the same LOLA heights (true heights, also when the vertical scale is exaggerated). Slope by central differences over one grid spacing (5 m, 20 m, 80 m or 100-200 m depending on the area), the same formula as the rover readout; real slopes over a few metres can be steeper.',
       '<b>Sun</b>: direction and disk size from the validated engine (the light direction matches it to better than 0.01°).',
@@ -159,8 +165,9 @@ window.AsteriaView3D = (function () {
       '<b>Orientation aids</b>: compass (north = toward the lunar north pole along the site meridian, as everywhere in ASTERIA), scale bar (at the view centre in Orbit, at 100 m ahead in Walk/Rover), distance from the site, a top-view mini-map of the LOLA heights, 500 m distance rings and the rover\'s track. Named features: centres from the IAU Gazetteer of Planetary Nomenclature (USGS; up to 5 within 40 km' + featList(v) + '), placed on the drawn terrain, or on the distant skyline in their direction with their distance when they are farther away (that position is then only a direction).',
       '<b>Sun glare</b> (on by default): a faint halo around the Sun disk, a camera glare (display effect); there is no atmosphere on the Moon. The Sun disk itself has the computed position and size.',
       '<b>Distant skyline</b>: the site\'s terrain horizon (data/horizons, rays to 300 km) drawn as the top edge of a dark ring ' + RING_M / 1000 + ' km away. It is exact only when seen from the site marker; elsewhere it is approximate. Between the edge of the drawn terrain (' + (km || 3) + ' km) and the ring nothing is drawn (dark).',
-      '<b>Shadows</b>: ' + (shKm ? 'cast by all terrain drawn within ' + shKm + ' km of the site (shadow-map texel about ' + (s.shadowTexel || 0).toFixed(0) + ' m; visual approximation). Terrain farther away does not cast shadows in the picture' + (B ? '; the ring from 16 to 40 km is shaded but receives no shadows' : '') + '.' : 'cast by the 6 km tile only at ' + Q.label + ' quality (choose Medium or High for shadows from the surrounding terrain).') + ' Sunlit and Earth-visible status at the site marker always come from the validated horizon model.',
+      '<b>Shadows</b>: ' + (shKm ? 'cast by all terrain drawn within ' + shKm + ' km of the site (shadow-map texel about ' + (s.shadowTexel || 0).toFixed(0) + ' m' + (s.sunNear ? '; near the camera a second, finer shadow map of the same Sun direction and the same terrain, texel about ' + (s.nearTexel || 0).toFixed(1) + ' m: sharper edges, the same lit and shadowed areas' : '') + '; visual approximation). Terrain farther away does not cast shadows in the picture' + (B ? '; the ring from 16 to 40 km is shaded but receives no shadows' : '') + '.' : 'cast by the 6 km tile only at ' + Q.label + ' quality (choose Medium or High for shadows from the surrounding terrain).') + ' Sunlit and Earth-visible status at the site marker always come from the validated horizon model.',
       '<b>Fill light and brightness</b>: a faint uniform light keeps unlit ground from being pure black. It is not physical (real shadows get only faint light reflected from sunlit terrain and Earthshine). The Brightness slider and "Light up" change only the display exposure and this fill light, never the Sun direction or any computed value.',
+      '<b>Earthshine</b> (off by default; Approximate): sunlight reflected by Earth, from the computed Earth direction. Strength = Earth&#39;s geometric albedo 0.434 (NASA Earth Fact Sheet) × (Earth radius / distance)² (its angular size) × the Lambert phase law at the computed phase angle (how much of Earth is lit) - about 1/8,000 of sunlight at full Earth. Off where Earth&#39;s centre is below the validated terrain horizon at the site marker; ' + (s.earthLight.castShadow ? 'the drawn terrain casts earthshine shadows' : 'no earthshine shadows at ' + Q.label + ' quality') + '. Earth is treated as an evenly reflecting sphere and a point source: the real value depends on clouds and Earth&#39;s real phase curve (within about a factor of 2; a sphere with Earth&#39;s Bond albedo 0.294 gives about half), and real earthshine shadows have soft edges (Earth is about 2° wide). Light reflected by sunlit terrain is not included. While on, the uniform fill light is off, and a site in shadow is shown with a raised exposure (stated on screen). Display only: no status or readout uses it.',
       '<b>Stars</b> (off by default): the ' + (s.starRows ? s.starRows.length + ' ' : '') + 'stars brighter than magnitude ' + Q.starMag.toFixed(1) + ' (at ' + Q.label + ' quality) of the Yale Bright Star Catalogue, 5th revised edition (Hoffleit &amp; Warren 1991, public domain), at their true directions in the site\'s sky for the selected time, using the engine\'s Moon orientation (checked against an independent IAU/WGCCRE computation: within 0.002°). Size and brightness by magnitude, tint by colour index. Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view.',
       '<b>Vertical exaggeration</b> above 1× stretches heights (and therefore shadows and the look of slopes); rover slope readouts always use true heights. The distant skyline ring is never exaggerated.',
       '<b>Rover</b>: rover model, speed and tilt are illustrative. Elevation = LOLA height at the rover (bilinear); slope = central differences of the LOLA heights over ' + (P5 ? '5 m within 1 km of the site and ' : '') + m.spacing_m + ' m' + (P5 ? ' elsewhere' : '') + ' (checked against an independent computation from the DEM; Validation page, "3D terrain accuracy"). "Sun over the tile terrain" is a near-field estimate using only the tile.',
@@ -194,7 +201,11 @@ window.AsteriaView3D = (function () {
     var camera = new THREE.PerspectiveCamera(55, 1, 0.3, 2000000);
 
     // terrain: the tile now (coarse first frame), then the extended rings and the 5 m patch (loadExtended)
-    var terrainMat = regolithMaterial(THREE);
+    // global uniforms shared by every terrain material; cascade: camera-centred Sun shadow map (Medium/High)
+    var U = { uContour: { value: 0 }, uSlope: { value: 0 }, uRelief: { value: 0 }, uFlat: { value: 0.1 }, uLambert: { value: 0 }, uNoShadow: { value: 0 }, uCascadeOn: { value: 1 }, cascade: !!Q.cascade };
+    var nmapOK = !!(Q.nmap && renderer.capabilities.isWebGL2);
+    var floatLinear = !!renderer.extensions.get('OES_texture_float_linear');
+    var terrainMat = regolithMaterial(THREE, U);
     var terrainGroup = new THREE.Group(); scene.add(terrainGroup);
     var geo = geomFrom(THREE, M.buildGridMesh(decimate(T, coarse), 1, 0, null, T));
     var terrain = new THREE.Mesh(geo, terrainMat);
@@ -203,12 +214,27 @@ window.AsteriaView3D = (function () {
 
     var fill = new THREE.AmbientLight(0xffffff, FILL);
     scene.add(fill);
+    // Lights (order matters, see lightsPatch): [near-cascade Sun], Sun, Earthshine.
+    var sunNear = null;
+    if (Q.cascade) {
+      sunNear = new THREE.DirectionalLight(0xffffff, 1.7);   // same direction and intensity as the Sun; adds no light (shader)
+      sunNear.castShadow = true; sunNear.shadow.mapSize.set(Q.nearShadow, Q.nearShadow);
+      scene.add(sunNear); scene.add(sunNear.target);
+    }
     var sun = new THREE.DirectionalLight(0xffffff, 1.7);
     sun.castShadow = true;
     sun.shadow.mapSize.set(Q.shadow, Q.shadow);
     sun.shadow.bias = -0.0003;
     sun.shadow.normalBias = TM.d * 0.08;
+    // with a cascade, the full Sun map does not depend on the camera: re-rendered only when the time or terrain changes
+    sun.shadow.autoUpdate = !Q.cascade;
     scene.add(sun); scene.add(sun.target);
+    // Earthshine (round 6, off by default): sunlight reflected by Earth, from the engine's Earth direction, intensity =
+    // Sun intensity x M.earthshineRatio (albedo, angular size, phase); casts shadows on Medium/High.
+    var earthLight = new THREE.DirectionalLight(0xffffff, 0);
+    earthLight.castShadow = !!Q.earthShadow;
+    if (Q.earthShadow) { earthLight.shadow.mapSize.set(Q.shadow / 2, Q.shadow / 2); earthLight.shadow.autoUpdate = false; }
+    scene.add(earthLight); scene.add(earthLight.target);
 
     // Sun disk and Earth (positioned relative to the camera every frame: they are at "infinity")
     var sunDisk = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), new THREE.MeshBasicMaterial({ color: 0xfff4d6 }));
@@ -265,13 +291,13 @@ window.AsteriaView3D = (function () {
 
     // rover (simple illustration, about 2 m long)
     var rover = new THREE.Group();
-    var body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 2.0), new THREE.MeshLambertMaterial({ color: 0xe8e8e8 }));
+    var body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 2.0), litMaterial(THREE, U, 0xe8e8e8));
     body.position.y = 0.75; body.castShadow = true; rover.add(body);
-    var mast = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.8, 0.12), new THREE.MeshLambertMaterial({ color: 0xffc23d }));
+    var mast = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.8, 0.12), litMaterial(THREE, U, 0xffc23d));
     mast.position.set(0, 1.4, -0.7); rover.add(mast);
-    var panel = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.04, 1.0), new THREE.MeshLambertMaterial({ color: 0x24406e }));
+    var panel = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.04, 1.0), litMaterial(THREE, U, 0x24406e));
     panel.position.set(0, 1.05, 0.3); panel.castShadow = true; rover.add(panel);
-    var wheelGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 16), wheelMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
+    var wheelGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 16), wheelMat = litMaterial(THREE, U, 0x333333);
     [[-0.8, -0.7], [0.8, -0.7], [-0.8, 0.7], [0.8, 0.7]].forEach(function (w) {
       var wh = new THREE.Mesh(wheelGeo, wheelMat); wh.rotation.z = Math.PI / 2; wh.position.set(w[0], 0.32, w[1]); wh.castShadow = true; rover.add(wh);
     });
@@ -286,8 +312,8 @@ window.AsteriaView3D = (function () {
     track.frustumCulled = false; scene.add(track);
     var distRings = new THREE.Group(); distRings.visible = false; scene.add(distRings);
 
-    return { THREE: THREE, T: T, TM: TM, Q: Q, refinePending: true, coarse: coarse !== stride, terrainMat: terrainMat, terrainGroup: terrainGroup, layers: [], ext: {},
-      renderer: renderer, scene: scene, camera: camera, terrain: terrain, geo: geo, fill: fill, sun: sun,
+    return { THREE: THREE, T: T, TM: TM, Q: Q, U: U, nmapOK: nmapOK, floatLinear: floatLinear, refinePending: true, coarse: coarse !== stride, terrainMat: terrainMat, terrainGroup: terrainGroup, layers: [], ext: {},
+      renderer: renderer, scene: scene, camera: camera, terrain: terrain, geo: geo, fill: fill, sun: sun, sunNear: sunNear, earthLight: earthLight,
       sunDisk: sunDisk, earth: earth, glare: glare, track: track, trackN: 0, distRings: distRings, ring: ring, stars: stars, marker: marker, markerMat: markerMat, rover: rover };
   }
 
@@ -304,14 +330,25 @@ window.AsteriaView3D = (function () {
   // grazing views (the flat, limb-bright look of the Moon), darker where both cosines are large. Uniform albedo (no
   // public LOLA albedo map at <= 250 m/pixel was found; see the notes). Optional real-data overlays from the DEM:
   // contour lines (true heights, interval uContour) and slope classes (uSlope).
-  function regolithMaterial(THREE) {
+  // Round 6: one material per terrain layer (each may carry its own normal map), sharing the global uniforms U.
+  // opts.nmap: the layer's normal map (DataTexture of the x/z normal components, see M.bakeNormalXZ) - lighting detail
+  // from the finest loaded LOLA grid of that area where the drawn mesh is coarser. Band uniforms (per layer): in the
+  // outer part of the layer (edge distance > uBand0, 0 = centre, 1 = edge) the normal map is sampled at a coarser mip
+  // level (bias up to uBandBias; mip levels are averages of real normals) or, without a map, the normal is blended
+  // toward the smoothed DEM normal (uBandMix), so the amount of detail changes gradually toward the coarser
+  // neighbouring mesh instead of in a visible step. Heights and vertex positions are never changed by this.
+  function regolithMaterial(THREE, U, opts) {
+    opts = opts || {};
     var mat = new THREE.MeshLambertMaterial({ color: 0x9c9a95 });
-    var U = { uContour: { value: 0 }, uSlope: { value: 0 }, uRelief: { value: 0 }, uFlat: { value: 0.1 }, uLambert: { value: 0 } };
-    mat.userData.uniforms = U;
+    var L = { uNMap: { value: opts.nmap || null }, uBand0: { value: opts.band0 || 0.9 }, uBandBias: { value: opts.bandBias || 0 }, uBandMix: { value: opts.bandMix || 0 } };
+    mat.userData.uniforms = U; mat.userData.local = L;
+    if (opts.nmap) mat.defines = { AS_NMAP: '' };
     mat.onBeforeCompile = function (sh) {
-      sh.uniforms.uContour = U.uContour; sh.uniforms.uSlope = U.uSlope; sh.uniforms.uRelief = U.uRelief; sh.uniforms.uFlat = U.uFlat; sh.uniforms.uLambert = U.uLambert;
-      sh.vertexShader = 'attribute float aH;\nattribute float aS;\nattribute vec3 aNs;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\n' +
-        sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvH = aH; vS = aS; vNs = normalMatrix * aNs;');
+      ['uContour', 'uSlope', 'uRelief', 'uFlat', 'uLambert'].forEach(function (k) { sh.uniforms[k] = U[k]; });
+      Object.keys(L).forEach(function (k) { sh.uniforms[k] = L[k]; });
+      lightsPatch(sh, U);
+      sh.vertexShader = 'attribute float aH;\nattribute float aS;\nattribute vec3 aNs;\nattribute vec2 aG;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\n' +
+        sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvH = aH; vS = aS; vNs = normalMatrix * aNs; vG = aG;');
       var chunk = THREE.ShaderChunk.lights_lambert_pars_fragment, from = 'vec3 irradiance = dotNL * directLight.color;';
       if (chunk.indexOf(from) < 0) throw new Error('unexpected three.js Lambert shader');
       // Relief shading (round 5, display option, default on in Walk/Rover). Lommel-Seeliger divides cos i by
@@ -326,12 +363,19 @@ window.AsteriaView3D = (function () {
         '\tvec3 nsV = dot( vNs, vNs ) > 0.25 ? normalize( vNs ) : geometry.normal;\n' +
         '\tfloat relT = max( 0.0, 0.7 * lsT + 0.6 * ( dotNL - saturate( dot( nsV, directLight.direction ) ) ) / max( uFlat, 0.06 ) );\n' +
         '\tvec3 irradiance = ( uLambert > 0.5 ? dotNL : mix( lsT, relT, uRelief ) ) * directLight.color;');
-      sh.fragmentShader = 'uniform float uContour;\nuniform float uSlope;\nuniform float uRelief;\nuniform float uFlat;\nuniform float uLambert;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\n' +
+      sh.fragmentShader = 'uniform float uContour;\nuniform float uSlope;\nuniform float uRelief;\nuniform float uFlat;\nuniform float uLambert;\nuniform sampler2D uNMap;\nuniform float uBand0;\nuniform float uBandBias;\nuniform float uBandMix;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\n' +
         sh.fragmentShader
           .replace('#include <lights_lambert_pars_fragment>', chunk)
+          .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' +
+            'float asBand = smoothstep( uBand0, 1.0, max( abs( vG.x - 0.5 ), abs( vG.y - 0.5 ) ) * 2.0 );\n' +
+            '#ifdef AS_NMAP\n' +
+            '  vec2 asN = texture2D( uNMap, vG, uBandBias * asBand ).rg;\n' +
+            '  normal = normalize( mat3( viewMatrix ) * vec3( asN.x, sqrt( max( 0.0, 1.0 - dot( asN, asN ) ) ), asN.y ) );\n' +
+            '#endif\n' +
+            'if ( uBandMix > 0.0 && dot( vNs, vNs ) > 0.25 ) normal = normalize( mix( normal, normalize( vNs ), uBandMix * asBand ) );')
           .replace('#include <color_fragment>', '#include <color_fragment>\n' +
             'if ( uSlope > 0.5 ) {\n' +
-            '  vec3 sc = vS < 10.0 ? diffuseColor.rgb : vS < 20.0 ? vec3( 0.93, 0.80, 0.25 ) : vS < 30.0 ? vec3( 0.95, 0.50, 0.15 ) : vec3( 0.85, 0.18, 0.18 );\n' +
+            '  vec3 sc = uSlope > 1.5 ? ( vS > uSlope ? vec3( 0.95, 0.15, 0.55 ) : diffuseColor.rgb ) : vS < 10.0 ? diffuseColor.rgb : vS < 20.0 ? vec3( 0.93, 0.80, 0.25 ) : vS < 30.0 ? vec3( 0.95, 0.50, 0.15 ) : vec3( 0.85, 0.18, 0.18 );\n' +
             '  diffuseColor.rgb = mix( diffuseColor.rgb, sc, 0.6 );\n}')
           .replace('#include <dithering_fragment>', '#include <dithering_fragment>\n' +
             'if ( uContour > 0.0 ) {\n' +
@@ -340,8 +384,41 @@ window.AsteriaView3D = (function () {
             '  float major = abs( mod( floor( q + 0.5 ), 5.0 ) ) < 0.5 ? 1.0 : 0.6;\n' +
             '  gl_FragColor.rgb = mix( gl_FragColor.rgb, vec3( 0.35, 0.85, 1.0 ), line * major * step( w, 0.5 ) );\n}');
     };
-    mat.customProgramCacheKey = function () { return 'asteria-regolith-3'; };
+    mat.customProgramCacheKey = function () { return 'asteria-regolith-6' + (opts.nmap ? '-nm' : '') + (U.cascade ? '-cs' : ''); };
     return mat;
+  }
+  // Round 6: the directional-light loop for every lit material of the view (terrain and rover). Lights, in this order
+  // (Three.js puts shadow-casting lights first, in the order they were added): with a cascade (Medium/High)
+  //   0 = Sun, near cascade (camera-centred shadow map; adds no light itself), 1 = Sun (whole terrain), 2 = Earthshine;
+  // without (Low): 0 = Sun, 1 = Earthshine. The Sun's shadow factor is the near cascade's where the point lies inside
+  // it is min(full map, near map) (the near map blended in over its outer 8 %): both use the same light direction and
+  // the same shadow-casting terrain, and the near map can only ADD the finer shadows the full map's coarser texels miss
+  // (sharper, smaller shadows near the camera); it never lights ground the full map shadows. (Measured: on its own, the
+  // finer map turned 3 of 264 grazing-Sun cases at the site marker from shadow to lit; tests/shading_consistency.js.)
+  // uNoShadow: the "shadows" checkbox (receivers ignore all shadow maps).
+  function lightsPatch(sh, U) {
+    sh.uniforms.uNoShadow = U.uNoShadow; sh.uniforms.uCascadeOn = U.uCascadeOn;
+    var chunk = window.THREE.ShaderChunk.lights_fragment_begin;
+    var from = '\t\tdirectLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );';
+    var a = '\t\tgetDirectionalLightInfo( directionalLight, geometry, directLight );', b = '\tDirectionalLight directionalLight;';
+    if (chunk.indexOf(from) < 0 || chunk.indexOf(a) < 0 || chunk.indexOf(b) < 0) throw new Error('unexpected three.js light loop');
+    var to = '\t\tasSh = ( directLight.visible && receiveShadow && uNoShadow < 0.5 ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n' +
+      (U.cascade ?
+        '\t\tif ( UNROLLED_LOOP_INDEX == 0 ) {\n\t\t\tvec3 asC = vDirectionalShadowCoord[ i ].xyz / vDirectionalShadowCoord[ i ].w;\n' +
+        '\t\t\tfloat asM = min( min( asC.x, 1.0 - asC.x ), min( asC.y, 1.0 - asC.y ) );\n' +
+        '\t\t\tasNearW = ( asC.z >= 0.0 && asC.z <= 1.0 ) ? smoothstep( 0.0, 0.08, asM ) * uCascadeOn : 0.0; asNearSh = asSh;\n\t\t}\n' +
+        '\t\t#endif\n\t\tif ( UNROLLED_LOOP_INDEX != 0 ) {\n\t\t\tif ( UNROLLED_LOOP_INDEX == 1 ) asSh = min( asSh, mix( 1.0, asNearSh, asNearW ) );\n' +
+        '\t\t\tdirectLight.color *= asSh;\n\t\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t\t}' :
+        '\t\t#endif\n\t\tdirectLight.color *= asSh;\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );');
+    chunk = chunk.replace(from, to).replace(a, a + '\n\t\tasSh = 1.0;').replace(b, b + '\n\tfloat asNearSh = 1.0, asNearW = 0.0, asSh = 1.0;');
+    sh.fragmentShader = 'uniform float uNoShadow;\nuniform float uCascadeOn;\n' + sh.fragmentShader.replace('#include <lights_fragment_begin>', chunk);
+  }
+  // Rover (and other lit objects): plain Lambert with the same light loop (so the cascade light adds no light twice).
+  function litMaterial(THREE, U, color) {
+    var m = new THREE.MeshLambertMaterial({ color: color });
+    m.onBeforeCompile = function (sh) { lightsPatch(sh, U); };
+    m.customProgramCacheKey = function () { return 'asteria-lit-6' + (U.cascade ? '-cs' : ''); };
+    return m;
   }
   // Second step of progressive loading: replace the coarse first-frame mesh with the final one (and, once loaded,
   // the extended terrain rings and the 5 m patch).
@@ -357,46 +434,90 @@ window.AsteriaView3D = (function () {
     if (P.normal) g.setAttribute('normal', new THREE.BufferAttribute(P.normal, 3)); else g.computeVertexNormals();
     if (P.H) { g.setAttribute('aH', new THREE.BufferAttribute(P.H, 1)); g.setAttribute('aS', new THREE.BufferAttribute(P.slope, 1)); }
     if (P.normalSmooth) g.setAttribute('aNs', new THREE.BufferAttribute(P.normalSmooth, 3));
+    if (P.uv) g.setAttribute('aG', new THREE.BufferAttribute(P.uv, 2));
     g.computeBoundingBox(); g.computeBoundingSphere();
     return g;
   }
   // (Re)build every terrain mesh from the current grids and vertical exaggeration. Nested squares: 5 m patch (High,
   // where available) inside the tile, inside ring A (16 km), inside ring B (40 km, High). Each outer mesh leaves a hole
   // for the inner one and takes the heights on the hole's edge from it (shared vertices); skirts close the T-junctions.
+  // Round 6: ring A / ring B come from the finer grids where they exist (ring A 25 m from LDEM_85S_20M, drawn at 50 m on
+  // High and 100 m on Medium; ring B 100 m, drawn at 200 m), and on Medium/High each ring gets a normal map baked from
+  // the grid it was loaded at (lighting detail of that LOLA grid, never finer). Every mesh keeps its exact DEM heights.
   function buildTerrain(s) {
-    var THREE = s.THREE, mat = s.terrainMat, Q = s.Q, e = s.ext;
-    s.layers.forEach(function (L) { s.terrainGroup.remove(L.mesh); L.mesh.geometry.dispose(); });
-    s.layers = [];
-    var add = function (name, P, cast, recv) {
-      var mesh = new THREE.Mesh(geomFrom(THREE, P), mat); mesh.castShadow = cast; mesh.receiveShadow = recv; mesh.name = name;
-      s.terrainGroup.add(mesh); s.layers.push({ name: name, mesh: mesh, vertices: P.pos.length / 3 });
+    var THREE = s.THREE, Q = s.Q, e = s.ext;
+    s.layers.forEach(function (L) {
+      s.terrainGroup.remove(L.mesh); L.mesh.geometry.dispose();
+      if (L.mesh.material !== s.terrainMat) { var lu = L.mesh.material.userData.local; if (lu && lu.uNMap.value) lu.uNMap.value.dispose(); L.mesh.material.dispose(); }
+    });
+    s.layers = []; s.areas = [];
+    var add = function (name, P, cast, recv, mat) {
+      var mesh = new THREE.Mesh(geomFrom(THREE, P), mat || s.terrainMat); mesh.castShadow = cast; mesh.receiveShadow = recv; mesh.name = name;
+      s.terrainGroup.add(mesh); s.layers.push({ name: name, mesh: mesh, vertices: P.pos.length / 3, nmap: mat && mat.userData.local && mat.userData.local.uNMap.value ? mat.userData.local.uNMap.value.image.width : 0 });
       return mesh;
     };
+    var nm = function (G) { return s.nmapOK ? normalTexture(s, G) : null; };
     var TM = s.TM, patch = e.p5 && (Q.patch5m || s.fine) ? e.p5 : null;
     TM.patch = patch; s.T.patch = patch;
+    // which grid is drawn for each ring, and from which grid its lighting detail comes
+    // ring A geometry: the 25 m grid drawn every afStride-th node on High; on Medium the round-4 grid (100 m from
+    // LDEM_80S_80M), whose shadows were validated (a 100 m sampling of the 20 m product changed 2 of 50 shading-consistency
+    // verdicts at Mons Malapert, so it was not used); the lighting detail (normal map) comes from the 25 m grid at both.
+    var A = Q.fine && Q.afGeom && e.af ? e.af : e.a, strideA = A === e.af ? Q.afStride : Q.ringA, NA = Q.fine && e.af ? e.af : A;
+    var B = e.b && Q.ringB ? (Q.fine && e.bf ? e.bf : e.b) : null, strideB = B && B === e.bf ? 2 : 1;
+    s.gridA = A || null; s.gridB = B; s.lightA = NA || null;
+    var texA = A && s.nmapOK ? NA.d : null, texB = B && s.nmapOK ? B.d : null;
     if (patch) {
-      add('patch5m', M.buildGridMesh(patch, 1, 0, null, patch), true, true);
+      // 5 m patch: full resolution; its outer 150 m blend toward the smoothed (+-4 cell = +-20 m) normal, nearer the 20 m tile
+      add('patch5m', M.buildGridMesh(patch, 1, 0, null, patch), true, true, s.nmapOK ? regolithMaterial(THREE, s.U, { band0: 1 - 150 / patch.half, bandMix: 1 }) : null);
       add('patch5m-skirt', M.buildSkirt(patch, 1, 30), false, true);
+      s.areas.push({ name: '5 m patch (2 km)', geom: patch.d, light: patch.d, product: patch.meta.demProduct });
     }
     s.terrainGroup.remove(s.terrain); s.geo.dispose();
+    if (s.terrain.material !== s.terrainMat) s.terrain.material.dispose();
     var tileP = M.buildGridMesh(TM, 1, patch ? patch.half : 0, patch, s.T);
     s.geo = geomFrom(THREE, tileP); s.terrain.geometry = s.geo; s.terrainGroup.add(s.terrain);
+    // tile: where ring A's lighting detail is much coarser (100 m), the tile's outer 500 m blends toward its smoothed normal
+    s.terrain.material = s.nmapOK && texA && texA > 2.5 * s.T.d ? regolithMaterial(THREE, s.U, { band0: 1 - 500 / TM.half, bandMix: 1 }) : s.terrainMat;
     s.tileVertices = tileP.pos.length / 3;
+    s.areas.push({ name: '6 km tile', geom: TM.d, light: s.T.d, product: s.T.meta.demProduct });
     var extCast = Q.extShadow;
-    if (e.a) {
+    if (A) {
       add('tile-skirt', M.buildSkirt(TM, 1, 40, function (x, y) { return M.nodeOrMesh(TM, x, y); }), false, true);
-      s.ringA = decimate(e.a, Q.ringA);
+      s.ringA = decimate(A, strideA);
       s.ringA.k = TM.k;
-      add('ringA', M.buildGridMesh(s.ringA, 1, TM.half, TM, e.a), extCast, extCast);
+      // ring A's outer 3 km: normal-map detail fades (mip bias) to ring B's lighting resolution when ring B is drawn
+      var mA = nm(NA) ? regolithMaterial(THREE, s.U, { nmap: s.lastTex, band0: 1 - 3000 / NA.half, bandBias: texB ? Math.max(0, Math.log2(texB / NA.d)) : 0 }) : null;
+      var PA = M.buildGridMesh(s.ringA, 1, TM.half, TM, A);
+      if (NA !== A) PA.uv = M.gridUV(s.ringA, 1, NA);      // texture coordinates in the normal map's grid
+      add('ringA', PA, extCast, extCast, mA);
+      s.areas.push({ name: 'Ring A (to 16 km)', geom: A.d * strideA, light: mA ? NA.d : A.d * strideA, product: (mA && NA !== A ? NA.meta.demProduct + ' (lighting), ' : '') + A.meta.demProduct + (mA && NA !== A ? ' (geometry)' : '') });
     } else s.ringA = null;
-    if (e.b && Q.ringB && s.ringA) {
+    if (B && s.ringA) {
+      s.ringBG = decimate(B, strideB); s.ringBG.k = TM.k;
       add('ringA-skirt', M.buildSkirt(s.ringA, 1, 80), false, false);
-      add('ringB', M.buildGridMesh(e.b, 1, s.ringA.half, s.ringA, e.b), extCast, false);
-    }
+      var mB = nm(B) ? regolithMaterial(THREE, s.U, { nmap: s.lastTex }) : null;
+      add('ringB', M.buildGridMesh(s.ringBG, 1, s.ringA.half, s.ringA, B), extCast, false, mB);
+      s.areas.push({ name: 'Ring B (to 40 km)', geom: B.d * strideB, light: mB ? B.d : B.d * strideB, product: B.meta.demProduct });
+    } else s.ringBG = null;
     s.extVertices = s.layers.reduce(function (n, L) { return n + (/skirt/.test(L.name) ? 0 : L.vertices); }, 0);
     fitShadow(s);
     buildDistRings(s);
     s.miniBase = null;
+  }
+  // Round 6: normal map of grid G (x/z components, float or half-float, with a mipmap chain of averaged real normals);
+  // stored in s.lastTex. Baked again whenever the terrain is rebuilt (e.g. a new vertical exaggeration).
+  function normalTexture(s, G) {
+    var THREE = s.THREE, xz = M.bakeNormalXZ(G), levels = M.mipChainXZ(xz, G.n), half = !s.floatLinear;
+    if (half) levels = levels.map(function (l) { var u = new Uint16Array(l.data.length); for (var q = 0; q < u.length; q++) u[q] = THREE.DataUtils.toHalfFloat(l.data[q]); return { data: u, width: l.width, height: l.height }; });
+    var tex = new THREE.DataTexture(levels[0].data, G.n, G.n, THREE.RGFormat, half ? THREE.HalfFloatType : THREE.FloatType);
+    tex.internalFormat = half ? 'RG16F' : 'RG32F';
+    tex.mipmaps = levels; tex.generateMipmaps = false;
+    tex.minFilter = THREE.LinearMipmapLinearFilter; tex.magFilter = THREE.LinearFilter;
+    tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping; tex.anisotropy = 4;
+    tex.needsUpdate = true;
+    s.lastTex = tex;
+    return tex;
   }
   // concentric rings every 500 m around the site, 1 m above the drawn ground (Walk / Rover aid)
   function buildDistRings(s) {
@@ -425,12 +546,19 @@ window.AsteriaView3D = (function () {
   }
   function loadExtended(v) {
     var s = v.s;
-    var idx = s.Q.patch5m && !window.ASTERIA_TERRAIN3D_5M_IDS ? loadExtScript('data/terrain3d/hi5m_index.js') : Promise.resolve();
+    var idx = Promise.all([
+      s.Q.patch5m && !window.ASTERIA_TERRAIN3D_5M_IDS ? loadExtScript('data/terrain3d/hi5m_index.js') : Promise.resolve(),
+      s.Q.fine && !window.ASTERIA_TERRAIN3D_FINE ? loadExtScript('data/terrain3d/fine_index.js') : Promise.resolve()
+    ]);
     return idx.then(function () { return loadExtended2(v); }, function () { return loadExtended2(v); });
   }
   function loadExtended2(v) {
     var s = v.s, id = v.site.id, Q = s.Q, want = [['a', 'data/terrain3d/ext/' + id + '_a.js', 'ASTERIA_TERRAIN3D_EXT', id + '_a']];
     if (Q.ringB) want.push(['b', 'data/terrain3d/ext/' + id + '_b.js', 'ASTERIA_TERRAIN3D_EXT', id + '_b']);
+    // round 6: finer ring grids where they exist (data/terrain3d/fine_index.js; Medium/High)
+    var fine = Q.fine && window.ASTERIA_TERRAIN3D_FINE && window.ASTERIA_TERRAIN3D_FINE[id] || {};
+    if (fine.af) want.push(['af', 'data/terrain3d/ext/' + id + '_af.js', 'ASTERIA_TERRAIN3D_EXT', id + '_af']);
+    if (fine.bf && Q.ringB) want.push(['bf', 'data/terrain3d/ext/' + id + '_bf.js', 'ASTERIA_TERRAIN3D_EXT', id + '_bf']);
     if (!window.ASTERIA_FEATURES3D) loadExtScript('data/terrain3d/features.js').then(function () { if (V === v) { v.dirty = true; notes(v); } }, function () {});
     if (Q.patch5m && (window.ASTERIA_TERRAIN3D_5M_IDS || []).indexOf(id) >= 0) want.push(['p5', 'data/terrain3d/hi5m/' + id + '.js', 'ASTERIA_TERRAIN3D_5M', id]);
     return Promise.all(want.map(function (w) {
@@ -457,9 +585,16 @@ window.AsteriaView3D = (function () {
   // Fit the shadow camera, seen from the Sun: its width and height cover the shadow-receiving terrain (the tile, or
   // ring A when the extended terrain casts shadows: Medium/High), its depth covers every shadow-casting mesh, so ridges
   // up to 16 km (Medium) or 40 km (High) away shade the tile. Tight fitting keeps the resolution at grazing angles.
+  // Round 6: the same fitting for the earthshine light (Earth direction) and for the near cascade (the Sun direction,
+  // width and height covering only the box v.nearBox around the camera, depth covering every caster as for the full map).
   function fitShadow(v) {
-    var THREE = v.THREE, sun = v.sun, cam = sun.shadow.camera;
-    var tmp = new THREE.OrthographicCamera(); tmp.position.copy(sun.position); tmp.lookAt(sun.target.position); tmp.updateMatrixWorld(true);
+    v.shadowTexel = fitLight(v, v.sun, null);
+    if (v.earthLight && v.earthLight.castShadow) fitLight(v, v.earthLight, null);
+    if (v.sunNear) { v.nearTexel = fitLight(v, v.sunNear, v.nearBox || null); }
+  }
+  function fitLight(v, light, nearBox) {
+    var THREE = v.THREE, cam = light.shadow.camera;
+    var tmp = new THREE.OrthographicCamera(); tmp.position.copy(light.position); tmp.lookAt(light.target.position); tmp.updateMatrixWorld(true);
     var inv = new THREE.Matrix4().copy(tmp.matrixWorld).invert(), p = new THREE.Vector3();
     var box = function (bb, lo, hi) {
       for (var c = 0; c < 8; c++) {
@@ -473,16 +608,40 @@ window.AsteriaView3D = (function () {
     if (!v.diagTileShadow) (v.layers || []).forEach(function (L) { if (L.mesh.receiveShadow && !/skirt/.test(L.name)) recv.push(L.mesh.geometry); });
     var cast = [v.geo];
     (v.layers || []).forEach(function (L) { if (L.mesh.castShadow) cast.push(L.mesh.geometry); });
+    if (nearBox) {
+      var ylo = Infinity, yhi = -Infinity;
+      recv.forEach(function (g) { ylo = Math.min(ylo, g.boundingBox.min.y); yhi = Math.max(yhi, g.boundingBox.max.y); });
+      recv = [{ boundingBox: { min: { x: nearBox.x - nearBox.h, y: ylo, z: nearBox.z - nearBox.h }, max: { x: nearBox.x + nearBox.h, y: yhi, z: nearBox.z + nearBox.h } } }];
+    }
     recv.forEach(function (g) { box(g.boundingBox, rlo, rhi); });
     cast.forEach(function (g) { box(g.boundingBox, clo, chi); });
     cam.left = rlo[0] - 5; cam.right = rhi[0] + 5; cam.bottom = rlo[1] - 5; cam.top = rhi[1] + 5;
     // depth: from the nearest caster to the farthest receiver (light space looks down -z)
     cam.near = -Math.max(chi[2], rhi[2]) - 10; cam.far = -Math.min(clo[2], rlo[2]) + 10;
     cam.updateProjectionMatrix();
-    v.shadowTexel = Math.max(cam.right - cam.left, cam.top - cam.bottom) / sun.shadow.mapSize.x;
-    sun.shadow.normalBias = Math.max(v.TM.d * 0.08, v.shadowTexel * 0.6);
+    var texel = Math.max(cam.right - cam.left, cam.top - cam.bottom) / light.shadow.mapSize.x;
+    light.shadow.normalBias = Math.max(v.TM.d * 0.08, texel * 0.6);
     // depth bias as a fixed distance (SHADOW_BIAS_M along the light) whatever the depth range of the shadow camera
-    sun.shadow.bias = -SHADOW_BIAS_M / (cam.far - cam.near);
+    light.shadow.bias = -SHADOW_BIAS_M / (cam.far - cam.near);
+    light.shadow.needsUpdate = true;
+    return texel;
+  }
+  // Near cascade (Medium/High): a square around the camera's ground point (Walk/Rover: 1.2 km half-size; Orbit: the view
+  // centre, half of the camera distance, 0.5-8 km), snapped to a grid of 1/4 of its size so it is re-fitted only when the
+  // camera has moved noticeably. Returns true when the box changed.
+  function updateNear(v) {
+    var s = v.s; if (!s.sunNear) return false;
+    var c = v.ctl, x, z, h;
+    if (c.mode === 'orbit') { x = c.target[0]; z = c.target[2]; h = Math.max(500, Math.min(8000, c.dist * 0.5)); }
+    else if (c.mode === 'walk') { x = c.walk.x; z = c.walk.z; h = 1200; }
+    else { x = c.rov.x; z = c.rov.z; h = 1200; }
+    h = Math.pow(2, Math.round(Math.log2(h)));            // powers of two: few distinct sizes
+    var g = h / 4; x = Math.round(x / g) * g; z = Math.round(z / g) * g;
+    var b = s.nearBox;
+    if (b && b.x === x && b.z === z && b.h === h) return false;
+    s.nearBox = { x: x, z: z, h: h };
+    s.nearTexel = fitLight(s, s.sunNear, s.nearBox);
+    return true;
   }
 
   // ------------------------------------------------------------- controls
@@ -505,7 +664,7 @@ window.AsteriaView3D = (function () {
   var MAXD = 60000, TRACK_MAX = 2000;   // farthest orbit distance (m)
   // Height (Three.js y) of the drawn ground below world (x, z): the finest mesh that contains the point, or -1e9.
   function groundY(s, x, z) {
-    var grids = [s.TM, s.ringA, s.ext.b && s.Q.ringB ? s.ext.b : null];
+    var grids = [s.TM, s.ringA, s.ringBG];
     for (var q = 0; q < grids.length; q++) {
       var G = grids[q]; if (!G) continue;
       var g = M.groundWorld(G, x, z);
@@ -606,11 +765,15 @@ window.AsteriaView3D = (function () {
     s.sun.target.position.set(0, 0, 0);
     s.sun.position.set(d[0] * 100000, d[1] * 100000, d[2] * 100000);
     s.sun.intensity = r.sun.el > -r.sun.radius_deg - 1 ? 1.7 : 0;
+    if (s.sunNear) { s.sunNear.target.position.set(0, 0, 0); s.sunNear.position.copy(s.sun.position); s.sunNear.intensity = s.sun.intensity; s.sunNear.updateMatrixWorld(); }
+    var ed = M.dirFromAzEl(r.earth.az, r.earth.el);
+    s.earthLight.target.position.set(0, 0, 0); s.earthLight.position.set(ed[0] * 100000, ed[1] * 100000, ed[2] * 100000); s.earthLight.updateMatrixWorld();
     s.sun.updateMatrixWorld(); fitShadow(s);
     s.terrainMat.userData.uniforms.uFlat.value = Math.max(0.06, Math.sin(Math.max(0, r.sun.el) * Math.PI / 180));
     v.sunDir = d; v.earthDir = M.dirFromAzEl(r.earth.az, r.earth.el);
     var ph = M.earthPhase(r.sun, r.earth);
     v.phase = ph;
+    applyEarthshine(v);
     // status tiles: from the validated horizon model (main app series)
     var tile = function (id, cls, stEl, text) { $(id).className = 'tile ' + cls; $(stEl).textContent = text; };
     tile('v3dTileSun', inst.sunUp ? 'on-sun' : 'off', 'v3dSun', inst.sunUp ? 'Sun up' : 'Sun down');
@@ -653,6 +816,7 @@ window.AsteriaView3D = (function () {
         s.earth.scale.setScalar(EARTH_D * Math.sin(r.earth.radius_deg * Math.PI / 180));
       }
       s.stars.position.copy(cam.position);
+      updateNear(v);
       s.renderer.render(s.scene, cam);
       labels(v);
       hud(v); featureLabels(v); miniMap(v); layoutLabels(v);
@@ -808,7 +972,9 @@ window.AsteriaView3D = (function () {
     });
     v.el.querySelectorAll('.seg button').forEach(function (b) { add(b, 'click', function () { setMode(v, b.dataset.mode); }); });
     add($('v3dExag'), 'change', function () { setExag(v, +this.value); });
-    add($('v3dShadows'), 'change', function () { v.s.sun.castShadow = this.checked; v.s.terrain.receiveShadow = this.checked; v.s.terrain.material.needsUpdate = true; v.dirty = true; });
+    // round 6: the lights keep casting (their order is fixed, see lightsPatch); receivers ignore the shadow maps
+    add($('v3dShadows'), 'change', function () { v.s.U.uNoShadow.value = this.checked ? 0 : 1; v.dirty = true; });
+    add($('v3dEarthshine'), 'change', function () { applyEarthshine(v); });
     add($('v3dQuality'), 'change', function () {
       var q = this.value; lsSet('asteria.v3dQuality', q);
       setQuality(v, q, 'Quality set to ' + QUALITY[q].label + ' (your choice, remembered on this device).');
@@ -941,10 +1107,11 @@ window.AsteriaView3D = (function () {
     var c = v.ctl, r = v.inst && v.inst.r; if (!r) return;
     c.target = [0, groundY(v.s, 0, 0), 0];
     c.yaw = r.sun.az + 180 - 35; c.pitch = 20; c.dist = v.s.Q.ringA > 1 ? 7000 : 9000;
-    var A = v.s.ext.a;
+    var A = v.s.gridA || v.s.ext.a;
     if (A) {   // a site in a deep depression (e.g. a crater floor): back off to show the walls around it
       var hmax = -1e9;
-      for (var j = 0; j < A.n; j += 4) for (var i = 0; i < A.n; i += 4) {
+      var st = A.d < 50 ? Math.round(400 / A.d) : 4;   // same ~400 m sampling as before round 6
+      for (var j = 0; j < A.n; j += st) for (var i = 0; i < A.n; i += st) {
         var e = (i - A.c) * A.d, n = (A.c - j) * A.d;
         if (e * e + n * n < 12000 * 12000) hmax = Math.max(hmax, A.H[j * A.n + i]);
       }
@@ -1089,6 +1256,39 @@ window.AsteriaView3D = (function () {
     }).then(go, function (e) { console.warn('5 m patch not loaded: ' + (e && e.message || e)); go(); });
   }
 
+  // ------------------------------------------------- earthshine (round 6)
+  // A directional light from the engine's Earth direction with the physically scaled intensity
+  //   Sun intensity x p (R_E/d)^2 Phi(alpha)   (M.earthshineRatio: geometric albedo p = 0.434, NASA Earth Fact Sheet;
+  // R_E/d from Earth's angular radius; Lambert phase law at the phase angle from the engine's Sun and Earth vectors).
+  // Visibility: off when Earth's centre is below the validated terrain horizon at the site marker (rays to 300 km);
+  // on Medium/High the drawn terrain also casts earthshine shadows. Earth is treated as a point source (its disk is
+  // about 1.9 deg wide, so real earthshine shadows have soft edges). Because earthshine is about 10^4 times fainter than
+  // sunlight, a site in shadow is shown with the exposure raised by 1 / ratio (like a long camera exposure; sunlit ground
+  // is then overexposed), and the non-physical uniform fill light is switched off while earthshine is on.
+  // Display only: no status, readout or computed value uses it.
+  function applyEarthshine(v) {
+    var s = v.s, i = v.inst; if (!s || !i) return;
+    var on = !!($('v3dEarthshine') && $('v3dEarthshine').checked), r = i.r;
+    var es = M.earthshineRatio(r.sun, r.earth), visible = r.earth.el > i.hzEarth;
+    v.esOn = on;
+    s.earthLight.intensity = on && visible ? 1.7 * es.ratio : 0;
+    if (s.earthLight.castShadow) s.earthLight.shadow.needsUpdate = true;
+    // exposure for a site in shadow: earthshine on flat ground then reads like a light of 0.35x the Sun's display
+    // intensity (mid-grey), and the relief-shading contrast is normalised by Earth's elevation instead of the Sun's
+    v.esExposure = on && visible && !i.sunUp ? 0.35 / es.ratio : 1;
+    s.U.uFlat.value = Math.max(0.06, Math.sin(Math.max(0, v.esExposure > 1 ? r.earth.el : r.sun.el) * Math.PI / 180));
+    v.earthshine = { on: on, ratio: es.ratio, ratioBond: es.ratioBond, phaseAngle: es.phaseAngle, illuminated: es.illuminated, visible: visible, exposure: v.esExposure, intensity: s.earthLight.intensity, shadows: !!s.earthLight.castShadow };
+    var n = $('v3dEsNote'), fmt = function (x) { return Math.round(x).toLocaleString('en-US'); };
+    if (n) {
+      n.hidden = !on;
+      if (on) n.textContent = !visible ? 'Earth\'s centre is below the terrain horizon at the site marker (validated horizon model), so no earthshine reaches it: ground in shadow stays dark.' :
+        'Earthshine here: about 1/' + fmt(1 / es.ratio) + ' of direct sunlight (Earth ' + (100 * es.illuminated).toFixed(0) + ' % lit, ' + (2 * r.earth.radius_deg).toFixed(2) + '° across; albedo 0.434). ' +
+        (i.sunUp ? 'The Sun is up at the site, so earthshine is far too faint to see at normal exposure.' : 'Exposure raised ×' + fmt(v.esExposure) + ' (like a long camera exposure) because the site is in shadow; anything in sunlight is overexposed.') +
+        ' Approximate: Earth treated as an evenly reflecting sphere (real value within about a factor of 2).';
+    }
+    setBrightness(v, v.bright || 1, true);
+  }
+
   // ------------------------------------------------- real-data overlays (contours, slope)
   function overlays(v) {
     var U = v.s.terrainMat.userData.uniforms, c = $('v3dContours').checked, sl = $('v3dSlope').checked, iv = +$('v3dContourInt').value;
@@ -1118,8 +1318,10 @@ window.AsteriaView3D = (function () {
   // the shadows' geometry and every computed value are untouched.
   function setBrightness(v, b, noSave) {
     v.bright = b;
-    v.s.renderer.toneMappingExposure = b;
-    v.s.fill.intensity = FILL * b;
+    // round 6: with earthshine on, the non-physical fill light is off and, while the site is in shadow, the exposure is
+    // multiplied by v.esExposure (see applyEarthshine); display only, like the slider itself
+    v.s.renderer.toneMappingExposure = b * (v.esExposure || 1);
+    v.s.fill.intensity = v.esOn ? 0 : FILL * b;
     $('v3dBright').value = b; $('v3dBrightVal').textContent = b.toFixed(1) + '×';
     var lit = b >= LIGHT_UP - 0.01;
     $('v3dLightUp').setAttribute('aria-pressed', lit ? 'true' : 'false');
@@ -1243,11 +1445,13 @@ window.AsteriaView3D = (function () {
           seen.push(m);
           for (var key in m) if (m[key] && m[key].isTexture) m[key].dispose();
           if (m.uniforms) for (var u in m.uniforms) { var val = m.uniforms[u] && m.uniforms[u].value; if (val && val.isTexture) val.dispose(); }   // shader materials (Earth)
+          var lu = m.userData && m.userData.local; if (lu) for (var u2 in lu) { var v2 = lu[u2] && lu[u2].value; if (v2 && v2.isTexture) v2.dispose(); }   // terrain normal maps (round 6)
           m.dispose();
         }
       });
     });
-    if (s.sun.shadow && s.sun.shadow.map) s.sun.shadow.map.dispose();
+    if (seen.indexOf(s.terrainMat) < 0) s.terrainMat.dispose();
+    [s.sun, s.sunNear, s.earthLight].forEach(function (L) { if (L && L.shadow && L.shadow.map) L.shadow.map.dispose(); });
     var mem = { geometries: s.renderer.info.memory.geometries, textures: s.renderer.info.memory.textures };
     s.renderer.renderLists.dispose();
     s.renderer.dispose();
@@ -1287,7 +1491,8 @@ window.AsteriaView3D = (function () {
       sunIntensity: s.sun.intensity, earthPhase: v.phase, earthTexture: s.earthTex || null, subObserver: v.subObs || null, glare: s.glare.visible,
       labelSun: $('v3dLblSun').querySelector('.t').textContent, labelEarth: $('v3dLblEarth').querySelector('.t').textContent, instant: v.inst && { idx: v.inst.idx, t: v.inst.t, sunUp: v.inst.sunUp, earthUp: v.inst.earthUp, sun: { az: v.inst.r.sun.az, el: v.inst.r.sun.el, radius_deg: v.inst.r.sun.radius_deg }, earth: { az: v.inst.r.earth.az, el: v.inst.r.earth.el, radius_deg: v.inst.r.earth.radius_deg } },
       vertices: s.geo.attributes.position.count, triangles: s.geo.index.count / 3, extVertices: s.extVertices || 0, extError: s.extError || null,
-      layers: s.layers.map(function (L) { return { name: L.name, vertices: L.vertices, cast: L.mesh.castShadow, receive: L.mesh.receiveShadow }; }),
+      layers: s.layers.map(function (L) { return { name: L.name, vertices: L.vertices, cast: L.mesh.castShadow, receive: L.mesh.receiveShadow, normalMap: L.nmap || 0 }; }),
+      areas: s.areas || [], nmap: !!s.nmapOK, cascade: s.sunNear ? { box: s.nearBox || null, texel: s.nearTexel || null, mapSize: s.sunNear.shadow.mapSize.x } : null, earthshine: v.earthshine || null, noShadow: s.U.uNoShadow.value === 1,
       shadowCamera: { left: s.sun.shadow.camera.left, right: s.sun.shadow.camera.right, top: s.sun.shadow.camera.top, bottom: s.sun.shadow.camera.bottom, near: s.sun.shadow.camera.near, far: s.sun.shadow.camera.far, texel: s.shadowTexel },
       memory: { geometries: s.renderer.info.memory.geometries, textures: s.renderer.info.memory.textures }, rover: v.roverState || null, labelLayout: v.labelLayout || null,
       tileCentreY: M.groundWorld(s.TM, 0, 0).y,
@@ -1307,28 +1512,30 @@ window.AsteriaView3D = (function () {
     var mask = v.openArgs.mask, hz = E.maskAt(mask, r.sun.az), sunUp = r.sun.el > hz;
     var inst = { idx: 0, n: 1, t: t, r: r, sunUp: sunUp, earthUp: r.earth.el > E.maskAt(mask, r.earth.az), hzSun: hz, hzEarth: E.maskAt(mask, r.earth.az), minEl: 0 };
     setInstant(v, inst);
+    updateNear(v);
     s.renderer.render(s.scene, s.camera);
-    var lit = false, depth = null, z = null;
-    if (s.sun.intensity > 0 && s.sun.castShadow && s.sun.shadow.map) {
-      var THREE = s.THREE, p = new THREE.Vector4(0, groundY(s, 0, 0) + EYE_M, 0, 1).applyMatrix4(s.sun.shadow.matrix);
-      var W = s.sun.shadow.mapSize.x, buf = new Uint8Array(4);
-      var px = Math.floor(p.x * W), py = Math.floor(p.y * W);
-      if (px >= 0 && py >= 0 && px < W && py < W) {
-        s.renderer.readRenderTargetPixels(s.sun.shadow.map, px, py, 1, 1, buf);
-        var f = 255 / 256;
-        depth = f * (buf[0] / 255 / 16777216 + buf[1] / 255 / 65536 + buf[2] / 255 / 256 + buf[3] / 255);
-        z = p.z + s.sun.shadow.bias;
-        lit = z <= depth;
-      } else lit = true;   // outside the shadow camera: drawn lit
-    }
+    var site = [0, groundY(s, 0, 0) + EYE_M, 0];
+    var far = s.sun.intensity > 0 ? readShadow(s, s.sun, site) : { lit: false };
+    // round 6: the near cascade's verdict at the same point (Medium/High; the view centre is the site by default)
+    var near = s.sunNear && s.sun.intensity > 0 ? readShadow(s, s.sunNear, site) : null;
     var dh = drawnHorizon(s, r.sun.az);
-    return { t: t, sunEl: r.sun.el, sunAz: r.sun.az, horizon: hz, validatedSunUp: sunUp, renderedLit: lit, sunAboveDrawnTerrain: r.sun.el > dh.el, drawnTerrainHorizon: dh.el, castKm: dh.km, quality: v.quality, texel: s.shadowTexel };
+    return { t: t, sunEl: r.sun.el, sunAz: r.sun.az, horizon: hz, validatedSunUp: sunUp, renderedLit: far.lit, renderedLitNear: near && near.inside ? near.lit : null, renderedLitCombined: near && near.inside ? far.lit && near.lit : far.lit, sunAboveDrawnTerrain: r.sun.el > dh.el, drawnTerrainHorizon: dh.el, castKm: dh.km, quality: v.quality, texel: s.shadowTexel, nearTexel: s.nearTexel || null };
+  }
+  // Depth test of world point p against a light's rendered shadow map (RGBA-packed depth), as the shader does.
+  function readShadow(s, light, pt) {
+    if (!light.castShadow || !light.shadow.map) return { lit: true, inside: false };
+    var THREE = s.THREE, p = new THREE.Vector4(pt[0], pt[1], pt[2], 1).applyMatrix4(light.shadow.matrix);
+    var W = light.shadow.mapSize.x, buf = new Uint8Array(4), px = Math.floor(p.x * W), py = Math.floor(p.y * W);
+    if (!(px >= 0 && py >= 0 && px < W && py < W)) return { lit: true, inside: false };   // outside the shadow camera: drawn lit
+    s.renderer.readRenderTargetPixels(light.shadow.map, px, py, 1, 1, buf);
+    var f = 255 / 256, depth = f * (buf[0] / 255 / 16777216 + buf[1] / 255 / 65536 + buf[2] / 255 / 256 + buf[3] / 255);
+    return { lit: p.z + light.shadow.bias <= depth, inside: true };
   }
   // Elevation (deg) of the highest shadow-casting terrain toward azimuth az, seen from 2 m above the site (true heights from
   // the finest drawn grid at each distance, lunar curvature included); used to explain disagreements.
   function drawnHorizon(s, az) {
     // only terrain that casts shadows in this view (Low: the tile; Medium: + ring A; High: + ring B)
-    var grids = [s.T, s.ringA && s.Q.extShadow ? s.ext.a : null, s.ext.b && s.Q.ringB && s.Q.extShadow ? s.ext.b : null].filter(Boolean);
+    var grids = [s.T, s.ringA && s.Q.extShadow ? s.ringA : null, s.ringBG && s.Q.extShadow ? s.ringBG : null].filter(Boolean);
     var R = s.T.R, hObs = M.heightAt(s.T, 0, 0) + EYE_M, a = az * Math.PI / 180, se = Math.sin(a), ce = Math.cos(a), best = -90, far = 0;
     for (var t = 10; ; t += t < 3000 ? 10 : t < 16000 ? 40 : 80) {
       var e = se * t, n = ce * t, G = null;

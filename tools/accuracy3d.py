@@ -3,7 +3,7 @@ ASTERIA - independent Python side of the 3D terrain accuracy check (round 5, Par
 Generated with Claude Code (Anthropic) under human direction.
 
 Called by tests/accuracy3d.js:  .venv/Scripts/python -I tools/accuracy3d.py <points.json> <out.json>
-  heights   : EVERY grid point of every 3D product (data/terrain3d/<site>.js, ext/<site>_a/_b.js, hi5m/<site>.js) vs a
+  heights   : EVERY grid point of every 3D product (data/terrain3d/<site>.js, ext/<site>_a/_b/_af/_bf.js, hi5m/<site>.js) vs a
               bilinear sample of the source LOLA DEM. Node positions from the site's up vector rotated by the ground
               distance (vectorised form of terrain3d.node_latlon_vector, not the great-circle routine of the generators).
   slopes    : central differences over the grid spacing d of DEM heights sampled at the geographic positions of
@@ -96,8 +96,10 @@ def heights():
     ids = json.loads(re.search(r'=\s*(\[.*?\])', open(os.path.join(D3, 'index.js')).read(), re.S).group(1))
     for sid in ids:
         files.append((sid, 'tile', os.path.join(D3, sid + '.js')))
-        for k, kind in (('a', 'ringA'), ('b', 'ringB')):
-            files.append((sid, kind, os.path.join(D3, 'ext', '%s_%s.js' % (sid, k))))
+        for k, kind in (('a', 'ringA'), ('b', 'ringB'), ('af', 'ringAfine'), ('bf', 'ringBfine')):
+            fp = os.path.join(D3, 'ext', '%s_%s.js' % (sid, k))
+            if k in ('a', 'b') or os.path.exists(fp):      # round 6: finer rings where they exist
+                files.append((sid, kind, fp))
         p5 = os.path.join(D3, 'hi5m', sid + '.js')
         if os.path.exists(p5):
             files.append((sid, 'patch5m', p5))

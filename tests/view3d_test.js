@@ -169,6 +169,45 @@ function loadWin(file) {
   expect('seams: ' + seamN + ' hole-edge vertices (tile/ring A, ring A/ring B, Low-quality decimation, 5 m patch/tile) identical to the vertices of the finer mesh', seam === 0, 'max distance ' + seam + ' m');
   expect('seams: no missing cells around the holes; heights inside the 5 m patch come from the patch', gapCells === 0, gapCells + ' problems');
   expect('5 m patch (' + ids5.join(', ') + '): heights at stored check points within 1 m of direct LDEM_875S_5M samples', ids5.length === 3 && worst5 <= 1, 'worst ' + worst5.toFixed(3) + ' m; site centre 5 m vs 20 m DEM differ by ' + worst5c.toFixed(2) + ' m');
+  // ---- round 6: finer ring grids (ring A 25 m drawn at 50 m on High; ring B 100 m drawn at 200 m), normal maps
+  const fine = loadWin('data/terrain3d/fine_index.js').ASTERIA_TERRAIN3D_FINE;
+  let seam6 = 0, seam6N = 0, gap6 = 0, chk6 = 0, chk6N = 0, nmDiff = 0, uvErr = 0, nAF = 0, nBF = 0;
+  for (const id of ids) {
+    const f = fine[id] || {}; if (!f.af && !f.bf) continue;
+    const T = M.decodeTile(loadWin('data/terrain3d/' + id + '.js').ASTERIA_TERRAIN3D[id]);
+    const A = M.decodeTile(loadWin('data/terrain3d/ext/' + id + '_a.js').ASTERIA_TERRAIN3D_EXT[id + '_a']);
+    const AF = f.af ? M.decodeTile(loadWin('data/terrain3d/ext/' + id + '_af.js').ASTERIA_TERRAIN3D_EXT[id + '_af']) : null;
+    const BF = f.bf ? M.decodeTile(loadWin('data/terrain3d/ext/' + id + '_bf.js').ASTERIA_TERRAIN3D_EXT[id + '_bf']) : null;
+    for (const G of [AF, BF]) if (G) for (const p of G.meta.checkPoints) { chk6 = Math.max(chk6, Math.abs(G.H[p.j * G.n + p.i] - p.h_dem_m)); chk6N++; }
+    if (AF) nAF++; if (BF) nBF++;
+    const pairs = [];
+    if (AF) pairs.push([decim(AF, 2), T]);                                     // High: ring A at 50 m around the tile
+    if (BF) pairs.push([decim(BF, 2), AF ? decim(AF, 2) : A]);                 // High: ring B at 200 m around ring A
+    for (const [O, I] of pairs) {
+      const PO = M.buildGridMesh(O, 1, I.half, I), PI = M.buildGridMesh(I, 1, 0, null);
+      for (let jj = 0; jj < PO.m; jj++) for (let ii = 0; ii < PO.m; ii++) {
+        const e = (ii - O.c) * O.d, n = (O.c - jj) * O.d;
+        if (Math.max(Math.abs(e), Math.abs(n)) !== I.half) continue;
+        const fi = e / I.d + I.c, fj = I.c - n / I.d;
+        if (Math.abs(fi - Math.round(fi)) > 1e-9 || Math.abs(fj - Math.round(fj)) > 1e-9) continue;   // not a node of the finer mesh (T-junction: skirt)
+        const a = posAt(PO, PO.m, ii, jj), b = posAt(PI, PI.m, Math.round(fi), Math.round(fj));
+        seam6 = Math.max(seam6, Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])); seam6N++;
+      }
+      const cells = PO.index.length / 6, m = PO.m, inside = Math.round(2 * I.half / O.d);
+      if (cells !== (m - 1) * (m - 1) - inside * inside) gap6++;
+    }
+    // normal map of the finest grid = the DEM normal at each node (same formula as the mesh normals; interior nodes)
+    const G = AF || BF, NX = M.bakeNormalXZ(G), sub = decim(G, 8), PS = M.buildGridMesh(sub, 1, 0, null, G);
+    for (let jj = 1; jj < sub.n - 1; jj++) for (let ii = 1; ii < sub.n - 1; ii++) {
+      const k = (jj * 8) * G.n + ii * 8, q = jj * sub.n + ii;
+      nmDiff = Math.max(nmDiff, Math.abs(NX[2 * k] - PS.normal[3 * q]), Math.abs(NX[2 * k + 1] - PS.normal[3 * q + 2]));
+      // texture coordinate of that vertex = centre of the texel of the same node
+      uvErr = Math.max(uvErr, Math.abs(PS.uv[2 * q] - (ii * 8 + 0.5) / G.n), Math.abs(PS.uv[2 * q + 1] - (jj * 8 + 0.5) / G.n));
+    }
+  }
+  expect('round 6 finer rings: ' + nAF + ' ring A grids (25 m, LDEM_85S_20M) and ' + nBF + ' ring B grids (100 m): stored check points within 1 m of direct DEM samples', nAF === 4 && nBF === 7 && chk6 <= 1, 'worst ' + chk6.toFixed(3) + ' m at ' + chk6N + ' points');
+  expect('round 6 seams: ' + seam6N + ' hole-edge vertices (ring A 50 m / tile, ring B 200 m / ring A) identical to the finer mesh; no missing cells', seam6 === 0 && gap6 === 0, 'max ' + seam6 + ' m, ' + gap6 + ' gap problems');
+  expect('round 6 normal maps: baked normal = the DEM normal of the mesh at the same node (central differences, curvature included); texture coordinates hit the node\'s texel centre', nmDiff < 1e-6 && uvErr < 1e-6, 'normal ' + nmDiff.toExponential(2) + ', uv ' + uvErr.toExponential(2));
   function decim(G, st) {
     const mm = Math.floor((G.n - 1) / st) + 1, H = new Float32Array(mm * mm);
     for (let j = 0; j < mm; j++) for (let i = 0; i < mm; i++) H[j * mm + i] = G.H[j * st * G.n + i * st];
@@ -228,6 +267,23 @@ function loadWin(file) {
   const bad = tags.filter(s => /three|view3d|terrain3d\/(?!index\.js)/.test(s));
   expect('index.html does not load Three.js, the 3D code or any terrain tile (only the 3D site list)', bad.length === 0, bad.join(', ') || tags.filter(s => /terrain3d/.test(s)).join(', '));
   expect('Three.js is a local file (lib/three/three.min.js, r149, MIT licence alongside)', fs.existsSync(path.join(ROOT, 'lib/three/three.min.js')) && /Copyright 2010-2023 Three.js Authors/.test(fs.readFileSync(path.join(ROOT, 'lib/three/three.min.js'), 'utf8').slice(0, 300)) && fs.existsSync(path.join(ROOT, 'lib/three/LICENSE')));
+})();
+
+// ---------------------------------------------------------------- 5. round 6: earthshine formula, normal-map mip chain
+(function () {
+  const DEGR = Math.PI / 180, R_E = 6378.137, D = 384400, rd = Math.asin(R_E / D) / DEGR;
+  // full Earth (phase angle ~0): ratio = p (R/d)^2 = 0.434 x (6378.137 / 384400)^2 = 1.195e-4
+  const full = M.earthshineRatio({ az: 0, el: 0, dist_km: 1.496e8 }, { az: 180, el: 0, dist_km: D, radius_deg: rd });
+  const ref = 0.434 * Math.pow(R_E / D, 2);
+  // quarter Earth: Sun and Earth 90 deg apart in the site's sky -> phase angle ~90 deg, Phi = 1/pi
+  const quarter = M.earthshineRatio({ az: 90, el: 0, dist_km: 1.496e8 }, { az: 0, el: 0, dist_km: D, radius_deg: rd });
+  const q90 = Math.abs(quarter.phaseAngle - 90) < 0.2 && Math.abs(quarter.phi - (Math.sin(quarter.phaseAngle * DEGR) + (Math.PI - quarter.phaseAngle * DEGR) * Math.cos(quarter.phaseAngle * DEGR)) / Math.PI) < 1e-12;
+  const newE = M.earthshineRatio({ az: 0, el: 0, dist_km: 1.496e8 }, { az: 0, el: 0, dist_km: D, radius_deg: rd });   // Sun behind Earth: new Earth
+  expect('earthshine: full Earth = geometric albedo 0.434 x (R_E/d)^2 (' + ref.toExponential(3) + ', about 1/' + Math.round(1 / ref) + ' of sunlight); quarter Earth uses the Lambert phase law; new Earth gives 0', Math.abs(full.ratio - ref) / ref < 0.002 && q90 && newE.ratio < 1e-12 && Math.abs(full.ratioBond / full.ratio - (2 / 3 * 0.294) / 0.434) < 1e-9, 'full ' + full.ratio.toExponential(4) + ' (phase ' + full.phaseAngle.toFixed(3) + ' deg), quarter ' + quarter.ratio.toExponential(3) + ', new ' + newE.ratio);
+  // mip chain: each level is the 2x2 average (sizes halve, floor) - nothing sharper than the level above
+  const n = 9, data = new Float32Array(n * n * 2); for (let k = 0; k < data.length; k++) data[k] = Math.sin(k * 0.37) * 0.3;
+  const L = M.mipChainXZ(data, n), avg = 0.25 * (data[0] + data[2] + data[2 * n] + data[2 * n + 2]);
+  expect('normal-map mip chain: ' + L.length + ' levels (9 -> 4 -> 2 -> 1), each texel the average of 2 x 2 texels of the level above', L.map(l => l.width).join(',') === '9,4,2,1' && Math.abs(L[1].data[0] - avg) < 1e-7);
 })();
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASS');

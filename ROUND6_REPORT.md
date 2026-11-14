@@ -55,3 +55,56 @@ Classification used for every new feature:
 * Earthshine must not alter the Sun light, status tiles or readouts; the brightness/Light-up logic must keep working.
 * UI tests that count layers, vertices, textures or light settings; the AI-wording test (no new AI wording in the UI).
 * Geometry morphing across ring edges would move drawn vertices away from their DEM heights - see Part 1 for the decision.
+
+## Baseline (v1-stable, before any change)
+
+Measured with `node tests/perf3d.js --phone --quality low,medium,high` (headless Chromium on the development laptop, GPU via ANGLE/D3D11; "phone" = emulated screen size and touch on the same GPU). Raw rows: `tests/perf/round6_baseline.json` / `.log`. The browser caps the frame rate at 60 frames/s, so the average while orbiting is 59-60 frames/s everywhere; the GPU-synced render time (median of 20 renders, each followed by a 1-pixel read-back) is added to compare the cost of a frame. GPU resource counts are Three.js `renderer.info` (geometries, textures, draw calls, triangles); **exact GPU memory in bytes is not available in browsers** (WebGL has no memory query). The before/after table is in Part 5.
+
+## Part 1 - Terrain detail in Orbit, Walk and Rover (real data only) - DONE
+
+**What changed**
+* **Finer ring grids** (`tools/terrain3d_ext.py build`): ring A at **25 m** from LDEM_85S_20M for the 4 sites whose whole ring A lies inside that product (both Peak near Shackleton points, Shackleton crater centre, Mons Malapert); ring B at **100 m** from LDEM_85S_20M (3 sites) or LDEM_80S_80M (4 sites) where one of them covers the whole 40 km ring. Same site-centred grid, curvature and encoding as round 4. Index: `data/terrain3d/fine_index.js`.
+* **Geometry**: High draws ring A from the 25 m grid every 2nd node (**50 m**, was 100 m) and ring B from the 100 m grid every 2nd node (200 m, as before but from the finer product). Medium keeps the round-4 ring A geometry (100 m, LDEM_80S_80M): drawing a 100 m sampling of the 20 m product changed 2 of 50 shading-consistency verdicts at Mons Malapert (98.5 % instead of 99.0 %), so that was **not implemented** (accuracy first; see "Trade-offs for the owner"). Low is unchanged.
+* **Normal maps** (Medium and High, WebGL2): baked in the browser from the finest loaded grid of each ring (`js/view3d_math.js` `bakeNormalXZ`): central differences over one grid spacing of the exact ENU positions, identical to the mesh's vertex normals at the same node (unit test). Texel = grid node (25 m ring A, 100 m ring B; never finer than the grid or its DEM). Float (or half-float) two-component textures with a mipmap chain of 2 × 2 averages (`mipChainXZ`). Labelled per area in the 3D notes ("Resolution by area: … geometry: X m grid; lighting detail (normal map): Y m LOLA data (product)").
+* **Gradual change of detail at ring edges** instead of square steps: ring A's outer 3 km samples its normal map at a coarser mip level toward ring B's 100 m (High); where ring A is much coarser than the tile (100 m vs 20 m), the tile's outer 500 m blends toward its smoothed DEM normal (±4 cells); the 5 m patch's outer 150 m likewise. **Geometry is not morphed**: morphing would move drawn vertices away from their DEM heights (it would fail "every grid point within 1 m of the DEM"); the meshes already share their edge vertices (no cracks; seam test).
+* **Near-camera shadow cascade** (Medium 2048 px, High 4096 px): a second Sun shadow map, same direction and same casters, fitted to a square around the view centre (Orbit: half the camera distance, 0.5-8 km; Walk/Rover: about 1 km), texel 2.3-5.6 m instead of 9-22 m. The picture uses **min(full map, near map)**: on its own the finer map turned 3 of 264 grazing-Sun cases (Sun < 0.33° above the drawn terrain) from shadow to lit; with the minimum it can only add the shadows the coarse map misses and never lights ground the full map shadows. The full Sun map is now re-rendered only when the time or the terrain changes (it does not depend on the camera).
+* **Earthshine** (toggle "Earthshine", off by default): see below.
+* Shadows checkbox: receivers ignore the shadow maps (a uniform) instead of switching the light's shadow off (the light order must stay fixed for the cascade).
+* Fixed while testing: the new shadow maps and normal maps were not freed on Close (the UI test caught it; now 0 geometries and 0 textures after closing).
+
+**Earthshine** - classification **Approximate** (physically based, with stated assumptions):
+* Direction = the engine's Earth az/el (validated); angular size from the engine (Earth radius 6378.137 km / distance); phase angle from the engine's Sun and Earth vectors (`earthPhase`).
+* Strength relative to direct sunlight: `p × (R_E/d)² × Φ(α)`, `Φ(α) = (sin α + (π − α) cos α) / π` (Lambert-sphere phase law), `p = 0.434` = Earth's geometric albedo (NASA Earth Fact Sheet, https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html, "Geometric albedo 0.434", page last updated 15 November 2024). Full Earth: 1.195 × 10⁻⁴ of sunlight (about 1/8,400; unit test). A Lambert sphere with Earth's Bond albedo (0.294, same page) gives 45 % of that; the real phase curve and cloud cover lie around these values, so the strength is good to about a factor of 2 (stated on screen).
+* Visibility: off when Earth's centre is below the validated terrain horizon at the site marker (rays to 300 km); on Medium/High the drawn terrain casts earthshine shadows (own shadow map). Earth is treated as a point source (its 1.9° disk would soften shadow edges) - stated.
+* Because earthshine is about 10⁴ times fainter than sunlight, a site in shadow is shown with the exposure raised to 0.35 / ratio (e.g. ×4,713), stated on screen ("like a long camera exposure; anything in sunlight is overexposed"); the non-physical fill light is off while earthshine is on. Not used by any status, readout or calculation.
+
+**Files changed**: `tools/terrain3d_ext.py`, `data/terrain3d/ext/*_af.js` (4), `*_bf.js` (7), `data/terrain3d/fine_index.js`, `js/view3d_math.js` (gridUV, bakeNormalXZ, mipChainXZ, earthshineRatio), `js/view3d.js` (materials, light loop, cascade, normal maps, earthshine, notes, debug), `tools/accuracy3d.py`, `tests/accuracy3d.js`, `tests/view3d_test.js`, `tests/shading_consistency.js`, `tests/ground_detail.js`, `tests/ui_check.js` (accepts LDEM_85S_20M where it is now used), `data/accuracy3d.js`, `data/shading_consistency.js`, `docs/ground_detail/round6/`.
+
+**Scientific data used**: LDEM_85S_20M https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_85s_20m.img ; LDEM_80S_80M https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_80s_80m.img (both already on disk); NASA Earth Fact Sheet https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html (albedo).
+
+**Existing calculations affected**: none. `js/engine.js`, horizon masks, status, countdowns, power, rover readouts and the heights of the existing products are unchanged; the existing ring files were rebuilt byte-identical.
+
+**Tests run and results**
+* Heights: `node tests/accuracy3d.js --python` - **14,499,574 grid points** (all products including the 11 new grids, 6.56 million new points) within **0.10 m** of direct bilinear DEM samples (independent Python path), mean 0.031 m - PASS. `tools/terrain3d_ext.py check` - worst 0.099 m - PASS.
+* `node tests/view3d_test.js` - ALL PASS, including new checks: 5,120 new hole-edge vertices identical to the finer mesh, no missing cells; baked normal = DEM vertex normal (difference 0), texture coordinates on texel centres; earthshine formula (full, quarter, new Earth); mip chain.
+* `node tests/shading_consistency.js` (8 sites × 50 times × 3 levels): **Low 97.8 %, Medium 99.0 %, High 99.8 %** - identical to v1-stable; 0 unexplained. With the near cascade: Medium 261/264 vs 260/264 for the full map alone on the same cases, High 263/264 vs 263/264 - **agreement did not decrease**.
+* `node tests/ui_check.js` (laptop + phone) PASS, no console errors; `node tests/ui_round5.js` ALL PASS; `node tests/features_test.js` PASS.
+* `node tests/ground_detail.js --r6 …`: see `docs/ground_detail/round6/README.md` - Orbit detail at Peak near Shackleton 1.59 → 2.67 (Medium) and 1.55 → 2.62 (High); Mons Mouton 1.99 → 1.74 (tile-edge fade; no 20 m ring there); Walk/Rover in sunlight unchanged; Mons Mouton in shadow: flat black (detail 0) → readable relief with earthshine (0.49).
+
+**Remaining limitations**
+* IM-2, Mons Mouton, Nobile Rim 2 and IM-1: ring A is not fully inside LDEM_85S_20M (92 %, 87 %, 44 %, 0 %), so their ring A keeps the 100/80 m grid (one DEM product per grid, no mixing). A mixed-product ring (20 m where covered, 80 m elsewhere, with a product seam) is possible future work.
+* Walk/Rover in sunlight: the near ground is as detailed as the 20 m (or 5 m) DEM; relief smaller than the grid is not shown and is not invented.
+* Faint straight streaks near Peak near Shackleton are LOLA ground-track artefacts of LDEM_85S_20M (present in an independent hillshade) and are left as they are.
+* The near cascade sharpens shadows only where the full map already allows light; edges of shadows cast by large distant ridges keep the full map's resolution (their real penumbra is tens of metres wide anyway, from the 0.53° Sun disk).
+* Earthshine: point source, uniform Lambert sphere, no light reflected by sunlit terrain (which can exceed earthshine next to sunlit slopes).
+
+**Classification of new features**
+
+| Feature | Class |
+|---|---|
+| Ring A 25 m / ring B 100 m grids | Measured (LOLA heights, bilinear samples; within 0.10 m) |
+| Normal maps (lighting detail) | Calculated (from measured LOLA heights) |
+| Edge fade of detail (mip bias / smoothed normal) | Calculated (averages of real normals); where to fade is a display choice |
+| Near-camera shadow cascade | Approximate (shadow mapping, as before) |
+| Earthshine light | Approximate (documented formula, cited albedo, engine geometry) |
+| Earthshine exposure | Illustrative (display exposure, stated on screen) |

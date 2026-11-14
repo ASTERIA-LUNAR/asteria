@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-14T19:18:01.734091+00:00",
+ "generated": "2026-11-14T21:35:55.865063+00:00",
  "pointsKey": "d1648c14137cfbebc10a9b0ad96a548752669b4f",
  "generator": "tools/accuracy3d.py",
  "heights": [
@@ -64,6 +64,16 @@
    "mean": 0.04999044486692658
   },
   {
+   "siteId": "im2",
+   "kind": "ringBfine",
+   "dem": "LDEM_80S_80M",
+   "points": 641601,
+   "spacing_m": 100.0,
+   "unit_m": 0.2,
+   "max": 0.1000000000003638,
+   "mean": 0.050007417000522504
+  },
+  {
    "siteId": "peak_shackleton",
    "kind": "tile",
    "dem": "LDEM_85S_20M",
@@ -92,6 +102,26 @@
    "unit_m": 0.1,
    "max": 0.04999987349822277,
    "mean": 0.024988916188887607
+  },
+  {
+   "siteId": "peak_shackleton",
+   "kind": "ringAfine",
+   "dem": "LDEM_85S_20M",
+   "points": 1640961,
+   "spacing_m": 25.0,
+   "unit_m": 0.1,
+   "max": 0.049999920132592024,
+   "mean": 0.024909428239005056
+  },
+  {
+   "siteId": "peak_shackleton",
+   "kind": "ringBfine",
+   "dem": "LDEM_85S_20M",
+   "points": 641601,
+   "spacing_m": 100.0,
+   "unit_m": 0.1,
+   "max": 0.04999999068559191,
+   "mean": 0.024897721516796874
   },
   {
    "siteId": "peak_shackleton",
@@ -135,6 +165,26 @@
   },
   {
    "siteId": "peak_shackleton_lw",
+   "kind": "ringAfine",
+   "dem": "LDEM_85S_20M",
+   "points": 1640961,
+   "spacing_m": 25.0,
+   "unit_m": 0.1,
+   "max": 0.04999996836329501,
+   "mean": 0.02491132814459199
+  },
+  {
+   "siteId": "peak_shackleton_lw",
+   "kind": "ringBfine",
+   "dem": "LDEM_85S_20M",
+   "points": 641601,
+   "spacing_m": 100.0,
+   "unit_m": 0.1,
+   "max": 0.04999997718323357,
+   "mean": 0.024856946841798268
+  },
+  {
+   "siteId": "peak_shackleton_lw",
    "kind": "patch5m",
    "dem": "LDEM_875S_5M",
    "points": 160801,
@@ -174,6 +224,16 @@
    "mean": 0.05001950047865977
   },
   {
+   "siteId": "nobile_rim2_dm2",
+   "kind": "ringBfine",
+   "dem": "LDEM_80S_80M",
+   "points": 641601,
+   "spacing_m": 100.0,
+   "unit_m": 0.2,
+   "max": 0.10000000000013642,
+   "mean": 0.05000595064884561
+  },
+  {
    "siteId": "mons_mouton",
    "kind": "tile",
    "dem": "LDEM_85S_20M",
@@ -202,6 +262,16 @@
    "unit_m": 0.2,
    "max": 0.0999997897843059,
    "mean": 0.0499620617341302
+  },
+  {
+   "siteId": "mons_mouton",
+   "kind": "ringBfine",
+   "dem": "LDEM_80S_80M",
+   "points": 641601,
+   "spacing_m": 100.0,
+   "unit_m": 0.2,
+   "max": 0.1000000000003638,
+   "mean": 0.050017821789008564
   },
   {
    "siteId": "mons_malapert",
@@ -234,6 +304,26 @@
    "mean": 0.05006625298982148
   },
   {
+   "siteId": "mons_malapert",
+   "kind": "ringAfine",
+   "dem": "LDEM_85S_20M",
+   "points": 1640961,
+   "spacing_m": 25.0,
+   "unit_m": 0.1,
+   "max": 0.04999990858959791,
+   "mean": 0.024977075469971022
+  },
+  {
+   "siteId": "mons_malapert",
+   "kind": "ringBfine",
+   "dem": "LDEM_80S_80M",
+   "points": 641601,
+   "spacing_m": 100.0,
+   "unit_m": 0.2,
+   "max": 0.10000000000002274,
+   "mean": 0.050041097719007416
+  },
+  {
    "siteId": "shackleton_centre",
    "kind": "tile",
    "dem": "LDEM_85S_20M",
@@ -262,6 +352,26 @@
    "unit_m": 0.1,
    "max": 0.0499998601653715,
    "mean": 0.02497417367378153
+  },
+  {
+   "siteId": "shackleton_centre",
+   "kind": "ringAfine",
+   "dem": "LDEM_85S_20M",
+   "points": 1640961,
+   "spacing_m": 25.0,
+   "unit_m": 0.1,
+   "max": 0.04999999751842665,
+   "mean": 0.02496289129442489
+  },
+  {
+   "siteId": "shackleton_centre",
+   "kind": "ringBfine",
+   "dem": "LDEM_85S_20M",
+   "points": 641601,
+   "spacing_m": 100.0,
+   "unit_m": 0.1,
+   "max": 0.049999907029814494,
+   "mean": 0.024911460721396456
   },
   {
    "siteId": "shackleton_centre",

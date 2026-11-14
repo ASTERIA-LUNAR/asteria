@@ -109,7 +109,7 @@ function stat(a) { const b = a.map(Math.abs); return { n: b.length, max: Math.ma
 function run(force) {
   const P = points(), Y = python(P, force);
   // ---- heights
-  const PRODUCT = { tile: '6 km tile', ringA: 'Ring A (to 16 km)', ringB: 'Ring B (to 40 km)', patch5m: '5 m patch (2 km)' };
+  const PRODUCT = { tile: '6 km tile', ringA: 'Ring A (to 16 km)', ringB: 'Ring B (to 40 km)', patch5m: '5 m patch (2 km)', ringAfine: 'Ring A fine, 25 m (round 6)', ringBfine: 'Ring B fine, 100 m (round 6)' };
   const hrows = Y.heights.map(r => Object.assign({ name: nameOf(r.siteId), product: PRODUCT[r.kind] }, r));
   const hpts = hrows.reduce((a, r) => a + r.points, 0), hworst = Math.max(...hrows.map(r => r.max)), hmean = hrows.reduce((a, r) => a + r.mean * r.points, 0) / hpts;
   // ---- slopes
@@ -146,7 +146,7 @@ function run(force) {
     method: 'Rover positions chosen at random inside the drawn tile (14 on the 6 km tiles as at Low/Medium quality, 6 inside the 5 m patches as at High). The latitude/longitude the Rover panel displays (4 decimals) is converted with the 2D map\'s own projection (js/map.js project: south polar stereographic) and compared with the rover\'s true position, computed independently in Python (site-frame east/north -> great-circle position -> the DEM\'s stereographic grid). The displayed elevation (1 decimal) is compared with a bilinear sample of the LOLA DEM (the tile\'s product, or LDEM_875S_5M inside the patch) at the displayed latitude/longitude.',
     rows: pos, n: pos.length, maxBack_m: Math.max(...pos.map(p => p.backDist_m)), maxElev_m: Math.max(...pos.map(p => Math.abs(p.elevDiff))), pass: pos.every(p => p.pass)
   };
-  const heights = { method: 'Every stored grid point of every 3D terrain product (the 6 km tile of each of the 8 sites, ring A to 16 km, ring B to 40 km, and the three 5 m patches): its geographic position is computed independently (site up vector rotated by the ground distance; not the great-circle routine the generators use), and the LOLA DEM the product names is sampled there directly (bilinear, raw PDS array). Differences come from the 0.1 m (0.2 m where the relief is larger) storage step.', rows: hrows, points: hpts, worst: hworst, mean: hmean, pass: hworst <= H_LIMIT };
+  const heights = { method: 'Every stored grid point of every 3D terrain product (the 6 km tile of each of the 8 sites, ring A to 16 km, ring B to 40 km, the three 5 m patches, and since round 6 the finer ring grids: ring A at 25 m from LDEM_85S_20M and ring B at 100 m from LDEM_85S_20M or LDEM_80S_80M): its geographic position is computed independently (site up vector rotated by the ground distance; not the great-circle routine the generators use), and the LOLA DEM the product names is sampled there directly (bilinear, raw PDS array). Differences come from the 0.1 m (0.2 m where the relief is larger) storage step.', rows: hrows, points: hpts, worst: hworst, mean: hmean, pass: hworst <= H_LIMIT };
   return { generated: new Date().toISOString(), pass: heights.pass && slope.pass && positions.pass, heights, slope, positions, pythonRun: Y.generated };
 }
 

@@ -188,7 +188,70 @@
       var a = j2 * m + i2, b = a + 1, c = a + m, d = c + 1;
       idx.push(a, c, b, b, c, d);
     }
-    return { m: m, pos: pos, H: H, normal: nor, normalSmooth: nsm, slope: slope, index: (m * m > 65535 ? new Uint32Array(idx) : new Uint16Array(idx)), spacing: G.d * stride };
+    return { m: m, pos: pos, H: H, normal: nor, normalSmooth: nsm, slope: slope, uv: gridUV(G, stride, S), index: (m * m > 65535 ? new Uint32Array(idx) : new Uint16Array(idx)), spacing: G.d * stride };
+  }
+  // Round 6. Texture coordinates of every 'stride'-th node of grid G in the texture of grid S (the normal map baked
+  // from S, texel centres on S's nodes): u = (e / S.d + S.c + 0.5) / S.n, v = (S.c - n / S.d + 0.5) / S.n (row 0 = north).
+  function gridUV(G, stride, S) {
+    S = S || G;
+    var m = Math.floor((G.n - 1) / stride) + 1, uv = new Float32Array(m * m * 2), k = 0;
+    for (var jj = 0; jj < m; jj++) for (var ii = 0; ii < m; ii++) {
+      var e = (ii * stride - G.c) * G.d, n = (G.c - jj * stride) * G.d;
+      uv[k++] = (e / S.d + S.c + 0.5) / S.n; uv[k++] = (S.c - n / S.d + 0.5) / S.n;
+    }
+    return uv;
+  }
+  // Round 6. Normal map of grid G at G's own spacing (never finer than the grid, and the grids are never finer than
+  // their LOLA source): the unit surface normal at every node, by central differences over one grid spacing of the
+  // exact ENU positions (curvature and vertical exaggeration G.k included) - the same method as the vertex normals of
+  // buildGridMesh (one-sided at the outer edge). Returned as the Three.js world x and z components (y = up is
+  // sqrt(1 - x^2 - z^2), always > 0 for terrain), row-major, row 0 = north edge.
+  function bakeNormalXZ(G) {
+    var n = G.n, P = new Float64Array(n * n * 3), out = new Float32Array(n * n * 2);
+    for (var j = 0; j < n; j++) for (var i = 0; i < n; i++) {
+      var p = enu(G, (i - G.c) * G.d, (G.c - j) * G.d, G.H[j * n + i]), o = 3 * (j * n + i);
+      P[o] = p[0]; P[o + 1] = p[1]; P[o + 2] = p[2];
+    }
+    for (var j2 = 0; j2 < n; j2++) for (var i2 = 0; i2 < n; i2++) {
+      var iE = Math.min(n - 1, i2 + 1), iW = Math.max(0, i2 - 1), jN = Math.max(0, j2 - 1), jS = Math.min(n - 1, j2 + 1);
+      var a1 = 3 * (j2 * n + iE), a0 = 3 * (j2 * n + iW), b1 = 3 * (jN * n + i2), b0 = 3 * (jS * n + i2);
+      var tx = P[a1] - P[a0], ty = P[a1 + 1] - P[a0 + 1], tz = P[a1 + 2] - P[a0 + 2], ux = P[b1] - P[b0], uy = P[b1 + 1] - P[b0 + 1], uz = P[b1 + 2] - P[b0 + 2];
+      var cx = ty * uz - tz * uy, cy = tz * ux - tx * uz, cz = tx * uy - ty * ux, cl = Math.sqrt(cx * cx + cy * cy + cz * cz) || 1;
+      // ENU (cx, cy, cz) -> Three.js (x = E, y = U, z = -N)
+      out[2 * (j2 * n + i2)] = cx / cl; out[2 * (j2 * n + i2) + 1] = -cy / cl;
+    }
+    return out;
+  }
+  // Mipmap chain of a 2-component normal map: each level is the 2 x 2 average of the level above (floor sizes, as WebGL
+  // expects). An averaged normal is the normal of the real terrain seen at the coarser scale - used for distant ground
+  // and for the gradual change of detail toward a coarser neighbouring mesh; nothing is sharpened or added.
+  function mipChainXZ(data, n) {
+    var levels = [{ data: data, width: n, height: n }], cur = data, w = n, h = n;
+    while (w > 1 || h > 1) {
+      var w2 = Math.max(1, w >> 1), h2 = Math.max(1, h >> 1), nx = new Float32Array(w2 * h2 * 2);
+      for (var y = 0; y < h2; y++) for (var x = 0; x < w2; x++) {
+        var x0 = Math.min(w - 1, 2 * x), x1 = Math.min(w - 1, 2 * x + 1), y0 = Math.min(h - 1, 2 * y), y1 = Math.min(h - 1, 2 * y + 1);
+        for (var c = 0; c < 2; c++) nx[2 * (y * w2 + x) + c] = 0.25 * (cur[2 * (y0 * w + x0) + c] + cur[2 * (y0 * w + x1) + c] + cur[2 * (y1 * w + x0) + c] + cur[2 * (y1 * w + x1) + c]);
+      }
+      levels.push({ data: nx, width: w2, height: h2 }); cur = nx; w = w2; h = h2;
+    }
+    return levels;
+  }
+
+  // ------------------------------------------------------------ Earthshine (round 6)
+  // Irradiance on the Moon from sunlight reflected by Earth, as a fraction of the direct sunlight, treating Earth as a
+  // sphere with geometric albedo p and the Lambert phase law (an approximation; see the notes):
+  //   E_earth / E_sun = p * (R_E / d)^2 * Phi(alpha),  Phi(alpha) = (sin alpha + (pi - alpha) cos alpha) / pi,
+  // R_E / d = sin(Earth's angular radius) from the engine (equatorial radius 6378.137 km), alpha = phase angle at Earth
+  // between the Sun and the observer (earthPhase, from the engine's Sun and Earth vectors). Phi(0) = 1 (full Earth).
+  // Default p = 0.434 (Earth's geometric albedo, NASA Earth Fact Sheet). Also returns the value with a Lambert sphere of
+  // the same Bond albedo (p = 2/3 x 0.294), a lower bound for the real phase curve near full Earth.
+  var EARTH_GEOM_ALBEDO = 0.434, EARTH_BOND_ALBEDO = 0.294;
+  function earthshineRatio(sun, earth, p) {
+    p = p || EARTH_GEOM_ALBEDO;
+    var ph = earthPhase(sun, earth), a = ph.phaseAngle * DEG, phi = (Math.sin(a) + (Math.PI - a) * Math.cos(a)) / Math.PI;
+    var rd = Math.sin(earth.radius_deg * DEG), geo = rd * rd * Math.max(0, phi);
+    return { ratio: p * geo, ratioBond: 2 / 3 * EARTH_BOND_ALBEDO * geo, phi: phi, phaseAngle: ph.phaseAngle, illuminated: ph.illuminated, solidAngleFactor: rd * rd, albedo: p };
   }
   // Skirt: a vertical strip hanging 'drop' metres below the outer edge of grid G (every 'stride'-th node), so the
   // T-junctions where a finer mesh meets a coarser one show terrain-coloured skirt instead of gaps.
@@ -216,7 +279,7 @@
       H[2 * q] = h; H[2 * q + 1] = h;   // contour lines would not run down the skirt
       if (q < ring.length - 1) { var t0 = 2 * q, b0i = t0 + 1, t1 = t0 + 2, b1i = t0 + 3; idx.push(t0, b0i, t1, t1, b0i, b1i); }
     }
-    return { pos: pos, normal: nor, normalSmooth: nor, H: H, slope: sl, index: new Uint32Array(idx) };
+    return { pos: pos, normal: nor, normalSmooth: nor, H: H, slope: sl, uv: new Float32Array(ring.length * 4), index: new Uint32Array(idx) };
   }
 
   // ------------------------------------------------------------ stars (round 4)
@@ -316,6 +379,7 @@
     latLonAt: latLonAt, starDirs: starDirs, earthAxes: earthAxes, subObserver: subObserver, nodeOrMesh: nodeOrMesh, buildGridMesh: buildGridMesh, buildSkirt: buildSkirt,
     decodeTile: decodeTile, enu: enu, toThree: toThree, fromThree: fromThree, dirFromAzEl: dirFromAzEl, azElFromDir: azElFromDir,
     heightAt: heightAt, meshHeightAt: meshHeightAt, slopeAt: slopeAt, gridFromWorld: gridFromWorld, groundWorld: groundWorld,
-    inside: inside, buildIndex: buildIndex, buildPositions: buildPositions, earthPhase: earthPhase, nearFieldSunUp: nearFieldSunUp
+    inside: inside, buildIndex: buildIndex, buildPositions: buildPositions, earthPhase: earthPhase, nearFieldSunUp: nearFieldSunUp,
+    gridUV: gridUV, bakeNormalXZ: bakeNormalXZ, mipChainXZ: mipChainXZ, earthshineRatio: earthshineRatio, EARTH_GEOM_ALBEDO: EARTH_GEOM_ALBEDO, EARTH_BOND_ALBEDO: EARTH_BOND_ALBEDO
   };
 }));

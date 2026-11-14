@@ -7,7 +7,10 @@
  *   node tests/ground_detail.js [--other <label>=<folder with another checkout, e.g. round3=... of commit 46b0fa8>] [--tag after|diag]
  * Screenshots: tests/screenshots/r5_ground_<tag>_<site>_<mode>[_<variant>].png ; numbers: printed and written to
  * tests/screenshots/r5_ground_<tag>.json. Variants (this build only): relief on/off, quality, and diagnostic
- * switches used to find the cause (Lambert instead of Lommel-Seeliger; shadow camera fitted to the 6 km tile). */
+ * switches used to find the cause (Lambert instead of Lommel-Seeliger; shadow camera fitted to the 6 km tile).
+ * Round 6: --r6 measures Orbit, Walk and Rover at Medium and High for both sites in every build (--other before=<checkout
+ * of v1-stable>), plus, in this build, an earthshine case (site in shadow, Earth up); files r6_ground_<build>_..., numbers
+ * in r6_ground_<tag>.json, both written to tests/screenshots/ (copy to docs/ground_detail/round6/). */
 'use strict';
 const { chromium } = require('playwright');
 const path = require('path'), fs = require('fs'), url = require('url');
@@ -16,6 +19,7 @@ const TAG = arg('--tag') || 'now';
 // other builds to measure, e.g. --other round3=<checkout of 46b0fa8> --other before=<checkout of the commit before the fix>
 const OTHERS = process.argv.map((a, i) => a === '--other' ? process.argv[i + 1] : null).filter(Boolean).map(x => ({ label: x.split('=')[0], root: x.slice(x.indexOf('=') + 1) }));
 const OUT = path.join(__dirname, 'screenshots'); fs.mkdirSync(OUT, { recursive: true });
+const R6 = process.argv.includes('--r6');
 const CASES = [
   { site: 'peak_shackleton', t: '2028-09-25T10:04', note: '5 m patch available' },
   { site: 'mons_mouton', t: '2026-11-25T17:53', note: '20 m tile only' }
@@ -43,9 +47,9 @@ async function measure(page, file) {
   }, buf.toString('base64'));
 }
 
-async function run(browser, root, label, variants) {
+async function run(browser, root, label, variants, cases) {
   const res = [];
-  for (const c of CASES) for (const v of variants) {
+  for (const c of (cases || CASES)) for (const v of variants) {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     await ctx.addInitScript(q => { window.ASTERIA_V3D_NOPROBE = true; try { localStorage.setItem('asteria.hintDismissed', '1'); if (q) localStorage.setItem('asteria.v3dQuality', q); } catch (e) { /* */ } }, v.quality || null);
     const page = await ctx.newPage();
@@ -59,7 +63,7 @@ async function run(browser, root, label, variants) {
     await page.evaluate(m => AsteriaView3D.testMode(m), v.mode);
     if (v.setup) await page.evaluate(v.setup);
     await page.waitForTimeout(1500);
-    const file = path.join(OUT, `r5_ground_${label}_${c.site}_${v.mode}${v.name ? '_' + v.name : ''}.png`);
+    const file = path.join(OUT, `${R6 ? 'r6' : 'r5'}_ground_${label}_${c.site}_${v.mode}${v.name ? '_' + v.name : ''}.png`);
     const m = await measure(page, file);
     const dbg = await page.evaluate(() => { const d = AsteriaView3D.debug(); return { quality: d.quality, layers: (d.layers || []).map(l => l.name + ':' + l.vertices), texel: d.shadowCamera && d.shadowCamera.texel, relief: d.relief, stride: d.stride }; });
     res.push(Object.assign({ build: label, site: c.site, t: c.t, mode: v.mode, variant: v.name || 'default', file: path.relative(path.join(__dirname, '..'), file).replace(/\\/g, '/'), errors: errs.length }, m, dbg));
@@ -72,6 +76,19 @@ async function run(browser, root, label, variants) {
 (async () => {
   const browser = await chromium.launch({ args: process.platform === 'win32' ? ['--use-angle=d3d11'] : [] });
   const all = [];
+  if (R6) {
+    const V6 = []; for (const mode of ['orbit', 'walk', 'rover']) for (const q of ['medium', 'high']) V6.push({ mode, quality: q, name: q });
+    for (const o of OTHERS) all.push(...await run(browser, o.root, o.label, V6));
+    all.push(...await run(browser, path.join(__dirname, '..'), TAG, V6));
+    // earthshine (this build only): Mons Mouton 2027-03-13 10:00 UTC, Sun hidden by terrain (validated), Earth 10.8 deg up
+    const ES = [{ site: 'mons_mouton', t: '2027-03-13T10:00', note: 'in shadow, Earth up' }], VE = [];
+    for (const mode of ['orbit', 'walk']) for (const on of [false, true]) VE.push({ mode, quality: 'medium', name: 'medium_earthshine_' + (on ? 'on' : 'off'), setup: on ? () => { document.getElementById('v3dEarthshine').click(); } : null });
+    for (const o of OTHERS) all.push(...await run(browser, o.root, o.label, VE.filter(v => /off/.test(v.name)), ES));
+    all.push(...await run(browser, path.join(__dirname, '..'), TAG, VE, ES));
+    await browser.close();
+    fs.writeFileSync(path.join(OUT, `r6_ground_${TAG}.json`), JSON.stringify(all, null, 1));
+    return;
+  }
   for (const o of OTHERS) {
     const r3 = !/testQuality/.test(fs.readFileSync(path.join(o.root, 'js', 'view3d.js'), 'utf8'));
     const vs = []; for (const mode of ['walk', 'rover']) for (const q of r3 ? [null] : ['low', 'medium', 'high']) vs.push(q ? { mode, quality: q, name: q } : { mode });

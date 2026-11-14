@@ -13,10 +13,16 @@ places every node with the same exact ENU formula (lunar curvature included).
             The browser leaves a hole for ring A.
   patch5m : 2 km x 2 km at 5 m from LDEM_875S_5M (5 m/pix, 87.5S to the pole), for the curated sites inside its coverage,
             from the row windows fetched by tools/fetch_round4.py (HTTP Range requests); High quality only.
+Round 6 (finer real data where it exists; same grid, same checks):
+  ring A fine (_af): half-size 16 km, spacing 25 m, from LDEM_85S_20M only, for sites whose whole ring A lies inside that
+            product (both Peak near Shackleton points, Shackleton crater centre, Mons Malapert). The browser draws it at
+            50 m (High) or 100 m (Medium) and bakes a normal map at 25 m from it (never finer than the 20 m source).
+  ring B fine (_bf): half-size 40 km, spacing 100 m, from LDEM_85S_20M, else LDEM_80S_80M, when one of them covers the
+            whole ring (never upsampled: 100 m is coarser than both sources). Drawn at 200 m with a 100 m normal map.
 Every hole edge falls on nodes of the finer grid inside it (half-sizes are multiples of both spacings), and the browser
 takes those boundary heights from the finer grid, so neighbouring meshes share identical edge vertices (no gaps).
 
-Outputs: data/terrain3d/ext/<site>_a.js, <site>_b.js, data/terrain3d/hi5m/<site>.js  (base64 int16, as the tiles)
+Outputs: data/terrain3d/ext/<site>_a.js, <site>_b.js, <site>_af.js, <site>_bf.js, data/terrain3d/fine_index.js, data/terrain3d/hi5m/<site>.js  (base64 int16, as the tiles)
 Usage:
   .venv/Scripts/python -I tools/terrain3d_ext.py build    # rings + 5 m patches
   .venv/Scripts/python -I tools/terrain3d_ext.py check    # decode and compare with direct DEM samples (independent path)
@@ -105,6 +111,10 @@ def build_one(site, tile, kind):
         half, d, dems, inner = HALF_A, dA, [by['LDEM_80S_80M'], by['LDEM_75S_120M']], half_t
     elif kind == 'b':
         half, d, dems, inner = HALF_B, 2 * dA, [by['LDEM_75S_120M']], HALF_A
+    elif kind == 'af':
+        half, d, dems, inner = HALF_A, 25.0, [by['LDEM_85S_20M']], half_t
+    elif kind == 'bf':
+        half, d, dems, inner = HALF_B, 100.0, [by['LDEM_85S_20M'], by['LDEM_80S_80M']], HALF_A
     else:
         half, d, dems, inner = HALF_5M, 5.0, [Window5m(site['id'])], 0.0
     assert abs(inner / d - round(inner / d)) < 1e-9 and abs(half / d - round(half / d)) < 1e-9
@@ -116,7 +126,7 @@ def build_one(site, tile, kind):
     checks = [{'i': i, 'j': j, 'lat': float(lat[j, i]), 'lon': float(lon[j, i]), 'h_dem_m': round(float(h[j, i]), 3)} for (j, i) in pts]
     pix = getattr(dem, 'scale', 5.0)
     return {
-        'siteId': site['id'], 'kind': {'a': 'ringA', 'b': 'ringB', '5m': 'patch5m'}[kind], 'lat': site['lat'], 'lon': site['lon'],
+        'siteId': site['id'], 'kind': {'a': 'ringA', 'b': 'ringB', 'af': 'ringAfine', 'bf': 'ringBfine', '5m': 'patch5m'}[kind], 'lat': site['lat'], 'lon': site['lon'],
         'demProduct': dem.name, 'demPixel_m': pix, 'demSource': PDS + dem.name.lower() + '.img',
         'n': n, 'spacing_m': d, 'half_m': half, 'holeHalf_m': inner, 'h0_m': tile['h0_m'],
         'offset_m': offset, 'unit_m': unit, 'heightMin_m': round(float(h.min()), 1), 'heightMax_m': round(float(h.max()), 1),
@@ -131,12 +141,23 @@ def build_one(site, tile, kind):
 
 def cmd_build():
     os.makedirs(OUT_EXT, exist_ok=True); os.makedirs(OUT_5M, exist_ok=True)
-    have5m = []
+    have5m, fine = [], {}
     for s in T3.horizon_sites():
         tile = T3.load_tile(s['id'])
         for kind in ('a', 'b'):
             m = build_one(s, tile, kind)
             write(os.path.join(OUT_EXT, '%s_%s.js' % (s['id'], kind)), 'ASTERIA_TERRAIN3D_EXT', s['id'] + '_' + kind, m)
+            print('%-20s ring %s  %-14s n=%4d d=%3g m  half %5.0f m  unit %.1f m  %4d KB' % (s['id'], kind.upper(), m['demProduct'], m['n'], m['spacing_m'], m['half_m'], m['unit_m'], len(m['b64']) // 1024))
+        for kind in ('af', 'bf'):
+            if kind == 'af' and tile['spacing_m'] != 20.0:
+                continue                      # 80 m tiles: no 20 m data around them
+            try:
+                m = build_one(s, tile, kind)
+            except ValueError as e:
+                print('%-20s ring %s  not built (%s)' % (s['id'], kind.upper(), e))
+                continue
+            write(os.path.join(OUT_EXT, '%s_%s.js' % (s['id'], kind)), 'ASTERIA_TERRAIN3D_EXT', s['id'] + '_' + kind, m)
+            fine.setdefault(s['id'], {})[kind] = {'demProduct': m['demProduct'], 'spacing_m': m['spacing_m'], 'demPixel_m': m['demPixel_m']}
             print('%-20s ring %s  %-14s n=%4d d=%3g m  half %5.0f m  unit %.1f m  %4d KB' % (s['id'], kind.upper(), m['demProduct'], m['n'], m['spacing_m'], m['half_m'], m['unit_m'], len(m['b64']) // 1024))
         if os.path.exists(os.path.join(DL5M, s['id'] + '_rows.json')):
             m = build_one(s, tile, '5m')
@@ -146,6 +167,9 @@ def cmd_build():
     with open(os.path.join(ROOT, 'data', 'terrain3d', 'hi5m_index.js'), 'w') as f:
         f.write('// Generated by tools/terrain3d_ext.py - sites with a 5 m inner patch (LDEM_875S_5M)\n')
         f.write('window.ASTERIA_TERRAIN3D_5M_IDS = %s;\n' % json.dumps(have5m))
+    with open(os.path.join(ROOT, 'data', 'terrain3d', 'fine_index.js'), 'w') as f:
+        f.write('// Generated by tools/terrain3d_ext.py - finer ring grids (round 6): ring A at 25 m from LDEM_85S_20M, ring B at 100 m\n')
+        f.write('window.ASTERIA_TERRAIN3D_FINE = %s;\n' % json.dumps(fine))
 
 
 # ------------------------------------------------------------------ check (independent path, as terrain3d.py check)

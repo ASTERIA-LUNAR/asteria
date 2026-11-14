@@ -9,6 +9,10 @@
  *                          farther away than the view casts shadows from (Low: 3 km tile; Medium: 16 km; High: 40 km).
  *   "near horizon"       - Sun centre within 0.3 deg of the horizon (shadow-map resolution / disk-centre rule).
  *   "other"              - anything else.
+ * Round 6: on Medium/High the view also has a camera-centred "near cascade" shadow map (same Sun direction, same
+ * casters, finer texel); the picture uses min(full map, near map). That combined verdict at the site marker is scored;
+ * it must agree with the validated model at least as often as the full map on the same cases (the cascade must not
+ * change which areas are lit). The near map's verdict on its own is reported too.
  * Usage: node tests/shading_consistency.js [--quality medium,high] [--json out.json]
  * Writes data/shading_consistency.js (for the record) unless --no-write. */
 'use strict';
@@ -40,6 +44,8 @@ const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? process.arg
       await page.click('#deployBtn');
       await page.waitForFunction(() => window.AsteriaView3D && AsteriaView3D.isOpen() && !AsteriaView3D.debug().refining, null, { timeout: 60000 });
       const res = await page.evaluate(ts => ts.map(t => AsteriaView3D.shadowProbe(t)), times);
+      const nearRes = res.filter(r => r.renderedLitNear !== null && r.renderedLitNear !== undefined);
+      const agreeNear = nearRes.filter(r => r.renderedLitCombined === r.validatedSunUp).length, sameAsFar = nearRes.filter(r => r.renderedLitCombined === r.renderedLit).length, farOnSame = nearRes.filter(r => r.renderedLit === r.validatedSunUp).length;
       let agree = 0; const why = { 'beyond casting range': 0, 'near horizon': 0, other: 0 };
       for (const r of res) {
         if (r.renderedLit === r.validatedSunUp) { agree++; continue; }
@@ -47,9 +53,10 @@ const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? process.arg
         else if (Math.abs(r.sunEl - r.horizon) < 0.3) why['near horizon']++;
         else why.other++;
       }
-      const row = { site: id, quality: q, n: res.length, agree, agreePct: +(100 * agree / res.length).toFixed(1), disagree: why, sunUpValidated: res.filter(r => r.validatedSunUp).length, litRendered: res.filter(r => r.renderedLit).length, castKm: res[0].castKm, texel_m: +res[0].texel.toFixed(1) };
+      const row = { site: id, quality: q, n: res.length, agree, agreePct: +(100 * agree / res.length).toFixed(1), disagree: why, sunUpValidated: res.filter(r => r.validatedSunUp).length, litRendered: res.filter(r => r.renderedLit).length, castKm: res[0].castKm, texel_m: +res[0].texel.toFixed(1),
+        near: nearRes.length ? { n: nearRes.length, agree: agreeNear, fullMapAgreeSameCases: farOnSame, sameAsFullMap: sameAsFar, nearAloneAgree: nearRes.filter(r => r.renderedLitNear === r.validatedSunUp).length, texel_m: +(res[0].nearTexel || 0).toFixed(2) } : null };
       rows.push(row);
-      console.log(`${id.padEnd(20)} ${q.padEnd(7)} agree ${String(agree).padStart(2)}/${res.length} (${row.agreePct}%)  validated Sun up ${row.sunUpValidated}, rendered lit ${row.litRendered}  disagreements: beyond casting range ${why['beyond casting range']}, near horizon ${why['near horizon']}, other ${why.other}  (shadow-casting terrain to ${row.castKm} km along the Sun azimuth, shadow texel ${row.texel_m} m)`);
+      console.log(`${id.padEnd(20)} ${q.padEnd(7)} agree ${String(agree).padStart(2)}/${res.length} (${row.agreePct}%)  validated Sun up ${row.sunUpValidated}, rendered lit ${row.litRendered}  disagreements: beyond casting range ${why['beyond casting range']}, near horizon ${why['near horizon']}, other ${why.other}  (shadow-casting terrain to ${row.castKm} km along the Sun azimuth, shadow texel ${row.texel_m} m)${row.near ? `  | near cascade: agree ${agreeNear}/${nearRes.length}, full map on the same cases ${farOnSame}/${nearRes.length}, near map alone ${row.near.nearAloneAgree}/${nearRes.length}, texel ${row.near.texel_m} m` : ''}`);
       await page.evaluate(() => AsteriaView3D.close(true));
     }
   }
@@ -58,7 +65,9 @@ const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? process.arg
   for (const q of qualities) {
     const r = rows.filter(x => x.quality === q), a = r.reduce((s, x) => s + x.agree, 0), n = r.reduce((s, x) => s + x.n, 0);
     const other = r.reduce((s, x) => s + x.disagree.other, 0);
-    console.log(`TOTAL ${q}: ${a}/${n} agree (${(100 * a / n).toFixed(1)}%); unexplained ("other") disagreements: ${other}`);
+    const nr = r.filter(x => x.near), na = nr.reduce((s, x) => s + x.near.agree, 0), nn = nr.reduce((s, x) => s + x.near.n, 0), ns = nr.reduce((s, x) => s + x.near.fullMapAgreeSameCases, 0);
+    if (nn && na < ns) { console.log(`FAIL ${q}: the near cascade lowers agreement (${na} < ${ns})`); process.exitCode = 1; }
+    console.log(`TOTAL ${q}: ${a}/${n} agree (${(100 * a / n).toFixed(1)}%); unexplained ("other") disagreements: ${other}` + (nn ? `; with the near cascade (min of both maps) ${na}/${nn} agree vs full map alone ${ns}/${nn} on the same cases` : ''));
   }
   if (arg('--json')) fs.writeFileSync(arg('--json'), JSON.stringify(rows, null, 1));
   if (!process.argv.includes('--no-write')) fs.writeFileSync(path.join(__dirname, '..', 'data', 'shading_consistency.js'), '// Generated by tests/shading_consistency.js\nwindow.ASTERIA_SHADING_CONSISTENCY = ' + JSON.stringify({ generated: new Date().toISOString(), times: times.length, rows }) + ';\n');
