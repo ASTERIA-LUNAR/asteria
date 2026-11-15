@@ -10,14 +10,14 @@ PASS [laptop] peak_shackleton low walk: covering off = pixel-identical to the ro
 PASS [laptop] peak_shackleton low walk: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
 PASS [laptop] peak_shackleton low walk: covering on changes the ground picture (404678 px)
 PASS [laptop] peak_shackleton low walk: ground-band mean brightness within 3 % of covering off (120.08 -> 121.34, 1.05 %)
-     frame time walk low laptop: off 2.86 ms, on 0.71 ms
+     frame time walk low laptop: off 1.11 ms, on 1.19 ms
 PASS [laptop] peak_shackleton low walk: shadows on - 535963 pixels not reached by the Sun are unchanged with the covering on - {"unlit":535963,"lit":436037,"changed":0,"changedMoreThan1":0}
      walk: mean 120.08 -> 121.34, detail 1.16 -> 3.06, white 0.5 -> 0.79 %, black 0 -> 0 %
 PASS [laptop] peak_shackleton low rover: covering off = pixel-identical to the round 6C build - 3da97908 vs 3da97908
 PASS [laptop] peak_shackleton low rover: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
 PASS [laptop] peak_shackleton low rover: covering on changes the ground picture (607677 px)
 PASS [laptop] peak_shackleton low rover: ground-band mean brightness within 3 % of covering off (34.1 -> 34.28, 0.53 %)
-     frame time rover low laptop: off 2.48 ms, on 2.16 ms
+     frame time rover low laptop: off 1.39 ms, on 1.39 ms
 PASS [laptop] peak_shackleton low rover: shadows on - 273153 pixels not reached by the Sun are unchanged with the covering on - {"unlit":273153,"lit":698847,"changed":1,"changedMoreThan1":0}
      rover: mean 34.1 -> 34.28, detail 0.12 -> 0.51, white 0 -> 0 %, black 0.02 -> 0.02 %
 PASS [laptop] peak_shackleton low: no console errors - 
@@ -33,16 +33,16 @@ PASS [laptop] peak_shackleton medium walk: covering off = pixel-identical to the
 PASS [laptop] peak_shackleton medium walk: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
 PASS [laptop] peak_shackleton medium walk: covering on changes the ground picture (409556 px)
 PASS [laptop] peak_shackleton medium walk: ground-band mean brightness within 3 % of covering off (120.08 -> 121.29, 1.01 %)
-     frame time walk medium laptop: off 2.95 ms, on 0.79 ms
-PASS [laptop] peak_shackleton medium walk: >= 30 fps with the covering on (0.79 ms/frame, GPU-synchronised)
+     frame time walk medium laptop: off 3.04 ms, on 1.02 ms
+PASS [laptop] peak_shackleton medium walk: >= 30 fps with the covering on (1.02 ms/frame, GPU-synchronised)
 PASS [laptop] peak_shackleton medium walk: shadows on - 535594 pixels not reached by the Sun are unchanged with the covering on - {"unlit":535594,"lit":436406,"changed":0,"changedMoreThan1":0}
      walk: mean 120.08 -> 121.29, detail 1.16 -> 4.94, white 0.47 -> 0.76 %, black 0 -> 0 %
 PASS [laptop] peak_shackleton medium rover: covering off = pixel-identical to the round 6C build - 961430f2 vs 961430f2
 PASS [laptop] peak_shackleton medium rover: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
 PASS [laptop] peak_shackleton medium rover: covering on changes the ground picture (622017 px)
 PASS [laptop] peak_shackleton medium rover: ground-band mean brightness within 3 % of covering off (34.1 -> 34.19, 0.26 %)
-     frame time rover medium laptop: off 1.81 ms, on 1.96 ms
-PASS [laptop] peak_shackleton medium rover: >= 30 fps with the covering on (1.96 ms/frame, GPU-synchronised)
+     frame time rover medium laptop: off 2.83 ms, on 2.1 ms
+PASS [laptop] peak_shackleton medium rover: >= 30 fps with the covering on (2.1 ms/frame, GPU-synchronised)
 PASS [laptop] peak_shackleton medium rover: shadows on - 273385 pixels not reached by the Sun are unchanged with the covering on - {"unlit":273385,"lit":698615,"changed":1,"changedMoreThan1":0}
      rover: mean 34.1 -> 34.19, detail 0.12 -> 1.9, white 0 -> 0 %, black 0.02 -> 0.02 %
 PASS [laptop] checkbox and disclaimer hidden in Orbit
@@ -66,26 +66,141 @@ PASS [laptop] peak_shackleton high walk: covering off = pixel-identical to the r
 PASS [laptop] peak_shackleton high walk: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
 PASS [laptop] peak_shackleton high walk: covering on changes the ground picture (409555 px)
 PASS [laptop] peak_shackleton high walk: ground-band mean brightness within 3 % of covering off (120.08 -> 121.29, 1.01 %)
-     frame time walk high laptop: off 3.86 ms, on 1.1 ms
+     frame time walk high laptop: off 1.58 ms, on 1.88 ms
 PASS [laptop] peak_shackleton high walk: shadows on - 512284 pixels not reached by the Sun are unchanged with the covering on - {"unlit":512284,"lit":459716,"changed":0,"changedMoreThan1":0}
      walk: mean 120.08 -> 121.29, detail 1.16 -> 4.94, white 0.47 -> 0.76 %, black 0 -> 0 %
 PASS [laptop] peak_shackleton high rover: covering off = pixel-identical to the round 6C build - 1cf979a2 vs 1cf979a2
 PASS [laptop] peak_shackleton high rover: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
 PASS [laptop] peak_shackleton high rover: covering on changes the ground picture (622016 px)
 PASS [laptop] peak_shackleton high rover: ground-band mean brightness within 3 % of covering off (34.1 -> 34.19, 0.26 %)
-     frame time rover high laptop: off 2.12 ms, on 2.1 ms
+     frame time rover high laptop: off 2.5 ms, on 2.56 ms
 PASS [laptop] peak_shackleton high rover: shadows on - 246538 pixels not reached by the Sun are unchanged with the covering on - {"unlit":246538,"lit":725462,"changed":1,"changedMoreThan1":0}
      rover: mean 34.1 -> 34.19, detail 0.12 -> 1.9, white 0 -> 0 %, black 0.02 -> 0.02 %
 PASS [laptop] peak_shackleton high: no console errors - 
-node:internal/process/promises:324
-    triggerUncaughtException(err, true /* fromPromise */);
-    ^
-
-browserContext.newPage: Target crashed 
-    at open3d (C:\Users\Access\Desktop\lunawindow\tests\ui_round6e.js:41:26)
-    at C:\Users\Access\Desktop\lunawindow\tests\ui_round6e.js:129:38 {
-  log: [],
-  name: 'Error'
-}
-
-Node.js v26.13.1
+PASS [laptop] mons_malapert low orbit60: covering off = pixel-identical to the round 6C build - 4cb13a4d vs 4cb13a4d
+PASS [laptop] mons_malapert low orbit60: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert low orbit60: Orbit pixel-identical with the checkbox on or off (uCover 0)
+     orbit60: mean 9.35 -> 9.35, detail 0.4 -> 0.4, white 0 -> 0 %, black 41.88 -> 41.88 %
+PASS [laptop] mons_malapert low orbit3: covering off = pixel-identical to the round 6C build - 92c30bc6 vs 92c30bc6
+PASS [laptop] mons_malapert low orbit3: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert low orbit3: Orbit pixel-identical with the checkbox on or off (uCover 0)
+     orbit3: mean 10.37 -> 10.37, detail 0.54 -> 0.54, white 0 -> 0 %, black 0 -> 0 %
+PASS [laptop] mons_malapert low walk: covering off = pixel-identical to the round 6C build - 933105ef vs 933105ef
+PASS [laptop] mons_malapert low walk: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert low walk: covering on changes the ground picture (556516 px)
+PASS [laptop] mons_malapert low walk: ground-band mean brightness within 3 % of covering off (100.08 -> 100.67, 0.59 %)
+     frame time walk low laptop: off 0.99 ms, on 1.27 ms
+PASS [laptop] mons_malapert low walk: shadows on - 381988 pixels not reached by the Sun are unchanged with the covering on - {"unlit":381988,"lit":590012,"changed":0,"changedMoreThan1":0}
+     walk: mean 100.08 -> 100.67, detail 0.21 -> 0.78, white 0 -> 0 %, black 0 -> 0 %
+PASS [laptop] mons_malapert low rover: covering off = pixel-identical to the round 6C build - ef646604 vs ef646604
+PASS [laptop] mons_malapert low rover: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert low rover: covering on changes the ground picture (706378 px)
+PASS [laptop] mons_malapert low rover: ground-band mean brightness within 3 % of covering off (29.37 -> 28.95, -1.43 %)
+     frame time rover low laptop: off 1.98 ms, on 2.11 ms
+PASS [laptop] mons_malapert low rover: shadows on - 195255 pixels not reached by the Sun are unchanged with the covering on - {"unlit":195255,"lit":776745,"changed":0,"changedMoreThan1":0}
+     rover: mean 29.37 -> 28.95, detail 0.06 -> 0.35, white 0 -> 0 %, black 0.07 -> 0.07 %
+PASS [laptop] mons_malapert low: no console errors - 
+PASS [laptop] mons_malapert medium orbit60: covering off = pixel-identical to the round 6C build - 6111dbf0 vs 6111dbf0
+PASS [laptop] mons_malapert medium orbit60: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert medium orbit60: Orbit pixel-identical with the checkbox on or off (uCover 0)
+     orbit60: mean 9.43 -> 9.43, detail 0.77 -> 0.77, white 0 -> 0 %, black 41.77 -> 41.77 %
+PASS [laptop] mons_malapert medium orbit3: covering off = pixel-identical to the round 6C build - 5a5a96e2 vs 5a5a96e2
+PASS [laptop] mons_malapert medium orbit3: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert medium orbit3: Orbit pixel-identical with the checkbox on or off (uCover 0)
+     orbit3: mean 10.31 -> 10.31, detail 0.54 -> 0.54, white 0 -> 0 %, black 0 -> 0 %
+PASS [laptop] mons_malapert medium walk: covering off = pixel-identical to the round 6C build - 1344f352 vs 1344f352
+PASS [laptop] mons_malapert medium walk: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert medium walk: covering on changes the ground picture (563747 px)
+PASS [laptop] mons_malapert medium walk: ground-band mean brightness within 3 % of covering off (100.08 -> 100.74, 0.66 %)
+     frame time walk medium laptop: off 2.45 ms, on 1.01 ms
+PASS [laptop] mons_malapert medium walk: >= 30 fps with the covering on (1.01 ms/frame, GPU-synchronised)
+PASS [laptop] mons_malapert medium walk: shadows on - 381664 pixels not reached by the Sun are unchanged with the covering on - {"unlit":381664,"lit":590336,"changed":0,"changedMoreThan1":0}
+     walk: mean 100.08 -> 100.74, detail 0.21 -> 1.95, white 0 -> 0 %, black 0 -> 0 %
+PASS [laptop] mons_malapert medium rover: covering off = pixel-identical to the round 6C build - 279806f3 vs 279806f3
+PASS [laptop] mons_malapert medium rover: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert medium rover: covering on changes the ground picture (722766 px)
+PASS [laptop] mons_malapert medium rover: ground-band mean brightness within 3 % of covering off (29.37 -> 28.98, -1.33 %)
+     frame time rover medium laptop: off 2.42 ms, on 2.25 ms
+PASS [laptop] mons_malapert medium rover: >= 30 fps with the covering on (2.25 ms/frame, GPU-synchronised)
+PASS [laptop] mons_malapert medium rover: shadows on - 194395 pixels not reached by the Sun are unchanged with the covering on - {"unlit":194395,"lit":777605,"changed":0,"changedMoreThan1":0}
+     rover: mean 29.37 -> 28.98, detail 0.06 -> 1.53, white 0 -> 0 %, black 0.06 -> 0.06 %
+PASS [laptop] mons_malapert medium: no console errors - 
+PASS [laptop] mons_malapert high orbit60: covering off = pixel-identical to the round 6C build - cbc7b0c vs cbc7b0c
+PASS [laptop] mons_malapert high orbit60: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert high orbit60: Orbit pixel-identical with the checkbox on or off (uCover 0)
+     orbit60: mean 16.21 -> 16.21, detail 2.14 -> 2.14, white 0 -> 0 %, black 0 -> 0 %
+PASS [laptop] mons_malapert high orbit3: covering off = pixel-identical to the round 6C build - e0c56cc1 vs e0c56cc1
+PASS [laptop] mons_malapert high orbit3: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert high orbit3: Orbit pixel-identical with the checkbox on or off (uCover 0)
+     orbit3: mean 10.31 -> 10.31, detail 0.54 -> 0.54, white 0 -> 0 %, black 0 -> 0 %
+PASS [laptop] mons_malapert high walk: covering off = pixel-identical to the round 6C build - 446f68e3 vs 446f68e3
+PASS [laptop] mons_malapert high walk: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert high walk: covering on changes the ground picture (563747 px)
+PASS [laptop] mons_malapert high walk: ground-band mean brightness within 3 % of covering off (100.08 -> 100.74, 0.66 %)
+     frame time walk high laptop: off 1.67 ms, on 1.63 ms
+PASS [laptop] mons_malapert high walk: shadows on - 381664 pixels not reached by the Sun are unchanged with the covering on - {"unlit":381664,"lit":590336,"changed":0,"changedMoreThan1":0}
+     walk: mean 100.08 -> 100.74, detail 0.21 -> 1.95, white 0 -> 0 %, black 0 -> 0 %
+PASS [laptop] mons_malapert high rover: covering off = pixel-identical to the round 6C build - f537adee vs f537adee
+PASS [laptop] mons_malapert high rover: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [laptop] mons_malapert high rover: covering on changes the ground picture (722766 px)
+PASS [laptop] mons_malapert high rover: ground-band mean brightness within 3 % of covering off (29.37 -> 28.98, -1.33 %)
+     frame time rover high laptop: off 2.9 ms, on 2.67 ms
+PASS [laptop] mons_malapert high rover: shadows on - 194395 pixels not reached by the Sun are unchanged with the covering on - {"unlit":194395,"lit":777605,"changed":0,"changedMoreThan1":0}
+     rover: mean 29.37 -> 28.98, detail 0.06 -> 1.53, white 0 -> 0 %, black 0.06 -> 0.06 %
+PASS [laptop] mons_malapert high: no console errors - 
+PASS [phone] peak_shackleton medium orbit3: covering off = pixel-identical to the round 6C build - f1c2473d vs f1c2473d
+PASS [phone] peak_shackleton medium orbit3: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [phone] peak_shackleton medium orbit3: Orbit pixel-identical with the checkbox on or off (uCover 0)
+     orbit3: mean 15.75 -> 15.75, detail 2.14 -> 2.14, white 0 -> 0 %, black 0 -> 0 %
+PASS [phone] peak_shackleton medium walk: covering off = pixel-identical to the round 6C build - 3f575358 vs 3f575358
+PASS [phone] peak_shackleton medium walk: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [phone] peak_shackleton medium walk: covering on changes the ground picture (70344 px)
+PASS [phone] peak_shackleton medium walk: ground-band mean brightness within 3 % of covering off (69.13 -> 70.78, 2.39 %)
+     frame time walk medium phone: off 1.31 ms, on 1.17 ms
+PASS [phone] peak_shackleton medium walk: >= 30 fps with the covering on (1.17 ms/frame, GPU-synchronised)
+PASS [phone] peak_shackleton medium walk: shadows on - 98045 pixels not reached by the Sun are unchanged with the covering on - {"unlit":98045,"lit":79795,"changed":0,"changedMoreThan1":0}
+     walk: mean 69.13 -> 70.78, detail 1.02 -> 2.95, white 0.02 -> 0.02 %, black 0 -> 0 %
+PASS [phone] peak_shackleton medium rover: covering off = pixel-identical to the round 6C build - 89ca9483 vs 89ca9483
+PASS [phone] peak_shackleton medium rover: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [phone] peak_shackleton medium rover: covering on changes the ground picture (109465 px)
+PASS [phone] peak_shackleton medium rover: ground-band mean brightness within 3 % of covering off (22.65 -> 23.17, 2.30 %)
+     frame time rover medium phone: off 1.4 ms, on 1.17 ms
+PASS [phone] peak_shackleton medium rover: >= 30 fps with the covering on (1.17 ms/frame, GPU-synchronised)
+PASS [phone] peak_shackleton medium rover: shadows on - 48353 pixels not reached by the Sun are unchanged with the covering on - {"unlit":48353,"lit":129487,"changed":0,"changedMoreThan1":0}
+     rover: mean 22.65 -> 23.17, detail 0.11 -> 0.76, white 0 -> 0 %, black 0.01 -> 0.01 %
+PASS [phone] checkbox and disclaimer hidden in Orbit
+PASS [phone] Walk: checkbox "Close-range surface texture (illustrative)" visible and on - {"row":false,"lbl":"Close-range surface texture (illustrative)","box":true,"note":"Close-range surface texture is illustrative: fine grain and small craters are drawn for realism, not measured. Heights, slopes, readouts, shadows and the Sun direction are the LOLA data and the validated engine.","noteHidden":false}
+PASS [phone] Walk: disclaimer shown, exact text
+PASS [phone] choice remembered for the session (off in Walk -> still off in Rover and after Orbit)
+PASS [phone] the 3D notes have exactly one "Graphics:" line with the updated text - ["Graphics: the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terra
+PASS [phone] the notes have an Illustrative item for the close-range surface texture
+PASS [phone] no AI wording in the 3D notes except the "Graphics:" line - 2 vs 2
+PASS [phone] spike note on the 5 m patch item
+PASS [phone] peak_shackleton medium: no console errors - 
+PASS [phone] mons_malapert medium orbit3: covering off = pixel-identical to the round 6C build - dc33837 vs dc33837
+PASS [phone] mons_malapert medium orbit3: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [phone] mons_malapert medium orbit3: Orbit pixel-identical with the checkbox on or off (uCover 0)
+     orbit3: mean 9.77 -> 9.77, detail 0.75 -> 0.75, white 0 -> 0 %, black 0 -> 0 %
+PASS [phone] mons_malapert medium walk: covering off = pixel-identical to the round 6C build - 62a572c7 vs 62a572c7
+PASS [phone] mons_malapert medium walk: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [phone] mons_malapert medium walk: covering on changes the ground picture (100220 px)
+PASS [phone] mons_malapert medium walk: ground-band mean brightness within 3 % of covering off (99.15 -> 99.22, 0.07 %)
+     frame time walk medium phone: off 1.03 ms, on 0.85 ms
+PASS [phone] mons_malapert medium walk: >= 30 fps with the covering on (0.85 ms/frame, GPU-synchronised)
+PASS [phone] mons_malapert medium walk: shadows on - 70964 pixels not reached by the Sun are unchanged with the covering on - {"unlit":70964,"lit":106876,"changed":0,"changedMoreThan1":0}
+     walk: mean 99.15 -> 99.22, detail 0.38 -> 1.31, white 0 -> 0 %, black 0 -> 0 %
+PASS [phone] mons_malapert medium rover: covering off = pixel-identical to the round 6C build - 825b1936 vs 825b1936
+PASS [phone] mons_malapert medium rover: readouts, Sun/Earth directions, status tiles, rover identical with the covering on/off
+PASS [phone] mons_malapert medium rover: covering on changes the ground picture (125895 px)
+PASS [phone] mons_malapert medium rover: ground-band mean brightness within 3 % of covering off (28.35 -> 28.02, -1.16 %)
+     frame time rover medium phone: off 1.48 ms, on 1.7 ms
+PASS [phone] mons_malapert medium rover: >= 30 fps with the covering on (1.7 ms/frame, GPU-synchronised)
+PASS [phone] mons_malapert medium rover: shadows on - 36311 pixels not reached by the Sun are unchanged with the covering on - {"unlit":36311,"lit":141529,"changed":0,"changedMoreThan1":0}
+     rover: mean 28.35 -> 28.02, detail 0.09 -> 0.67, white 0 -> 0 %, black 0.07 -> 0.07 %
+PASS [phone] mons_malapert medium: no console errors - 
+PASS cone (azimuth 36.6°, 887 m): highest inspection readout on the screen column identical with the covering on/off - {"h":1496.908479294058,"slope":4.735833789223402,"lat":-88.76531470994529,"lon":125.02381800076722,"dist":744.4487951766703,"product":"LDEM_875S_5M"}
+PASS wheel tracks: drawn (8210 px differ with vs without the recorded path, covering on)
+PASS wheel tracks: 21 path points recorded while driving; covering on changes the picture (596529 px); readouts, rover pose and status identical
+PASS wheel tracks: no effect in Orbit (covering off there)
+PASS cone page: no console errors - 
+ALL PASS

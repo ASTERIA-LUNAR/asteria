@@ -85,7 +85,7 @@ const pixels = page => page.evaluate(() => { const s = AsteriaView3D.testScene()
     // notes: classification labels, no AI wording added
     const notes = await page.evaluate(() => { const n = [...document.querySelectorAll('.v3d-notes li, #v3dNotes li')].map(li => li.textContent); return n.length ? n : [document.querySelector('.v3d-panel').textContent]; });
     const ao = notes.find(x => /Openness shading/.test(x)) || '', why = notes.find(x => /Why the ground looks smoother/.test(x)) || '';
-    expect(`${tag} notes: "Openness shading" is labelled Illustrative and cites the method; "Why the ground looks smoother" explains the data limit`, /^Illustrative/.test(ao.trim()) && /Zak/.test(ao) && /not a light source/.test(ao) && /^Illustrative/.test(why.trim()) && /not in any dataset used and are not invented/.test(why), ao.slice(0, 80) + ' | ' + why.slice(0, 80));
+    expect(`${tag} notes: "Openness shading" is labelled Illustrative and cites the method; "Why the ground looks smoother" explains the data limit`, /^Illustrative/.test(ao.trim()) && /Zak/.test(ao) && /not a light source/.test(ao) && /^Illustrative/.test(why.trim()) && /not in any dataset used/.test(why) && /illustrative appearance/.test(why) && /the data limit is unchanged/.test(why), ao.slice(0, 80) + ' | ' + why.slice(0, 80));
     const relief = notes.find(x => /Relief shading/.test(x)) || '';
     expect(`${tag} notes: relief shading described as a bounded factor (no pure black or white)`, /between 0\.4 and 1\.6/.test(relief) && !/70 %/.test(relief));
     // the only allowed AI wording is the round-4B "Graphics:" line (exact text, as in tests/ui_check.js)

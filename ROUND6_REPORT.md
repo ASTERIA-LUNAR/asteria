@@ -584,3 +584,63 @@ Started 2026-11-15 11:45 Riyadh, time box 13:00.
 **a) Isolated cone near Peak near Shackleton: probably a DEM artifact.** `tools/spike_check_6e.py` (read-only; output `tests/spikes_6e.json`). The highest LDEM_875S_5M node at the cone (-88.76152, 125.1511 E) is 1498.5 m, 7.0 m above the highest of its 8 neighbours and about 24 m above the ground 20-60 m around it; LDEM_85S_20M gives 1474.2 m there (3 × 3 nodes at most 1477.5 m) and LDEM_80S_80M 1475.0 m, i.e. no hill at all. Beyond 15 m from the node the 5 m and 20 m profiles agree within 1-2 m. A one-node peak with straight sides, 35 m wide and 24 m high, is what one outlier shot looks like after gridding, and the product's label describes it as made from preliminary LOLA data. A scan of all three 5 m patches (node ≥ 2 m above all 8 neighbours and ≥ 10 m above the 20 m product) finds only this node (it lies in both Peak near Shackleton patches); Shackleton crater centre has none. The terrain was not edited or filtered; the 3D note on the 5 m patch now says: "The preliminary 5 m product contains a few isolated spikes that are probably data artifacts (locations in GAPS_AND_ISSUES.md); heights are shown as published." Details in GAPS_AND_ISSUES.md section 12. The owner decides later about a visual flag.
 
 **b) Artemis wording.** NASA release "NASA Adds Mission to Artemis Lunar Program, Updates Architecture" (27 Feb 2026, https://www.nasa.gov/news-release/nasa-adds-mission-to-artemis-lunar-program-updates-architecture/): "the Artemis III mission, now in 2027, will be designed to test out systems and operational capabilities in low Earth orbit ... to prepare for an Artemis IV landing in 2028"; the Artemis IV mission page (https://www.nasa.gov/mission/artemis-iv/) says "Crewed Surface Landing", launch "Early 2028", and shows the nine candidate regions under "Lunar Site Selection" (it does not say more about them; ASTERIA does not either). Changed: About heading "NASA candidate landing regions (announced for Artemis III)" and its text, the map "Why" explanation, the page meta description, README, GAPS_AND_ISSUES.md, SUBMISSION_LINKS.md (+2 NASA links). Kept as they are (historically accurate names of NASA's announcements): site labels "Artemis III candidate region (Oct 2024 / 2022 list)", the map legend "NASA Artemis III candidate regions (Oct 2024)", the tour text and validation documents. TEXT_AUDIT.md updated.
+
+### Part 1 - Close-range surface texture (Illustrative, display only) - DONE
+
+Owner decision (supersedes the "no synthetic texture" part of design decision 14, for close range only). Implemented in the existing terrain material (`regolithMaterial`, same `onBeforeCompile` path) for every terrain layer (6 km tile, 5 m patch, rings), active only in Walk and Rover (`uCover` = 0 in Orbit). Fragment shader only: no vertex displacement, no geometry, no 3D rocks.
+
+* **Layers** (procedural, no textures, no downloads): (1) albedo variation, 7 octaves of value noise from 6.4 m to 0.1 m (each octave rotated), about ±5 %, mean 0; (2) micro-relief: the same octaves as a height field whose slope amplitude rises toward small scales (0.006 at 6.4 m to 0.03 at 0.1 m), blended onto the final LOLA per-pixel normal as an added height field (first-order change of the unit normal, linear in the detail gradient, so it follows every LOLA slope and its mean is zero); (3) craterlets (radius 0.1-5 m; bowl and raised rim, depth up to 0.35 R; four size classes, one candidate per cell, fewer per area as the size grows) and rock flecks (0.04-0.4 m; domes, +15 % albedo), in the shading only. **Tuned visually, not statistically matched** to published crater or rock counts.
+* **Mapping**: site-centred ground frame (world x = east, z = -north, metres), so the pattern is fixed to the ground (no swimming while driving) and continuous across tile/patch/ring boundaries. Projected on the horizontal frame; craterlet radii are measured along the LOLA surface (slope-aware). Hashes: mod-289 permutation (exact in float32 at these cell indices).
+* **Lighting**: the covering is one bounded factor on the **Sun term only** (light-loop index of the Sun; Earthshine and the fill light untouched): albedo × (1 + 0.45 tanh(0.8 Δcos i / max(cos i, 0.04))), with cos i from the LOLA normal. Where the LOLA sunlight term or the shadow factor is 0, the result stays 0.
+* **Distance / LOD**: full strength to 60 m from the camera, faded to 0 at 350 m; each octave and feature fades out when it is smaller than about 2-4 screen pixels (dFdx/dFdy of the world position); 5 octaves (and no smallest rock class) on Low and on phones, 7 otherwise.
+* **Control**: checkbox "Close-range surface texture (illustrative)" next to Relief/Openness, Walk and Rover only, on by default, remembered for the session; the disclaimer (exact text from the brief) below it.
+* **Mean-brightness tuning (measured)**: the first version (clamped detail cosine, ±60 % factor) moved the ground-band mean by -7 to +13 %. A test-only switch (`uCovDbg`) separated the parts: albedo alone +0.1 %, craterlets alone +0.3 %, micro-relief alone +8 to +11 %. The causes were the clamp (asymmetric), a log-symmetric factor (its linear mean is above 1) and the coarse octaves (a few cells near the viewer tilt the whole near field). The fix was a linear detail term, a linear-symmetric factor and slope amplitude rising toward small scales. Result: -1.4 to +2.4 % (below).
+* **AI disclosure**: the "Graphics:" line now reads exactly as specified (the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon ...; "Terrain shapes, maps, ..."); AI_DISCLOSURE.md, `tests/ui_check.js`, `tests/ui_round6c.js`, `tests/features_test.js` updated; no other AI wording.
+* **Docs**: Illustrative notes item; "Surface shading" and "Why the ground looks smoother" notes amended; design decision 15 (About and DESIGN_DECISIONS.md, identical text) and decision 14 amended; README classification row; TEXT_AUDIT.md.
+
+### Part 2 - Wheel tracks (Illustrative) - DONE
+
+While the rover drives, a path point is kept every 4 m (the last 64 points, about 250 m), and the last point follows the rover. In the covering shader, two strips at ±0.6 m from the path (0.3 m wide) are darkened by up to 7 %. They fade with the distance driven since, and when narrower than about 2 pixels. Same checkbox, Sun term only, no geometry, no effect on readouts. Test: 20-21 points recorded after a 4 s drive; 8,210 px differ with vs without the path (covering on); readouts, rover pose and status identical; no effect in Orbit. The strips are faint by design and hard to see at the grazing Rover camera angle.
+
+### Part 3 - Verification - DONE
+
+Screenshots: `docs/ground_detail/round6e/` (README there): Peak near Shackleton (5 m patch, 2028-09-25 10:04 UTC) and Mons Malapert (20 m, 2028-09-28 03:00 UTC), Walk, Rover, Orbit 3 km and 60 km, laptop (Medium, plus High at Peak near Shackleton) and phone, covering off and on; the cone view; wheel tracks. Numbers: `results_6e.json`.
+
+| Device / site / quality / view | Ground mean off -> on | Change | Detail off -> on | Clipped white | Frame ms off / on |
+|---|---|---|---|---|---|
+| laptop Peak near Shackleton Medium Walk | 120.1 -> 121.3 | +1.0 % | 1.16 -> 4.94 | 0.47 -> 0.76 % | 3.0 / 1.0 |
+| laptop Peak near Shackleton Medium Rover | 34.1 -> 34.2 | +0.3 % | 0.12 -> 1.90 | 0 -> 0 | 2.8 / 2.1 |
+| laptop Mons Malapert Medium Walk | 100.1 -> 100.7 | +0.7 % | 0.21 -> 1.95 | 0 -> 0 | 2.5 / 1.0 |
+| laptop Mons Malapert Medium Rover | 29.4 -> 29.0 | -1.3 % | 0.06 -> 1.53 | 0 -> 0 | 2.4 / 2.3 |
+| laptop Low (both sites, Walk/Rover) | | -1.4 to +1.1 % | | | 1.0-2.0 / 1.2-2.1 |
+| laptop High (both sites, Walk/Rover) | | -1.3 to +1.0 % | | | 1.6-2.9 / 1.6-2.7 |
+| phone Peak near Shackleton Medium Walk / Rover | 69.1 -> 70.8 / 22.7 -> 23.2 | +2.4 / +2.3 % | 1.02 -> 2.95 / 0.11 -> 0.76 | 0.02 -> 0.02 % | 1.3 / 1.2, 1.4 / 1.2 |
+| phone Mons Malapert Medium Walk / Rover | 99.2 -> 99.2 / 28.4 -> 28.0 | +0.1 / -1.2 % | 0.38 -> 1.31 / 0.09 -> 0.67 | 0 | 1.0 / 0.9, 1.5 / 1.7 |
+
+Ground band = rows 4-42 % from the bottom of the drawing buffer, 5-95 % of its width; detail = mean absolute neighbour difference; clipped black unchanged everywhere (0-0.07 %). Frame ms = GPU-synchronised renders of the same frame (render + 1-pixel readPixels, 40 frames). All are far below 33 ms (30 fps) with the covering on and off; the off/on differences are within run-to-run noise.
+
+**Tests** (all on the final code, run one after another; logs `tests/perf/round6e_*.log`):
+
+| Test | Result |
+|---|---|
+| `node tests/ui_round6e.js --base <checkout of fe76cd6>` (laptop Low/Medium/High + phone) | ALL PASS (159 checks), no console errors: <br>• covering off = pixel-identical to the round 6C build in every view (hash of the rendered pixels); Orbit pixel-identical with the checkbox on or off <br>• with shadows on, 36,000-536,000 pixels per view are not reached by the Sun; none changes by more than 1 level (one pixel in each of three Peak near Shackleton Rover renders changes by exactly 1 level: 8-bit rounding where the Sun term is just above zero) <br>• ground mean within 3 % <br>• readouts (9 pixels), Sun/Earth directions, status tiles and rover readout/pose identical on/off; cone readout identical; wheel tracks <br>• checkbox, disclaimer, Illustrative item, Graphics line, no other AI wording |
+| `node tests/ground_detail_6c.js --invariants --other base6c=<fe76cd6>` | INVARIANTS: PASS - 0 differences (vertex hashes of every layer, 216 inspection readouts, status tiles, Sun/Earth readouts and directions, rover pose and readout; 2 sites × 3 qualities × 4 views; the new build runs with the covering on by default) |
+| `node tests/shading_consistency.js` (shadows on) | Low 97.8 %, Medium 99.0 %, High 99.8 % - unchanged |
+| `node tests/tile_edge.js` | High +0.6 % / +2.9 %, Medium +0.0 % / -4.3 % - unchanged |
+| `node tests/perf3d.js --phone --quality low,medium,high` | laptop Medium first frame <= 815 ms; every row 59-60 fps; no errors |
+| `ui_check`, `ui_round5`, `ui_round6`, `ui_round6b`, `ui_round6c` (laptop + phone) | all pass, no console errors (ui_round6c: the "Why the ground looks smoother" check now expects the amended text: data limit unchanged, illustrative appearance) |
+| Node: features_test, view3d_test, validate, earth_orientation, blind_test, one_year_check, instant_status_check, illumination, coarse_validation, accuracy3d | all pass |
+| Python: `tools/terrain3d.py check`, `tools/terrain3d_ext.py check`, `tools/terrain.py check` | pass |
+
+Result files under `data/` and VALIDATION_REPORT.md differ only in their generation timestamps.
+
+### Round 6E - not done or limited
+
+* The covering is **not statistically matched** to lunar crater or rock size-frequency data (tuned visually; stated in the app).
+* The pattern is projected on the horizontal ground frame: on steep slopes the noise stretches by 1/cos(slope) (15 % at 30°); craterlet radii are slope-corrected.
+* The wheel tracks are faint and hard to see at the default Rover camera angle; they reset when the 3D view is reopened.
+* The spike near Peak near Shackleton is shown as published (owner to decide on a visual flag).
+* Devices: headless Chromium on the development laptop; phones emulated (same GPU); not tested on a real phone, Firefox or Safari.
+* Parts 1 and 2 were committed together (Part 2 was added while Part 1 was passing, within the time box).
+
+**Round 6E hand-over**: `data/version.js` stamped. No merge, no tag, no push; `master` and `v1-stable` unchanged.

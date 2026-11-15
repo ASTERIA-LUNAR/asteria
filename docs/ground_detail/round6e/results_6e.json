@@ -26,6 +26,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 5,
    "near": 60,
    "far": 350
@@ -58,6 +59,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 5,
    "near": 60,
    "far": 350
@@ -90,13 +92,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 5,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 1.05,
-  "msOff": 2.25,
-  "msOn": 1.83,
+  "msOff": 1.11,
+  "msOn": 1.19,
   "unlit": {
    "unlit": 535963,
    "lit": 436037,
@@ -131,13 +134,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 2,
    "oct": 5,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 0.53,
-  "msOff": 0.91,
-  "msOn": 1.06,
+  "msOff": 1.39,
+  "msOn": 1.39,
   "unlit": {
    "unlit": 273153,
    "lit": 698847,
@@ -172,6 +176,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
@@ -204,6 +209,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
@@ -236,13 +242,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 1.01,
-  "msOff": 2.58,
-  "msOn": 0.81,
+  "msOff": 3.04,
+  "msOn": 1.02,
   "unlit": {
    "unlit": 535594,
    "lit": 436406,
@@ -277,13 +284,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 2,
    "oct": 7,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 0.26,
-  "msOff": 4.57,
-  "msOn": 1.81,
+  "msOff": 2.83,
+  "msOn": 2.1,
   "unlit": {
    "unlit": 273385,
    "lit": 698615,
@@ -318,6 +326,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
@@ -350,6 +359,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
@@ -382,13 +392,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 1.01,
-  "msOff": 1.64,
-  "msOn": 1.95,
+  "msOff": 1.58,
+  "msOn": 1.88,
   "unlit": {
    "unlit": 512284,
    "lit": 459716,
@@ -423,13 +434,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 2,
    "oct": 7,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 0.26,
-  "msOff": 4.19,
-  "msOn": 1.8,
+  "msOff": 2.5,
+  "msOn": 2.56,
   "unlit": {
    "unlit": 246538,
    "lit": 725462,
@@ -464,6 +476,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 5,
    "near": 60,
    "far": 350
@@ -496,6 +509,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 5,
    "near": 60,
    "far": 350
@@ -528,13 +542,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 5,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 0.59,
-  "msOff": 1.6,
-  "msOn": 0.98,
+  "msOff": 0.99,
+  "msOn": 1.27,
   "unlit": {
    "unlit": 381988,
    "lit": 590012,
@@ -569,13 +584,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 2,
    "oct": 5,
    "near": 60,
    "far": 350
   },
   "meanChangePct": -1.43,
-  "msOff": 2.15,
-  "msOn": 2.04,
+  "msOff": 1.98,
+  "msOn": 2.11,
   "unlit": {
    "unlit": 195255,
    "lit": 776745,
@@ -610,6 +626,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
@@ -642,6 +659,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
@@ -674,13 +692,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 0.66,
-  "msOff": 2.29,
-  "msOn": 0.8,
+  "msOff": 2.45,
+  "msOn": 1.01,
   "unlit": {
    "unlit": 381664,
    "lit": 590336,
@@ -715,13 +734,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 2,
    "oct": 7,
    "near": 60,
    "far": 350
   },
   "meanChangePct": -1.33,
-  "msOff": 4.07,
-  "msOn": 1.76,
+  "msOff": 2.42,
+  "msOn": 2.25,
   "unlit": {
    "unlit": 194395,
    "lit": 777605,
@@ -756,6 +776,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
@@ -788,6 +809,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
@@ -820,13 +842,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 7,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 0.66,
-  "msOff": 1.47,
-  "msOn": 1.13,
+  "msOff": 1.67,
+  "msOn": 1.63,
   "unlit": {
    "unlit": 381664,
    "lit": 590336,
@@ -861,13 +884,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 2,
    "oct": 7,
    "near": 60,
    "far": 350
   },
   "meanChangePct": -1.33,
-  "msOff": 1.81,
-  "msOn": 2.94,
+  "msOff": 2.9,
+  "msOn": 2.67,
   "unlit": {
    "unlit": 194395,
    "lit": 777605,
@@ -902,6 +926,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 5,
    "near": 60,
    "far": 350
@@ -934,13 +959,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 5,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 2.39,
-  "msOff": 1.9,
-  "msOn": 1.56,
+  "msOff": 1.31,
+  "msOn": 1.17,
   "unlit": {
    "unlit": 98045,
    "lit": 79795,
@@ -975,13 +1001,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 2,
    "oct": 5,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 2.3,
-  "msOff": 2.17,
-  "msOn": 3.08,
+  "msOff": 1.4,
+  "msOn": 1.17,
   "unlit": {
    "unlit": 48353,
    "lit": 129487,
@@ -1016,6 +1043,7 @@
   "cover": {
    "on": false,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 5,
    "near": 60,
    "far": 350
@@ -1048,13 +1076,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 0,
    "oct": 5,
    "near": 60,
    "far": 350
   },
   "meanChangePct": 0.07,
-  "msOff": 1.6,
-  "msOn": 1.76,
+  "msOff": 1.03,
+  "msOn": 0.85,
   "unlit": {
    "unlit": 70964,
    "lit": 106876,
@@ -1089,13 +1118,14 @@
   "cover": {
    "on": true,
    "pref": true,
+   "wheelPoints": 2,
    "oct": 5,
    "near": 60,
    "far": 350
   },
   "meanChangePct": -1.16,
-  "msOff": 2.16,
-  "msOn": 2.15,
+  "msOff": 1.48,
+  "msOn": 1.7,
   "unlit": {
    "unlit": 36311,
    "lit": 141529,
@@ -1104,7 +1134,20 @@
   }
  },
  {
-  "cone": null,
+  "wheelTracks": {
+   "points": 21,
+   "pxChangedByTracks": 8210
+  }
+ },
+ {
+  "cone": {
+   "h": 1496.908479294058,
+   "slope": 4.735833789223402,
+   "lat": -88.76531470994529,
+   "lon": 125.02381800076722,
+   "dist": 744.4487951766703,
+   "product": "LDEM_875S_5M"
+  },
   "azimuth": {
    "az": 36.643391553399454,
    "dist": 886.6014436983083

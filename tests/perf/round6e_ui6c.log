@@ -1,0 +1,26 @@
+PASS [laptop] per-pixel normals: the 6 km tile has a normal map of its own LOLA grid (301 x 301 = the grid's 301 nodes)
+PASS [laptop] anisotropic filtering at the device maximum (x16) on the tile's normal map
+PASS [laptop] openness shading: off by default, labelled "Walk and Rover", note says display only - {"on":false,"pref":null,"def":false,"busy":false,"ms":0,"ready":[false]}
+PASS [laptop] openness shading: no effect in Orbit even when ticked
+PASS [laptop] per-pixel normals: in Walk the 5 m patch has a normal map of its own grid - ["patch5m:401","patch5m-skirt:0","tile-skirt:0","ringA:1281"]
+PASS [laptop] openness shading: ticked in Walk it is computed (3061 ms in the background) and darkens enclosed ground (mean 114.0 -> 102.1)
+PASS [laptop] openness shading is display only: inspection readout, Sun/Earth directions, status tiles and camera identical with it on and off
+PASS [laptop] openness shading: rendered shadow verdict at the site marker identical on and off ([true,true,true])
+PASS [laptop] notes: "Openness shading" is labelled Illustrative and cites the method; "Why the ground looks smoother" explains the data limit - Illustrative Openness shading (Walk and Rover, off by default; display only): gr | Illustrative Why the ground looks smoother in Walk and Rover than in Orbit: the 
+PASS [laptop] notes: relief shading described as a bounded factor (no pure black or white)
+PASS [laptop] no AI wording in the 3D panel except the "Graphics:" line (as updated in round 6E) - {"has":true,"hits":[]}
+PASS [laptop] relief shading (on in Rover) no longer turns the sunlit Mons Malapert foreground black (mean luminance 26.6 / 255; before round 6C: 7.9)
+PASS [laptop] no console errors or warnings - 
+PASS [phone] per-pixel normals: the 6 km tile has a normal map of its own LOLA grid (301 x 301 = the grid's 301 nodes)
+PASS [phone] anisotropic filtering at the device maximum (x16) on the tile's normal map
+PASS [phone] openness shading: off by default, labelled "Walk and Rover", note says display only - {"on":false,"pref":null,"def":false,"busy":false,"ms":0,"ready":[false]}
+PASS [phone] openness shading: no effect in Orbit even when ticked
+PASS [phone] openness shading: ticked in Walk it is computed (694 ms in the background) and darkens enclosed ground (mean 63.3 -> 58.5)
+PASS [phone] openness shading is display only: inspection readout, Sun/Earth directions, status tiles and camera identical with it on and off
+PASS [phone] openness shading: rendered shadow verdict at the site marker identical on and off ([true,true,true])
+PASS [phone] notes: "Openness shading" is labelled Illustrative and cites the method; "Why the ground looks smoother" explains the data limit - Illustrative Openness shading (Walk and Rover, off by default; display only): gr | Illustrative Why the ground looks smoother in Walk and Rover than in Orbit: the 
+PASS [phone] notes: relief shading described as a bounded factor (no pure black or white)
+PASS [phone] no AI wording in the 3D panel except the "Graphics:" line (as updated in round 6E) - {"has":true,"hits":[]}
+PASS [phone] no console errors or warnings - 
+
+ALL PASS
