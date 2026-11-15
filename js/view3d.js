@@ -26,6 +26,7 @@ window.AsteriaView3D = (function () {
   var V = null;           // current view (null when closed)
   var TILE_CACHE = {};    // decoded tiles by site id (re-opening or changing quality does not decode again)
   var lastClosed = null;  // stats captured while closing (tests)
+  var HOVER = { on: false };   // round 6B: "Inspect on hover" (off by default; kept while the page stays open)
 
   function $(id) { return document.getElementById(id); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -85,7 +86,7 @@ window.AsteriaView3D = (function () {
       '  <div class="v3d-msgs"><div class="v3d-banner" id="v3dBanner" hidden></div>' +
       '  <div class="v3d-tip" id="v3dTip" hidden>The site is in shadow, so the ground looks almost black. <button class="btn small" id="v3dTipBtn">Light up</button> <span class="fineprint">(display brightness only)</span> <button class="btn small jump-sun" id="v3dTipJump" type="button" data-jump="sun">Jump to next sunlight</button></div></div>' +
       '  <div class="v3d-qnote" id="v3dQNote" hidden></div>' +
-      '  <div class="v3d-inspect" id="v3dInspect" hidden role="status" aria-live="polite"></div>' +
+      '  <div class="v3d-inspect" id="v3dInspect" hidden role="status" aria-live="polite"></div><i class="v3d-inspmark" id="v3dInspMark" hidden aria-hidden="true"></i>' +
       '  <p class="v3d-shadownote">Near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model.</p>' +
       '  <div class="v3d-pad" id="v3dPad" hidden><button data-k="fwd" aria-label="Forward">&#9650;</button><button data-k="left" aria-label="Turn left">&#9664;</button><button data-k="back" aria-label="Back">&#9660;</button><button data-k="right" aria-label="Turn right">&#9654;</button></div>' +
       '  <button class="btn v3d-close" id="v3dClose" aria-label="Close the 3D view">&#10005; Close 3D</button>' +
@@ -115,7 +116,7 @@ window.AsteriaView3D = (function () {
       '    <div class="seg" role="radiogroup" aria-label="Camera mode"><button data-mode="orbit" class="on">Orbit</button><button data-mode="walk">Walk</button><button data-mode="rover">Rover</button></div>' +
       '  </div>' +
       '  <div class="v3d-ctl v3d-presets" role="group" aria-label="Camera presets"><span class="lbl">View</span><button class="btn small" data-preset="overview">Overview</button><button class="btn small" data-preset="eye">Site eye level (2 m)</button><button class="btn small" data-preset="sun">Look at Sun</button><button class="btn small" data-preset="earth">Look at Earth</button><button class="btn small" id="v3dTo2D" type="button">Show on 2D map</button></div>' +
-      '  <p class="fineprint">Point at (or tap) the terrain to read its height, slope, position and data resolution.</p>' +
+      '  <div class="v3d-ctl v3d-insp"><span class="fineprint">Click (or tap) the terrain to read its height, slope, position and data resolution; the readout stays until the next click or Esc.</span> <label class="smallswitch"><input type="checkbox" id="v3dHover"> Inspect on hover</label></div>' +
       '  <div class="v3d-ctl">' +
       '    <label>Vertical exaggeration <select id="v3dExag"><option value="1" selected>1× (true scale)</option><option value="2">2×</option><option value="3">3×</option><option value="5">5×</option></select></label>' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dShadows" checked> shadows</label>' +
@@ -545,6 +546,10 @@ window.AsteriaView3D = (function () {
       s.areas.push({ name: 'Ring B (to 40 km)', geom: B.d * strideB, light: mB ? B.d : B.d * strideB, product: B.meta.demProduct });
     } else s.ringBG = null;
     s.extVertices = s.layers.reduce(function (n, L) { return n + (/skirt/.test(L.name) ? 0 : L.vertices); }, 0);
+    // round 6B: highest drawn terrain point (Three.js y) and outermost drawn extent, for the inspection ray march
+    s.terrainTop = s.geo.boundingBox.max.y; s.terrainExt = s.TM.half;
+    s.layers.forEach(function (L) { s.terrainTop = Math.max(s.terrainTop, L.mesh.geometry.boundingBox.max.y); });
+    [s.ringA, s.ringBG].forEach(function (G) { if (G) s.terrainExt = Math.max(s.terrainExt, G.half); });
     fitShadow(s);
     buildDistRings(s);
     s.miniBase = null;
@@ -708,9 +713,13 @@ window.AsteriaView3D = (function () {
   var MAXD = 60000, TRACK_MAX = 2000;   // farthest orbit distance (m)
   // Height (Three.js y) of the drawn ground below world (x, z): the finest mesh that contains the point, or -1e9.
   function groundY(s, x, z) {
-    var grids = [s.TM, s.ringA, s.ringBG];
+    var grids = [s.TM, s.ringA, s.ringBG], ax = Math.max(Math.abs(x), Math.abs(z));
     for (var q = 0; q < grids.length; q++) {
       var G = grids[q]; if (!G) continue;
+      // round 6B: exact quick rejection. The grid distance of the point under (x, z) is at least 0.98 x its horizontal
+      // distance (s >= rho R / (R + h) for drawn heights h < 30 km), so a point with 0.98 max(|x|, |z|) > half lies
+      // outside this grid for certain and the full inverse (groundWorld) is skipped. Results are unchanged.
+      if (0.98 * ax > G.half) continue;
       var g = M.groundWorld(G, x, z);
       if (g.inside) return g.y;
     }
@@ -871,6 +880,8 @@ window.AsteriaView3D = (function () {
     if (V !== v) return;
     var dt = Math.min(0.1, v.lastTs ? (ts - v.lastTs) / 1000 : 0); v.lastTs = ts;
     var moving = anyKey(v.ctl.keys) || v.probing;
+    // round 6B: hover inspection is computed here, at most once per animation frame and only when the pointer moved
+    if (v.inspReq) { var iq = v.inspReq; v.inspReq = null; showInspect(v, inspectAt(v, iq.x, iq.y)); }
     if (moving || v.dirty) {
       stepControls(v, dt);
       var s = v.s, cam = s.camera, r = v.inst && v.inst.r;
@@ -885,7 +896,7 @@ window.AsteriaView3D = (function () {
       s.stars.position.copy(cam.position);
       updateNear(v);
       s.renderer.render(s.scene, cam);
-      labels(v);
+      labels(v); inspectMarker(v);
       hud(v); featureLabels(v); miniMap(v); layoutLabels(v);
       if (v.ctl.mode === 'rover') { roverReadout(v, ts); trackPush(v); }
       v.dirty = false;
@@ -995,7 +1006,7 @@ window.AsteriaView3D = (function () {
     function add(t, ev, fn, opt) { t.addEventListener(ev, fn, opt); on.push([t, ev, fn, opt]); }
     var formTag = function (e) { var t = e.target && e.target.tagName; return t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA'; };
     add(window, 'keydown', function (e) {
-      if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+      if (e.key === 'Escape') { e.preventDefault(); if (v.inspect) showInspect(v, null); else close(); return; }
       if (formTag(e)) return;
       if (/^(Arrow|Key[WASDQE]|Shift|Equal|Minus|Numpad(Add|Subtract))/.test(e.code)) { c.keys[e.code] = true; v.dirty = true; if (/^Arrow/.test(e.code)) e.preventDefault(); }
     });
@@ -1064,18 +1075,23 @@ window.AsteriaView3D = (function () {
     add($('v3dHazMax'), 'change', function () { $('v3dSlopeMax').value = hazardLimit(); v.lastRead = 0; overlays(v); });
     v.el.querySelectorAll('[data-preset]').forEach(function (b) { add(b, 'click', function () { preset(v, b.dataset.preset); }); });
     add($('v3dTo2D'), 'click', function () { showOn2D(v); });
-    // pointer inspection: hover with a mouse (no button pressed), or a short tap / click without dragging
+    // pointer inspection (round 6B): by default a click or tap without dragging inspects that point; the readout and a
+    // marker stay until the next click or Esc. "Inspect on hover" (off by default; mouse only) follows the pointer live:
+    // the request is only stored here and computed in frame(), at most once per animation frame.
     add(cvs, 'pointermove', function (e) {
-      if (e.pointerType !== 'mouse' || e.buttons) return;
-      var now = performance.now(); if (now - (v.lastInspect || 0) < 90) return; v.lastInspect = now;
-      showInspect(v, inspectAt(v, e.clientX, e.clientY));
+      if (e.pointerType !== 'mouse' || e.buttons || !HOVER.on || v.inspectPinned) return;
+      v.inspReq = { x: e.clientX, y: e.clientY };
     });
-    add(cvs, 'pointerleave', function (e) { if (e.pointerType === 'mouse' && !v.inspectPinned) showInspect(v, null); });
+    add(cvs, 'pointerleave', function (e) { if (e.pointerType === 'mouse' && HOVER.on && !v.inspectPinned) { v.inspReq = null; showInspect(v, null); } });
     add(cvs, 'pointerdown', function (e) { v.tapStart = { x: e.clientX, y: e.clientY, t: performance.now() }; });
     add(cvs, 'pointerup', function (e) {
       var t = v.tapStart; if (!t) return;
-      if (Math.hypot(e.clientX - t.x, e.clientY - t.y) < 6 && performance.now() - t.t < 500) { v.inspectPinned = true; showInspect(v, inspectAt(v, e.clientX, e.clientY), true); }
+      if (Math.hypot(e.clientX - t.x, e.clientY - t.y) < 6 && performance.now() - t.t < 500) {
+        v.inspReq = null; var r = inspectAt(v, e.clientX, e.clientY);
+        showInspect(v, r, true); v.inspectPinned = !!r && !HOVER.on;
+      }
     });
+    add($('v3dHover'), 'change', function () { HOVER.on = this.checked; v.inspectPinned = false; if (!HOVER.on) showInspect(v, null); });
     add($('v3dRelief'), 'change', function () { v.reliefPref = this.checked; applyRelief(v); });
     add($('v3dRing'), 'change', function () { v.s.ring.visible = this.checked; v.dirty = true; });
     add($('v3dGlare'), 'change', function () { v.s.glare.visible = this.checked && !!(v.inst && v.inst.sunUp); v.dirty = true; });
@@ -1441,7 +1457,16 @@ window.AsteriaView3D = (function () {
     var ray = new THREE.Raycaster(); ray.setFromCamera(ndc, s.camera);
     var o = ray.ray.origin, d = ray.ray.direction, t0 = 0, hit = null;
     var below = function (t) { var x = o.x + d.x * t, z = o.z + d.z * t, gy = groundY(s, x, z); return gy > -1e8 && o.y + d.y * t <= gy; };
+    // round 6B: the same sample sequence as before (t = 0.5 m, then steps of max(0.5 m, 0.5 % of t)), but samples where
+    // the ray is above the highest drawn terrain or outside the outermost drawn grid cannot be below the ground and are
+    // not evaluated; the march stops once the ray rises above the top or moves away outside the drawn area. The first
+    // bracket and its bisection are those of the full march, so the hit point is the same.
+    var top = s.terrainTop === undefined ? Infinity : s.terrainTop + 1, ext = (s.terrainExt || 1e9) / 0.98 + 1;
     for (var t = 0.5; t < 90000; t += Math.max(0.5, t * 0.005)) {
+      var ry = o.y + d.y * t, rx = o.x + d.x * t, rz = o.z + d.z * t;
+      if (ry > top) { if (d.y >= 0) break; t0 = t; continue; }
+      var outX = Math.abs(rx) > ext, outZ = Math.abs(rz) > ext;
+      if (outX || outZ) { if ((!outX || rx * d.x > 0) && (!outZ || rz * d.z > 0)) break; t0 = t; continue; }
       if (below(t)) { var a = t0, b = t; for (var k = 0; k < 30; k++) { var m = (a + b) / 2; if (below(m)) b = m; else a = m; } hit = b; break; }
       t0 = t;
     }
@@ -1449,18 +1474,30 @@ window.AsteriaView3D = (function () {
     var x = o.x + d.x * hit, z = o.z + d.z * hit, D = dataGridAt(s, x, z);
     if (!D) return null;
     var h = M.heightAt(D.G, D.e, D.n), sl = M.slopeAt(D.G, D.e, D.n), ll = M.latLonAt(s.T.meta.lat, s.T.meta.lon, D.e, D.n, s.T.R);
-    return { x: x, z: z, e: D.e, n: D.n, h: h, slope: sl.slope, lat: ll.lat, lon: ll.lon, dist: Math.sqrt(D.e * D.e + D.n * D.n), area: D.area, d: D.d, product: D.product, drawn: D.drawn, px: cx - rc.left, py: cy - rc.top };
+    return { x: x, y: groundY(s, x, z), z: z, e: D.e, n: D.n, h: h, slope: sl.slope, lat: ll.lat, lon: ll.lon, dist: Math.sqrt(D.e * D.e + D.n * D.n), area: D.area, d: D.d, product: D.product, drawn: D.drawn, px: cx - rc.left, py: cy - rc.top };
   }
   function showInspect(v, r, pinned) {
-    var el = $('v3dInspect'); if (!el) return;
+    var el = $('v3dInspect'), mk = $('v3dInspMark'); if (!el) return;
     v.inspect = r;
-    if (!r) { el.hidden = true; return; }
+    if (!r) { el.hidden = true; if (mk) mk.hidden = true; v.inspectPinned = false; return; }
     var dist = r.dist >= 1000 ? (r.dist / 1000).toFixed(2) + ' km' : r.dist.toFixed(0) + ' m';
     el.innerHTML = '<b>Height</b> ' + r.h.toFixed(1) + ' m <span class="fineprint">(above the 1737.4 km sphere)</span><br><b>Slope</b> ' + r.slope.toFixed(1) + '° <span class="fineprint">(central differences over ' + r.d + ' m)</span><br>' +
       r.lat.toFixed(4) + '°, ' + r.lon.toFixed(4) + '°E · ' + dist + ' from the site<br><span class="fineprint">Data here: ' + r.d + ' m LOLA grid (' + esc(r.product) + '), ' + esc(r.area) + (r.drawn !== r.d ? ', drawn at ' + r.drawn + ' m' : '') + '. Calculated from LOLA; real slopes over a few metres can be steeper.</span>' + (pinned ? '' : '');
-    el.hidden = false;
+    el.hidden = false; mk.hidden = false;
+    placeInspect(v, r.px, r.py);
+  }
+  function placeInspect(v, px, py) {
+    var el = $('v3dInspect'), mk = $('v3dInspMark');
     var W = v.stage.clientWidth, H = v.stage.clientHeight, w = el.offsetWidth, h = el.offsetHeight;
-    el.style.left = Math.max(4, Math.min(W - w - 4, r.px + 14)) + 'px'; el.style.top = Math.max(4, Math.min(H - h - 4, r.py + 14)) + 'px';
+    el.style.left = Math.max(4, Math.min(W - w - 4, px + 14)) + 'px'; el.style.top = Math.max(4, Math.min(H - h - 4, py + 14)) + 'px';
+    mk.style.transform = 'translate(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px)';
+  }
+  // round 6B: the marker (and the readout next to it) follows the inspected ground point when the camera moves
+  function inspectMarker(v) {
+    var r = v.inspect; if (!r) return;
+    var p = new v.s.THREE.Vector3(r.x, r.y, r.z).project(v.s.camera), ok = p.z < 1 && p.z > -1 && Math.abs(p.x) < 1 && Math.abs(p.y) < 1;
+    $('v3dInspMark').hidden = !ok; $('v3dInspect').hidden = !ok;
+    if (ok) { r.px = (p.x + 1) / 2 * v.stage.clientWidth; r.py = (1 - p.y) / 2 * v.stage.clientHeight; placeInspect(v, r.px, r.py); }
   }
   // Ground position of the current view (Orbit: the view centre; Walk/Rover: you / the rover) as lat/lon.
   function viewLatLon(v) {
@@ -1583,6 +1620,7 @@ window.AsteriaView3D = (function () {
       defaultView(v);
     }
     initDisplay(v);
+    $('v3dHover').checked = HOVER.on;
     $('v3dContourInt').value = String(defaultContour(v.s.T));
     notes(v);
     setMode(v, 'orbit');
@@ -1664,7 +1702,7 @@ window.AsteriaView3D = (function () {
       labelSun: $('v3dLblSun').querySelector('.t').textContent, labelEarth: $('v3dLblEarth').querySelector('.t').textContent, instant: v.inst && { idx: v.inst.idx, t: v.inst.t, sunUp: v.inst.sunUp, earthUp: v.inst.earthUp, sun: { az: v.inst.r.sun.az, el: v.inst.r.sun.el, radius_deg: v.inst.r.sun.radius_deg }, earth: { az: v.inst.r.earth.az, el: v.inst.r.earth.el, radius_deg: v.inst.r.earth.radius_deg } },
       vertices: s.geo.attributes.position.count, triangles: s.geo.index.count / 3, extVertices: s.extVertices || 0, extError: s.extError || null,
       layers: s.layers.map(function (L) { return { name: L.name, vertices: L.vertices, cast: L.mesh.castShadow, receive: L.mesh.receiveShadow, normalMap: L.nmap || 0 }; }),
-      inspect: v.inspect || null, miniCam: v.miniCam || null, preset: v.lastPreset || null, viewLatLon: viewLatLon(v), walk: v.ctl.walk,
+      inspect: v.inspect || null, inspectPinned: !!v.inspectPinned, inspectHover: HOVER.on, miniCam: v.miniCam || null, preset: v.lastPreset || null, viewLatLon: viewLatLon(v), walk: v.ctl.walk,
       areas: s.areas || [], nmap: !!s.nmapOK, cascade: s.sunNear ? { box: s.nearBox || null, texel: s.nearTexel || null, mapSize: s.sunNear.shadow.mapSize.x } : null, earthshine: v.earthshine || null, noShadow: s.U.uNoShadow.value === 1,
       shadowCamera: { left: s.sun.shadow.camera.left, right: s.sun.shadow.camera.right, top: s.sun.shadow.camera.top, bottom: s.sun.shadow.camera.bottom, near: s.sun.shadow.camera.near, far: s.sun.shadow.camera.far, texel: s.shadowTexel },
       memory: { geometries: s.renderer.info.memory.geometries, textures: s.renderer.info.memory.textures }, rover: v.roverState || null, labelLayout: v.labelLayout || null,

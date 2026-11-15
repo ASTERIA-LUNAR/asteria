@@ -282,6 +282,21 @@ Decisions taken by the owner's lead engineer before round 6B (recorded here; the
 | Detailed VIPER rover model | Implement | Part 5. |
 | Stars on by default | Implement | Part 5. |
 
+## Round 6B Part 1 - Fast terrain inspection - DONE
+
+**Measured before** (`node tests/inspect_perf.js --save tests/perf/inspect_before.json`; High, Peak near Shackleton, 2028-09-25 10:04 UTC, laptop 1440 × 900, headless Chromium; one update = hit point + LOLA values + readout): Orbit default view, 54 check pixels × 5: median **0.70 ms**, 95th percentile 1.9 ms, max 4.9 ms; Walk (Site eye level), 27 × 5: median 0.30 ms, p95 1.2 ms. Diagnosis: the existing inspection was already a ray march on the drawn LOLA height grids (not a mesh raycast); what made the readout feel laggy was that it followed the cursor through a 90 ms throttle (the box trailed the pointer by up to 90 ms and jumped), and each ray was evaluated from the camera all the way out, including the kilometres of empty space above the terrain.
+
+**What changed** (`js/view3d.js`, `css/style.css`)
+* **Click / tap to inspect is now the default**: the readout and a small pink marker stay pinned until the next click or Esc (Esc first clears the readout; a second Esc closes the 3D view, as before). The marker and readout follow the inspected ground point when the camera moves.
+* **"Inspect on hover"** toggle (off by default; kept while the page is open): with a mouse, the readout follows the pointer live. The pointer position is only stored by the event; the readout is computed in the animation loop, **at most once per frame and only when the pointer moved** (no throttle).
+* **Faster march, same result**: the same sample sequence along the ray (0.5 m, then steps of max(0.5 m, 0.5 % of the distance)), but samples above the highest drawn terrain or outside the outermost drawn grid are not evaluated, and the march stops once the ray rises above the terrain or moves away outside it; plus an exact quick rejection before the per-grid inverse projection (a point with 0.98 × max(|x|, |z|) > half-size cannot be inside that grid). The first bracket and its 30-step bisection are those of the full march, so the hit point is bit-identical. The heights, slopes and lat/lon still come from the finest stored LOLA grid at the point (unchanged code).
+
+**Tests**
+* `node tests/inspect_perf.js --compare tests/perf/inspect_before.json`: **81/81 readouts identical** (54 Orbit + 27 Walk check positions; height, slope, lat/lon, distance, data resolution; largest numeric difference 0). Latency per update: Orbit median **0.70 → 0.10 ms**, p95 1.9 → 0.6 ms; Walk median 0.30 → 0.10 ms, p95 1.2 → 0.3 ms (browser timer resolution 0.1 ms). The single slowest update stays about 5 ms (the first call, before the JavaScript engine has optimised the code); target < 4 ms is met at median and 95th percentile.
+* `node tests/ui_round6b.js` (laptop + phone): hover off by default; mouse movement shows nothing; click / tap at the site marker pins readout and marker (distance 0 m); the pinned readout stays when the mouse moves; after the camera turns the marker stays on the ground point (< 2 px); Esc clears and the view stays open; with hover on the readout follows the mouse; a second tap moves the readout; no console errors - ALL PASS. `ui_round6.js`, `ui_check.js`, `ui_round5.js`: PASS.
+
+**Classification**: inspection values - Calculated (LOLA), unchanged. **Limitations**: hover needs a mouse; touch screens use tap (as before).
+
 ## Branch state
 
 * Branch `round6` contains the commits of Parts 0-5 on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).

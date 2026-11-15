@@ -477,6 +477,8 @@ pre.repro { background: var(--bg2); border: 1px solid var(--line); border-radius
 /* round 6: 3D inspection tooltip, camera presets, 2D marker for the 3D position */
 .v3d-inspect { position: absolute; z-index: 6; max-width: 300px; background: rgba(10,14,24,.92); border: 1px solid #3a4a6e; border-radius: 8px; padding: 6px 9px; font-size: .78rem; line-height: 1.35; color: #e8eefc; pointer-events: none; }
 .v3d-presets { flex-wrap: wrap; gap: 6px; align-items: center; } .v3d-presets .lbl { font-size: .8rem; color: #9fb0cf; }
+.v3d-inspmark { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #ff5c8a; box-shadow: 0 0 0 1.5px #000; z-index: 5; pointer-events: none; }
+.v3d-insp { flex-wrap: wrap; gap: 4px 10px; align-items: center; }
 .mk-3d { display: block; width: 22px; height: 22px; border-radius: 50%; border: 3px solid #ff5c8a; background: rgba(255,92,138,.25); box-shadow: 0 0 0 2px #000; }
 .leaflet-tooltip.tip3d { background: #1b2236; color: #fff; border-color: #ff5c8a; }
 .hintactions { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
