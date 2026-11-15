@@ -335,6 +335,12 @@ K = 1 matched the edge even more closely on High (+0.2 % / −0.1 %) but flatten
 
 **Classification**: Relief shading - Illustrative (display contrast), unchanged.
 
+## Round 6B Part 4 - Larger 5 m patch - NOT ATTEMPTED (recorded)
+
+**Why**: the LDEM_875S_5M data on disk are row windows fetched in round 4 (`dem/dl5m/<site>_rows.bin`, rows 19039-19609 and 16163-16733, i.e. 570 rows = 2.85 km north-south around each of the 3 sites). A 4 km patch needs about ±2.1 km of rows, so new rows (about 30 MB per site, roughly 100 MB from PDS) would have to be downloaded, the patches rebuilt, and the 1 m height check, the seam test, `tests/accuracy3d.js` (Python path) and the performance gate (first frame < 1.5 s, full terrain < 2 s, 60 frames/s on High) re-run. On submission day, with stability first, this optional part was left for later so that Parts 5-8 could be completed and tested. Nothing was changed; the 2 km patch stays as validated.
+
+**To do it later**: extend the row window in `tools/fetch_round4.py` (rows ±440 around the site row), set `HALF_5M = 2000.0` in `tools/terrain3d_ext.py`, run `python tools/terrain3d_ext.py build` and `check`, `node tests/accuracy3d.js --python`, `node tests/view3d_test.js`, `node tests/perf3d.js --quality high`, and keep it only if the gate above is met.
+
 ## Branch state
 
 * Branch `round6` contains the commits of Parts 0-5 on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).
