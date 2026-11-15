@@ -96,7 +96,7 @@ window.AsteriaView3D = (function () {
     var m = o.tile;
     el.innerHTML =
       '<div class="v3d-stage" id="v3dStage">' +
-      '  <div class="v3d-labels" id="v3dLabels"><span class="v3d-lbl sun" id="v3dLblSun"><i class="arw" aria-hidden="true">➤</i><span class="t">Sun</span></span><span class="v3d-lbl earth" id="v3dLblEarth"><i class="arw" aria-hidden="true">➤</i><span class="t">Earth</span></span><span class="v3d-lbl site" id="v3dLblSite"><i></i>Site</span><span class="v3d-lbl rover" id="v3dLblRover" hidden>Rover</span></div>' +
+      '  <div class="v3d-labels" id="v3dLabels"><span class="v3d-lbl sun" id="v3dLblSun"><i class="arw" aria-hidden="true">➤</i><span class="t">Sun</span></span><span class="v3d-lbl earth" id="v3dLblEarth"><i class="arw" aria-hidden="true">➤</i><span class="t">Earth</span></span><span class="v3d-lbl site" id="v3dLblSite"><i></i>Site</span><span class="v3d-lbl rover" id="v3dLblRover" hidden>Rover</span>' + (o.point ? '<span class="v3d-lbl site pt" id="v3dLblPt"><i></i>Your point</span>' : '') + '</div>' +
       '  <div class="v3d-exag" id="v3dExagBadge">Vertical scale 1× (true scale)</div>' +
       '  <div class="v3d-feat" id="v3dFeat"></div>' +
       '  <div class="v3d-hud" id="v3dHud"><svg class="v3d-compass" id="v3dCompass" viewBox="-30 -30 60 60" aria-hidden="true"><circle r="27"/><g id="v3dCompassRot"><path d="M0,-24 L6,-4 L0,-8 L-6,-4 Z" class="n"/><path d="M0,24 L6,4 L0,8 L-6,4 Z" class="s"/><text y="-11" class="nl">N</text></g></svg>' +
@@ -111,16 +111,17 @@ window.AsteriaView3D = (function () {
       '  <button class="btn v3d-close" id="v3dClose" aria-label="Close the 3D view">&#10005; Close 3D</button>' +
       '</div>' +
       '<aside class="v3d-panel" id="v3dPanel">' +
-      '  <div class="v3d-head"><div><div class="v3d-kicker">3D terrain view</div><h2 id="v3dTitle">' + esc(o.site.name) + '</h2></div><button class="btn small ghost" id="v3dToggle" aria-expanded="true" aria-controls="v3dBody">Hide panel</button></div>' +
+      '  <div class="v3d-head"><div><div class="v3d-kicker">3D terrain view</div><h2 id="v3dTitle">' + esc(o.point ? 'Your point ' + o.point.lat.toFixed(4) + '°, ' + o.point.lon.toFixed(4) + '°E' : o.site.name) + '</h2></div><button class="btn small ghost" id="v3dToggle" aria-expanded="true" aria-controls="v3dBody">Hide panel</button></div>' +
       '  <div id="v3dBody">' +
       '  <div class="v3d-time"><span class="lbl">Showing</span> <b class="mono" id="v3dTime">-</b></div>' +
       '  <div class="row slider-row"><button class="btn play" id="v3dPlay" aria-label="Play">&#9654;</button><input id="v3dSlider" type="range" min="0" max="1" value="0" aria-label="Time within window (synced with the main view)"></div>' +
       '  <div class="tiles v3d-tiles">' +
-      '    <div class="tile" id="v3dTileSun"><div class="tlabel">Sunlight at the site marker</div><div class="tstate" id="v3dSun">-</div><div class="tx x-only mono" id="v3dSunX"></div></div>' +
-      '    <div class="tile" id="v3dTileEarth"><div class="tlabel">Earth link at the site marker</div><div class="tstate" id="v3dEarth">-</div><div class="tx x-only mono" id="v3dEarthX"></div></div>' +
+      '    <div class="tile" id="v3dTileSun"><div class="tlabel">Sunlight at ' + (o.point ? 'your point' : 'the site marker') + '</div><div class="tstate" id="v3dSun">-</div><div class="tx x-only mono" id="v3dSunX"></div></div>' +
+      '    <div class="tile" id="v3dTileEarth"><div class="tlabel">Earth link at ' + (o.point ? 'your point' : 'the site marker') + '</div><div class="tstate" id="v3dEarth">-</div><div class="tx x-only mono" id="v3dEarthX"></div></div>' +
       '  </div>' +
       '  <div class="jumprow v3d-jump"><button class="btn small jump-sun" type="button" data-jump="sun">Jump to next sunlight</button><button class="btn small jump-earth" type="button" data-jump="earth">Jump to next Earth view</button><button class="btn small jump-both" type="button" data-jump="both">Jump to next both</button><div class="hint" id="v3dJumpMsg" role="status" aria-live="polite"></div></div>' +
       '  <p class="fineprint">Status from the validated horizon model (same as the main view), not from the 3D rendering.</p>' +
+      (o.point ? '  <p class="fineprint v3d-ptnote" id="v3dPtNote"></p>' : '') +
       '  <p class="fineprint" id="v3dEarthNote">Earth: continents from NASA Blue Marble (cloud-free composite); clouds not shown; orientation computed for this time.</p>' +
       '  <div class="v3d-ctl v3d-disp">' +
       '    <label>Quality <select id="v3dQuality"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>' +
@@ -133,6 +134,7 @@ window.AsteriaView3D = (function () {
       '  </div>' +
       '  <div class="v3d-ctl">' +
       '    <div class="seg" role="radiogroup" aria-label="Camera mode"><button data-mode="orbit" class="on">Orbit</button><button data-mode="walk">Walk</button><button data-mode="rover">Rover</button></div>' +
+      '    <div class="fineprint" id="v3dModeWhy" hidden></div>' +
       '  </div>' +
       '  <div class="v3d-ctl v3d-presets" role="group" aria-label="Camera presets"><span class="lbl">View</span><button class="btn small" data-preset="overview">Overview</button><button class="btn small" data-preset="eye">Site eye level (2 m)</button><button class="btn small" data-preset="sun">Look at Sun</button><button class="btn small" data-preset="earth">Look at Earth</button><button class="btn small" id="v3dTo2D" type="button">Show on 2D map</button></div>' +
       '  <div class="v3d-ctl v3d-insp"><span class="fineprint">Click (or tap) the terrain to read its height, slope, position and data resolution; the readout stays until the next click or Esc.</span> <label class="smallswitch"><input type="checkbox" id="v3dHover"> Inspect on hover</label></div>' +
@@ -1003,6 +1005,7 @@ window.AsteriaView3D = (function () {
       want.forEach(function (w) { s.ext[w[0]] = EXT_CACHE[w[3] + w[0]]; s.ext[w[0]].k = s.T.k; });
       buildTerrain(s);
       s.refinePending = false; v.dirty = true;
+      if (v.pt) placePoint(v);   // round 6F: the ring's heights are known now
       if (!v.userMoved && !(v.openArgs.keep) && v.ctl.mode === 'orbit') defaultView(v);
       notes(v);
     }, function (err) {
@@ -1198,6 +1201,7 @@ window.AsteriaView3D = (function () {
 
   function setMode(v, mode, keepView) {
     var c = v.ctl;
+    if (v.pt && !v.pt.inTile && mode !== 'orbit') mode = 'orbit';   // round 6F: Walk/Rover need the 6 km tile
     c.mode = mode;
     v.s.rover.visible = mode === 'rover';
     v.s.track.visible = mode === 'rover';
@@ -1218,7 +1222,7 @@ window.AsteriaView3D = (function () {
     applyCover(v);
     if (mode !== 'orbit') ensureFine(v);
     if (mode === 'walk' && c.walk.x === 0 && c.walk.z === 0 && !keepView) c.walk.yaw = v.inst ? v.inst.r.sun.az : 0;
-    if (mode === 'rover' && c.rov.dist === 0) { c.rov.yaw = v.inst ? v.inst.r.sun.az + 90 : 0; c.rov.x = 25; c.rov.z = 0; }
+    if (mode === 'rover' && c.rov.dist === 0 && !c.rov.ptStart) { c.rov.yaw = v.inst ? v.inst.r.sun.az + 90 : 0; c.rov.x = 25; c.rov.z = 0; }
     v.dirty = true;
   }
 
@@ -1243,17 +1247,21 @@ window.AsteriaView3D = (function () {
     var tile = function (id, cls, stEl, text) { $(id).className = 'tile ' + cls; $(stEl).textContent = text; };
     tile('v3dTileSun', inst.sunUp ? 'on-sun' : 'off', 'v3dSun', inst.sunUp ? 'Sun up' : 'Sun down');
     tile('v3dTileEarth', inst.earthUp ? 'on-earth' : 'off', 'v3dEarth', inst.earthUp ? 'Earth in view' : 'Earth hidden');
-    $('v3dSunX').textContent = 'Sun el ' + fmtDeg(r.sun.el) + ' · az ' + r.sun.az.toFixed(1) + '° · terrain horizon ' + fmtDeg(inst.hzSun, 1) + ' · disk ' + (2 * r.sun.radius_deg).toFixed(3) + '°';
-    $('v3dEarthX').textContent = 'Earth el ' + fmtDeg(r.earth.el) + ' · az ' + r.earth.az.toFixed(1) + '° · terrain horizon ' + fmtDeg(inst.hzEarth, 1) + (inst.minEl ? ' + ' + inst.minEl + '° min' : '') + ' · disk ' + (2 * r.earth.radius_deg).toFixed(2) + '° · ' + (100 * ph.illuminated).toFixed(0) + '% lit (phase)';
+    // round 6F: for a custom point, inst.r is the Sun/Earth at the site (drawing frame) and inst.rPt at the point (the
+    // main view's values, shown in the tiles); the phase is the same at both
+    var rT = inst.rPt || r;
+    $('v3dSunX').textContent = 'Sun el ' + fmtDeg(rT.sun.el) + ' · az ' + rT.sun.az.toFixed(1) + '° · terrain horizon ' + fmtDeg(inst.hzSun, 1) + ' · disk ' + (2 * rT.sun.radius_deg).toFixed(3) + '°';
+    $('v3dEarthX').textContent = 'Earth el ' + fmtDeg(rT.earth.el) + ' · az ' + rT.earth.az.toFixed(1) + '° · terrain horizon ' + fmtDeg(inst.hzEarth, 1) + (inst.minEl ? ' + ' + inst.minEl + '° min' : '') + ' · disk ' + (2 * rT.earth.radius_deg).toFixed(2) + '° · ' + (100 * ph.illuminated).toFixed(0) + '% lit (phase)';
     $('v3dTime').textContent = fmtUTC(new Date(inst.t)) + ' UTC';
     var sl = $('v3dSlider'); sl.max = inst.n - 1; sl.value = inst.idx;
     var col = inst.sunUp && inst.earthUp ? 0x5ee27a : inst.sunUp ? 0xffc23d : inst.earthUp ? 0x4ea8ff : 0x6f7890;
-    s.markerMat.color.setHex(col);
-    $('v3dLblSite').className = 'v3d-lbl site ' + (inst.sunUp && inst.earthUp ? 'on-both' : inst.sunUp ? 'on-sun' : inst.earthUp ? 'on-earth' : 'off');
+    var lcls = inst.sunUp && inst.earthUp ? 'on-both' : inst.sunUp ? 'on-sun' : inst.earthUp ? 'on-earth' : 'off';
+    if (v.pt) { s.ptMat.color.setHex(col); $('v3dLblPt').className = 'v3d-lbl site pt ' + lcls; }   // round 6F: status belongs to the point
+    else { s.markerMat.color.setHex(col); $('v3dLblSite').className = 'v3d-lbl site ' + lcls; }
     var b = $('v3dBanner');
-    if (!inst.sunUp && r.sun.el > -r.sun.radius_deg) {
+    if (!inst.sunUp && rT.sun.el > -rT.sun.radius_deg) {
       b.hidden = false;
-      b.textContent = 'At the site marker the Sun is hidden behind terrain (validated horizon model, Sun ' + fmtDeg(r.sun.el, 1) + ' vs horizon ' + fmtDeg(inst.hzSun, 1) + '). ' + (!shadowsOn() ? 'Shadows are off in this view, so the ground is drawn lit from the Sun\'s direction; turn on "Shadows (approximate)" to see cast shadows.' : v.s.Q.extShadow ? 'Terrain more than ' + (extKm(v) || 16) + ' km away casts no shadows in this view, so parts of the ground may still look lit.' : 'At ' + v.s.Q.label + ' quality only the 6 km tile casts shadows, so parts of the ground may look lit (Medium or High add shadows from the surrounding terrain).');
+      b.textContent = 'At ' + (v.pt ? 'your point' : 'the site marker') + ' the Sun is hidden behind terrain (validated horizon model, Sun ' + fmtDeg(rT.sun.el, 1) + ' vs horizon ' + fmtDeg(inst.hzSun, 1) + '). ' + (!shadowsOn() ? 'Shadows are off in this view, so the ground is drawn lit from the Sun\'s direction; turn on "Shadows (approximate)" to see cast shadows.' : v.s.Q.extShadow ? 'Terrain more than ' + (extKm(v) || 16) + ' km away casts no shadows in this view, so parts of the ground may still look lit.' : 'At ' + v.s.Q.label + ' quality only the 6 km tile casts shadows, so parts of the ground may look lit (Medium or High add shadows from the surrounding terrain).');
     } else b.hidden = true;
     if (inst.sunUp && v.lightUpAuto && v.bright >= LIGHT_UP - 0.01) lightUpOff(v, '"Light up" switched off: the Sun is up at the site, and the extra brightness would wash the sunlit ground out to white.');
     updateTip(v);
@@ -1328,6 +1336,7 @@ window.AsteriaView3D = (function () {
     edge('v3dLblSun', s.sunDisk);
     edge('v3dLblEarth', s.earth);
     put('v3dLblSite', 0, 40, 0);
+    if (v.pt) put('v3dLblPt', v.pt.x, v.pt.y + 40, v.pt.z);
     if (v.ctl.mode === 'rover') put('v3dLblRover', s.roverBody.position.x, s.roverBody.position.y + 3.2, s.roverBody.position.z);
   }
   function setPos(el, x, y) { el._x = x; el._y = y; el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)'; }
@@ -1601,9 +1610,57 @@ window.AsteriaView3D = (function () {
   // ------------------------------------------------- framing and orientation aids (Part 8)
   // Oblique view on open: the camera looks across the site with the Sun 35° to the right of the view direction (so
   // slopes are side-lit and the Sun is in the picture), 20° down, far enough to show the surrounding relief.
+  // Round 6F: "Choose your point -> 3D". A custom point inside a site's 3D terrain is shown in that site's existing scene
+  // (same frame, meshes, heights, Sun/Earth directions and readouts); only the start position, the orbit target and a
+  // second marker move to the point. (e, n): the point's azimuthal-equidistant ground coordinates from the tile centre,
+  // the exact inverse of M.latLonAt. Walk and Rover need the 6 km tile (clampTile), so a point on the surrounding ring is
+  // shown in Orbit only. The status tiles show the main view's values for the point (its own horizon), see setInstant.
+  function pointEN(T, lat, lon) {
+    var DEG = Math.PI / 180, la = T.meta.lat * DEG, lo = T.meta.lon * DEG, pa = lat * DEG, po = lon * DEG;
+    var up = [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)], east = [-Math.sin(lo), Math.cos(lo), 0];
+    var north = [up[1] * east[2] - up[2] * east[1], up[2] * east[0] - up[0] * east[2], up[0] * east[1] - up[1] * east[0]];
+    var q = [Math.cos(pa) * Math.cos(po), Math.cos(pa) * Math.sin(po), Math.sin(pa)];
+    var dot = function (a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; };
+    var de = dot(q, east), dn = dot(q, north), h = Math.sqrt(de * de + dn * dn), sd = T.R * Math.atan2(h, dot(q, up));
+    return { e: h > 0 ? sd * de / h : 0, n: h > 0 ? sd * dn / h : 0 };
+  }
+  function setupPoint(v, P) {
+    var s = v.s, THREE = s.THREE, g = pointEN(s.T, P.lat, P.lon), lim = s.TM.half - s.TM.d;
+    v.pt = { lat: P.lat, lon: P.lon, e: g.e, n: g.n, inTile: Math.abs(g.e) <= lim && Math.abs(g.n) <= lim, km: Math.sqrt(g.e * g.e + g.n * g.n) / 1000, hzText: P.hzText || '' };
+    var mg = new THREE.BufferGeometry(); mg.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0, 0, 40, 0]), 3));
+    s.ptMat = new THREE.LineBasicMaterial({ color: 0x6f7890 }); s.ptMarker = new THREE.Line(mg, s.ptMat); s.scene.add(s.ptMarker);
+    placePoint(v);
+    var c = v.ctl;
+    if (v.pt.inTile) {
+      c.walk.x = v.pt.x; c.walk.z = v.pt.z; c.walk.yaw = v.app.instant() ? v.app.instant().r.sun.az : 0;
+      var cl = clampTile(s.TM, v.pt.x + 25, v.pt.z); c.rov.x = cl[0]; c.rov.z = cl[1]; c.rov.yaw = c.walk.yaw + 90; c.rov.ptStart = true;
+    }
+  }
+  function pointNote(v) {
+    var pt = v.pt, s = v.s, nm = esc(v.site.name);
+    $('v3dPtNote').innerHTML = '<b>Your point</b> (' + pt.lat.toFixed(4) + '°, ' + pt.lon.toFixed(4) + '°E) is ' + (pt.km < 1 ? Math.round(pt.km * 1000) + ' m' : pt.km.toFixed(1) + ' km') + ' from the marker of ' + nm + ', ' +
+      (pt.inTile ? 'on its 6 km LOLA tile (' + s.T.d + ' m grid).' : 'on the LOLA terrain around its 6 km tile (100 m grid). Orbit only.') +
+      ' The status tiles are the main view\'s values for your point' + (pt.hzText ? ' (' + esc(pt.hzText) + ')' : '') + '. The terrain, Sun and Earth are this site\'s 3D scene (same LOLA data and directions, no new terrain); Sun/Earth label azimuths are measured at the site marker.';
+    if (!pt.inTile) {
+      var why = $('v3dModeWhy'); why.hidden = false; why.textContent = 'Walk and Rover need the 6 km tile around the site marker; your point is on the coarser surrounding terrain, so it is shown in Orbit only.';
+      v.el.querySelectorAll('.seg button[data-mode="walk"], .seg button[data-mode="rover"], .v3d-presets button[data-preset="eye"], .v3d-presets button[data-preset="sun"], .v3d-presets button[data-preset="earth"]').forEach(function (b) { b.disabled = true; b.title = why.textContent; });
+    }
+  }
+  // world position of the point on the finest loaded drawn surface (tile mesh, else ring A grid; the site height until the
+  // ring has loaded), and the marker there
+  function placePoint(v) {
+    var s = v.s, pt = v.pt, h;
+    if (pt.inTile) h = M.meshHeightAt(s.TM, pt.e, pt.n);
+    else if (s.ext.a && M.inside(s.ext.a, pt.e, pt.n)) h = M.heightAt(s.ext.a, pt.e, pt.n);
+    else h = s.T.h0;
+    var w = M.toThree(M.enu(s.T, pt.e, pt.n, h));
+    pt.x = w[0]; pt.y = w[1]; pt.z = w[2]; pt.exact = pt.inTile || !!s.ext.a;
+    s.ptMarker.position.set(w[0], w[1], w[2]);
+  }
   function defaultView(v) {
     var c = v.ctl, r = v.inst && v.inst.r; if (!r) return;
     c.target = [0, groundY(v.s, 0, 0), 0];
+    if (v.pt) { placePoint(v); c.target = [v.pt.x, v.pt.y, v.pt.z]; }
     c.yaw = r.sun.az + 180 - 35; c.pitch = 20; c.dist = v.s.Q.ringA > 1 ? 7000 : 9000;
     var A = v.s.gridA || v.s.ext.a;
     if (A) {   // a site in a deep depression (e.g. a crater floor): back off to show the walls around it
@@ -1830,11 +1887,13 @@ window.AsteriaView3D = (function () {
   // ------------------------------------------------- exploration and inspection (round 6, Part 3)
   // Camera presets. Directions of the Sun and Earth from the engine (validated az/el), never from the picture.
   function preset(v, name) {
-    var c = v.ctl, i = v.inst; v.userMoved = true;
+    var c = v.ctl, i = v.inst;
+    if (v.pt && !v.pt.inTile && name !== 'overview') return;   // round 6F: eye-level presets need the 6 km tile
+    v.userMoved = true;
     if (name === 'overview') { setMode(v, 'orbit'); defaultView(v); }
     else {
       var keep = c.mode === 'walk' ? { x: c.walk.x, z: c.walk.z } : { x: 0, z: 0 };
-      if (name === 'eye') keep = { x: 0, z: 0 };
+      if (name === 'eye') keep = v.pt ? { x: v.pt.x, z: v.pt.z } : { x: 0, z: 0 };
       var az = 0, el = 2;
       if (i && name === 'eye') { az = i.r.sun.az; el = 2; }
       if (i && name === 'sun') { az = i.r.sun.az; el = i.r.sun.el; }
@@ -2029,7 +2088,7 @@ window.AsteriaView3D = (function () {
     var user = lsGet('asteria.v3dQuality'), qName = o.quality || (QUALITY[user] ? user : auto.q);
     var Q = QUALITY[qName], stride = o.tile.n > 200 ? Q.stride : 1;
     var inst0 = o.app.instant();
-    var el = buildDom({ site: o.site, tile: o.tile, stride: stride, earthRadiusDeg: inst0 && inst0.r.earth.radius_deg });
+    var el = buildDom({ site: o.site, tile: o.tile, stride: stride, earthRadiusDeg: inst0 && inst0.r.earth.radius_deg, point: o.point || null });
     var v = { el: el, stage: $('v3dStage'), app: o.app, site: o.site, dirty: true, frames: 0, raf: 0 };
     v.s = buildScene({ tile: o.tile, mask: o.mask, phone: phone, stride: stride, Q: Q });
     v.earthRadiusDeg = inst0 && inst0.r.earth.radius_deg;
@@ -2037,7 +2096,9 @@ window.AsteriaView3D = (function () {
     v.stage.insertBefore(v.s.renderer.domElement, v.stage.firstChild);
     v.s.renderer.domElement.setAttribute('aria-label', '3D view of the terrain around ' + o.site.name + ' with the Sun and Earth at their computed positions');
     v.ctl = Controls(v);
+    if (o.point) setupPoint(v, o.point);
     V = v;
+    if (v.pt) pointNote(v);
     document.body.classList.add('v3d-open');
     bind(v);
     resize(v);
@@ -2138,6 +2199,7 @@ window.AsteriaView3D = (function () {
       shadowCamera: { left: s.sun.shadow.camera.left, right: s.sun.shadow.camera.right, top: s.sun.shadow.camera.top, bottom: s.sun.shadow.camera.bottom, near: s.sun.shadow.camera.near, far: s.sun.shadow.camera.far, texel: s.shadowTexel },
       memory: { geometries: s.renderer.info.memory.geometries, textures: s.renderer.info.memory.textures }, rover: v.roverState || null, roverModel: { triangles: s.roverTris, low: s.roverLow }, labelLayout: v.labelLayout || null,
       tileCentreY: M.groundWorld(s.TM, 0, 0).y,
+      point: v.pt ? { lat: v.pt.lat, lon: v.pt.lon, e: v.pt.e, n: v.pt.n, x: v.pt.x, y: v.pt.y, z: v.pt.z, inTile: v.pt.inTile, km: v.pt.km, exact: v.pt.exact } : null, site: v.site.id,
       camera: [cam.x, cam.y, cam.z], eyeAboveGround: cam.y - M.groundWorld(s.TM, cam.x, cam.z).y
     };
   }

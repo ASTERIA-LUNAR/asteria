@@ -239,8 +239,17 @@ window.AsteriaMap = (function () {
     map.setView([lat, lon], Math.max(map.getZoom(), 7), { animate: false });
     return { lat: lat, lon: lon, zoom: map.getZoom(), centre: map.getCenter() };
   }
+  // round 6F: outlines of the areas with 3D terrain (subtle; not interactive). list: [{ ll: [[lat, lon], ...], tile }]
+  var covLayer = null;
+  function setCoverage(list) {
+    if (!map) return;
+    if (covLayer) map.removeLayer(covLayer);
+    covLayer = L.layerGroup(list.map(function (q) {
+      return L.polygon(q.ll, { color: '#7fd3ff', weight: 1, opacity: q.tile ? 0.8 : 0.45, dashArray: q.tile ? null : '3 4', fill: false, interactive: false, className: 'cov3d' + (q.tile ? ' cov3d-tile' : '') });
+    })).addTo(map);
+  }
   return {
-    init: init, setSites: setSites, select: select, setOverlay: setOverlay, setMarkersVisible: setMarkersVisible,
+    init: init, setSites: setSites, setCoverage: setCoverage, coverageCount: function () { return covLayer ? covLayer.getLayers().length : 0; }, select: select, setOverlay: setOverlay, setMarkersVisible: setMarkersVisible,
     invalidate: invalidate, home: home, showPoint: showPoint, scaleInfo: scaleInfo, scaleState: function () { return scaleState; }, margins: margins, project: project, unproject: unproject, inData: inData,
     leaflet: function () { return map; }
   };

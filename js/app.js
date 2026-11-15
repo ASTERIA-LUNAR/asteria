@@ -207,7 +207,12 @@
       if (s.hz) m += '<div class="x-only">Terrain: downsampled LOLA DEM, ' + COARSE_PX + ' m pixels (area mean of LDEM_85S_20M / 80S_80M / 75S_120M); site height ' + s.hz.siteHeight_m.toFixed(0) + ' m above the 1737.4 km sphere; observer 2 m above ground; horizon from ' + fmtDeg(minMax(s.hz.elevations)[0], 1) + ' to ' + fmtDeg(minMax(s.hz.elevations)[1], 1) + '; rays reach ' + minMax(s.hz.reach_km)[0].toFixed(0) + '-300 km (they stop at the edge of the map data). Method: same as tools/terrain.py; validation on the Validation tab.</div>';
     }
     $('siteMeta').innerHTML = m;
-    $('deployRow').hidden = !has3D(s);
+    $('deployRow').hidden = !has3D(s) && !!s.id;   // round 6F: custom points always show the button (or why it is disabled)
+    var host = !s.id ? host3D(s) : null;
+    $('deployBtn').disabled = !s.id && !host;
+    $('deployHint').textContent = s.id ? 'Real LOLA terrain, 6 km around this site, with the Sun and Earth at their computed positions.' :
+      host ? 'Real LOLA terrain of ' + host.site.name + ' (your point is ' + (host.km < 1 ? Math.round(host.km * 1000) + ' m' : host.km.toFixed(1) + ' km') + ' from it' + (host.tile ? '' : '; Orbit only, Walk and Rover need its 6 km tile') + '), with the Sun and Earth at their computed positions.' :
+      '3D terrain is available within about ' + COV_RING_M / 1000 + ' km of the ' + sites3D().length + ' sites with 3D terrain (blue squares on the map); this point is outside them.';
     renderBadge();
   }
   function renderBadge() {
@@ -306,7 +311,7 @@
     } else {
       h = '<div class="lgtitle">Terrain ' + q('overlay_none') + '</div><div class="lgnote">Hillshade from LOLA elevation data - synthetic lighting, not real illumination. Up to ' + (TMp['7'] || 18.6).toFixed(1) + ' m/px near the pole.</div>';
     }
-    h += '<div class="lgmk"><span><i class="mk mk-feature"></i>Point inside an Artemis III region</span><span><i class="mk mk-point"></i>Mission / published point</span><span><i class="mk mk-derived"></i>Derived</span><span><i class="mk mk-reference"></i>Reference</span><span><i class="mk mk-group"><b>2</b></i>Overlapping</span></div>';
+    h += '<div class="lgmk"><span><i class="mk mk-feature"></i>Point inside an Artemis III region</span><span><i class="mk mk-point"></i>Mission / published point</span><span><i class="mk mk-derived"></i>Derived</span><span><i class="mk mk-reference"></i>Reference</span><span><i class="mk mk-group"><b>2</b></i>Overlapping</span><span><i class="cov3d-key"></i>3D terrain (Deploy): outer square Orbit, inner square also Walk and Rover</span></div>';
     el.innerHTML = h;
     initQ(el);
   }
@@ -1697,6 +1702,57 @@
   // Everything for the 3D view (Three.js, js/view3d*.js, the terrain tile) is loaded only when Deploy is clicked.
   var INSTANT_FNS = [], scriptCache = {};
   function has3D(s) { return !!(s && s.id && T3D_IDS.indexOf(s.id) >= 0 && HZ[s.id]); }
+  // Round 6F: "Choose your point -> 3D". The existing 3D terrain of each site with a 3D tile covers a 6 km square (the
+  // tile: Orbit, Walk and Rover) inside a 32 km square (ring A, 100 m grid, loaded at every quality level: Orbit), both
+  // centred on the site in azimuthal-equidistant ground coordinates (tools/terrain3d.py, tools/terrain3d_ext.py). Ring B
+  // (to 40 km) is loaded only at High, so it is not counted. A custom point inside one of these squares opens that
+  // site's existing 3D scene at the point (no new terrain data); elsewhere Deploy is disabled with the reason.
+  var COV_TILE_M = 3000, COV_RING_M = 16000, COV_EDGE_M = 100;
+  function enFrom(lat0, lon0, lat, lon) {   // inverse of the 3D view's latLonAt (sphere of 1737.4 km)
+    var D = Math.PI / 180, la = lat0 * D, lo = lon0 * D, pa = lat * D, po = lon * D, R = 1737400;
+    var up = [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)], east = [-Math.sin(lo), Math.cos(lo), 0];
+    var north = [up[1] * east[2] - up[2] * east[1], up[2] * east[0] - up[0] * east[2], up[0] * east[1] - up[1] * east[0]];
+    var q = [Math.cos(pa) * Math.cos(po), Math.cos(pa) * Math.sin(po), Math.sin(pa)];
+    var dot = function (a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; };
+    var de = dot(q, east), dn = dot(q, north), h = Math.sqrt(de * de + dn * dn), sd = R * Math.atan2(h, dot(q, up));
+    return { e: h > 0 ? sd * de / h : 0, n: h > 0 ? sd * dn / h : 0 };
+  }
+  function llFrom(lat0, lon0, e, n) {      // the 3D view's latLonAt
+    var D = Math.PI / 180, la = lat0 * D, lo = lon0 * D, sd = Math.sqrt(e * e + n * n), th = sd / 1737400;
+    var up = [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)], east = [-Math.sin(lo), Math.cos(lo), 0];
+    var north = [up[1] * east[2] - up[2] * east[1], up[2] * east[0] - up[0] * east[2], up[0] * east[1] - up[1] * east[0]];
+    var se = sd > 0 ? e / sd : 0, sn = sd > 0 ? n / sd : 0, v = [0, 0, 0];
+    for (var k = 0; k < 3; k++) v[k] = Math.cos(th) * up[k] + Math.sin(th) * (se * east[k] + sn * north[k]);
+    return { lat: Math.asin(v[2]) / D, lon: Math.atan2(v[1], v[0]) / D };
+  }
+  function sites3D() { return T3D_IDS.map(siteById).filter(function (h) { return h && HZ[h.id]; }); }
+  // the site whose 3D terrain contains custom point s: inside a 6 km tile first, then the nearest centre
+  function host3D(s) {
+    if (!s || s.id) return null;
+    var best = null;
+    sites3D().forEach(function (h) {
+      var g = enFrom(h.lat, h.lon, s.lat, s.lon), m = Math.max(Math.abs(g.e), Math.abs(g.n)), d = Math.sqrt(g.e * g.e + g.n * g.n);
+      if (m > COV_RING_M - COV_EDGE_M) return;
+      var tile = m <= COV_TILE_M - 2 * COV_EDGE_M, score = (tile ? 0 : 1e9) + d;
+      if (!best || score < best.score) best = { site: h, e: g.e, n: g.n, km: d / 1000, tile: tile, score: score };
+    });
+    return best;
+  }
+  function deployable(s) { return has3D(s) || !!host3D(s); }
+  // outlines for the 2D map: each square sampled along its edges, converted to latitude/longitude
+  function coverageOutlines() {
+    var out = [];
+    sites3D().forEach(function (h) {
+      [[COV_RING_M, false], [COV_TILE_M, true]].forEach(function (q) {
+        var a = q[0], ll = [], N = 12;
+        [[-a, a, a, a], [a, a, a, -a], [a, -a, -a, -a], [-a, -a, -a, a]].forEach(function (E) {
+          for (var k = 0; k < N; k++) { var t = k / N, c = llFrom(h.lat, h.lon, E[0] + (E[2] - E[0]) * t, E[1] + (E[3] - E[1]) * t); ll.push([c.lat, c.lon]); }
+        });
+        out.push({ id: h.id, tile: q[1], ll: ll });
+      });
+    });
+    return out;
+  }
   function loadScript(src) {
     if (!scriptCache[src]) {
       scriptCache[src] = new Promise(function (resolve, reject) {
@@ -1714,31 +1770,35 @@
     return { idx: i, n: S.series.t.length, t: t, r: r, sunUp: S.series.sunUp[i], earthUp: S.series.earthUp[i], hzSun: E.maskAt(mask, r.sun.az), hzEarth: E.maskAt(mask, r.earth.az), minEl: S.minEl };
   }
   function openDeploy() {
-    var site = S.site;
-    if (!has3D(site)) return Promise.resolve(null);
+    var site = S.site, host = site && !site.id ? host3D(site) : null, tsite = host ? host.site : site;   // round 6F
+    if (!has3D(tsite)) return Promise.resolve(null);
     var btn = $('deployBtn'); btn.disabled = true;
     // Only the window's series is needed (not the slower search beyond the window); scripts load meanwhile.
-    var load = Promise.all([S.seriesReady || S.ready || Promise.resolve(), loadScript('lib/three/three.min.js'), loadScript('js/view3d_math.js'), loadScript('data/terrain3d/' + site.id + '.js')])
+    var load = Promise.all([S.seriesReady || S.ready || Promise.resolve(), loadScript('lib/three/three.min.js'), loadScript('js/view3d_math.js'), loadScript('data/terrain3d/' + tsite.id + '.js')])
       .then(function () { return loadScript('js/view3d.js'); });
     return Loader.track(load, 'Loading 3D terrain…').then(function () {
       btn.disabled = false;
       if (S.site !== site) return null;
-      try { return open3D(site); } catch (e) { fail3D(e); return null; }
+      try { var v = open3D(tsite, host ? site : null); writeHash(); return v; } catch (e) { fail3D(e); return null; }
     }, function (e) { btn.disabled = false; fail3D(e); return null; });
   }
   function fail3D(e) {
     $('deployNote').textContent = 'The 3D view could not be opened (' + (e && e.message || e) + '). The rest of ASTERIA is unaffected.';
     console.error(e);
   }
-  function open3D(site) {
+  // pt (round 6F): a custom point inside site's 3D terrain. The scene is the site's (Sun/Earth directions computed at the
+  // site, r); the status tiles and their values are the main view's for the point (rPt, sunUp, earthUp, horizons).
+  function open3D(site, pt) {
     var btn = $('deployBtn');
     $('deployNote').textContent = '';
+    var wrap = function (i) { return i && pt ? Object.assign({}, i, { r: E.sunEarthAt({ lat: site.lat, lon: site.lon }, new Date(i.t)), rPt: i.r }) : i; };
     return window.AsteriaView3D.open({
       site: site, tile: window.ASTERIA_TERRAIN3D[site.id], mask: maskFor(site, true),
+      point: pt ? { lat: pt.lat, lon: pt.lon, hzText: pt.hz ? 'its own terrain horizon from 240 m data' : 'smooth horizon, terrain not included' } : null,
       app: {
-        instant: currentInstant, setIdx: setIdx, setPlaying: setPlaying, playing: function () { return S.playing; }, jump: jumpNext,
-        onInstant: function (fn) { INSTANT_FNS.push(fn); return function () { var k = INSTANT_FNS.indexOf(fn); if (k >= 0) INSTANT_FNS.splice(k, 1); }; },
-        onClose: function () { setTimeout(function () { btn.focus({ preventScroll: true }); }, 0); },
+        instant: function () { return wrap(currentInstant()); }, setIdx: setIdx, setPlaying: setPlaying, playing: function () { return S.playing; }, jump: jumpNext,
+        onInstant: function (fn0) { var fn = pt ? function (i) { fn0(wrap(i)); } : fn0; INSTANT_FNS.push(fn); return function () { var k = INSTANT_FNS.indexOf(fn); if (k >= 0) INSTANT_FNS.splice(k, 1); }; },
+        onClose: function () { setTimeout(function () { btn.focus({ preventScroll: true }); writeHash(); }, 0); },
         // round 6: "Show on 2D map" (the 3D view closes itself first)
         showOn2D: function (lat, lon) { showPage('explorer'); Map.invalidate(); var r = Map.showPoint(lat, lon); var el = $('mapPanel'); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' }); return r; }
       }
@@ -1962,6 +2022,7 @@
     if (tab.page && tab.page !== 'explorer') p.push('tab=' + tab.page);
     var rq = reqEncode(REQ); if (rq !== reqEncode(reqDefaults())) p.push('req=' + rq);   // round 6D: requirements
     if (CF.open) p.push('cf=1');                                                       // round 6D: casefile open
+    if (window.AsteriaView3D && AsteriaView3D.isOpen()) p.push('v3d=1');                // round 6F: 3D view open
     try { history.replaceState(null, '', '#' + p.join('&')); } catch (e) { location.hash = p.join('&'); }
   }
   function readHash() {
@@ -1980,6 +2041,7 @@
     if (o.terrain === '0') p = Promise.resolve(p).then(function () { if (S.useTerrain) { S.useTerrain = false; renderBadge(); return recompute(); } });
     if (o.tab && $('page-' + o.tab)) showPage(o.tab);
     if (o.cf === '1') Promise.resolve(p).then(function () { return S.ready; }).then(function () { openCasefile(); });   // round 6D
+    if (o.v3d === '1') Promise.resolve(p).then(function () { return S.ready; }).then(function () { if (deployable(S.site) && !(window.AsteriaView3D && AsteriaView3D.isOpen())) return openDeploy(); });   // round 6F
     else if (CF.open) closeCasefile();
     return p;
   }
@@ -2016,7 +2078,9 @@
       [['Open a site: Peak near Shackleton', function () { selectSite(siteById('peak_shackleton')); }], ['Show the whole pole', function () { Map.home(true); }]]],
     ['siteCard', '<b>2. Three status tiles.</b> <span class="c-sun">Sunlight</span>, <span class="c-earth">Earth link</span> and <span class="c-both">mission status</span> at the selected time, each with a countdown to the next change.',
       [['Explain the Sunlight tile', function () { setExplain(true); var q = document.querySelector('#siteCard .qb[data-q="sun"]'); if (q) showQ(q); }]]],
-    ['skyPanel', '<b>3. Go deeper.</b> Press play in the Sky view, switch on <b>Expert view</b> for all technical values, tap <b>?</b> for explanations, or take the <b>Tour</b>.',
+    ['mapPanel', '<b>3. Choose your point, then Deploy 3D.</b> Click any point inside a thin blue square on the map (the 3D terrain around the sites), then press <b>Deploy: 3D terrain view</b> on the site card: the 3D view opens at your point.',
+      [['Try it: a point near Peak near Shackleton', function () { tourPoint().then(function () { var b = $('deployRow'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'center' }); }); }]]],
+    ['skyPanel', '<b>4. Go deeper.</b> Press play in the Sky view, switch on <b>Expert view</b> for all technical values, tap <b>?</b> for explanations, or take the <b>Tour</b>.',
       [['Play the Sky view', function () { if (!S.playing) setPlaying(true); }], ['Turn on Expert view', function () { setExpert(true); }],
        ['Show ? explanations', function () { setExplain(true); var q = document.querySelector('#skyPanel .qb[data-q="sky"]'); if (q) showQ(q); }], ['Start the Tour', function () { tourShow(0); }]]]
   ];
@@ -2108,7 +2172,14 @@
         done('earthPanel', 'Earth link: seen from the pole, Earth stays near the horizon and moves up and down a little as the Moon\'s orientation toward Earth changes (libration), so a direct line of sight comes and goes. In these 30 days Earth\'s centre moves between ' + fmtDeg(eEl[0], 1) + ' and ' + fmtDeg(eEl[1], 1) + ' elevation and is in view <b>' + st.pctEarth.toFixed(0) + '%</b> of the time in <b>' + w.length + '</b> window(s); the longest blackout lasts ' + fmtD(st.longestBlackoutH) + '. ' + nextTxt + ' You can require a minimum elevation above the terrain for a usable link.');
       });
     },
-    function (done) { // 4. launch slip
+    function (done) { // 4. (round 6F) choose your own point, then Deploy 3D
+      showPage('explorer');
+      tourPoint().then(function () {
+        var h = host3D(S.site);
+        done('deployRow', '<b>Choose your point, then Deploy 3D.</b> Click any point on the map; inside a thin blue square (the 3D terrain around ' + sites3D().length + ' sites) the site card offers <b>Deploy: 3D terrain view</b>, and the 3D view opens at your point. This one is ' + (h ? (h.km < 1 ? Math.round(h.km * 1000) + ' m' : h.km.toFixed(1) + ' km') + ' from ' + esc(h.site.name) : 'near Peak near Shackleton') + '; its status tiles in 3D are the same values as here.');
+      });
+    },
+    function (done) { // 5. launch slip
       showPage('slip');
       $('slipSites').value = 'current'; $('slipNominal').value = toInput(S.start); $('slipDuration').value = 14; $('slipFrom').value = 0; $('slipTo').value = 60; $('slipStep').value = 1; $('slipMetric').value = 'pctBoth';
       runSlip(function () {
@@ -2117,7 +2188,7 @@
         done('slipHeat', 'Launch slips: each column is a landing date, each row a metric for a 14-day mission. Landing on the nominal date: Sun up <b>' + r0.pctSun.toFixed(0) + '%</b>, Earth link ' + r0.pctEarth.toFixed(0) + '%, both together <b>' + r0.pctBoth.toFixed(0) + '%</b>, longest darkness ' + fmtD(r0.longestDarkH) + '. A <b>2-week slip</b> changes that to Sun up <b>' + r14.pctSun.toFixed(0) + '%</b>, Earth link ' + r14.pctEarth.toFixed(0) + '%, both <b>' + r14.pctBoth.toFixed(0) + '%</b>, longest darkness ' + fmtD(r14.longestDarkH) + '. The best landing in the next 60 days is +' + best.slip + ' days with ' + best.pctBoth.toFixed(0) + '%. Click any square to open that date.');
       });
     },
-    function (done) { // 5. power and battery verdict
+    function (done) { // 6. power and battery verdict
       showPage('power');
       $('pwWindow').value = 'slip'; $('pwMode').value = 'track'; $('pwArea').value = 1; $('pwEff').value = 30; $('pwLoad').value = 100; $('pwDod').value = 80;
       runPower().then(function () {
@@ -2126,6 +2197,12 @@
       });
     }
   ];
+  // round 6F: the example custom point of the tour / Getting started: 800 m east and 600 m south of Peak near Shackleton
+  function tourPoint() {
+    var h = siteById('peak_shackleton'), c = llFrom(h.lat, h.lon, 800, -600);
+    if (S.site && !S.site.id && Math.abs(S.site.lat - c.lat) < 1e-3 && Math.abs(S.site.lon - c.lon) < 1e-3) return Promise.resolve(S.ready);
+    return Promise.resolve(useCustom(c.lat, c.lon)).then(function () { return S.ready; });
+  }
   function tourShow(i) {
     TOUR.i = i;
     spotClose();
@@ -2168,6 +2245,7 @@
       siteById: siteById
     });
     Map.setSites(SITES);
+    Map.setCoverage(coverageOutlines());   // round 6F: where "Choose your point -> 3D" works
     renderLegend('none');
     document.querySelectorAll('input[name=ovl]').forEach(function (r) { r.addEventListener('change', function () { Map.setOverlay(this.value); renderLegend(this.value); }); });
     $('markersToggle').addEventListener('change', function () { Map.setMarkersVisible(this.checked); });
@@ -2296,7 +2374,7 @@
     csv: csvText, csvName: csvName,
     jobsMode: function () { return Jobs.mode(); },
     selectSiteById: function (id) { return selectSite(siteById(id)); },
-    setIdx: setIdx, openDeploy: openDeploy, jumpNext: jumpNext, horizonsUrl: horizonsUrl, has3D: function () { return has3D(S.site); },
+    setIdx: setIdx, openDeploy: openDeploy, host3D: function (lat, lon) { var h = host3D({ id: null, lat: lat, lon: lon }); return h && { id: h.site.id, e: h.e, n: h.n, km: h.km, tile: h.tile }; }, coverage: coverageOutlines, llFrom: llFrom, enFrom: enFrom, jumpNext: jumpNext, horizonsUrl: horizonsUrl, has3D: function () { return has3D(S.site); },
     tour: { start: function () { tourShow(0); }, step: function () { return TOUR.i; } }
   };
   window.AsteriaApp = window.LunaApp;   // product name alias (internal LunaApp kept for compatibility)

@@ -160,7 +160,15 @@ async function open3d(page, site, t, q) {
     expect(`${tag} step 2 "Explain the Sunlight tile" opens its ? explanation`, q2.pop && q2.k === 'sun', JSON.stringify(q2));
     await pg.click('#hintNext'); await pg.waitForTimeout(900);
     si = await stepInfo();
-    expect(`${tag} Getting started step 3 ("Go deeper"): scrolls to and highlights the Sky view; offers Play, Expert view, ? explanations, Tour`, si.hl === 'skyPanel' && si.inView && si.buttons.join('|') === 'Play the Sky view|Turn on Expert view|Show ? explanations|Start the Tour', JSON.stringify(si));
+    // round 6F: new step 3 "Choose your point, then Deploy 3D" (its button selects a point inside a 3D area)
+    expect(`${tag} Getting started step 3 ("Choose your point, then Deploy 3D"): highlights the map; offers "Try it"`, si.hl === 'mapPanel' && /3 \/ 4/.test(si.step) && si.buttons.join('|') === 'Try it: a point near Peak near Shackleton', JSON.stringify(si));
+    await clickHint('Try it: a point near Peak near Shackleton');
+    await pg.waitForFunction(() => AsteriaApp.state.site && !AsteriaApp.state.site.id && !document.getElementById('deployBtn').disabled, null, { timeout: 60000 });
+    const cp = await pg.evaluate(() => ({ id: AsteriaApp.state.site.id, dep: !document.getElementById('deployRow').hidden && !document.getElementById('deployBtn').disabled }));
+    expect(`${tag} step 3 "Try it" selects a custom point inside a 3D area with Deploy enabled`, cp.id === null && cp.dep, JSON.stringify(cp));
+    await pg.click('#hintNext'); await pg.waitForTimeout(900);
+    si = await stepInfo();
+    expect(`${tag} Getting started step 4 ("Go deeper"): scrolls to and highlights the Sky view; offers Play, Expert view, ? explanations, Tour`, si.hl === 'skyPanel' && si.inView && si.buttons.join('|') === 'Play the Sky view|Turn on Expert view|Show ? explanations|Start the Tour', JSON.stringify(si));
     await clickHint('Play the Sky view');
     const pl = await pg.evaluate(() => AsteriaApp.state.playing);
     await pg.evaluate(() => { if (AsteriaApp.state.playing) document.getElementById('playBtn').click(); });
@@ -170,7 +178,7 @@ async function open3d(page, site, t, q) {
     const qq = await pg.evaluate(() => ({ on: document.body.classList.contains('explain-on'), pop: !document.getElementById('qpop').hidden, k: document.getElementById('qpop').dataset.k }));
     await clickHint('Start the Tour');
     const tr = await pg.evaluate(() => ({ tour: !document.getElementById('tour').hidden, hint: !document.getElementById('hint').hidden }));
-    expect(`${tag} step 3 buttons do what they say: Sky view playing, Expert view on, ? explanation shown (Sky view), Tour started`, pl === true && ex && qq.on && qq.pop && qq.k === 'sky' && tr.tour && !tr.hint, JSON.stringify({ pl, ex, qq, tr }));
+    expect(`${tag} step 4 buttons do what they say: Sky view playing, Expert view on, ? explanation shown (Sky view), Tour started`, pl === true && ex && qq.on && qq.pop && qq.k === 'sky' && tr.tour && !tr.hint, JSON.stringify({ pl, ex, qq, tr }));
     expect(`${tag} Getting started: no console errors`, errs2.length === 0, errs2.slice(0, 3).join(' | '));
     await pg.evaluate(() => { try { localStorage.setItem('asteria.expert', '0'); } catch (e) { /* */ } });
     await ctx2.close();

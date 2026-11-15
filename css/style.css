@@ -546,3 +546,8 @@ body.cf-open { overflow: hidden; }
   body.cf-open table { font-size: 9pt; }
   @page { margin: 14mm; }
 }
+
+/* round 6F: "Choose your point -> 3D" - coverage key on the map legend, point label in 3D */
+.cov3d-key { display: inline-block; width: 14px; height: 10px; border: 1px solid #7fd3ff; outline: 1px dashed rgba(127, 211, 255, .55); outline-offset: 2px; margin: 0 7px 0 3px; vertical-align: middle; }
+.v3d-lbl.site.pt { border-style: dashed; }
+.v3d-ptnote { border-left: 3px solid #7fd3ff; padding-left: 8px; }

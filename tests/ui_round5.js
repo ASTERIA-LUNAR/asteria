@@ -191,7 +191,7 @@ function loadData(file, name) { const w = {}; new Function('window', fs.readFile
       if (SHOTS) await p.screenshot({ path: path.join(out, `r5_spotlight_${vp.name}.png`) });
       await p.click('#spotStart'); await p.waitForTimeout(200);
       const s2 = await spotState(p);
-      expect(`${tag} spotlight "Start tour" opens "Tour · step 1 of 5" and removes the dimming`, !s2.shown && !s2.on && s2.tour && /step 1 of 5/.test(s2.step), JSON.stringify(s2));
+      expect(`${tag} spotlight "Start tour" opens "Tour · step 1 of 6" and removes the dimming`, !s2.shown && !s2.on && s2.tour && /step 1 of 6/.test(s2.step), JSON.stringify(s2));
       await p.reload(); await p.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series); await p.waitForTimeout(1500);
       const s3 = await spotState(p);
       expect(`${tag} spotlight shown only once (not again after reload)`, !s3.shown && await p.isHidden('#hint'), JSON.stringify(s3));
@@ -201,7 +201,7 @@ function loadData(file, name) { const w = {}; new Function('window', fs.readFile
       const { c, p } = await spotCtx({});
       await finishHint(p); await p.click('#tourBtn'); await p.waitForTimeout(200);
       const s = await spotState(p);
-      expect(`${tag} clicking the highlighted Tour button starts the tour`, !s.shown && s.tour && /step 1 of 5/.test(s.step), JSON.stringify(s));
+      expect(`${tag} clicking the highlighted Tour button starts the tour`, !s.shown && s.tour && /step 1 of 6/.test(s.step), JSON.stringify(s));
       await c.close();
     }
     {
