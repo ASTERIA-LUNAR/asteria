@@ -99,4 +99,8 @@ Playback speed is never zero unless the user pauses. On the end card, the last s
 
 * Canvas 2D at up to 2× device pixel ratio. The scene is redrawn only while playing (or once after a jump or resize while paused).
 * Nothing runs while the capsule is closed. Playback pauses while the browser tab is hidden.
-* Measured numbers are in the test report (`node tests/ui_capsule.js`). See the round summary in ROUND6_REPORT.md / the commit message.
+* Measured on 2026-11-15 with `node tests/ui_capsule.js` (headless Chromium, Windows; another session was running browser tests on the same machine). Laptop 1366 × 768: 59.9-60.0 fps, first frame 34-67 ms after the click (this includes loading capsule.js). Phone 390 × 844 (DPR 3, rendered at 2): 60.0-60.3 fps, first frame 21-28 ms. Reduced motion: 59.9-60.1 fps. The phone is emulated by viewport and touch only, with no CPU throttling, so a real mid-range phone will be slower. Each frame draws only a few hundred shapes.
+
+## Tests
+
+`node tests/ui_capsule.js` (98 checks: laptop, phone and reduced motion; `--shots` writes the screenshots in `docs/capsule/`). Existing suites run after the change, all passing: ui_check (its AI-wording rule now also allows the one exact capsule credit line), ui_round6, ui_round6d (decision 16 is now found by its number, because About has a decision 17), ui_round6h, ui_scroll, and `node tests/validate.js` (OVERALL: PASS). The long 3D suites were not run: the capsule does not touch the 3D code.

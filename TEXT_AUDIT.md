@@ -424,3 +424,20 @@ New or changed on-screen text (plain language, no AI wording added):
 * Map hint (new, shown for about 1.5 s over the map when a plain mouse wheel / touchpad swipe scrolls the page instead of zooming the map): "Use Ctrl + scroll to zoom the map" ("Use Cmd + scroll to zoom the map" on a Mac).
 * Getting started step 1: "Drag to pan, scroll or pinch to zoom." is now "Drag to pan; zoom with Ctrl + scroll, pinch or the +/− buttons."
 * "?" explanation of the map: "Drag to pan, scroll or pinch to zoom," is now "Drag to pan; zoom with Ctrl + scroll (or scroll after clicking into the map), pinch or the +/− buttons;".
+
+## Prompt 9 (Historical Capsule)
+
+All text inside the capsule, checked on 2026-11-15. The captions are historical facts. Each is checked against the sources listed in docs/HISTORICAL_CAPSULE.md, which also quotes what each source states; the table there is tested to match the data array in js/capsule.js. Claims that could not be verified were reworded or dropped (listed there).
+
+| Text | Where | Claim type | Status |
+|---|---|---|---|
+| Nav button "Historical Capsule" (tooltip: "A short illustrated history of space exploration (not ASTERIA data)") | top bar, after About | label | new |
+| "Historical illustrations - artistic, simplified, not to scale; not ASTERIA data" | capsule, permanent banner | definition | new |
+| 14 captions (year, milestone, one sentence, nation chips): identical to the table in docs/HISTORICAL_CAPSULE.md | capsule captions | cited: NASA (nasa.gov, science.nasa.gov, NSSDCA), ISRO, JAXA (URLs per row there) | new |
+| Nation chips: USSR, USA, China, India, Japan, Canada | caption chips | cited (same rows) | new |
+| "Sources" panel: one list item per milestone with its source links; "Spacecraft, rockets, people and places are simplified illustrations with approximate proportions; distances, sizes and trajectories are not to scale. Details and the verified wording for each milestone: docs/HISTORICAL_CAPSULE.md (in the project repository)." | capsule, Sources (i) | definition | new |
+| "Illustrations and animation are drawn by code written with Claude Code (Anthropic), an AI coding assistant; historical facts are from the sources listed." | capsule, Sources (i), the only AI wording in the capsule | disclosure | new |
+| End card: "Next: humans return to the Moon"; button "Explore the south-pole landing sites" | capsule, end | planned (Artemis IV, cited in the 2028 row) | new |
+| Canvas labels "SLIM", "IM-1", "Chang'e 6" | 2024 scene | names only | new |
+| Buttons: Play / Pause / Replay from the start, Previous milestone, Next milestone, year buttons (label "year: milestone"), Close the Historical Capsule, Sources, Close | capsule controls (aria labels) | labels | new |
+| About, design decision 17 "Historical Capsule is separate from the science (Prompt 9)"; README section; DESIGN_DECISIONS.md 17 | About page, docs | definition | new |

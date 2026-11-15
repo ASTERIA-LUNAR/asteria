@@ -30,9 +30,10 @@ ASTERIA (Lunar South Pole Landing Site Navigator) is an entry for the NASA Space
 
 ## Where the app and the project disclose it
 
-* **In the app (descriptive text)**, exactly two places, by the owner's choice (no AI labels on or next to graphics or controls, no footer):
+* **In the app (descriptive text)**, exactly two places in the app itself, plus one inside the separate Historical Capsule (Prompt 9), by the owner's choice (no AI labels on or next to graphics or controls, no footer):
   * About page, credits list: "Development assisted by Claude Code (Anthropic), an AI coding assistant; details in AI_DISCLOSURE.md (in the project repository)."
   * 3D view, "What is accurate, what is approximate" (collapsed by default), as its own line: "Graphics: the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain shapes, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images."
+  * Historical Capsule, Sources panel (opened with the "Sources" (i) button inside the capsule): "Illustrations and animation are drawn by code written with Claude Code (Anthropic), an AI coding assistant; historical facts are from the sources listed."
 * **Metadata**: `index.html` has `<meta name="generator">` and `<meta name="ai-disclosure">` tags and an HTML comment; every AI-written source file starts with "Generated with Claude Code (Anthropic) under human direction".
 * **Project documents**: README.md "How this was made" and this file.
 * `tests/ui_check.js` searches the rendered text of every page and every 3D mode (Orbit, Walk, Rover), the loader and the intro for "AI-", "AI ", "artificial intelligence", "generated" and "illustrated by", and fails if any appears outside the two lines above; `tests/features_test.js` checks the meta tags, the file headers, README and this file.
@@ -42,7 +43,8 @@ ASTERIA (Lunar South Pole Landing Site Navigator) is an entry for the NASA Space
 * **No image-generation or audio-generation model was used. There is no audio.**
 * Graphics drawn by code written by Claude Code (not by an image generator):
   * the pixel-art rocket, Earth and Moon (loader and first-visit intro);
-  * the simple box-shaped rover in the 3D view.
+  * the simple box-shaped rover in the 3D view;
+  * the Historical Capsule illustrations and animation (`js/capsule.js`, Prompt 9): spacecraft, rockets, suited astronauts without faces, Earth, Moon, flags and backgrounds, all drawn with Canvas 2D at run time. No images, fonts or videos from outside the project; no agency logos or insignia.
   They are disclosed as code: in the About credit line, the 3D "Graphics:" line, README.md and this file, plus the metadata above. Earlier rounds placed small "AI-generated pixel art" / "AI-generated illustration" labels next to them; these were removed in the disclosure tidy-up (round 4B) at the owner's request, and the graphics were kept.
 * Removed in this round: a small SVG mark (circle, arc and dot) that Claude Code had drawn for the page header. It was too small to carry a visible watermark, so it was removed; the header now shows the name as text only.
 * Map tiles (hillshade, slope, illumination) and the 3D terrain are renderings of NASA LOLA and PGDA data by the AI-written scripts. They show measured data, not generated imagery; their legends state the source and method (e.g. "synthetic lighting, not real illumination" for the hillshade).

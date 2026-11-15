@@ -686,7 +686,7 @@ window.AsteriaCapsule = (function () {
       }
     },
     artemis2: function (c, q, t) {
-      var cut = 0.34;
+      var cut = 0.2;
       if (q < cut) {   // launch
         var k = q / cut, alt = sm(0, 1, k);
         bg(c, t * 0.2, { top: 'rgb(' + Math.round(lerp(18, 6, alt)) + ',' + Math.round(lerp(34, 10, alt)) + ',' + Math.round(lerp(72, 20, alt)) + ')', bot: '#2b3a5c' });
@@ -696,7 +696,7 @@ window.AsteriaCapsule = (function () {
         rect(c, rx - s * 6, gy - s * 20, s * 1.4, s * 20, '#1c2638');   // tower
         plume(c, rx, ry + s * 4, t, 22, s * 3, s * 22, '240,236,228');
         sls(c, rx, ry, s, t, true);
-        var fl = 1 - sm(0.85, 1, k); c.fillStyle = 'rgba(255,240,215,' + ((1 - fl) * 0.85).toFixed(3) + ')'; c.fillRect(0, 0, W, H);   // light cut
+        var fl = 1 - sm(0.8, 1, k); c.fillStyle = 'rgba(255,240,215,' + ((1 - fl) * 0.7).toFixed(3) + ')'; c.fillRect(0, 0, W, H);   // light cut
         return;
       }
       var k2 = (q - cut) / (1 - cut);
@@ -712,7 +712,7 @@ window.AsteriaCapsule = (function () {
       for (var i = 0; i <= 80; i++) { var p = path(-0.25 + i / 80); if (i) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); } c.stroke(); c.setLineDash([]);
       var s0 = -0.25 + 0.15 + k2 * 0.85, pp = path(s0), pn = path(s0 + 0.01);
       orion(c, pp[0], pp[1], L.S * 0.9, Math.atan2(pn[1] - pp[1], pn[0] - pp[0]));
-      var fl2 = 1 - sm(0, 0.12, k2); if (fl2 > 0) { c.fillStyle = 'rgba(255,240,215,' + (fl2 * 0.85).toFixed(3) + ')'; c.fillRect(0, 0, W, H); }
+      var fl2 = 1 - sm(0, 0.06, k2); if (fl2 > 0) { c.fillStyle = 'rgba(255,240,215,' + (fl2 * 0.7).toFixed(3) + ')'; c.fillRect(0, 0, W, H); }
     },
     artemis4: function (c, q, t) {
       bg(c, t * 0.4, { sunGlow: false });

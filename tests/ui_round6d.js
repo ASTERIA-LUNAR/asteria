@@ -235,10 +235,10 @@ async function part2(page, tag, ctx) {
 // ------------------------------------------------------------------ Part 3: integration text
 async function part3(page, tag) {
   await load(page, `site=peak_shackleton_lw&t=${T0}Z&w=30&tab=about`);
-  const A = await page.evaluate(() => { const w = document.getElementById('aboutWorkflow'), dd = [...document.querySelectorAll('#aboutContent details.dd')]; const last = dd[dd.length - 1]; return { w: w && w.textContent.replace(/\s+/g, ' ').trim(), n: dd.length, title: last.querySelector('summary').textContent.trim(), body: [...last.querySelectorAll('p')].map(p => p.textContent.replace(/^(Plain language|Technical): /, '').trim()) }; });
+  const A = await page.evaluate(() => { const w = document.getElementById('aboutWorkflow'), dd = [...document.querySelectorAll('#aboutContent details.dd')]; const last = dd.find(d => /^16\./.test(d.querySelector('summary').textContent.trim())) || dd[dd.length - 1];   /* Prompt 9: decision 17 (Historical Capsule) follows 16 */ return { w: w && w.textContent.replace(/\s+/g, ' ').trim(), n: dd.length, title: last.querySelector('summary').textContent.trim(), body: [...last.querySelectorAll('p')].map(p => p.textContent.replace(/^(Plain language|Technical): /, '').trim()) }; });
   const md = fs.readFileSync(path.join(__dirname, '..', 'DESIGN_DECISIONS.md'), 'utf8'), sec = md.slice(md.indexOf('## 16.'));
   expect(`${tag} About: one workflow sentence (site -> requirements -> compare -> casefile -> verify); tour has 6 steps (round 6F added "Choose your point, then Deploy 3D")`, /pick a site .* set the mission requirements .* compare sites and dates .* open the Mission casefile .* verify each number/.test(A.w || '') && await page.evaluate(() => { AsteriaApp.tour.start(); const t = document.getElementById('tourStep').textContent; document.getElementById('tourClose').click(); return / of 6$/.test(t); }), A.w);
-  expect(`${tag} About design decision 16 = DESIGN_DECISIONS.md (title and text)`, A.n === 16 && sec.startsWith('## ' + A.title) && A.body.every(b => sec.includes(b)), JSON.stringify(A.title));
+  expect(`${tag} About design decision 16 = DESIGN_DECISIONS.md (title and text)`, A.n >= 16 && sec.startsWith('## ' + A.title) && A.body.every(b => sec.includes(b)), JSON.stringify(A.title));
 }
 
 (async () => {
