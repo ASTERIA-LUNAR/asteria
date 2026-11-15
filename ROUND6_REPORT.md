@@ -263,6 +263,25 @@ On a phone (or the browser's device emulation):
 9. Repeat steps 1, 3 (Quality stays Low or Medium), 5 and 7. Tap the terrain to inspect a point. Check that the panel scrolls, the buttons are reachable and nothing overlaps badly.
 10. Compare with `v1-stable` if anything looks worse: `git switch --detach v1-stable` (look only), then `git switch round6` to come back.
 
+## Round 6B: owner-provided suggestions
+
+Decisions taken by the owner's lead engineer before round 6B (recorded here; the deferred and rejected items are **not** implemented). Context: submission day, stability first; priorities accuracy, physical realism, functional completeness, visual quality, presentation.
+
+| Suggestion | Decision | Reason |
+|---|---|---|
+| Guided mission scenarios | Defer | The Tour and Getting started already guide a first visit; new scenarios need careful scripting and testing. |
+| Mission-change simulator | Already exists | Launch slip page. |
+| Visual explanation mode | Already exists | Explain, ? buttons, Sky view captions, Getting started. |
+| NASA candidate region explorer | Reject (accuracy) | 6 of the 9 regions are published only as images, without coordinates; plotting them would require guessing. |
+| Unified trade-off explorer | Improve existing Compare | Round 6B Part 7: energy, battery and DEM slope rows in Compare. |
+| Confidence panel | Already exists | "Verified against NASA data" card; Measured / Calculated / Approximate / Illustrative labels. |
+| Site discovery | Defer | Needs sunlight/Earth computations for thousands of points; only the coarse 240 m terrain is fast enough, and it can differ by up to about 16 percentage points at single locations - not defensible for ranking. |
+| Safety screening | Already exists | Slope hazard view and rover slope warning; surface roughness would need new data. |
+| Timeline integration | Already exists | Explore timeline, Sky view and 3D share one time cursor. |
+| Validation and reproducibility | Implement | CSV export of the windows and the time series (Part 6). |
+| Detailed VIPER rover model | Implement | Part 5. |
+| Stars on by default | Implement | Part 5. |
+
 ## Branch state
 
 * Branch `round6` contains the commits of Parts 0-5 on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).
