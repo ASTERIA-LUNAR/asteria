@@ -627,3 +627,10 @@ details.more[open] > summary { margin-bottom: 4px; }
   .actrow .jumprow .hint { order: 9; }
   .hero.fit + .verified { margin-top: 14px; }
 }
+/* round 6H: while a Getting-started or tour step is shown, space below the page so its target can scroll clear of the step box */
+body.guiding main { padding-bottom: 60vh; }
+/* round 6H, phones: the status tiles come right after the site and time; Deploy follows the tiles */
+@media (max-width: 640px) {
+  .sitecard > .deployrow { order: 1; margin-top: 4px; }
+  .sitecard > .verifybox { order: 2; }
+}

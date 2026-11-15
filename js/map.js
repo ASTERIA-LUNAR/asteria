@@ -143,6 +143,13 @@ window.AsteriaMap = (function () {
       }
       if (g.label) m.bindTooltip(esc(g.label.text) + (g.label.extra ? ' <span class="mkmore">' + g.label.extra + '</span>' : ''), { permanent: true, direction: g.label.dir, offset: g.label.off, className: 'mklabel' + (isSel ? ' mksel' : ' mkshort'), interactive: false });
       m.addTo(markerLayer);
+      // Keyboard: Leaflet 1.9 makes markers focusable (Tab) but Enter only opens bound popups; Enter or Space on a
+      // single site's marker selects it, Space on a group opens its list (Enter already does, through Leaflet).
+      var el = m.getElement();
+      if (el) el.addEventListener('keydown', function (ev) {
+        if (g.items.length === 1 && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); opts.onSelectSite(first); }
+        else if (g.items.length > 1 && ev.key === ' ') { ev.preventDefault(); m.openPopup(); }
+      });
     });
   }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -228,7 +235,12 @@ window.AsteriaMap = (function () {
     fitMinZoom();
     map.on('resize', fitMinZoom);
     // The panel can change size without a window resize (layout, fonts): keep Leaflet's size in step.
-    if (window.ResizeObserver) new ResizeObserver(function () { map.invalidateSize(); }).observe(el);
+    if (window.ResizeObserver) new ResizeObserver(function () {
+      // round 6H: a resize right after "Show on 2D map" (the layout settling when the 3D view closes) keeps that point
+      // exactly centred (reset: Leaflet's pan path truncates the offset to whole pixels)
+      if (pinned && Date.now() - pinned.t < 1500) { map.invalidateSize({ pan: false }); map.setView(pinned.ll, map.getZoom(), { reset: true }); }
+      else map.invalidateSize();
+    }).observe(el);
     home(false);
     return map;
   }
@@ -319,13 +331,14 @@ window.AsteriaMap = (function () {
     scaleEl.title = 'Distance on the ground for the bar length, from the polar stereographic scale factor at the map centre (k = ' + q.k.toFixed(4) + '); the scale changes slightly across the map.';
   }
   // Round 6: "Show on 2D map" from the 3D view - centre the map on that ground point with a marker (kept until the next one).
-  var point3d = null;
+  var point3d = null, pinned = null;
   function showPoint(lat, lon) {
     if (!map || !inData(lat, lon)) return null;
     if (point3d) map.removeLayer(point3d);
     point3d = L.marker([lat, lon], { icon: L.divIcon({ className: 'mkwrap', html: '<span class="mk mk-3d"></span>', iconSize: [22, 22], iconAnchor: [11, 11] }), interactive: false, keyboard: false })
       .bindTooltip('Position from the 3D view: ' + fmtLL(lat, lon), { permanent: true, direction: 'top', offset: [0, -10], className: 'tip3d' }).addTo(map);
     map.setView([lat, lon], Math.max(map.getZoom(), 7), { animate: false });
+    pinned = { ll: [lat, lon], t: Date.now() };
     return { lat: lat, lon: lon, zoom: map.getZoom(), centre: map.getCenter() };
   }
   // round 6F: outlines of the areas with 3D terrain (subtle; not interactive). list: [{ ll: [[lat, lon], ...], tile }]

@@ -2160,31 +2160,81 @@
     pop.style.top = (r.bottom + 8 + window.scrollY) + 'px';
   }
 
+  // ======================================================= GUIDED STEPS (round 6H)
+  // Every Getting-started and tour step goes to the place it describes: switch to its tab, open any collapsed section
+  // around it, scroll inner scroll areas (the Site Card on laptops) and then the page so the target sits between the top
+  // bar and the guide box (top-aligned when it is taller than that space), smooth unless prefers-reduced-motion, and
+  // spotlight it (.tour-hl). guideBox: the fixed step box (#hint or #tour) the target must stay clear of.
+  var REDUCE_GUIDE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var guideHl = null;
+  function guideTo(el, guideBox) {
+    if (guideHl && guideHl !== el) guideHl.classList.remove('tour-hl');
+    guideHl = el || null;
+    document.body.classList.toggle('guiding', !!el);   // extra space below the page so targets near its end can scroll clear of the step box
+    if (!el) return;
+    var pg = el.closest && el.closest('.page');
+    if (pg && !pg.classList.contains('active')) showPage(pg.id.replace(/^page-/, ''));
+    for (var d = el.parentElement; d; d = d.parentElement) if (d.tagName === 'DETAILS' && !d.open) d.open = true;
+    if (el.tagName === 'DETAILS' && !el.open) el.open = true;
+    el.classList.add('tour-hl');
+    var beh = REDUCE_GUIDE ? 'auto' : 'smooth';
+    // inner scroll containers first (instant: the page scroll below is the visible movement)
+    for (var a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+      var cs = getComputedStyle(a);
+      if (/(auto|scroll)/.test(cs.overflowY) && a.scrollHeight > a.clientHeight + 1) {
+        var ar = a.getBoundingClientRect(), er = el.getBoundingClientRect();
+        if (er.top < ar.top || er.bottom > ar.bottom) a.scrollTop += (er.top - ar.top) - Math.max(0, (a.clientHeight - er.height) / 2);
+      }
+    }
+    var tb = document.querySelector('.topbar'), tbs = tb && getComputedStyle(tb).position;
+    var topSafe = (tb && (tbs === 'sticky' || tbs === 'fixed')) ? tb.getBoundingClientRect().height + 8 : 8;
+    var box = guideBox && !guideBox.hidden ? guideBox.getBoundingClientRect() : null;
+    var bottomSafe = window.innerHeight - (box && box.height ? box.height + 18 + 10 : 8);
+    if (bottomSafe - topSafe < 160) bottomSafe = window.innerHeight - 8;    // very short window: ignore the box
+    var r = el.getBoundingClientRect(), avail = bottomSafe - topSafe;
+    var y = window.scrollY + r.top - (r.height <= avail ? topSafe + (avail - r.height) / 2 : topSafe);
+    y = Math.max(0, Math.min(y, document.documentElement.scrollHeight - window.innerHeight));
+    if (Math.abs(y - window.scrollY) > 1) window.scrollTo({ top: y, behavior: beh });
+  }
+  // For the tests: is the current guide target inside the viewport, clear of the top bar and of the guide box?
+  function guideState(guideBox) {
+    var el = guideHl; if (!el) return null;
+    var r = el.getBoundingClientRect(), tb = document.querySelector('.topbar'), tbs = tb && getComputedStyle(tb).position;
+    var topSafe = (tb && (tbs === 'sticky' || tbs === 'fixed')) ? tb.getBoundingClientRect().bottom : 0;
+    var box = guideBox && !guideBox.hidden ? guideBox.getBoundingClientRect() : null, bottom = box ? box.top : window.innerHeight;
+    var visTop = Math.max(r.top, topSafe), visBottom = Math.min(r.bottom, bottom);
+    return { id: el.id, cls: el.className, highlighted: el.classList.contains('tour-hl'), page: (el.closest('.page') || {}).id, top: r.top, bottom: r.bottom, h: r.height,
+      topVisible: r.top >= topSafe - 1 && r.top < bottom, visible: Math.max(0, visBottom - visTop), wanted: Math.min(r.height, bottom - topSafe), inViewport: r.top >= topSafe - 1 && r.top < window.innerHeight && r.bottom > 0 };
+  }
+
   // ======================================================= FIRST-VISIT HINT
   var HINT_KEY = 'asteria.hintDismissed';
   var HINTS = [
     ['mapPanel', '<b>1. The south-pole map.</b> Click a marker to open a site (violet diamonds are points inside NASA\'s Artemis III candidate regions), or click anywhere to test your own point. Drag to pan, scroll or pinch to zoom.',
-      [['Open a site: Peak near Shackleton', function () { selectSite(siteById('peak_shackleton')); }], ['Show the whole pole', function () { Map.home(true); }]]],
-    ['siteCard', '<b>2. Three status tiles.</b> <span class="c-sun">Sunlight</span>, <span class="c-earth">Earth link</span> and <span class="c-both">mission status</span> at the selected time, each with a countdown to the next change.',
+      [['Open a site: Peak near Shackleton', function () { selectSite(siteById('peak_shackleton')); }], ['Show the whole pole', function () { Map.showAll(true); }]],
+      function () { Map.showAll(false); }],
+    ['statusTiles', '<b>2. Three status tiles.</b> <span class="c-sun">Sunlight</span>, <span class="c-earth">Earth link</span> and <span class="c-both">mission status</span> at the selected time, each with a countdown to the next change.',
       [['Explain the Sunlight tile', function () { setExplain(true); var q = document.querySelector('#siteCard .qb[data-q="sun"]'); if (q) showQ(q); }]]],
-    ['mapPanel', '<b>3. Choose your point, then Deploy 3D.</b> Click any point inside a thin blue square on the map (the 3D terrain around the sites), then press <b>Deploy: 3D terrain view</b> on the site card: the 3D view opens at your point.',
-      [['Try it: a point near Peak near Shackleton', function () { var at = hintI; tourPoint().then(function () { var b = $('deployRow'); if (b && b.scrollIntoView && hintI === at && !$('hint').hidden) b.scrollIntoView({ block: 'center' }); }); }]]],   // only while this step is still shown
+    ['mapPanel', '<b>3. Choose your point, then Deploy 3D.</b> Click any point inside a thin blue square on the map (the 3D terrain around the sites; the map now shows those near Peak near Shackleton), then press <b>Deploy: 3D terrain view</b> on the site card: the 3D view opens at your point.',
+      [['Take me there: a point near Peak near Shackleton', function () { var at = hintI; tourPoint().then(function () { if (hintI === at && !$('hint').hidden) guideTo($('deployRow'), $('hint')); }); }]],   // only while this step is still shown
+      function () { var h = siteById('peak_shackleton'), m = Map.leaflet(); if (m) m.setView([h.lat, h.lon], 6, { animate: false }); }],
     ['skyPanel', '<b>4. Go deeper.</b> Press play in the Sky view, switch on <b>Expert view</b> for all technical values, tap <b>?</b> for explanations, or take the <b>Tour</b>.',
       [['Play the Sky view', function () { if (!S.playing) setPlaying(true); }], ['Turn on Expert view', function () { setExpert(true); }],
        ['Show ? explanations', function () { setExplain(true); var q = document.querySelector('#skyPanel .qb[data-q="sky"]'); if (q) showQ(q); }], ['Start the Tour', function () { tourShow(0); }]]]
   ];
   // Round 6: each step scrolls to and highlights what it describes, and offers buttons that do what it mentions.
-  var REDUCE_HINT = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var hintI = 0, hintHl = null;
+  // Round 6H: [target id, text, buttons, set-up]; the set-up runs first (e.g. show the 3D squares), then guideTo.
+  var hintI = 0;
   function hintShow(i) {
     hintI = i;
     $('hintStep').textContent = 'Getting started · ' + (i + 1) + ' / ' + HINTS.length;
     $('hintText').innerHTML = HINTS[i][1];
     $('hintNext').textContent = i === HINTS.length - 1 ? 'Done' : 'Next';
     $('hint').hidden = false;
-    if (hintHl) hintHl.classList.remove('tour-hl');
-    hintHl = $(HINTS[i][0]); if (hintHl) hintHl.classList.add('tour-hl');
-    if (hintHl && hintHl.scrollIntoView) hintHl.scrollIntoView({ block: 'center', behavior: REDUCE_HINT ? 'auto' : 'smooth' });
+    if ($('tour').hidden === false) tourClose();
+    var tgt = $(HINTS[i][0]), tp = tgt && tgt.closest('.page');
+    if (tp && !tp.classList.contains('active')) showPage(tp.id.replace(/^page-/, ''));
+    if (HINTS[i][3]) HINTS[i][3]();
     var box = $('hintActions'); box.innerHTML = '';
     (HINTS[i][2] || []).forEach(function (a) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'btn small'; b.textContent = a[0];
@@ -2192,9 +2242,10 @@
       box.appendChild(b);
     });
     box.hidden = !box.children.length;
+    guideTo(tgt, $('hint'));    // after the box has its final size
   }
   function hintClose() {
-    $('hint').hidden = true; if (hintHl) hintHl.classList.remove('tour-hl'); hintHl = null;
+    $('hint').hidden = true; guideTo(null);
     try { localStorage.setItem(HINT_KEY, '1'); } catch (e) { /* storage unavailable: the hint just shows again next time */ }
   }
 
@@ -2223,10 +2274,9 @@
 
   // ===================================================================== TOUR
   var TOUR = { i: 0, hl: null };
-  function highlight(id) {
-    if (TOUR.hl) TOUR.hl.classList.remove('tour-hl');
+  function highlight(id) {     // round 6H: the shared guide (tab, collapsed sections, inner scroll, page scroll, spotlight)
     TOUR.hl = id ? $(id) : null;
-    if (TOUR.hl) { TOUR.hl.classList.add('tour-hl'); TOUR.hl.scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'center' }); }
+    guideTo(TOUR.hl, $('tour'));
   }
   function fmtD(h) { return h >= 48 ? (h / 24).toFixed(1) + ' days' : h.toFixed(0) + ' hours'; }
   function nTerrainSites() { return SITES.filter(hasTerrain).length; }
@@ -2234,7 +2284,7 @@
     function (done) { // 1. the south-pole map and why the pole matters
       var p = (S.site && S.site.id === DEFAULT_SITE && S.windowDays === 30) ? (S.ready || Promise.resolve()) : openInExplorer(siteById(DEFAULT_SITE), S.start, 30, true);
       p.then(function () {
-        showPage('explorer'); Map.home(true);
+        showPage('explorer'); Map.showAll(false);
         var sEl = minMax(S.series.sunEl), IL = window.LUNA_ILLUMINATION;
         var bestLit = IL && IL.rows.length ? IL.rows.reduce(function (a, b) { return b.sunTerrain > a.sunTerrain ? b : a; }) : null;
         done('mapPanel', 'This is the lunar <b>south pole</b>, from about 80°S to 90°S, built from NASA LOLA elevation data. ASTERIA has <b>' + nTerrainSites() + '</b> south-pole sites with computed terrain horizons. Of NASA\'s <b>' + REG.regions.length + '</b> Artemis III candidate regions (Oct 2024), <b>' + REG.regions.filter(function (r) { return r.sites.length; }).length + '</b> have a plotted point inside them; the others are listed by name only, because their boundaries are published only as images. Why the pole? NASA notes that its permanently shadowed areas can preserve resources, including water, while some high ground is sunlit for long periods' + (bestLit ? ' (the best-lit site here, ' + esc(bestLit.name) + ', is sunlit ' + bestLit.sunTerrain.toFixed(0) + '% of 2027 in ASTERIA\'s terrain model)' : '') + '. The Sun stays low here: at the selected site its centre moves between ' + fmtDeg(sEl[0], 1) + ' and ' + fmtDeg(sEl[1], 1) + ' over the next 30 days.');
@@ -2488,7 +2538,8 @@
     jobsMode: function () { return Jobs.mode(); },
     selectSiteById: function (id) { return selectSite(siteById(id)); },
     setIdx: setIdx, openDeploy: openDeploy, host3D: function (lat, lon) { var h = host3D({ id: null, lat: lat, lon: lon }); return h && { id: h.site.id, e: h.e, n: h.n, km: h.km, tile: h.tile }; }, coverage: coverageOutlines, llFrom: llFrom, enFrom: enFrom, jumpNext: jumpNext, horizonsUrl: horizonsUrl, has3D: function () { return has3D(S.site); },
-    tour: { start: function () { tourShow(0); }, step: function () { return TOUR.i; } }
+    tour: { start: function () { tourShow(0); }, step: function () { return TOUR.i; }, show: function (i) { tourShow(i); }, count: TOUR_STEPS.length },
+    guide: { state: function () { return guideState($('tour').hidden ? $('hint') : $('tour')); }, hint: function (i) { hintShow(i); }, hintCount: HINTS.length }   // round 6H (tests)
   };
   window.AsteriaApp = window.LunaApp;   // product name alias (internal LunaApp kept for compatibility)
 
