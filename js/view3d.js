@@ -107,7 +107,7 @@ window.AsteriaView3D = (function () {
       '  <div class="v3d-hud" id="v3dHud"><svg class="v3d-compass" id="v3dCompass" viewBox="-30 -30 60 60" aria-hidden="true"><circle r="27"/><g id="v3dCompassRot"><path d="M0,-24 L6,-4 L0,-8 L-6,-4 Z" class="n"/><path d="M0,24 L6,4 L0,8 L-6,4 Z" class="s"/><text y="-11" class="nl">N</text></g></svg>' +
       '    <div class="v3d-hudtxt"><div id="v3dHeading">-</div><div class="v3d-scale"><i id="v3dScaleBar"></i><span id="v3dScaleTxt">-</span></div><div id="v3dDist">-</div></div></div>' +
       '  <figure class="v3d-mini" id="v3dMini"><canvas id="v3dMiniCv" width="320" height="320" aria-label="Top-view map of the terrain around the site with your position"></canvas><figcaption id="v3dMiniCap">Top view, north up</figcaption></figure>' +
-      '  <div class="v3d-msgs"><div class="v3d-banner" id="v3dBanner" hidden></div>' +
+      '  <div class="v3d-msgs" id="v3dMsgs"><button class="btn small v3d-aboutbtn" id="v3dAboutBtn" type="button" aria-controls="v3dAboutRover" aria-expanded="false" hidden>About this rover</button><div class="v3d-banner" id="v3dBanner" hidden></div>' +
       '  <div class="v3d-tip" id="v3dTip" hidden><span id="v3dTipTxt">The site is in shadow, so the ground looks almost black.</span> <button class="btn small" id="v3dTipBtn">Light up</button> <span class="fineprint">(display brightness only)</span> <button class="btn small jump-sun" id="v3dTipJump" type="button" data-jump="sun">Jump to next sunlight</button></div></div>' +
       '  <div class="v3d-qnote" id="v3dQNote" hidden></div>' +
       '  <div class="v3d-inspect" id="v3dInspect" hidden role="status" aria-live="polite"></div><i class="v3d-inspmark" id="v3dInspMark" hidden aria-hidden="true"></i>' +
@@ -1221,6 +1221,7 @@ window.AsteriaView3D = (function () {
     $('v3dRingsLbl').hidden = mode === 'orbit';
     $('v3dLblRover').hidden = mode !== 'rover';
     $('v3dRover').hidden = mode !== 'rover';
+    $('v3dAboutBtn').hidden = mode !== 'rover';   // prompt 7: shortcut to "About this rover", Rover mode only
     $('v3dPad').hidden = mode === 'orbit';
     v.el.querySelectorAll('.seg button').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === mode); b.setAttribute('aria-pressed', b.dataset.mode === mode ? 'true' : 'false'); });
     var help = {
@@ -1361,7 +1362,7 @@ window.AsteriaView3D = (function () {
     if (!W || !H) return;
     var rel = function (r) { return { l: r.left - st.left, t: r.top - st.top, r: r.right - st.left, b: r.bottom - st.top }; };
     var vis = function (e) { return e && !e.hidden && e.style.display !== 'none' && e.offsetParent !== null; };
-    var obst = ['v3dMini', 'v3dHud', 'v3dClose', 'v3dExagBadge', 'v3dBanner', 'v3dTip', 'v3dQNote', 'v3dPad'].map($).filter(vis).map(function (e) { return rel(e.getBoundingClientRect()); });
+    var obst = ['v3dMini', 'v3dHud', 'v3dClose', 'v3dExagBadge', 'v3dAboutBtn', 'v3dBanner', 'v3dTip', 'v3dQNote', 'v3dPad'].map($).filter(vis).map(function (e) { return rel(e.getBoundingClientRect()); });
     var hit = function (a, b) { return a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t; };
     var placed = [], out = [];
     var list = [['sun', $('v3dLblSun')], ['earth', $('v3dLblEarth')], ['site', $('v3dLblSite')], ['rover', $('v3dLblRover')]].concat((v.s.featEls || []).map(function (e) { return ['feat', e]; }));
@@ -1462,6 +1463,15 @@ window.AsteriaView3D = (function () {
       v.el.classList.toggle('collapsed', !open); setTimeout(function () { resize(v); }, 0);
     });
     v.el.querySelectorAll('.seg button').forEach(function (b) { add(b, 'click', function () { setMode(v, b.dataset.mode); }); });
+    // prompt 7: the stage button opens/closes the same "About this rover" section of the panel (one copy of the text):
+    // it shows the panel if hidden, opens the section and scrolls the panel to it; the button mirrors its open state
+    add($('v3dAboutBtn'), 'click', function () {
+      var d = $('v3dAboutRover'), panel = $('v3dPanel');
+      if ($('v3dBody').hidden) $('v3dToggle').click();
+      d.open = !d.open;
+      if (d.open) panel.scrollTop += d.getBoundingClientRect().top - panel.getBoundingClientRect().top - 8;
+    });
+    add($('v3dAboutRover'), 'toggle', function () { var b = $('v3dAboutBtn'), o = this.open; b.setAttribute('aria-expanded', o ? 'true' : 'false'); b.classList.toggle('on', o); });
     add($('v3dExag'), 'change', function () { setExag(v, +this.value); });
     // round 6: the lights keep casting (their order is fixed, see lightsPatch); receivers ignore the shadow maps
     add($('v3dShadows'), 'change', function () { SESSION.shadows = this.checked; applyShadows(v); });
@@ -1540,12 +1550,20 @@ window.AsteriaView3D = (function () {
     var b = $('v3dExagBadge');
     b.textContent = k === 1 ? 'Vertical scale 1× (true scale)' : 'Vertical exaggeration ' + k + '× - heights stretched, not true scale';
     b.classList.toggle('warn', k !== 1);
+    placeMsgs();
     v.ctl.target[1] = M.groundWorld(s.TM, v.ctl.target[0], v.ctl.target[2]).y;
     v.dirty = true;
+  }
+  // prompt 7: the message column (About-this-rover button, Sun-hidden banner, tip) starts just below the scale badge,
+  // also when the badge text wraps (narrow screens, exaggerated scale), so they never overlap it
+  function placeMsgs() {
+    var b = $('v3dExagBadge'), m = $('v3dMsgs');
+    if (b && m && b.offsetHeight) m.style.top = Math.max(48, b.offsetTop + b.offsetHeight + 8) + 'px';
   }
   function resize(v) {
     var w = v.stage.clientWidth, h = v.stage.clientHeight;
     if (!w || !h) return;
+    placeMsgs();
     v.s.renderer.setSize(w, h, false);
     v.s.camera.aspect = w / h; v.s.camera.updateProjectionMatrix();
     v.dirty = true;
