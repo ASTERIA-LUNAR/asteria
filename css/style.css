@@ -500,3 +500,49 @@ pre.repro { background: var(--bg2); border: 1px solid var(--line); border-radius
 .rv-cant { color: var(--muted); border-color: var(--line); }
 .rvwhy { display: block; margin: 2px 0 0; }
 .cmptable tr.reqsum td { font-weight: 600; }
+
+/* ---- round 6D: Mission casefile ---- */
+.cfbtnrow { margin: 10px 0 2px; }
+.cfbtn { width: 100%; }
+.casefile { position: fixed; inset: 0; z-index: 1300; overflow: auto; background: rgba(4, 7, 14, .82); -webkit-overflow-scrolling: touch; }
+.casefile[hidden] { display: none; }
+body.cf-open { overflow: hidden; }
+.cfsheet { max-width: 980px; margin: 18px auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 0 22px 18px; }
+.cfactions { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0; background: var(--panel); border-bottom: 1px solid var(--line); }
+.cfactions #cfClose { margin-left: auto; }
+.cfhead { padding-top: 12px; }
+.cfbrand { color: var(--accent); font-weight: 700; letter-spacing: .06em; font-size: .8rem; text-transform: uppercase; }
+.cfhead h2 { margin: 4px 0 6px; }
+.cfsec { border-top: 1px solid var(--line); padding: 8px 0 4px; break-inside: avoid-page; }
+.cfsec h3 { margin: 6px 0 8px; font-size: 1.02rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cfkv { border-collapse: collapse; width: 100%; font-size: .9rem; }
+.cfkv th { text-align: left; font-weight: 500; color: var(--muted); padding: 3px 12px 3px 0; width: 34%; vertical-align: top; }
+.cfkv td { padding: 3px 0; vertical-align: top; overflow-wrap: anywhere; }
+.cfev { font-size: .82rem; }
+.cfev td { vertical-align: top; }
+.cls { display: inline-block; font-size: .72rem; font-weight: 700; letter-spacing: .03em; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.cls-measured { color: #9ad1ff; border-color: rgba(78, 168, 255, .5); }
+.cls-calculated { color: var(--both); border-color: rgba(94, 226, 122, .5); }
+.cls-approximate { color: var(--sun); border-color: rgba(255, 194, 61, .5); }
+.cls-user { color: var(--feature); border-color: rgba(199, 146, 234, .5); }
+.cffoot { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 8px; font-size: .8rem; color: var(--muted); }
+.cffoot a { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .cfsheet { margin: 0; border-radius: 0; padding: 0 12px 14px; }
+  .cfkv th { width: 42%; }
+  .cfactions .btn { flex: 1 1 auto; }
+}
+@media print {
+  body.cf-open { overflow: visible; background: #fff; }
+  body.cf-open > *:not(#casefile) { display: none !important; }
+  body.cf-open #casefile { position: static; overflow: visible; background: #fff; }
+  body.cf-open .cfsheet { max-width: none; margin: 0; border: 0; padding: 0; background: #fff; color: #000; }
+  body.cf-open .cfactions { display: none !important; }
+  body.cf-open .cfsheet, body.cf-open .cfsheet * { color: #000 !important; background: transparent !important; box-shadow: none !important; }
+  body.cf-open .cfsheet a { text-decoration: underline; }
+  body.cf-open .cls, body.cf-open .rv, body.cf-open .examplenote { border-color: #777 !important; }
+  body.cf-open .cfsec { border-top-color: #bbb; }
+  body.cf-open .tablewrap { overflow: visible !important; }
+  body.cf-open table { font-size: 9pt; }
+  @page { margin: 14mm; }
+}

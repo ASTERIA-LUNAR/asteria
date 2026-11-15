@@ -439,7 +439,8 @@
       ['Slope', 'dh/de = (h(e + d) − h(e − d)) / 2d, dh/dn likewise, slope = atan √((dh/de)² + (dh/dn)²), d = grid spacing', 'How steep the ground is, from neighbouring heights of NASA\'s elevation data (map: 37 m grid averaged to 74 m pixels; 3D: 5-80 m).', 'js/view3d_math.js'],
       ['3D positions', 'θ = s / R; E = (R + h) sin θ sin az, N = (R + h) sin θ cos az, U = (R + h) cos θ − (R + h₀)', 'Where each terrain point sits around the site, including the Moon\'s curvature.', 'js/view3d_math.js']
     ];
-    F.forEach(function (x) { h += '<tr><td>' + x[0] + '</td><td class="mono small">' + x[1] + '</td><td>' + x[2] + '</td><td>' + src(x[3]) + '</td></tr>'; });
+    var FID = ['orient', 'enu', 'pos', 'azel', 'horizon', 'sunup', 'disk', 'power', 'slope', 'pos3d'];   // anchors (round 6D casefile evidence links)
+    F.forEach(function (x, i) { h += '<tr id="valM-' + FID[i] + '"><td>' + x[0] + '</td><td class="mono small">' + x[1] + '</td><td>' + x[2] + '</td><td>' + src(x[3]) + '</td></tr>'; });
     h += '</tbody></table></div>';
     h += '<h3 id="valRepro">Reproduce it yourself</h3><p class="hint">Needs Node.js (and Python with NumPy and Pillow plus the NASA elevation files for the terrain steps; download addresses in README.md). The NASA answers are stored in <code>tests/horizons_cache/</code>, so the checks run offline; delete a cached file to fetch it again from NASA.</p>';
     h += '<pre class="repro">npm install\nnode tests/validate.js              # Horizons angles, events, sanity, blind, one-year, instant status -> VALIDATION_REPORT.md\nnode tests/instant_status_check.js  # Sun up / Earth visible vs Horizons + independent terrain\nnode tests/accuracy3d.js            # 3D heights, slopes, rover positions vs LOLA\nnode tests/blind_test.js --new      # pick and fetch new random cases from NASA\nnode tests/features_test.js\nnode tests/view3d_test.js\nnpx playwright install chromium\nnode tests/ui_check.js\nnode tests/ui_round5.js</pre>';
@@ -1107,7 +1108,7 @@
   }
   function slopeWhy(s) { return !s || !s.id ? 'no terrain data for a custom point\'s slope (no 3D terrain tile)' : T3D_IDS.indexOf(s.id) < 0 ? 'no 3D terrain tile for this site, so no DEM slope' : 'slope data could not be loaded'; }
 
-  var CMPRES = null, CMPCTX = null, CF = { open: false, data: null };
+  var CMPRES = null, CMPCTX = null, CF = { open: false, data: null, tok: 0, slope: null, ready: null };
   // DEM slope at a site point (round 6B): the same function and grids as the 3D view's rover / inspection readouts -
   // central differences over one grid spacing of the site's 6 km LOLA tile, or of the 5 m patch where it exists (the
   // site's best data resolution). Sites without a 3D tile (custom points, sites away from the pole): null.
@@ -1200,6 +1201,7 @@
         checks[0].forEach(function (it, j) { reqRows += '<tr class="reqrow" data-rk="' + it.k + '"><td>' + esc(it.label) + '</td>' + checks.map(function (c) { return '<td class="num">' + verdictHtml(c[j]) + '</td>'; }).join('') + '</tr>'; });
         reqRows += '<tr class="reqsum"><td>Requirements met</td>' + checks.map(function (c) { return '<td class="num">' + reqSummary(c) + '</td>'; }).join('') + '</tr>';
       }
+      reqRows += '<tr class="cfrow"><td>Mission casefile</td>' + res.map(function (r, k) { return '<td class="num"><button class="btn small" type="button" data-cf="' + k + '" title="Open this scenario in Explore and show its Mission casefile">Mission casefile</button></td>'; }).join('') + '</tr>';
       var html = '<table class="cmptable"><thead><tr><th>Metric (' + days + '-day window)</th>' + res.map(function (r, k) { return '<th class="num">Scenario ' + (k + 1) + '</th>'; }).join('') + '</tr></thead><tbody>';
       rows.forEach(function (row) {
         if (row[0][0] === '§') { html += '<tr class="sec sec-' + row[0].slice(1) + '"><th colspan="' + (res.length + 1) + '">' + row[1] + '</th></tr>'; return; }
@@ -1243,7 +1245,7 @@
     var V = window.LUNA_VALIDATION, el = $('validationContent');
     if (!V) { el.innerHTML = '<p>Validation data missing (run node tests/validate.js).</p>'; return; }
     var f = function (x, n) { return x.toFixed(n); };
-    var h = '<h2>Ephemeris validation against NASA/JPL Horizons</h2>';
+    var h = '<h2 id="valAngles">Ephemeris validation against NASA/JPL Horizons</h2>';
     h += '<div class="bigresult ' + (V.overall ? 'pass' : 'fail') + '">Overall: ' + (V.overall ? 'PASS' : 'FAIL') + '</div>';
     h += '<p class="hint">Computed ' + esc(V.generated) + ' by <code>node tests/validate.js</code>. Raw Horizons responses are cached in <code>tests/horizons_cache/</code>. Full write-up: VALIDATION_REPORT.md.</p>';
     h += '<div class="tablewrap"><table><thead><tr><th>Part</th><th>Result</th><th>Detail</th></tr></thead><tbody>';
@@ -1353,7 +1355,7 @@
     var V = window.LUNA_COARSE_VALIDATION;
     if (!V) return '<h3>Terrain for clicked points</h3><p class="hint">Not validated (run node tests/coarse_validation.js); clicked points use a smooth horizon.</p>';
     var f1 = function (x) { return x.toFixed(1); }, P1 = V.part1, P2 = V.part2;
-    var h = '<h3>Terrain for clicked points: downsampled ' + V.dem.pixel_m + ' m elevation data</h3>';
+    var h = '<h3 id="valCoarse">Terrain for clicked points: downsampled ' + V.dem.pixel_m + ' m elevation data</h3>';
     h += '<div class="bigresult ' + (V.pass ? 'pass' : 'fail') + '">' + (V.pass ? 'PASS - shipped, labelled "terrain from coarser ' + V.dem.pixel_m + ' m data (less precise than curated sites)"' : 'FAIL - not shipped; clicked points use a smooth horizon') + '</div>';
     h += '<p class="hint">A ' + V.dem.n + ' × ' + V.dem.n + ' grid (' + V.dem.pixel_m + ' m pixels, ' + V.dem.fileMB.toFixed(1) + ' MB) made from the LOLA DEMs by area averaging. The browser computes the horizon with the same method as the curated sites (360 azimuths, rays to 300 km, lunar curvature, observer 2 m above the surface). Pass criteria, set before running: ' + esc(V.criteria.sites) + '; ' + esc(V.criteria.random) + '.</p>';
     h += '<h4>(1) Curated south-pole sites: ' + V.dem.pixel_m + ' m data vs the 20 m-based horizon (2027, 30-minute steps)</h4><div class="tablewrap"><table><thead><tr><th>Site</th><th class="num">Horizon |Δ| mean / max</th><th class="num">Sunlit % 20 m</th><th class="num">Sunlit % ' + V.dem.pixel_m + ' m</th><th class="num">Earth % 20 m</th><th class="num">Earth % ' + V.dem.pixel_m + ' m</th></tr></thead><tbody>';
@@ -1367,7 +1369,7 @@
     var X = window.LUNA_XCHECK, SRC = window.LUNA_XCHECK_SOURCES || [];
     if (!X) return '<h3>Terrain illumination cross-check</h3><p class="hint">Not available (run tools/illum_crosscheck.py).</p>';
     var p = function (v) { return (v === null || v === undefined) ? 'outside map' : (100 * v).toFixed(1) + '%'; };
-    var h = '<h3>Terrain illumination cross-check vs the published LOLA illumination map</h3>';
+    var h = '<h3 id="valXcheck">Terrain illumination cross-check vs the published LOLA illumination map</h3>';
     h += '<ul>' + SRC.map(function (s) { return '<li><b>' + esc(s.what) + ':</b> ' + esc(s.quote) + ' <a href="' + esc(s.url) + '" target="_blank" rel="noopener">source</a></li>'; }).join('') + '</ul>';
     h += '<p class="hint">Sun directions from the validated engine, hourly over ' + esc(X.span) + ' (one 18.6-year cycle); LOLA terrain horizons at 2 m and 10 m above the surface. (1) average visible solar-disk fraction, (2) % time Sun centre up, (3) % time any part of the disk up.</p>';
     h += '<h4>Peak near Shackleton (-88.79, 124.5) vs the published ~80%</h4><div class="tablewrap"><table><thead><tr><th>Observer</th><th>Period</th><th class="num">(1) Avg disk fraction</th><th class="num">(2) Centre up</th><th class="num">(3) Any part up</th></tr></thead><tbody>';
@@ -1743,6 +1745,209 @@
     });
   }
 
+
+  // ============================================================ MISSION CASEFILE (round 6D)
+  // One printable page for the current site, window and requirements. It only gathers results the app already shows
+  // (status tiles, window statistics and tables, the Power page model with its current settings, the Compare slope, the
+  // Launch-slip results, the validation result files); it computes nothing new. Each item states its classification,
+  // data source, method (link to the Validation page) and the relevant validation result.
+  var CF_N = 10;   // windows listed per body (the CSV has all of them)
+  var SRC = {
+    lola: ['NASA PDS: LRO LOLA gridded polar DEMs', 'https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/'],
+    lola5: ['NASA PDS: LOLA LDEM_875S_5M', 'https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_875s_5m.img'],
+    ae: ['Astronomy Engine (ephemeris library)', 'https://github.com/cosinekitty/astronomy'],
+    jpl: ['NASA/JPL Horizons (reference)', 'https://ssd.jpl.nasa.gov/horizons/'],
+    pgda: ['NASA PGDA Lunar Polar Illumination (product 69)', 'https://pgda.gsfc.nasa.gov/products/69'],
+    tsi: ['IAU 2015 Resolution B3 (1361 W/m²)', 'https://arxiv.org/abs/1510.07674']
+  };
+  function cfLink(x) { return '<a href="' + esc(x[1]) + '" target="_blank" rel="noopener">' + esc(x[0]) + '</a>'; }
+  function cfGo(id, label) { return '<a href="#" class="cfgo" data-goto="' + id + '">' + esc(label) + '</a>'; }
+  function cfCls(c) { return '<span class="cls cls-' + c.toLowerCase().split(' ')[0] + '">' + esc(c) + '</span>'; }
+  function cfHorizonText(s, mask) {
+    return mask ? (isCoarse(s) ? 'Terrain from coarser 240 m data (LOLA-derived, computed in the browser; less precise than curated sites)' : 'LOLA terrain horizon (1° azimuth mask, rays to 300 km, observer 2 m above the ground)') : 'Smooth horizon at 0° - terrain not included';
+  }
+  function cfResolution(s, mask) {
+    if (!mask) return 'none (no terrain)';
+    if (isCoarse(s)) return COARSE_PX + ' m pixels (area mean of LDEM_85S_20M / 80S_80M / 75S_120M)';
+    return HZ[s.id].resolution + (HZ[s.id].demProducts ? ' - ' + HZ[s.id].demProducts.join('; ') : '');
+  }
+  function cfSlip() {
+    var R = SLIP.res; if (!R || !S.site) return null;
+    var mask = maskFor(S.site, S.useTerrain);
+    var it = R.sites.filter(function (x) { return (x.site === S.site || (S.site.id && x.site.id === S.site.id)) && x.mask === mask; })[0];
+    if (!it || R.minEl !== S.minEl) return null;
+    var rows = it.scan.rows, r0 = rows.filter(function (x) { return x.slip === 0; })[0];
+    var best = rows.reduce(function (a, b) { return b.pctBoth > a.pctBoth ? b : a; });
+    return { R: R, r0: r0, best: best, stepMin: it.scan.stepMin };
+  }
+  function cfBuild(slope) {
+    var s = S.site, ser = S.series, st = S.stats, n = ser.t.length, mask = maskFor(s, S.useTerrain), whole = S.windowDays * 24 - 0.01;
+    var pin = powerInputs(), pw = pin.ok ? powerOf(ser, pin) : null;
+    var gap = function (h) { return h >= whole ? 'whole window' : fmtHours(h); };
+    var txt = function (id) { return $(id).textContent.replace(/\s+/g, ' ').trim(); };
+    return {
+      site: s, mask: mask, t0: ser.t[0], t1: ser.t[n - 1], step: ser.stepMin, samples: n, minEl: S.minEl, now: ser.t[S.idx], days: S.windowDays,
+      tiles: { sun: txt('sunState'), sunCount: txt('sunCountLbl') + ' ' + txt('sunCount'), earth: txt('earthState'), earthCount: txt('earthCountLbl') + ' ' + txt('earthCount'), mission: txt('missionState'), missionCount: txt('missionCountLbl') + ' ' + txt('missionCount') },
+      raw: { pctSun: st.pctSun, avgSunFrac: st.avgSunFrac, longestDarkH: st.longestDarkH, pctEarth: st.pctEarth, longestBlackoutH: st.longestBlackoutH, pctBoth: st.pctBoth },
+      v: { pctSun: st.pctSun.toFixed(1) + '%', avgSunFrac: (100 * st.avgSunFrac).toFixed(1) + '%', longestDark: gap(st.longestDarkH), pctEarth: st.pctEarth.toFixed(1) + '%', longestBlackout: gap(st.longestBlackoutH), pctBoth: st.pctBoth.toFixed(1) + '%' },
+      win: { sun: WIN.sun, earth: WIN.earth }, sm: { sun: windowSummary(WIN.sun, 'sun'), earth: windowSummary(WIN.earth, 'earth') },
+      pin: pin, pw: pw, slope: slope, hzRange: mask ? minMax(mask) : null, slip: cfSlip(),
+      req: reqCheck({ pctSun: st.pctSun, pctEarth: st.pctEarth, pctBoth: st.pctBoth, longestDarkH: st.longestDarkH, longestBlackoutH: st.longestBlackoutH,
+        power: pw ? { Wh: pw.Wh, loadWh: pw.loadWh } : null, powerWhy: pin.ok ? 'power not computed' : 'Power page inputs are invalid (check them on the Power page)', slope: slope, slopeWhy: slopeWhy(s) }),
+      created: new Date()
+    };
+  }
+  function cfWinTable(D, body) {
+    var wins = D.win[body], rise = body === 'sun' ? 'Sunrise' : 'Earthrise', set = body === 'sun' ? 'Sunset' : 'Earthset', B = body === 'sun' ? 'Sun' : 'Earth';
+    var h = '<div class="tablewrap"><table class="wtable cfwin" data-body="' + body + '"><thead><tr><th>' + rise + ' (UTC)</th><th>' + set + ' (UTC)</th><th class="num">Duration</th><th class="num">Max ' + B + ' el.</th></tr></thead><tbody>';
+    if (!wins.length) h += '<tr><td colspan="4" class="hint">' + (body === 'sun' ? 'The Sun stays below the horizon for the whole window.' : 'Earth stays below the usable horizon for the whole window.') + '</td></tr>';
+    wins.slice(0, CF_N).forEach(function (w) {
+      h += '<tr><td class="mono">' + (w.cutStart ? '<span class="cut">before</span> ' : '') + fmtShort(new Date(w.start)) + '</td><td class="mono">' + (w.cutEnd ? '<span class="cut">after</span> ' : '') + fmtShort(new Date(w.end)) +
+        '</td><td class="num mono">' + fmtHours(w.durH) + (w.cutStart || w.cutEnd ? '+' : '') + '</td><td class="num mono">' + (w.maxEl === null ? '-' : fmtDeg(w.maxEl, 1)) + '</td></tr>';
+    });
+    h += '</tbody></table></div>';
+    h += '<p class="fineprint">' + (wins.length > CF_N ? 'First ' + CF_N + ' of ' + wins.length + ' windows; full list in CSV.' : 'All ' + wins.length + ' window(s); also in CSV.') + ' Dates are month-day hour:minute UTC. "before"/"after": the window continues beyond the period; its duration counts only the part inside (marked +).</p>';
+    return h;
+  }
+  function cfKV(rows) { return '<table class="cfkv"><tbody>' + rows.map(function (r) { return '<tr><th>' + r[0] + '</th><td' + (r[2] ? ' data-cf="' + r[2] + '"' : '') + '>' + r[1] + '</td></tr>'; }).join('') + '</tbody></table>'; }
+  function cfHtml(D) {
+    var s = D.site, V = window.LUNA_VALIDATION, I = window.LUNA_INSTANT, A = window.LUNA_ACCURACY3D, XM = xcheckMean(), X = window.LUNA_XCHECK;
+    var name = s.name || 'Custom point', ver = (window.ASTERIA_VERSION || {}).text || 'unknown', now = new Date(D.now);
+    var srcType = s.id ? (s.sourceType === 'secondary' ? 'secondary source (no primary source found; see GAPS_AND_ISSUES.md)' : 'primary') : 'chosen by the user (not a published coordinate)';
+    var h = '<header class="cfhead"><div class="cfbrand">ASTERIA · Mission casefile</div><h2 id="cfTitle">' + esc(name) + '</h2>' +
+      '<p class="hint">Everything below is a result ASTERIA already shows elsewhere (Explore, Power, Compare, Launch slip, Validation), gathered for one site and time window. Nothing here is a new calculation, a score or a recommendation. Not a mission planning product; not for operational decisions.</p></header>';
+    // 1 site
+    h += '<section class="cfsec"><h3>1. Site ' + cfCls(s.id && /^DERIVED/.test(s.coordKind) ? 'Calculated' : s.id ? 'Measured' : 'User input') + '</h3>' + cfKV([
+      ['Name', esc(name)], ['Coordinates', '<span class="mono">' + s.lat.toFixed(4) + '°, ' + s.lon.toFixed(4) + '°E</span>', 'coords'],
+      ['What the coordinate is', s.id ? esc(s.coordKind) + (kindText(s) !== s.coordKind && !/^DERIVED/.test(s.coordKind) ? ' · ' + esc(kindText(s)) : '') : esc(kindText(s))],
+      ['Source', s.id ? (s.sources || []).map(function (u) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(u.replace(/^https?:\/\//, '').slice(0, 70)) + '</a>'; }).join('<br>') : 'custom point'],
+      ['Source type', esc(srcType)], ['Horizon model', esc(cfHorizonText(s, D.mask)), 'horizon'], ['Data resolution', esc(cfResolution(s, D.mask))]
+    ]) + (s.landformCentre ? '<p class="warnline">One point at the centre of a large landform, not a landing site; conditions elsewhere in the region can be very different.</p>' : '') + '</section>';
+    // 2 scenario
+    h += '<section class="cfsec"><h3>2. Scenario</h3>' + cfKV([
+      ['Window start (UTC)', fmtUTC(new Date(D.t0)), 't0'], ['Window end (UTC)', fmtUTC(new Date(D.t1)) + ' (' + D.days + ' days)', 't1'],
+      ['Sampling step', D.step + ' min (' + D.samples + ' samples); rise/set times refined to 1 min', 'step'], ['Minimum link elevation', D.minEl + '° above the terrain horizon', 'minEl'],
+      ['"Now" (status below)', fmtUTC(now) + ' UTC (the selected time in Explore)', 'now']
+    ]) + '</section>';
+    // 3 sunlight
+    h += '<section class="cfsec"><h3>3. Sunlight ' + cfCls('Calculated') + '</h3>' + cfKV([
+      ['Status now', esc(D.tiles.sun) + ' · ' + esc(D.tiles.sunCount), 'sunNow'], ['% sunlit', D.v.pctSun, 'pctSun'], ['Average illumination (solar-disk fraction)', D.v.avgSunFrac, 'avgSunFrac'],
+      ['Longest darkness', D.v.longestDark, 'longestDark'], ['Sunlight windows', String(D.sm.sun.n) + (D.sm.sun.n ? ', average ' + fmtHours(D.sm.sun.avgH) : ''), 'nSun']
+    ]) + cfWinTable(D, 'sun') + '</section>';
+    // 4 earth
+    h += '<section class="cfsec"><h3>4. Earth link ' + cfCls('Calculated') + '</h3>' + cfKV([
+      ['Status now', esc(D.tiles.earth) + ' · ' + esc(D.tiles.earthCount), 'earthNow'], ['% Earth link', D.v.pctEarth, 'pctEarth'], ['Longest Earth blackout', D.v.longestBlackout, 'longestBlackout'],
+      ['Earth link windows', String(D.sm.earth.n) + (D.sm.earth.n ? ', average ' + fmtHours(D.sm.earth.avgH) : ''), 'nEarth']
+    ]) + '<p class="fineprint">Geometric line of sight only; antenna, power and ground-station availability are not modelled.</p>' + cfWinTable(D, 'earth') + '</section>';
+    // 5 both
+    h += '<section class="cfsec"><h3>5. Both (sunlight + Earth link) ' + cfCls('Calculated') + '</h3>' + cfKV([
+      ['Mission status now', esc(D.tiles.mission) + ' · ' + esc(D.tiles.missionCount), 'missionNow'], ['% both', D.v.pctBoth, 'pctBoth']
+    ]) + '<p class="fineprint">Periods of both are where a sunlight window and an Earth link window overlap (tables above; green in the Explore timeline). ASTERIA does not list them separately.</p></section>';
+    // 6 power
+    var P = D.pw, pin = D.pin;
+    if (P) {
+      var modeTxt = { track: 'vertical, Sun-tracking', horizontal: 'horizontal', fixed: 'vertical, facing ' + pin.opts.faceAz + '°' }[pin.opts.mode] || pin.opts.mode;
+      var hours = (D.samples - 1) * P.stepH;
+      h += '<section class="cfsec"><h3>6. Power ' + cfCls('Approximate') + '</h3><p class="examplenote">First-order estimate, example values: Power page settings ' + pin.opts.area + ' m², ' + Math.round(pin.opts.eff * 100) + '% efficient, ' + esc(modeTxt) + ' panel; ' + pin.load + ' W load; ' + Math.round(pin.usable * 100) + '% usable battery. Window: this Explore window.</p>' + cfKV([
+        ['Energy produced', kWhF(P.Wh), 'energy'], ['Energy needed by load', kWhF(P.loadWh), 'load'], ['Energy balance', (P.Wh >= P.loadWh ? '+' : '−') + kWhF(Math.abs(P.Wh - P.loadWh)), 'balance'],
+        ['Mean / peak power', (P.Wh / hours).toFixed(0) + ' / ' + P.peak.toFixed(0) + ' W', 'meanPeak'], ['Battery for the longest darkness', '≈ ' + kWhF(P.battery) + ' (' + Math.round(pin.usable * 100) + '% usable)', 'battery']
+      ]) + '</section>';
+    } else h += '<section class="cfsec"><h3>6. Power ' + cfCls('Approximate') + '</h3><p>Not computed: the Power page inputs are invalid (check them on the Power page).</p></section>';
+    // 7 terrain
+    var hz = D.hzRange;
+    h += '<section class="cfsec"><h3>7. Terrain ' + cfCls('Calculated') + '</h3>' + cfKV([
+      ['Slope at the site point', D.slope ? D.slope.slope.toFixed(1) + '° (' + D.slope.d + ' m LOLA grid, ' + esc(D.slope.product || '') + '; central differences over one grid spacing)' : '- (' + esc(slopeWhy(s)) + ')', 'slope'],
+      ['Terrain horizon range', hz ? fmtDeg(hz[0], 1) + ' to ' + fmtDeg(hz[1], 1) + ' (' + (isCoarse(s) ? COARSE_PX + ' m data' : 'LOLA') + ')' : '0° everywhere (smooth horizon - terrain not included)', 'hzRange'],
+      ['Site height', s.id && HZ[s.id] ? HZ[s.id].siteHeight_m.toFixed(0) + ' m above the 1737.4 km sphere' : s.hz ? s.hz.siteHeight_m.toFixed(0) + ' m above the 1737.4 km sphere (240 m data)' : '-']
+    ]) + '<p class="fineprint">Real slopes over a few metres can be steeper than the slope over one grid cell; boulders and the lander are not represented.</p></section>';
+    // 8 launch slip
+    var SL = D.slip;
+    h += '<section class="cfsec"><h3>8. Launch slip ' + cfCls('Calculated') + '</h3>';
+    if (SL) h += cfKV([
+      ['Mission', 'Nominal landing ' + fmtUTC(SL.R.nominal) + ' UTC, ' + SL.R.dur + ' days; slips ' + SL.R.from + '-' + SL.R.to + ' days every ' + SL.R.step + ' day(s); sampling ' + SL.stepMin + ' min'],
+      ['Nominal landing (slip 0)', SL.r0 ? '% both ' + slipFmt(SL.r0, 'pctBoth') + ', % sunlit ' + slipFmt(SL.r0, 'pctSun') + ', % Earth link ' + slipFmt(SL.r0, 'pctEarth') + ', longest darkness ' + slipFmt(SL.r0, 'longestDarkH') : '-', 'slip0'],
+      ['Highest % both in the range', '+' + SL.best.slip + ' days (' + fmtUTC(new Date(SL.best.landing)) + ' UTC): % both ' + slipFmt(SL.best, 'pctBoth'), 'slipBest']
+    ]);
+    else h += '<p>No Launch-slip result for this site and horizon yet: open the Launch slip tab and press Compute, then reopen the casefile.</p>';
+    h += '</section>';
+    // 9 requirements
+    h += '<section class="cfsec"><h3>9. Requirements check</h3>';
+    if (D.req.length) h += '<p class="fineprint">Your thresholds from the Compare page (example values unless you set them). Judged on the value shown, at the precision shown. No overall score.</p><table class="cfkv cfreq"><tbody>' +
+      D.req.map(function (it) { return '<tr data-rk="' + it.k + '"><th>' + esc(it.label) + '</th><td>' + verdictHtml(it) + '</td></tr>'; }).join('') + '<tr><th>Summary</th><td data-cf="reqSum">' + reqSummary(D.req) + '</td></tr></tbody></table>';
+    else h += '<p>No requirement is ticked (Compare page, "Mission requirements").</p>';
+    h += '</section>';
+    // 10 evidence
+    var ev = [];
+    var angTxt = V ? V.angles.length + ' angle comparisons vs JPL Horizons: elevation within ' + V.angleStats.el.max.toFixed(4) + '°, azimuth within ' + V.angleStats.az.max.toFixed(4) + '°; ' + V.events.length + ' event times within ' + V.eventStats.max.toFixed(2) + ' min (' + (V.overall ? 'PASS' : 'FAIL') + ')' : 'not available';
+    var instTxt = I ? I.agree + ' of ' + I.n + ' Sun/Earth status decisions agree with an independent check (Horizons + Python terrain); stored horizon vs Python within ' + I.maxHorizonDiff.toFixed(3) + '° (' + (I.pass ? 'PASS' : 'FAIL') + ')' : 'not available';
+    var xs = X && s.id ? X.sites.filter(function (x) { return x.id === s.id; })[0] : null;
+    var xTxt = XM ? 'Average illumination vs NASA\'s published map: ' + XM.mean.toFixed(1) + ' percentage points mean difference over ' + XM.n + ' sites (18.6 years)' + (xs && xs.pgda !== null && xs.pgda !== undefined ? '; this site: ASTERIA ' + (100 * xs.avgDiskFrac).toFixed(1) + '%, map ' + (100 * xs.pgda).toFixed(1) + '%' : '') : 'not available';
+    var hzVal = D.mask ? (isCoarse(s) ? (CV ? '240 m data vs 20 m horizons at the curated sites: % sunlit differs by ' + CV.part1.meanAbsSun.toFixed(2) + ' points on average (max ' + CV.part1.maxAbsSun.toFixed(2) + '; ' + (CV.pass ? 'PASS' : 'FAIL') + ')' : 'not available') : instTxt) : 'Not validated for terrain: a smooth horizon ignores hills and crater walls';
+    ev.push(['Site coordinate', s.id && /^DERIVED/.test(s.coordKind) ? 'Calculated' : s.id ? 'Measured' : 'User input', s.id ? (s.sources || []).slice(0, 2).map(function (u) { return cfLink([u.replace(/^https?:\/\//, '').slice(0, 40), u]); }).join(' ') : 'chosen by the user', '-', s.id ? 'Source type: ' + srcType : '-']);
+    ev.push(['Terrain horizon', D.mask ? (isCoarse(s) ? 'Approximate' : 'Calculated') : 'Approximate', D.mask ? cfLink(SRC.lola) : 'none (smooth Moon)', cfGo('valM-horizon', 'Methods: terrain horizon'), hzVal, D.mask ? (isCoarse(s) ? 'valCoarse' : 'valInstant') : null]);
+    ev.push(['Sun and Earth positions (status, windows)', 'Calculated', cfLink(SRC.ae) + ' · ' + cfLink(SRC.jpl), cfGo('valM-azel', 'Methods: azimuth and elevation'), angTxt, 'valAngles']);
+    ev.push(['Sunlit / Earth link status, % and longest gaps', 'Calculated', cfLink(SRC.ae) + (D.mask ? ' · ' + cfLink(SRC.lola) : ''), cfGo('valM-sunup', 'Methods: Sun up / Earth visible'), D.mask && !isCoarse(s) ? instTxt : angTxt + (D.mask ? '' : '; smooth horizon'), D.mask && !isCoarse(s) ? 'valInstant' : 'valAngles']);
+    ev.push(['Average illumination', 'Calculated', cfLink(SRC.pgda) + ' (comparison)', cfGo('valM-disk', 'Methods: visible solar disk'), xTxt, 'valXcheck']);
+    ev.push(['Earth link usability', 'Approximate', cfLink(SRC.jpl), cfGo('valM-sunup', 'Methods: Sun up / Earth visible'), 'Geometric line of sight only (antennas, power, ground stations not modelled)', null]);
+    ev.push(['Power and battery', 'Approximate', cfLink(SRC.tsi), cfGo('valM-power', 'Methods: power'), 'First-order estimate with example values; not validated against hardware', null]);
+    ev.push(['Slope at the site point', D.slope ? 'Calculated' : '-', D.slope && D.slope.d === 5 ? cfLink(SRC.lola5) : cfLink(SRC.lola), cfGo('valM-slope', 'Methods: slope'), A ? 'Slope readout vs an independent Python slope: max ' + A.slope.maxReadout.toFixed(3) + '°; 3D heights within ' + A.heights.worst.toFixed(2) + ' m of LOLA (' + (A.pass ? 'PASS' : 'FAIL') + ')' : 'not available', 'valAcc3d']);
+    ev.push(['Launch slip', 'Calculated', cfLink(SRC.ae), cfGo('valMethods', 'Methods and formulas'), 'Each landing date is an exact slice of one series; slip 0 equals the Explore metrics for the same window (tested)', null]);
+    ev.push(['Requirements check', 'User input', '-', '-', 'Comparison of your thresholds with the values above; no new calculation', null]);
+    h += '<section class="cfsec"><h3>10. Evidence</h3><div class="tablewrap"><table class="cfev"><thead><tr><th>Item</th><th>Classification</th><th>Data source</th><th>Method</th><th>Validation result</th></tr></thead><tbody>' +
+      ev.map(function (e) { return '<tr><td>' + e[0] + '</td><td>' + (e[1] === '-' ? '-' : cfCls(e[1])) + '</td><td>' + e[2] + '</td><td>' + e[3] + '</td><td>' + esc(e[4]) + (e[5] ? ' ' + cfGo(e[5], '(details)') : '') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+    var site0 = { lat: s.lat, lon: s.lon };
+    h += '<p><b>Verify with NASA</b> (' + fmtUTC(now) + ' UTC, this site): <a class="btn small" href="' + esc(horizonsUrl(site0, now, "'10'")) + '" target="_blank" rel="noopener" data-verify="sun">Sun in JPL Horizons</a> <a class="btn small" href="' + esc(horizonsUrl(site0, now, "'399'")) + '" target="_blank" rel="noopener" data-verify="earth">Earth in JPL Horizons</a></p>' +
+      '<p class="fineprint">Classifications: Measured = published data; Calculated = computed by ASTERIA from measured data with the validated engine; Approximate = simplified model, stated limits; User input = chosen by you. Data sources are the ones cited on the About page. ' + cfGo('valHow', 'How we know the numbers are right') + '.</p></section>';
+    // 11 limitations
+    var lim = ['Earth link is a geometric line of sight to Earth\'s centre; antennas, power, ground stations and relays are not modelled.',
+      'Power is a first-order estimate with example values: no temperature, dust, degradation, conversion losses or light reflected from terrain.',
+      'Terrain smaller than the data grid (boulders, small craters, the lander itself) is not represented; terrain masks have 1° azimuth steps.',
+      'Statistics come from samples every ' + D.step + ' minutes and are accurate to about one sampling step; windows shorter than a step can be missed.',
+      'The Moon is a sphere of radius 1737.4 km for the Sun and Earth directions.'];
+    if (!D.mask) lim.unshift('Smooth horizon for this point: real hills and crater walls are not included and can change rise and set times a great deal.');
+    else if (isCoarse(s)) lim.unshift('Terrain from coarser 240 m data: features smaller than about 240 m are smoothed out.');
+    if (s.sourceType === 'secondary') lim.push('The site coordinate comes from a secondary source (see GAPS_AND_ISSUES.md).');
+    h += '<section class="cfsec"><h3>11. Limitations</h3><ul>' + lim.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></section>';
+    // 12 footer
+    h += '<footer class="cffoot"><p><b>Reproduce this view:</b> <a href="' + esc(location.href) + '" id="cfShare" class="mono">' + esc(location.href.replace(/^.*?#/, '…#')) + '</a></p>' +
+      '<p>App version: <span class="mono" data-cf="version">' + esc(ver) + '</span> · Created ' + fmtUTC(D.created) + ' UTC · ASTERIA, NASA Space Apps Challenge 2026 · <b>Not endorsed by NASA</b> · Not affiliated with NASA\'s ASTERIA CubeSat mission</p></footer>';
+    return h;
+  }
+  function renderCasefile() {
+    CF.data = cfBuild(CF.slope);
+    $('cfBody').innerHTML = cfHtml(CF.data);
+  }
+  function openCasefile() {
+    CF.open = true; CF.data = null; var tok = ++CF.tok, site = S.site;
+    $('cfBody').innerHTML = '<p class="hint">Collecting results…</p>';
+    $('casefile').hidden = false; document.body.classList.add('cf-open');
+    writeHash();
+    CF.ready = Promise.resolve(S.ready).then(function () { return siteSlope(site); }).then(function (sl) {
+      if (tok !== CF.tok || !CF.open || S.site !== site || !S.series) return;
+      CF.slope = sl; writeHash(); renderCasefile();
+      try { $('cfClose').focus({ preventScroll: true }); } catch (e) { /* ignore */ }
+    });
+    return CF.ready;
+  }
+  function closeCasefile() {
+    if (!CF.open) return;
+    CF.open = false; CF.tok++;
+    $('casefile').hidden = true; document.body.classList.remove('cf-open');
+    writeHash();
+  }
+  function cfGoTo(id) {
+    closeCasefile(); showPage('validation');
+    var el = $(id); if (!el) return;
+    for (var p = el.parentNode; p; p = p.parentNode) if (p.tagName === 'DETAILS') p.open = true;
+    el.scrollIntoView({ block: 'start' });
+  }
+  function openScenarioCasefile(k) {
+    var c = CMP[k]; if (!c || !CMPCTX) return Promise.resolve();
+    var s = siteById(c.siteId) || { id: null, name: 'Custom point', lat: c.lat, lon: c.lon };
+    if (!s.id && c.hz) s.hz = c.hz;
+    return openInExplorer(s, c.start, CMPCTX.days, c.terrain).then(function () { return openCasefile(); });
+  }
+
   // ============================================================ SHAREABLE URL
   var hashReady = false;
   function writeHash() {
@@ -1774,6 +1979,8 @@
     else p = selectSite(site || siteById(DEFAULT_SITE) || SITES[0], { fly: false });
     if (o.terrain === '0') p = Promise.resolve(p).then(function () { if (S.useTerrain) { S.useTerrain = false; renderBadge(); return recompute(); } });
     if (o.tab && $('page-' + o.tab)) showPage(o.tab);
+    if (o.cf === '1') Promise.resolve(p).then(function () { return S.ready; }).then(function () { openCasefile(); });   // round 6D
+    else if (CF.open) closeCasefile();
     return p;
   }
   function copyLink() {
@@ -2037,6 +2244,7 @@
     $('hintClose').addEventListener('click', hintClose);
     document.addEventListener('keydown', function (ev) {
       if (ev.key !== 'Escape') return;
+      if (CF.open) { closeCasefile(); return; }
       if (!$('tour').hidden) tourClose();
       spotClose();
       if (!$('hint').hidden) hintClose();
@@ -2051,6 +2259,19 @@
     var h = readHash();
     reqInit(h ? (h.req !== undefined ? h.req : reqEncode(reqDefaults())) : undefined);   // a share link without req = example defaults
     $('reqGrid').addEventListener('change', reqChange);
+    // round 6D: Mission casefile
+    $('cfBtn').addEventListener('click', function () { openCasefile(); });
+    $('cfClose').addEventListener('click', closeCasefile);
+    $('cfPrint').addEventListener('click', function () { window.print(); });
+    $('cfCsvSun').addEventListener('click', function () { downloadCsv('sun'); });
+    $('cfCsvEarth').addEventListener('click', function () { downloadCsv('earth'); });
+    $('cfCopy').addEventListener('click', function () {
+      writeHash();
+      var done = function () { $('cfCopy').textContent = 'Link copied'; setTimeout(function () { $('cfCopy').textContent = 'Copy share link'; }, 1600); };
+      try { navigator.clipboard.writeText(location.href).then(done, function () { window.prompt('Copy this link:', location.href); }); } catch (e) { window.prompt('Copy this link:', location.href); }
+    });
+    $('cfBody').addEventListener('click', function (ev) { var a = ev.target.closest('a.cfgo'); if (a) { ev.preventDefault(); cfGoTo(a.dataset.goto); } });
+    $('cmpResult').addEventListener('click', function (ev) { var b = ev.target.closest('button[data-cf]'); if (b) openScenarioCasefile(+b.dataset.cf); });
     if (h) applyHash(h); else selectSite(siteById(DEFAULT_SITE) || SITES[0], { fly: false });
     hashReady = true;
     writeHash();
@@ -2067,6 +2288,9 @@
     runSlip: runSlip, slipResults: function () { return SLIP.res; },
     runPower: runPower, powerResults: function () { return PW.res; },
     runCompare: runCompare, compareResults: function () { return CMPRES; },
+    openCasefile: openCasefile, closeCasefile: closeCasefile, openScenarioCasefile: openScenarioCasefile,
+    casefile: function () { return CF.open && CF.data ? CF.data : null; }, casefileReady: function () { return CF.ready || Promise.resolve(); },
+    siteSlopeOf: function (id) { return siteSlope(siteById(id)); }, powerInputs: function () { return powerInputs(); }, powerOf: function (k) { return powerOf(S.series, powerInputs()); },
     requirements: function () { return JSON.parse(JSON.stringify(REQ)); }, reqCheck: function (m) { return reqCheck(m); }, cmpReqMetrics: function (k) { return CMPRES && cmpReqMetrics(CMPRES[k], CMPCTX.pin); },
     windows: function (body) { return WIN[body]; },
     csv: csvText, csvName: csvName,

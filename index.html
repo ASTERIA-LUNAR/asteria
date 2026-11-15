@@ -124,6 +124,7 @@
         <span class="q" data-q="jump"></span>
         <div class="hint" id="jumpMsg" role="status" aria-live="polite"></div>
       </div>
+      <div class="cfbtnrow"><button id="cfBtn" class="btn cfbtn" type="button" title="One printable page with every result for this site, time window and your requirements, and the evidence for each">Mission casefile</button></div>
       <div class="x-only verifybox" id="verifyBox"></div>
     </aside>
   </div>
@@ -368,6 +369,13 @@
   </div>
 </div>
 <div id="qpop" class="qpop" hidden role="tooltip"></div>
+<!-- Mission casefile (round 6D): printable summary of existing results for the current site, window and requirements -->
+<div id="casefile" class="casefile" hidden role="dialog" aria-modal="true" aria-labelledby="cfTitle">
+  <div class="cfsheet">
+    <div class="cfactions"><button id="cfPrint" class="btn primary" type="button">Print / Save as PDF</button><button id="cfCsvSun" class="btn" type="button">Download CSV (sunlight)</button><button id="cfCsvEarth" class="btn" type="button">Download CSV (Earth link)</button><button id="cfCopy" class="btn ghost" type="button">Copy share link</button><button id="cfClose" class="btn ghost" type="button" aria-label="Close the Mission casefile">Close</button></div>
+    <div id="cfBody"></div>
+  </div>
+</div>
 <footer class="foot">ASTERIA &middot; NASA Space Apps Challenge 2026 &middot; Not endorsed by NASA &middot; Not affiliated with NASA's ASTERIA CubeSat mission &middot; Ephemeris validated against JPL Horizons (see Validation)</footer>
 
 <script src="js/core.js"></script>
