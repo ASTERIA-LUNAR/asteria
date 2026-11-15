@@ -652,3 +652,78 @@ body.guiding main { padding-bottom: 60vh; }
 /* round 6H: Mission casefile button beside "Choose a site" */
 .pickrow .cfbtnrow { margin: 0 auto 0 0; }
 .pickrow .cfbtn { width: auto; }
+
+/* ---------------------------------------------------------------- Prompt 9: Historical Capsule (separate from the science) */
+.capsep { flex: none; align-self: center; width: 1px; height: 22px; margin: 0 8px 0 6px; background: var(--line); }
+.capsulebtn {
+  position: relative; overflow: hidden; flex: none; white-space: nowrap; cursor: pointer;
+  font: inherit; font-size: .9rem; font-weight: 650; letter-spacing: .01em; color: #1a1205;
+  padding: 6px 14px; border: 1px solid #ffcf7a; border-radius: 999px;
+  background: linear-gradient(135deg, #ffd166 0%, #ffb347 55%, #ff9a3c 100%);
+  box-shadow: 0 0 14px rgba(255, 170, 60, .35), inset 0 1px 0 rgba(255, 255, 255, .35);
+  transition: background .2s, box-shadow .2s;
+}
+.capsulebtn:hover, .capsulebtn.open { background: linear-gradient(135deg, #ffc247 0%, #ff9f2e 55%, #f2801f 100%); box-shadow: 0 0 18px rgba(255, 150, 40, .5), inset 0 1px 0 rgba(255, 255, 255, .3); }
+.capsulebtn:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+.capsulebtn::after {   /* one light sweep shortly after the app loads; never repeats */
+  content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%; pointer-events: none;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .65) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: translateX(0) skewX(-18deg); opacity: 0;
+  animation: capsweep 1s ease-in-out 1.4s 1 both;
+}
+@keyframes capsweep { 0% { opacity: 0; transform: translateX(0) skewX(-18deg); } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(380%) skewX(-18deg); } }
+@media (max-width: 900px) { .capsep { margin: 0 6px; } .capsulebtn { padding: 5px 12px; font-size: .86rem; } }
+
+html.capsule-open, html.capsule-open body { overflow: hidden; }
+.cap-overlay { position: fixed; inset: 0; z-index: 3000; background: #03060d; color: #fff; overflow: hidden; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.cap-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cap-scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 58%; pointer-events: none; background: linear-gradient(0deg, rgba(3, 6, 13, .82) 0%, rgba(3, 6, 13, .55) 40%, rgba(3, 6, 13, 0) 100%); }
+.cap-banner { position: absolute; left: 14px; top: 12px; max-width: calc(100% - 200px); font-size: .74rem; color: #d9e2f2; background: rgba(5, 9, 18, .62); border: 1px solid rgba(255, 255, 255, .14); border-radius: 999px; padding: 4px 11px; letter-spacing: .01em; }
+.cap-top { position: absolute; right: 12px; top: 8px; display: flex; gap: 8px; }
+.cap-btn { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font: inherit; font-size: .9rem; color: #fff; background: rgba(10, 16, 30, .66); border: 1px solid rgba(255, 255, 255, .22); border-radius: 999px; padding: 0 12px; cursor: pointer; }
+.cap-btn:hover { background: rgba(30, 40, 62, .85); border-color: rgba(255, 210, 140, .7); }
+.cap-btn:focus-visible, .cap-year-btn:focus-visible, .cap-endbtn:focus-visible, .cap-sources a:focus-visible { outline: 2px solid #ffd166; outline-offset: 2px; }
+.cap-srcbtn span { display: inline-flex; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid currentColor; align-items: center; justify-content: center; font: italic 700 .72rem Georgia, serif; }
+.cap-x { font-size: 1.4rem; line-height: 1; padding: 0; width: 40px; }
+.cap-caption { position: absolute; left: clamp(16px, 5vw, 72px); bottom: 104px; width: min(560px, 42vw); pointer-events: none; text-shadow: 0 2px 18px rgba(0, 0, 0, .7); will-change: opacity, transform; }
+.cap-year { font-size: clamp(2.6rem, 5.2vw, 4.4rem); font-weight: 200; line-height: 1; letter-spacing: .04em; color: #ffd9a0; font-variant-numeric: tabular-nums; }
+.cap-title { font-size: clamp(1.1rem, 1.7vw, 1.45rem); font-weight: 650; margin: 8px 0 6px; letter-spacing: .01em; }
+.cap-text { margin: 0 0 10px; font-size: clamp(.98rem, 1.25vw, 1.1rem); line-height: 1.5; color: #eef2f8; max-width: 34em; }
+.cap-flags { display: flex; flex-wrap: wrap; gap: 6px; }
+.cap-chip { display: inline-flex; align-items: center; gap: 6px; font-size: .76rem; color: #e3e9f3; background: rgba(5, 9, 18, .6); border: 1px solid rgba(255, 255, 255, .16); border-radius: 999px; padding: 3px 9px 3px 5px; text-shadow: none; }
+.cap-chip canvas { border-radius: 2px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .18); }
+.cap-bar { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 8px; padding: 12px clamp(12px, 3vw, 28px) 16px; background: linear-gradient(180deg, rgba(3, 6, 13, 0) 0%, rgba(3, 6, 13, .78) 45%); }
+.cap-play { width: 48px; min-width: 48px; height: 48px; padding: 0; font-size: 1rem; background: rgba(255, 190, 90, .16); border-color: rgba(255, 200, 120, .55); }
+.cap-nav { font-size: .7rem; letter-spacing: -.12em; width: 44px; padding: 0; }
+.cap-strip { flex: 1 1 auto; min-width: 0; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 4px 2px; margin-left: 6px; }
+.cap-strip::-webkit-scrollbar { display: none; }
+.cap-year-btn { flex: 1 0 auto; min-width: 52px; min-height: 40px; font: inherit; font-size: .84rem; font-variant-numeric: tabular-nums; color: #b9c4d8; background: transparent; border: 0; border-top: 2px solid rgba(255, 255, 255, .18); cursor: pointer; padding: 6px 4px 0; }
+.cap-year-btn:hover { color: #fff; border-top-color: rgba(255, 210, 140, .6); }
+.cap-year-btn.on { color: #ffd9a0; border-top-color: #ffb347; font-weight: 650; }
+.cap-end { position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%); width: min(560px, calc(100% - 32px)); text-align: center; padding: 26px 22px; background: rgba(5, 9, 18, .72); border: 1px solid rgba(255, 210, 140, .35); border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, .55); animation: capfade .6s ease-out both; }
+.cap-endtitle { font-size: clamp(1.35rem, 2.6vw, 2rem); font-weight: 300; margin-bottom: 18px; letter-spacing: .01em; }
+.cap-endbtn { font: inherit; font-weight: 650; font-size: 1rem; color: #1a1205; background: linear-gradient(135deg, #ffd166 0%, #ffb347 55%, #ff9a3c 100%); border: 1px solid #ffcf7a; border-radius: 999px; padding: 11px 22px; min-height: 44px; cursor: pointer; box-shadow: 0 0 16px rgba(255, 170, 60, .4); }
+.cap-endbtn:hover { background: linear-gradient(135deg, #ffc247 0%, #ff9f2e 55%, #f2801f 100%); }
+@keyframes capfade { from { opacity: 0; } to { opacity: 1; } }
+.cap-sources { position: absolute; right: 12px; top: 58px; bottom: 86px; width: min(460px, calc(100% - 24px)); overflow-y: auto; background: rgba(8, 13, 25, .95); border: 1px solid rgba(255, 255, 255, .18); border-radius: 14px; padding: 14px 16px; font-size: .84rem; color: #dfe6f2; box-shadow: 0 18px 50px rgba(0, 0, 0, .6); }
+.cap-srchead { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.cap-srchead h2 { margin: 0; font-size: 1.05rem; color: #fff; }
+.cap-srclist { margin: 0 0 10px; padding-left: 20px; }
+.cap-srclist li { margin-bottom: 6px; }
+.cap-sources a { color: #9cc9ff; }
+.cap-note { color: #b9c4d8; }
+.cap-credit { color: #b9c4d8; font-style: italic; }
+@media (max-width: 700px) {
+  .cap-banner { top: 60px; left: 12px; max-width: calc(100% - 24px); font-size: .7rem; }
+  .cap-caption { left: 16px; right: 16px; width: auto; bottom: 92px; }
+  .cap-year { font-size: 2.5rem; }
+  .cap-title { font-size: 1.1rem; }
+  .cap-text { font-size: .98rem; }
+  .cap-bar { padding: 10px 10px 14px; gap: 6px; }
+  .cap-nav { width: 40px; }
+  .cap-play { width: 46px; min-width: 46px; height: 46px; }
+  .cap-strip { margin-left: 2px; }
+  .cap-year-btn { flex: 0 0 auto; min-width: 48px; min-height: 44px; }
+  .cap-sources { top: 58px; bottom: 80px; }
+}
+@media (prefers-reduced-motion: reduce) { .capsulebtn::after { animation: none; opacity: 0; } .cap-end { animation: none; } }
