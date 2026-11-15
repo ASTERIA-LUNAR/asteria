@@ -272,6 +272,18 @@ Measured with `tests/ground_detail.js` (same site, time and camera; the round-3 
 | 2D scale bar | Calculated | polar stereographic k = 2/(1+sin|lat|); great-circle check within 0.5 % | exact at the map centre only (labelled) |
 | Getting started actions, Design decisions | presentation | tests/ui_round6.js; DESIGN_DECISIONS.md | - |
 
+### Round 6B (same branch): usability fixes, rover model, planning additions
+| Feature | Classification | Basis / test | Limits |
+|---|---|---|---|
+| Click/tap inspection (pinned, Esc clears), "Inspect on hover" (off by default) | Calculated (values unchanged) | 81/81 readouts identical to before (tests/inspect_perf.js); median 0.70 -> 0.10 ms per update on High | hover needs a mouse |
+| Shadows off by default ("Shadows (approximate)") | Approximate (when on) | status, positions and readouts identical on/off; shading consistency with shadows on 97.8 / 99.0 / 99.8 % (unchanged) | with shadows off, ground in shadow is drawn lit (stated on the picture and in the banner) |
+| Relief shading defaults (Orbit off, Walk/Rover on) and contrast normalised by grid spacing and pixel footprint | Illustrative (display) | tile edge at 60 km, High: luminance +49.4 % -> +1.0 %, detail +94.2 % -> +13.5 % (tests/tile_edge.js) | the data difference between the 20 m tile and 25-100 m rings remains |
+| Detailed VIPER-like rover model | Illustrative | published envelope 2.5 x 1.5 x 1.5 m and wheel contact unchanged (tests/ui_round6.js, tests/ui_round6b.js); 4,996 / 2,644 triangles | panel layout, mast, lights, wheel size and tread, instrument positions approximate (NASA pages do not describe them) |
+| Stars on by default | Calculated (directions), background only | inspection, status, Sun/Earth directions, rover readout and rendered shadow identical with stars on/off | cameras usually cannot see stars in daylight (note) |
+| CSV export (windows + time series) | export of Calculated values | equals the app's windows and series exactly (tests/ui_round6b.js) | series at the sampling step; app version = commit stamped by tools/stamp_version.js |
+| Compare: energy, battery, DEM slope | Approximate (power: first-order, example values) / Calculated (slope) | equal to the Power page and to the 3D rover readout for the same inputs (tests/ui_round6b.js) | slope "-" without a 3D tile; slope over 5-80 m grids, real slopes over a few metres can be steeper; not ranked |
+| Larger 5 m patch (4 km) | not attempted | needs new LDEM_875S_5M rows beyond the stored windows (ROUND6_REPORT.md, Part 4) | - |
+
 ### Known limitations and open items (round 6)
 * Geometry is not morphed between levels of detail (it would move vertices off their DEM heights); a slight change of geometric detail can still be seen at ring edges.
 * Medium keeps the round-4 ring A geometry because a 100 m sampling of the 20 m product changed 2 of 50 shading verdicts at Mons Malapert; only its lighting comes from the 25 m grid (trade-off recorded in ROUND6_REPORT.md for the owner).

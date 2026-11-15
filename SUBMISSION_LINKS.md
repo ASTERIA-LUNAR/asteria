@@ -31,6 +31,8 @@ Every link below is a full public https:// URL (no login) that the project actua
 23. NASA, "NASA Provides Progress Update on Moon Base Rovers" (20 Oct 2026: VIPER's current status) - https://www.nasa.gov/missions/moon-base/nasa-provides-progress-update-on-moon-base-rovers/
 24. NASA, "NASA Selects Blue Origin to Deliver VIPER Rover to Moon's South Pole" (19 Sep 2025) - https://www.nasa.gov/news-release/nasa-selects-blue-origin-to-deliver-viper-rover-to-moons-south-pole/
 25. NASA, "NASA Ends VIPER Project, Continues Moon Exploration" (17 Jul 2024) - https://www.nasa.gov/news-release/nasa-ends-viper-project-continues-moon-exploration/
+26. NASA Science, VIPER image gallery (visual reference for the round 6B rover model; photo titles only) - https://science.nasa.gov/gallery/viper/
+27. NASA, "Watch NASA Build Its First Robotic Moon Rover" (3 Nov 2023; assembly article, visual reference) - https://www.nasa.gov/missions/viper/watch-nasa-build-its-first-robotic-moon-rover/
 
 ## 2. Space agency partner and other data, resources and tools used
 
@@ -58,7 +60,7 @@ Every link below is a full public https:// URL (no login) that the project actua
 
 ## Notes
 
-* Counts: 25 NASA links, 21 other links (round 4 added 3 NASA and 5 other links for the 3D view; round 6 added 6 NASA links: the Earth Fact Sheet and five VIPER pages).
+* Counts: 27 NASA links, 21 other links (round 6B added 2 NASA pages used only as visual references for the rover model; round 4 added 3 NASA and 5 other links for the 3D view; round 6 added 6 NASA links: the Earth Fact Sheet and five VIPER pages).
 * Round 6 links were fetched on 2026-11-15 (HTTP 200). https://www.nasa.gov/mission/viper/ returned HTTP 404 and is not listed. The science.nasa.gov VIPER page (updated 21 Sep 2026) still says VIPER "was slated to land"; the app states the status from NASA's newer 20 Oct 2026 update, with its date.
 * Not listed because they were not used as a data source or tool: NASA Moon Trek and LROC Quickmap (mentioned in the app and in VERIFY_YOURSELF.md only as places where readers can check results themselves); the LROC home page.
 * Not used: Chart.js (charts are drawn directly on HTML canvas).

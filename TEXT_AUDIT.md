@@ -308,3 +308,22 @@ No AI wording was added to the interface (`tests/ui_check.js`, `tests/ui_round6.
 | Getting started buttons: "Open a site: Peak near Shackleton", "Show the whole pole", "Explain the Sunlight tile", "Play the Sky view", "Turn on Expert view", "Show ? explanations", "Start the Tour" | app actions; tests/ui_round6.js | new |
 | About: "Design decisions" (12 entries, plain language then technical) | DESIGN_DECISIONS.md (figures checked against README, VALIDATION_REPORT.md and the test code; one tolerance corrected before commit) | new |
 | 3D notes: classification labels Measured / Calculated / Approximate / Illustrative on every item except the "Graphics:" line | ROUND6_REPORT.md | new |
+
+## Round 6B (usability fixes, rover model, planning additions)
+
+No AI wording was added to the interface (`tests/ui_check.js`); no traversability claims (`tests/ui_round6.js` page scan).
+
+| Text | Basis | Status |
+|---|---|---|
+| 3D panel: "Click (or tap) the terrain to read its height, slope, position and data resolution; the readout stays until the next click or Esc." and toggle "Inspect on hover" | js/view3d.js; tests/ui_round6b.js | replaces "Point at (or tap) the terrain …" |
+| Toggle "Shadows (approximate)" (was "shadows"), off by default | ROUND6_REPORT.md Part 2 | rewritten |
+| Picture label with shadows off: "Shadows off: the terrain is lit from the Sun's real direction without cast shadows. Sunlit/shadowed status at the site comes from the validated horizon model (tiles above)." | owner's wording | new |
+| Banner with shadows off: "… Shadows are off in this view, so the ground is drawn lit from the Sun's direction; turn on "Shadows (approximate)" to see cast shadows." | rendering state | new |
+| Tip with shadows off: "The Sun is hidden behind terrain at the site (validated model); shadows are off, so the ground is drawn lit." | rendering state | new |
+| 3D notes, Shadows: "(option "Shadows (approximate)", off by default; on/off now)" | - | added |
+| 3D notes, Surface shading: "Its contrast is normalised by grid spacing and viewing distance (relief smaller than about half a pixel fades out, using averages of the real DEM normals), so the 6 km tile and the surrounding rings look alike from far away." | tests/tile_edge.js | added |
+| 3D notes, Stars: "(on by default; background only - no calculation, readout, inspection, shadow or status uses them)" | tests/ui_round6b.js | rewritten |
+| 3D notes, Rover and "About this rover", Approximate paragraph: lists wheel size and tread, body sections, radiator, mast, camera housings and lights, panel layout, wheel-module housings and arms, drill and instrument positions; "These follow the general appearance of NASA's published VIPER pictures, not measured drawings. No NASA images, textures or markings are used." | NASA pages listed in ROUND6_REPORT.md Part 5 | rewritten |
+| Explore, Earth link windows and Sunlight windows panels: link "Download CSV" (title "Windows table and time series for this site and window (CSV)") | tests/ui_round6b.js | new |
+| CSV header line "Computed by ASTERIA; validated against NASA/JPL Horizons - see VALIDATION_REPORT.md" | owner's wording; VALIDATION_REPORT.md | new (file text) |
+| Compare: section "Power and terrain (first-order estimate, example values: Power page settings …)", rows "Solar energy in the window (estimate)", "Battery for the longest darkness (estimate)", "DEM slope at the site point"; notes on basis, "-" for custom points, "Real slopes over a few metres can be steeper; slope is not ranked." | Power page model; view3d_math slopeAt; tests/ui_round6b.js | new |

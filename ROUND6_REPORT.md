@@ -388,6 +388,46 @@ K = 1 matched the edge even more closely on High (+0.2 % / −0.1 %) but flatten
 
 **Classification**: energy and battery - Approximate (first-order model, example inputs); slope - Calculated (LOLA). **Limitations**: the slope is over 5-80 m, not rover scale; Compare loads a site's 3D tile (and 5 m patch) script the first time its slope is needed.
 
+## Round 6B Part 8 - Tests and hand-over - DONE (no merge, no push)
+
+**Final test run** (round6 branch at Part 7 + documents; development laptop, headless Chromium with the GPU via ANGLE/D3D11; laptop 1440 × 900 and emulated phone 390 × 844 for the browser suites):
+
+| Suite | Result |
+|---|---|
+| `node tests/validate.js` | OVERALL: PASS (VALIDATION_REPORT.md regenerated: timestamp only) |
+| `node tests/illumination.js`, `blind_test.js`, `coarse_validation.js`, `one_year_check.js`, `earth_orientation.js`, `instant_status_check.js` | all PASS; result files differ from round 6 only in timestamps and run times (checked field by field) |
+| `node tests/accuracy3d.js` | PASS: 14,499,574 grid points within 0.100 m (mean 0.031 m) |
+| `node tests/view3d_test.js`, `node tests/features_test.js` | ALL PASS (features: 27 NASA + 21 other links, each cited in the project) |
+| Python DEM checks: `tools/terrain.py check`, `tools/terrain3d.py check` (0.049 m), `tools/terrain3d_ext.py check` (0.099 m) | PASS |
+| `node tests/shading_consistency.js` (shadows turned on explicitly) | **Low 97.8 %, Medium 99.0 %, High 99.8 %** (unchanged); 0 unexplained; near cascade 261/264 vs 260/264 (Medium), 263/264 vs 263/264 (High) |
+| `node tests/inspect_perf.js --compare tests/perf/inspect_before.json` | 81/81 readouts identical; Orbit median 0.70 → 0.10 ms (p95 1.9 → 0.4 ms) |
+| `node tests/tile_edge.js` | High: luminance +1.0 %, detail +13.5 % (before +49.4 % / +94.2 %); Medium −4.8 % / −4.2 % (before +27.9 % / +81.3 %) |
+| `node tests/ui_check.js` (laptop + phone) | UI CHECK PASS, no console errors or warnings |
+| `node tests/ui_round5.js`, `node tests/ui_round6.js --shots` (laptop + phone) | ALL PASS |
+| `node tests/ui_round6b.js --shots` (laptop + phone; 54 checks) | ALL PASS, no console errors or warnings |
+
+**Test files changed for the new defaults (with reason)**: `tests/shading_consistency.js` turns shadows on (they are off by default now); `tests/ui_check.js` accepts the "Shadows off" label as the default shadow label and makes sure stars are on instead of toggling them (they are on by default now). New: `tests/inspect_perf.js`, `tests/tile_edge.js`, `tests/ui_round6b.js`, `tools/stamp_version.js`.
+
+**Documents updated**: README.md (Round 6B features, test table row, VIPER visual references), GAPS_AND_ISSUES.md (round 6B table in section 11), TEXT_AUDIT.md (round 6B wording table), DESIGN_DECISIONS.md and the About page (new entry 13: 3D display defaults), SUBMISSION_LINKS.md (+2 NASA pages used as visual references: 27 NASA links), ROUND6_REPORT.md (this section and Parts 0-7), VALIDATION_REPORT.md (regenerated). The in-app AI disclosure is unchanged (UI wording test passes). `data/version.js` stamped "ASTERIA round6 @ git 8237241" (Part 7 commit; the hand-over commit adds only documents, test results and this stamp).
+
+**Performance**: not re-measured with `tests/perf3d.js` in round 6B (time). Expected effect, not measured: shadows off by default removes the shadow passes (faster); the rover model adds about 5,000 triangles in Rover mode only; stars add up to about 1,600 points; the relief normalisation adds a few shader instructions per pixel. Orbiting stayed smooth in all browser tests.
+
+## Round 6B - incomplete or unverified
+
+* **Part 4 (larger 5 m patch)**: not attempted (new DEM rows needed; see Part 4).
+* **Rover appearance**: NASA's text pages do not describe the panel layout, mast and light positions, wheel size or tread; the images themselves could not be measured here. These parts are drawn as labelled approximations; the published envelope and the wheel contact are tested.
+* **Performance after 6B**: not re-measured (see above). Real phones, Firefox and Safari: not tested (phones emulated).
+* **Inspection latency**: measured in headless Chromium; the single slowest update (the first, before the code is optimised by the browser) is about 5 ms.
+
+## Round 6B - manual checks for the owner
+
+1. Explore: in "Sunlight windows" and "Earth link windows" press **Download CSV**; open the file in a spreadsheet: header lines, the windows table, then one row per sample.
+2. Deploy 3D at Peak near Shackleton: the picture label says "Shadows off: …"; tick **Shadows (approximate)** - the usual shadow label returns, the status tiles do not change. Stars are visible in the sky.
+3. Click the terrain: a pink ring and a readout appear and stay; drag to rotate - they stay on the point; press Esc - they disappear (a second Esc closes 3D). Tick **Inspect on hover** and move the mouse.
+4. Tick **Relief shading** in Orbit and zoom out (mouse wheel) to the farthest view: the 6 km square should no longer stand out (compare `docs/tile_edge/before_high_orbit60km_relief.png` and `after_high_orbit60km_relief.png`). Switch to Walk: relief is on; switch back to Orbit: off.
+5. Rover mode: look at the rover (drag to look around): panels with frames, mast with cameras and lights, wheels with tread and suspension arms; drive (W) - the wheels turn and stay on the ground. Open "About this rover".
+6. Compare page: press Compute; the new "Power and terrain" rows appear at the bottom; change the panel area on the Power page and compute Compare again - the energy changes.
+
 ## Branch state
 
-* Branch `round6` contains the commits of Parts 0-5 on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).
+* Branch `round6` contains the commits of round 6 Parts 0-5 and round 6B Parts 0-8 on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).
