@@ -232,6 +232,15 @@ async function part2(page, tag, ctx) {
   expect(`${tag} no AI wording in the casefile or the requirements block`, !ai);
 }
 
+// ------------------------------------------------------------------ Part 3: integration text
+async function part3(page, tag) {
+  await load(page, `site=peak_shackleton_lw&t=${T0}Z&w=30&tab=about`);
+  const A = await page.evaluate(() => { const w = document.getElementById('aboutWorkflow'), dd = [...document.querySelectorAll('#aboutContent details.dd')]; const last = dd[dd.length - 1]; return { w: w && w.textContent.replace(/\s+/g, ' ').trim(), n: dd.length, title: last.querySelector('summary').textContent.trim(), body: [...last.querySelectorAll('p')].map(p => p.textContent.replace(/^(Plain language|Technical): /, '').trim()) }; });
+  const md = fs.readFileSync(path.join(__dirname, '..', 'DESIGN_DECISIONS.md'), 'utf8'), sec = md.slice(md.indexOf('## 16.'));
+  expect(`${tag} About: one workflow sentence (site -> requirements -> compare -> casefile -> verify); no new tour steps`, /pick a site .* set the mission requirements .* compare sites and dates .* open the Mission casefile .* verify each number/.test(A.w || '') && await page.evaluate(() => { AsteriaApp.tour.start(); const t = document.getElementById('tourStep').textContent; document.getElementById('tourClose').click(); return / of 5$/.test(t); }), A.w);
+  expect(`${tag} About design decision 16 = DESIGN_DECISIONS.md (title and text)`, A.n === 16 && sec.startsWith('## ' + A.title) && A.body.every(b => sec.includes(b)), JSON.stringify(A.title));
+}
+
 (async () => {
   const browser = await chromium.launch({ args: process.platform === 'win32' ? ['--use-angle=d3d11'] : [] });
   for (const vp of [{ name: 'laptop', width: 1440, height: 900 }, { name: 'phone', width: 390, height: 844, isMobile: true, hasTouch: true }]) {
@@ -245,6 +254,7 @@ async function part2(page, tag, ctx) {
     page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(m.text()); });
     if (!PART || PART === '1') await part1(page, tag);
     if ((!PART || PART === '2') && typeof part2 === 'function') await part2(page, tag, ctx);
+    if (!PART || PART === '3') await part3(page, tag);
     expect(`${tag} no console errors or warnings`, errors.length === 0, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }

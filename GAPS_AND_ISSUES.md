@@ -312,3 +312,13 @@ Measured with `tests/ground_detail.js` (same site, time and camera; the round-3 
 ### Artemis III / Artemis IV wording
 
 * NASA (release of 27 Feb 2026, https://www.nasa.gov/news-release/nasa-adds-mission-to-artemis-lunar-program-updates-architecture/): Artemis III (2027) tests systems in low Earth orbit; the first Artemis landing is Artemis IV, targeted for 2028 (Artemis IV page: "Early 2028"). The app and documents now say the regions were announced for Artemis III and that the first landing is now planned as Artemis IV. NASA's Artemis IV mission page shows the same nine regions under "Lunar Site Selection"; no NASA text read says more than that, so ASTERIA claims nothing further.
+
+## 13. Round 6D: Mission requirements and Mission casefile (branch `round6`, not merged)
+
+* **No composite score, by design**: requirements give Met / Not met / Can't assess per requirement and a neutral "N of M requirements met" line; they are not weighted or ranked (DESIGN_DECISIONS.md, decision 16).
+* **Verdicts at a threshold follow the printed precision** (0.1 %, 0.1 h, 0.1°): a value printed as exactly the threshold counts as met for a minimum and for a maximum.
+* **Can't assess**: DEM slope exists only for sites with a 3D terrain tile (8 south-pole sites); custom points and sites away from the pole get "Can't assess" for slope. Energy is "Can't assess" when the Power page inputs are invalid.
+* **Thresholds are example values**, not requirements of any real mission (labelled in the app).
+* **Casefile scope**: power always uses the Explore window (the Power page can also show the Launch-slip mission window); the launch-slip summary appears only after the Launch slip tab was computed for the same site, horizon and minimum elevation; periods of "both" are summarised as a percentage and status, not listed as windows (ASTERIA has no such list, and none was added).
+* **Printing / PDF** was checked with the print stylesheet in headless Chromium (computed styles and a PDF export); not checked in Firefox or Safari print engines or on a real phone.
+* Requirements are global (one set for all scenarios), not per scenario.

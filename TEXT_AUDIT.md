@@ -367,3 +367,31 @@ No AI wording was added (tests/ui_round6c.js and tests/ui_check.js: only the unc
 | Design decision 15 "Close-range surface texture in Walk and Rover (round 6E, Illustrative)" (why, what it is, what it is not, how it is tested) | index.html, DESIGN_DECISIONS.md (identical text) | new |
 | README classification table row "Close-range surface texture" (Illustrative) | README.md | new |
 | Notes item and decision 15: one sentence on the wheel tracks (Part 2) | js/view3d.js, index.html, DESIGN_DECISIONS.md | new |
+
+## Round 6D (Mission requirements and Mission casefile)
+
+No AI wording was added (tests/ui_check.js page scan; tests/ui_round6d.js scans the casefile and the requirements block). No score, rank, confidence or recommendation wording in the requirement rows (tests/ui_round6d.js).
+
+| Text | Where | Basis | Status |
+|---|---|---|---|
+| Collapsible block "Mission requirements" with "set once, used in Compare and in the Mission casefile" | Compare page (index.html) | - | new |
+| "Example values - set your mission's. These thresholds are placeholders, not requirements of any real mission. Tick a requirement to check it." | Compare page | owner's wording ("example values - set your mission's") | new |
+| Requirement labels: "Minimum % sunlit", "Minimum % Earth link", "Minimum % both (sunlight + Earth link)", "Maximum longest darkness" (h), "Maximum longest Earth blackout" (h), "Energy balance must be positive (first-order estimate, example values)", "Maximum site slope" (°) | Compare page (js/app.js REQ_DEF) | Power page, Compare rows | new |
+| "Each scenario shows Met, Not met or Can't assess (with the reason) per ticked requirement, judged on the value shown next to it at the precision shown. There is no overall score: the requirements are not weighted against each other. Energy uses the Power page's current settings (first-order estimate, example values)." | Compare page | DESIGN_DECISIONS.md 16 | new |
+| Compare section "Mission requirements (example values - set your mission's, above)"; row labels such as "Sunlit ≥ 50%", "Energy balance produced ≥ needed", "DEM slope at the site point ≤ 15°"; verdicts "Met" / "Not met" / "Can't assess"; row "Requirements met" with "N of M requirements met" and "(K can't assess)" | Compare table | tests/ui_round6d.js | new |
+| Reasons: "no terrain data for a custom point's slope (no 3D terrain tile)", "no 3D terrain tile for this site, so no DEM slope", "slope data could not be loaded", "Power page inputs are invalid (check them on the Power page)", "power not computed" | Compare table, casefile | - | new |
+| Compare row "Mission casefile" with a button per scenario (title "Open this scenario in Explore and show its Mission casefile") | Compare table | - | new |
+| Site Card button "Mission casefile" (title "One printable page with every result for this site, time window and your requirements, and the evidence for each") | Explore Site Card | - | new (the only new control in Explore) |
+| Casefile buttons "Print / Save as PDF", "Download CSV (sunlight)", "Download CSV (Earth link)", "Copy share link" ("Link copied"), "Close" | casefile | - | new |
+| Casefile intro: "Everything below is a result ASTERIA already shows elsewhere (Explore, Power, Compare, Launch slip, Validation), gathered for one site and time window. Nothing here is a new calculation, a score or a recommendation. Not a mission planning product; not for operational decisions." | casefile | About disclaimer | new |
+| Casefile section headings 1-12 with classification chips (Measured, Calculated, Approximate, User input) and row labels (e.g. "What the coordinate is", "Horizon model", "Data resolution", "Status now", "% sunlit", "Battery for the longest darkness", "Slope at the site point", "Terrain horizon range") | casefile | existing app labels | new |
+| "First N of M windows; full list in CSV." / "All N window(s); also in CSV." | casefile | - | new |
+| "Periods of both are where a sunlight window and an Earth link window overlap (tables above; green in the Explore timeline). ASTERIA does not list them separately." | casefile | - | new |
+| Power note "First-order estimate, example values: Power page settings ... Window: this Explore window." | casefile | Compare "Power and terrain" label | new |
+| "No Launch-slip result for this site and horizon yet: open the Launch slip tab and press Compute, then reopen the casefile." | casefile | - | new |
+| Evidence table headings "Item / Classification / Data source / Method / Validation result"; method links "Methods: terrain horizon" etc.; validation texts read from the result files (e.g. "336 of 336 Sun/Earth status decisions agree with an independent check (Horizons + Python terrain) ...") | casefile | data/validation.js, instant_status.js, accuracy3d.js, illum_crosscheck.js, coarse_validation.js | new |
+| "Classifications: Measured = published data; Calculated = computed by ASTERIA from measured data with the validated engine; Approximate = simplified model, stated limits; User input = chosen by you. Data sources are the ones cited on the About page." | casefile | README classification table | new |
+| Limitations list (Earth link line of sight; power first-order; sub-grid terrain not represented; sampling step; sphere; plus smooth horizon / 240 m data / secondary source where relevant) | casefile | About "Limitations" | new |
+| Footer: "Reproduce this view: <link>", "App version: ...", "Created <UTC>", "ASTERIA, NASA Space Apps Challenge 2026 · Not endorsed by NASA · Not affiliated with NASA's ASTERIA CubeSat mission" | casefile | page footer | new ("Created", not "Generated", keeps the page free of the word the AI-wording scan looks for) |
+| About, Design decisions: entry "16. Mission requirements and Mission casefile: verdicts, not scores (round 6D)" (same text as DESIGN_DECISIONS.md) | index.html, DESIGN_DECISIONS.md | - | new |
+| About, Methods: item "Workflow (round 6D): pick a site -> set mission requirements (Compare) -> compare sites and dates -> open the Mission casefile -> verify each number ..." | index.html | - | new |

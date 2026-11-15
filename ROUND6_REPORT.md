@@ -686,3 +686,11 @@ Goal: one workflow - pick a site -> set mission requirements -> compare options 
 **Performance.** Opening the casefile does no computation beyond formatting (and the Power formula over the existing series, the same loop as the Power page, a few ms; slope comes from the cached 3D tile load used by Compare).
 
 **Limitations.** The Power section always uses the Explore window (the Power page can also be set to the Launch-slip mission; then its cards show a different window - the casefile says which window it uses). The launch-slip summary appears only after the Launch slip tab has been computed for this site. Periods of "both" are not listed as windows. The PDF layout depends on the browser's print engine (checked in headless Chromium only).
+
+### Part 3 - Integration and polish - DONE
+
+**What.** Every casefile evidence link points to the matching Validation-page section: the "Methods and formulas" row of that item (`valM-horizon`, `valM-azel`, `valM-sunup`, `valM-disk`, `valM-power`, `valM-slope`) and, for its validation result, `valInstant`, `valAngles`, `valXcheck`, `valCoarse` or `valAcc3d` (anchors added in Part 2; `valHow`, `valMethods` reused). About page: one workflow sentence ("pick a site on the map -> set the mission requirements (Compare page) -> compare sites and dates -> open the Mission casefile -> verify each number ...") at the top, and design decision 16 "Mission requirements and Mission casefile: verdicts, not scores" (why Met / Not met / Can't assess and no composite score; why the casefile only aggregates existing results), identical in DESIGN_DECISIONS.md. No tour steps were added (the tour still has 5).
+
+**Docs.** README.md (Compare: Mission requirements; Mission casefile; Workflow line), DESIGN_DECISIONS.md (16), TEXT_AUDIT.md (Round 6D: every new on-screen text), GAPS_AND_ISSUES.md (section 13: limits of requirements and casefile).
+
+**Tests** (`node tests/ui_round6d.js --part 3`, laptop + phone): About shows the workflow sentence; the tour has 5 steps; About decision 16 = DESIGN_DECISIONS.md (title and text); no console errors. Evidence-link targets and the jump to the Validation row are tested in Part 2.
