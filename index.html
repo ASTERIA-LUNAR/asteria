@@ -98,7 +98,6 @@
           <div class="tstate" id="sunState">-</div>
           <div class="tcount"><span id="sunCountLbl">-</span> <b class="mono" id="sunCount">-</b></div>
           <div class="explain limitx" id="sunLimitWhy"></div>
-          <div class="twhy">Why it matters: solar power and heat.</div>
           <div class="tx x-only mono" id="sunExpert"></div>
         </div>
         <div class="tile" id="tileEarth">
@@ -106,7 +105,6 @@
           <div class="tstate" id="earthState">-</div>
           <div class="tcount"><span id="earthCountLbl">-</span> <b class="mono" id="earthCount">-</b></div>
           <div class="explain limitx" id="earthLimitWhy"></div>
-          <div class="twhy">Why it matters: a line of sight for direct radio contact with Earth.</div>
           <div class="tx x-only mono" id="earthExpert"></div>
         </div>
         <div class="tile" id="tileMission">
@@ -114,9 +112,15 @@
           <div class="tstate" id="missionState">-</div>
           <div class="tcount"><span id="missionCountLbl">-</span> <b class="mono" id="missionCount">-</b></div>
           <div class="explain limitx" id="missionLimitWhy"></div>
-          <div class="twhy" id="missionWhy">Both at once: power and a line of sight to Earth.</div>
         </div>
       </div>
+      <!-- round 6H: the tiles' "why it matters" lines, in one expandable section (nothing removed) -->
+      <details class="more tilewhy" id="tilesWhy"><summary>Why these matter</summary>
+        <div class="twhy"><b class="c-sun">Sunlight:</b> solar power and heat.</div>
+        <div class="twhy"><b class="c-earth">Earth link:</b> a line of sight for direct radio contact with Earth.</div>
+        <div class="twhy"><b class="c-both">Mission status:</b> <span id="missionWhy">Both at once: power and a line of sight to Earth.</span></div>
+      </details>
+      <div class="actrow">
       <div class="jumprow" id="jumpRow">
         <button class="btn small jump-sun" type="button" data-jump="sun">Jump to next sunlight</button>
         <button class="btn small jump-earth" type="button" data-jump="earth">Jump to next Earth view</button>
@@ -125,6 +129,7 @@
         <div class="hint" id="jumpMsg" role="status" aria-live="polite"></div>
       </div>
       <div class="cfbtnrow"><button id="cfBtn" class="btn cfbtn" type="button" title="One printable page with every result for this site, time window and your requirements, and the evidence for each">Mission casefile</button></div>
+      </div>
       <div class="x-only verifybox" id="verifyBox"></div>
     </aside>
   </div>

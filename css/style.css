@@ -586,3 +586,44 @@ body.cf-open { overflow: hidden; }
   background: linear-gradient(#ffb000, #ffb000) center / 3px 100% no-repeat, linear-gradient(#ffb000, #ffb000) center / 100% 3px no-repeat;
   filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000); }
 .lgmk .mk-pick { margin: 0 1px; }
+/* ------------------------------------------------------------------ round 6H: Explore first screen
+   Laptop widths: map + Site Card row sized by fitHero() (js/app.js) so the row and the "Verified against NASA data"
+   card fit the window; compact Site Card (deploy note beside the button, tiles side by side, "why" lines and layer
+   notes in expandable "More" sections, jump buttons and Mission casefile in one row). No font below its old size
+   except the tile state (1.45 -> 1.2 rem) and count, still well above the page minimum (.66 rem). */
+details.more { margin: 0; font-size: .82rem; }
+details.more > summary { margin: 0; color: var(--accent); font-size: .8rem; width: fit-content; }
+details.more[open] > summary { margin-bottom: 4px; }
+.tilewhy { margin-top: -2px; }
+.tilewhy .twhy { margin: 2px 0; }
+.lgmore { margin: 2px 0 4px; }
+.lgtitle details.lginline { display: inline-block; font-weight: 400; margin: 0 0 0 8px; }
+.lgtitle details.lginline[open] { display: block; margin: 2px 0 0; }
+.lgtitle { flex-wrap: wrap; }
+.custommore { margin-top: 6px; }
+.actrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.actrow .jumprow { margin: 0; flex: 1 1 auto; }
+.actrow .cfbtnrow { margin: 0; flex: 1 1 100%; }
+@media (min-width: 1181px) {
+  .hero { grid-template-columns: minmax(0, 1.2fr) minmax(400px, 1fr); }
+  .hero.fit { height: var(--heroH); }
+  .hero.fit .mappanel { min-height: 0; }
+  .hero.fit .lmap { min-height: 260px; }
+  .hero.fit .sitecard { overflow-y: auto; overscroll-behavior: contain; gap: 6px; padding: 12px 14px; scrollbar-width: thin; }
+  .hero.fit .sitecard h1 { margin-bottom: 0; font-size: 1.35rem; }
+  .hero.fit .deployrow { margin: 2px 0 0; flex-wrap: nowrap; }
+  .hero.fit .deployrow .btn { flex: none; }
+  .hero.fit .deployrow #deployHint { flex: 1 1 auto; line-height: 1.3; }
+  .hero.fit .whenrow { padding-top: 6px; }
+  .hero.fit .when { margin-bottom: 4px; }
+  .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 0; }
+  .hero.fit .tile { padding: 8px 10px; border-left-width: 4px; border-radius: 10px; }
+  .hero.fit .tstate { font-size: 1.2rem; line-height: 1.2; }
+  .hero.fit .tcount { font-size: .86rem; line-height: 1.3; }
+  .hero.fit .tcount b { font-size: .98rem; white-space: nowrap; }
+  .hero.fit .maplegend { margin-top: 6px; }
+  .actrow .cfbtnrow { flex: 0 0 auto; margin-left: auto; }
+  .actrow .cfbtn { width: auto; }
+  .actrow .jumprow .hint { order: 9; }
+  .hero.fit + .verified { margin-top: 14px; }
+}

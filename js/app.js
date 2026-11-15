@@ -204,7 +204,7 @@
       if (s.landformCentre) m += '<div class="warnline">One point at the centre of a large landform, not a landing site. NASA\'s region boundary is not plotted; conditions elsewhere in the region can be very different.</div>';
     }
     if (!s.id) {
-      m += '<div class="custommsg">' + customMessage(s) + '</div>';
+      m += '<details class="more custommore"><summary>How reliable is this point?</summary><div class="custommsg">' + customMessage(s) + '</div></details>';   // round 6H: expandable
       if (s.hz) m += '<div class="x-only">Terrain: downsampled LOLA DEM, ' + COARSE_PX + ' m pixels (area mean of LDEM_85S_20M / 80S_80M / 75S_120M); site height ' + s.hz.siteHeight_m.toFixed(0) + ' m above the 1737.4 km sphere; observer 2 m above ground; horizon from ' + fmtDeg(minMax(s.hz.elevations)[0], 1) + ' to ' + fmtDeg(minMax(s.hz.elevations)[1], 1) + '; rays reach ' + minMax(s.hz.reach_km)[0].toFixed(0) + '-300 km (they stop at the edge of the map data). Method: same as tools/terrain.py; validation on the Validation tab.</div>';
     }
     $('siteMeta').innerHTML = m;
@@ -302,15 +302,15 @@
     if (name === 'slope' && LY.slope) {
       h = '<div class="lgtitle">Slope (°) ' + q('overlay_slope') + '</div><div class="lgbar">' + LY.slope.colors.map(function (c, i) {
         var a = LY.slope.edges[i], b = LY.slope.edges[i + 1]; return '<span style="background:rgb(' + c.join(',') + ')" title="' + a + '-' + (b > 90 ? 90 : b) + '°">' + (b > 90 ? '>' + a : a) + '</span>';
-      }).join('') + '</div><div class="lgnote">From the LOLA DEM: slope sampled every ' + (TMp['6'] || 37.1).toFixed(0) + ' m and averaged over ' + (TMp['5'] || 74.2).toFixed(0) + ' m pixels (zoomed out: averaged over larger pixels). Steeper slopes over a few metres are not shown.</div>';
+      }).join('') + '</div><details class="more lgmore"><summary>About this layer</summary><div class="lgnote">From the LOLA DEM: slope sampled every ' + (TMp['6'] || 37.1).toFixed(0) + ' m and averaged over ' + (TMp['5'] || 74.2).toFixed(0) + ' m pixels (zoomed out: averaged over larger pixels). Steeper slopes over a few metres are not shown.</div></details>';
     } else if (name === 'illum' && LY.illum) {
       h = '<div class="lgtitle">Average illumination, published by NASA (%) ' + q('overlay_illum') + '</div><div class="lgbar">' + LY.illum.colors.map(function (c, i) {
         var a = LY.illum.edges[i]; return '<span style="background:rgb(' + c.join(',') + ')">' + (i === 0 ? '0' : Math.round(a * 100)) + '</span>';
-      }).join('') + '</div><div class="lgnote"><b>NASA\'s published illumination map covers about 85°S-90°S only</b> (inside the dashed yellow square: AVGVISIB_85S_060M_201608, 60 m/px).' +
+      }).join('') + '</div><details class="more lgmore"><summary>About this layer</summary><div class="lgnote"><b>NASA\'s published illumination map covers about 85°S-90°S only</b> (inside the dashed yellow square: AVGVISIB_85S_060M_201608, 60 m/px).' +
         (LY.illum120 ? ' Outside the square: NASA\'s coarser map AVGVISIB_75S_120M_201608 (120 m/px, 75°S-90°S), shown on ' + (TMp[String(LY.illum120.maxNativeZoom)] || 148).toFixed(0) + ' m pixels.' : '') +
-        ' Source: <a href="https://pgda.gsfc.nasa.gov/products/69" target="_blank" rel="noopener">NASA PGDA product 69</a> (Mazarico et al. 2011), hourly steps over 18.6 years. Its documentation gives two different definitions: % of time steps sunlit by any part of the solar disc, and average solar disc visibility. 0 = permanent shadow.</div>';
+        ' Source: <a href="https://pgda.gsfc.nasa.gov/products/69" target="_blank" rel="noopener">NASA PGDA product 69</a> (Mazarico et al. 2011), hourly steps over 18.6 years. Its documentation gives two different definitions: % of time steps sunlit by any part of the solar disc, and average solar disc visibility. 0 = permanent shadow.</div></details>';
     } else {
-      h = '<div class="lgtitle">Terrain ' + q('overlay_none') + '</div><div class="lgnote">Hillshade from LOLA elevation data - synthetic lighting, not real illumination. Up to ' + (TMp['7'] || 18.6).toFixed(1) + ' m/px near the pole.</div>';
+      h = '<div class="lgtitle">Terrain ' + q('overlay_none') + ' <details class="more lgmore lginline"><summary>About this layer</summary><div class="lgnote">Hillshade from LOLA elevation data - synthetic lighting, not real illumination. Up to ' + (TMp['7'] || 18.6).toFixed(1) + ' m/px near the pole.</div></details></div>';
     }
     h += '<div class="lgmk"><span><i class="mk mk-feature"></i>Point inside an Artemis III region</span><span><i class="mk mk-point"></i>Mission / published point</span><span><i class="mk mk-derived"></i>Derived</span><span><i class="mk mk-reference"></i>Reference</span><span><i class="mk mk-group"><b>2</b></i>Overlapping</span><span><i class="mk mk-pick"></i>Your point (map click)</span><span><i class="cov3d-key"></i>3D terrain (Deploy): outer square Orbit, inner square also Walk and Rover</span></div>';
     el.innerHTML = h;
@@ -1404,7 +1404,7 @@
   function showPage(p) {
     document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('active', t.dataset.page === p); t.setAttribute('aria-selected', t.dataset.page === p ? 'true' : 'false'); });
     document.querySelectorAll('.page').forEach(function (s) { s.classList.toggle('active', s.id === 'page-' + p); });
-    if (p === 'explorer') { Map.invalidate(); renderTimeline(); renderWindows(); renderInstant(); }
+    if (p === 'explorer') { fitHero(); Map.invalidate(); renderTimeline(); renderWindows(); renderInstant(); }
     if (p === 'compare' && !CMP.length) {
       addScenario(S.site.id || '__custom', S.start, S.site.lat, S.site.lon);
       addScenario(S.site.id || '__custom', new Date(S.start.getTime() + 7 * DAY), S.site.lat, S.site.lon);
@@ -2310,11 +2310,32 @@
     document.body.classList.toggle('expert', on); $('expertToggle').checked = on;
     try { localStorage.setItem('asteria.expert', on ? '1' : '0'); } catch (e) { /* ignore */ }
     if (S.series) { renderMetrics(); renderWindows(); renderInstant(); }
+    fitHero();   // round 6H
   }
   function setExplain(on) {
     document.body.classList.toggle('explain-on', on); $('explainToggle').checked = on;
     if (!on) $('qpop').hidden = true;
     try { localStorage.setItem('asteria.explain', on ? '1' : '0'); } catch (e) { /* ignore */ }
+  }
+
+  // ------------------------------------------------------------------ round 6H: Explore first screen
+  // On laptop-width windows (> 1180 px) the map + Site Card row is sized so that it and the "Verified against NASA
+  // data" card below it fit in the window without page scrolling (at least 480 px tall, at most 1000 px). The Site
+  // Card scrolls inside itself only if its content is taller (e.g. a long custom-point note). Not in Expert view (the
+  // card then shows every technical value at full length) and not on narrower screens (one column, page scrolls).
+  var heroFirst = true;
+  function fitHero() {
+    var hero = document.querySelector('#page-explorer .hero'), v = $('verifiedCard'), pg = $('page-explorer');
+    if (!hero || !pg || !pg.classList.contains('active')) return;
+    var on = window.matchMedia('(min-width: 1181px)').matches && !document.body.classList.contains('expert');
+    if (!on) { hero.classList.remove('fit'); hero.style.removeProperty('--heroH'); }
+    else {
+      var top = hero.getBoundingClientRect().top + window.scrollY, vh = v ? v.offsetHeight : 0;
+      var h = Math.max(480, Math.min(1000, Math.floor(window.innerHeight - top - 14 - vh - 12)));
+      hero.style.setProperty('--heroH', h + 'px'); hero.classList.add('fit');
+    }
+    if (heroFirst) { heroFirst = false; Map.invalidate(); Map.home(false); }   // first view: the data square fills the final map box
+    else Map.invalidate();
   }
 
   // ------------------------------------------------------------------ init
@@ -2388,7 +2409,7 @@
     $('cmpScenarios').addEventListener('change', scenarioChange);
     $('cmpScenarios').addEventListener('click', function (ev) { var d = ev.target.dataset.del; if (d !== undefined) { CMP.splice(+d, 1); renderScenarios(); } });
     $('cmpRun').addEventListener('click', function () { runCompare(); });
-    var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { Map.invalidate(); renderTimeline(); renderWindows(); renderInstant(); renderSlip(); renderPowerChart(); }, 150); });
+    var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { fitHero(); Map.invalidate(); renderTimeline(); renderWindows(); renderInstant(); renderSlip(); renderPowerChart(); }, 150); });
     $('slipRun').addEventListener('click', function () { runSlip(); });
     $('slipStaleRun').addEventListener('click', function () { runSlip(); });   // round 6G
     $('slipNominal').addEventListener('change', function () { SLIP.nomUser = true; slipInputsChanged(false); });
@@ -2424,7 +2445,7 @@
     $('customHint').textContent = COARSE_OK ? 'Points clicked or typed inside the map get a terrain horizon from coarser ' + COARSE_PX + ' m data (less precise than curated sites). Points outside the map use a smooth Moon without mountains.' : 'Custom points (typed or clicked on the map) use a smooth Moon without mountains: terrain is not computed for them.';
     if (window.LUNA_VALIDATION) { $('aboutNAngles').textContent = window.LUNA_VALIDATION.angles.length; $('aboutNEvents').textContent = window.LUNA_VALIDATION.events.length; }
     renderValidation();
-    renderProof(); renderVerified();
+    renderProof(); renderVerified(); fitHero();
     $('verifiedCard').addEventListener('click', function () { showPage('validation'); window.scrollTo(0, 0); });
     var h = readHash();
     reqInit(h ? (h.req !== undefined ? h.req : reqEncode(reqDefaults())) : undefined);   // a share link without req = example defaults
