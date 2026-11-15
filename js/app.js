@@ -1798,7 +1798,7 @@
       app: {
         instant: function () { return wrap(currentInstant()); }, setIdx: setIdx, setPlaying: setPlaying, playing: function () { return S.playing; }, jump: jumpNext,
         onInstant: function (fn0) { var fn = pt ? function (i) { fn0(wrap(i)); } : fn0; INSTANT_FNS.push(fn); return function () { var k = INSTANT_FNS.indexOf(fn); if (k >= 0) INSTANT_FNS.splice(k, 1); }; },
-        onClose: function () { setTimeout(function () { btn.focus({ preventScroll: true }); writeHash(); }, 0); },
+        onClose: function () { writeHash(); setTimeout(function () { btn.focus({ preventScroll: true }); }, 0); },   // round 6F: drop v3d=1 now (a delayed write could undo a following hash change)
         // round 6: "Show on 2D map" (the 3D view closes itself first)
         showOn2D: function (lat, lon) { showPage('explorer'); Map.invalidate(); var r = Map.showPoint(lat, lon); var el = $('mapPanel'); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' }); return r; }
       }
