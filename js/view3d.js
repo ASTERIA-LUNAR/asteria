@@ -27,6 +27,11 @@ window.AsteriaView3D = (function () {
   var TILE_CACHE = {};    // decoded tiles by site id (re-opening or changing quality does not decode again)
   var lastClosed = null;  // stats captured while closing (tests)
   var HOVER = { on: false };   // round 6B: "Inspect on hover" (off by default; kept while the page stays open)
+  // round 6B: cast shadows are off by default in every mode; the user's choice is kept while the page stays open
+  // (this session only, not stored on the device). Display only: no status, readout or Sun/Earth position depends on it.
+  var SESSION = { shadows: false };
+  var SHADOW_OFF_NOTE = 'Shadows off: the terrain is lit from the Sun\'s real direction without cast shadows. Sunlit/shadowed status at the site comes from the validated horizon model (tiles above).';
+  function shadowsOn() { var c = $('v3dShadows'); return !!(c && c.checked); }
 
   function $(id) { return document.getElementById(id); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -84,7 +89,7 @@ window.AsteriaView3D = (function () {
       '    <div class="v3d-hudtxt"><div id="v3dHeading">-</div><div class="v3d-scale"><i id="v3dScaleBar"></i><span id="v3dScaleTxt">-</span></div><div id="v3dDist">-</div></div></div>' +
       '  <figure class="v3d-mini" id="v3dMini"><canvas id="v3dMiniCv" width="320" height="320" aria-label="Top-view map of the terrain around the site with your position"></canvas><figcaption id="v3dMiniCap">Top view, north up</figcaption></figure>' +
       '  <div class="v3d-msgs"><div class="v3d-banner" id="v3dBanner" hidden></div>' +
-      '  <div class="v3d-tip" id="v3dTip" hidden>The site is in shadow, so the ground looks almost black. <button class="btn small" id="v3dTipBtn">Light up</button> <span class="fineprint">(display brightness only)</span> <button class="btn small jump-sun" id="v3dTipJump" type="button" data-jump="sun">Jump to next sunlight</button></div></div>' +
+      '  <div class="v3d-tip" id="v3dTip" hidden><span id="v3dTipTxt">The site is in shadow, so the ground looks almost black.</span> <button class="btn small" id="v3dTipBtn">Light up</button> <span class="fineprint">(display brightness only)</span> <button class="btn small jump-sun" id="v3dTipJump" type="button" data-jump="sun">Jump to next sunlight</button></div></div>' +
       '  <div class="v3d-qnote" id="v3dQNote" hidden></div>' +
       '  <div class="v3d-inspect" id="v3dInspect" hidden role="status" aria-live="polite"></div><i class="v3d-inspmark" id="v3dInspMark" hidden aria-hidden="true"></i>' +
       '  <p class="v3d-shadownote">Near-field shadows (visual approximation); distant terrain shadows not rendered; sunlit and Earth-visible status at the site marker come from the validated horizon model.</p>' +
@@ -119,7 +124,7 @@ window.AsteriaView3D = (function () {
       '  <div class="v3d-ctl v3d-insp"><span class="fineprint">Click (or tap) the terrain to read its height, slope, position and data resolution; the readout stays until the next click or Esc.</span> <label class="smallswitch"><input type="checkbox" id="v3dHover"> Inspect on hover</label></div>' +
       '  <div class="v3d-ctl">' +
       '    <label>Vertical exaggeration <select id="v3dExag"><option value="1" selected>1× (true scale)</option><option value="2">2×</option><option value="3">3×</option><option value="5">5×</option></select></label>' +
-      '    <label class="smallswitch"><input type="checkbox" id="v3dShadows" checked> shadows</label>' +
+      '    <label class="smallswitch"><input type="checkbox" id="v3dShadows"> Shadows (approximate)</label>' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dRing" checked> distant skyline</label>' +
       '    <label class="smallswitch"><input type="checkbox" id="v3dStars"> stars</label>' +
       '    <label class="smallswitch" title="camera glare (display effect); there is no atmosphere on the Moon"><input type="checkbox" id="v3dGlare" checked> Sun glare <span class="fineprint">(camera glare (display effect); there is no atmosphere on the Moon)</span></label>' +
@@ -194,7 +199,7 @@ window.AsteriaView3D = (function () {
       cls('Illustrative') + '<b>Orientation aids</b>: compass (north = toward the lunar north pole along the site meridian, as everywhere in ASTERIA), scale bar (at the view centre in Orbit, at 100 m ahead in Walk/Rover), distance from the site, a top-view mini-map of the LOLA heights, 500 m distance rings and the rover\'s track. Named features: centres from the IAU Gazetteer of Planetary Nomenclature (USGS; up to 5 within 40 km' + featList(v) + '), placed on the drawn terrain, or on the distant skyline in their direction with their distance when they are farther away (that position is then only a direction).',
       cls('Illustrative') + '<b>Sun glare</b> (on by default): a faint halo around the Sun disk, a camera glare (display effect); there is no atmosphere on the Moon. The Sun disk itself has the computed position and size.',
       cls('Calculated') + '<b>Distant skyline</b>: the site\'s terrain horizon (data/horizons, rays to 300 km) drawn as the top edge of a dark ring ' + RING_M / 1000 + ' km away. It is exact only when seen from the site marker; elsewhere it is approximate. Between the edge of the drawn terrain (' + (km || 3) + ' km) and the ring nothing is drawn (dark).',
-      cls('Approximate') + '<b>Shadows</b>: ' + (shKm ? 'cast by all terrain drawn within ' + shKm + ' km of the site (shadow-map texel about ' + (s.shadowTexel || 0).toFixed(0) + ' m' + (s.sunNear ? '; near the camera a second, finer shadow map of the same Sun direction and the same terrain, texel about ' + (s.nearTexel || 0).toFixed(1) + ' m: sharper edges, the same lit and shadowed areas' : '') + '; visual approximation). Terrain farther away does not cast shadows in the picture' + (B ? '; the ring from 16 to 40 km is shaded but receives no shadows' : '') + '.' : 'cast by the 6 km tile only at ' + Q.label + ' quality (choose Medium or High for shadows from the surrounding terrain).') + ' Sunlit and Earth-visible status at the site marker always come from the validated horizon model.',
+      cls('Approximate') + '<b>Shadows</b> (option "Shadows (approximate)", off by default; ' + (shadowsOn() ? 'on' : 'off') + ' now): ' + (shKm ? 'cast by all terrain drawn within ' + shKm + ' km of the site (shadow-map texel about ' + (s.shadowTexel || 0).toFixed(0) + ' m' + (s.sunNear ? '; near the camera a second, finer shadow map of the same Sun direction and the same terrain, texel about ' + (s.nearTexel || 0).toFixed(1) + ' m: sharper edges, the same lit and shadowed areas' : '') + '; visual approximation). Terrain farther away does not cast shadows in the picture' + (B ? '; the ring from 16 to 40 km is shaded but receives no shadows' : '') + '.' : 'cast by the 6 km tile only at ' + Q.label + ' quality (choose Medium or High for shadows from the surrounding terrain).') + ' Sunlit and Earth-visible status at the site marker always come from the validated horizon model.',
       cls('Illustrative') + '<b>Fill light and brightness</b>: a faint uniform light keeps unlit ground from being pure black. It is not physical (real shadows get only faint light reflected from sunlit terrain and Earthshine). The Brightness slider and "Light up" change only the display exposure and this fill light, never the Sun direction or any computed value.',
       cls('Approximate') + '<b>Earthshine</b> (off by default; Approximate): sunlight reflected by Earth, from the computed Earth direction. Strength = Earth&#39;s geometric albedo 0.434 (NASA Earth Fact Sheet) × (Earth radius / distance)² (its angular size) × the Lambert phase law at the computed phase angle (how much of Earth is lit) - about 1/8,000 of sunlight at full Earth. Off where Earth&#39;s centre is below the validated terrain horizon at the site marker; ' + (s.earthLight.castShadow ? 'the drawn terrain casts earthshine shadows' : 'no earthshine shadows at ' + Q.label + ' quality') + '. Earth is treated as an evenly reflecting sphere and a point source: the real value depends on clouds and Earth&#39;s real phase curve (within about a factor of 2; a sphere with Earth&#39;s Bond albedo 0.294 gives about half), and real earthshine shadows have soft edges (Earth is about 2° wide). Light reflected by sunlit terrain is not included. While on, the uniform fill light is off, and a site in shadow is shown with a raised exposure (stated on screen). Display only: no status or readout uses it.',
       cls('Calculated') + '<b>Stars</b> (off by default): the ' + (s.starRows ? s.starRows.length + ' ' : '') + 'stars brighter than magnitude ' + Q.starMag.toFixed(1) + ' (at ' + Q.label + ' quality) of the Yale Bright Star Catalogue, 5th revised edition (Hoffleit &amp; Warren 1991, public domain), at their true directions in the site\'s sky for the selected time, using the engine\'s Moon orientation (checked against an independent IAU/WGCCRE computation: within 0.002°). Size and brightness by magnitude, tint by colour index. Real star positions; cameras usually cannot see stars when the Sun or sunlit ground is in view.',
@@ -205,6 +210,7 @@ window.AsteriaView3D = (function () {
     ];
     $('v3dNotes').innerHTML = list.filter(Boolean).map(function (x) { return '<li>' + x + '</li>'; }).join('');
     var sn = v.el.querySelector('.v3d-shadownote');
+    if (!shadowsOn()) { sn.textContent = SHADOW_OFF_NOTE; return; }
     sn.textContent = (shKm ? 'Shadows from terrain within ' + shKm + ' km (visual approximation); farther terrain casts no shadows here' : 'Near-field shadows (visual approximation); distant terrain shadows not rendered') + '; sunlit and Earth-visible status at the site marker come from the validated horizon model.';
   }
 
@@ -864,7 +870,7 @@ window.AsteriaView3D = (function () {
     var b = $('v3dBanner');
     if (!inst.sunUp && r.sun.el > -r.sun.radius_deg) {
       b.hidden = false;
-      b.textContent = 'At the site marker the Sun is hidden behind terrain (validated horizon model, Sun ' + fmtDeg(r.sun.el, 1) + ' vs horizon ' + fmtDeg(inst.hzSun, 1) + '). ' + (v.s.Q.extShadow ? 'Terrain more than ' + (extKm(v) || 16) + ' km away casts no shadows in this view, so parts of the ground may still look lit.' : 'At ' + v.s.Q.label + ' quality only the 6 km tile casts shadows, so parts of the ground may look lit (Medium or High add shadows from the surrounding terrain).');
+      b.textContent = 'At the site marker the Sun is hidden behind terrain (validated horizon model, Sun ' + fmtDeg(r.sun.el, 1) + ' vs horizon ' + fmtDeg(inst.hzSun, 1) + '). ' + (!shadowsOn() ? 'Shadows are off in this view, so the ground is drawn lit from the Sun\'s direction; turn on "Shadows (approximate)" to see cast shadows.' : v.s.Q.extShadow ? 'Terrain more than ' + (extKm(v) || 16) + ' km away casts no shadows in this view, so parts of the ground may still look lit.' : 'At ' + v.s.Q.label + ' quality only the 6 km tile casts shadows, so parts of the ground may look lit (Medium or High add shadows from the surrounding terrain).');
     } else b.hidden = true;
     if (inst.sunUp && v.lightUpAuto && v.bright >= LIGHT_UP - 0.01) lightUpOff(v, '"Light up" switched off: the Sun is up at the site, and the extra brightness would wash the sunlit ground out to white.');
     updateTip(v);
@@ -1054,8 +1060,12 @@ window.AsteriaView3D = (function () {
     v.el.querySelectorAll('.seg button').forEach(function (b) { add(b, 'click', function () { setMode(v, b.dataset.mode); }); });
     add($('v3dExag'), 'change', function () { setExag(v, +this.value); });
     // round 6: the lights keep casting (their order is fixed, see lightsPatch); receivers ignore the shadow maps
-    add($('v3dShadows'), 'change', function () { v.s.U.uNoShadow.value = this.checked ? 0 : 1; v.dirty = true; });
-    add($('v3dEarthshine'), 'change', function () { applyEarthshine(v); });
+    add($('v3dShadows'), 'change', function () { SESSION.shadows = this.checked; applyShadows(v); });
+    add($('v3dEarthshine'), 'change', function () {
+      // earthshine only matters where sunlight is blocked, so it needs cast shadows: switching it on switches them on
+      if (this.checked && !shadowsOn()) { $('v3dShadows').checked = true; SESSION.shadows = true; applyShadows(v); }
+      applyEarthshine(v);
+    });
     add($('v3dQuality'), 'change', function () {
       var q = this.value; lsSet('asteria.v3dQuality', q);
       setQuality(v, q, 'Quality set to ' + QUALITY[q].label + ' (your choice, remembered on this device).');
@@ -1547,10 +1557,27 @@ window.AsteriaView3D = (function () {
     v.lightUpAuto = false; setBrightness(v, v.lightUpFrom || 1, true);
     if (why) { var n = $('v3dQNote'); n.hidden = false; n.textContent = why; setTimeout(function () { if (V === v && n.textContent === why) n.hidden = true; }, 6000); }
   }
+  // round 6B: shadows on/off. Off: receivers ignore the shadow maps (uNoShadow) and the maps are not rendered (saves the
+  // shadow passes); the lights, their order and their directions are unchanged. On: every map is re-rendered once.
+  function applyShadows(v) {
+    var s = v.s, on = shadowsOn();
+    s.U.uNoShadow.value = on ? 0 : 1;
+    s.renderer.shadowMap.autoUpdate = on;
+    if (on) { s.renderer.shadowMap.needsUpdate = true; [s.sun, s.sunNear, s.earthLight].forEach(function (L) { if (L && L.castShadow) L.shadow.needsUpdate = true; }); }
+    if (v.inst) setInstant(v, v.inst);
+    notes(v);
+    v.dirty = true;
+  }
   function updateTip(v) {
     var tip = $('v3dTip'); if (!tip) return;
+    // "ground looks almost black" is true when the Sun light is off (Sun below the horizon) or cast shadows are drawn;
+    // with shadows off and the Sun above the flat horizon the ground is drawn lit, so the tip says that and offers no
+    // "Light up" (round 6B). "Jump to next sunlight" is offered in both cases.
     tip.hidden = !(v.inst && !v.inst.sunUp);
-    $('v3dTipBtn').hidden = v.bright >= LIGHT_UP - 0.01;
+    var dark = shadowsOn() || v.s.sun.intensity === 0;
+    $('v3dTipTxt').textContent = dark ? 'The site is in shadow, so the ground looks almost black.' : 'The Sun is hidden behind terrain at the site (validated model); shadows are off, so the ground is drawn lit.';
+    $('v3dTipBtn').hidden = !dark || v.bright >= LIGHT_UP - 0.01;
+    $('v3dTip').querySelector('.fineprint').hidden = $('v3dTipBtn').hidden;
   }
   // Rebuild the view at another quality level (renderer options such as antialiasing need a new context),
   // keeping the camera, mode, time and toggles.
@@ -1621,6 +1648,7 @@ window.AsteriaView3D = (function () {
     }
     initDisplay(v);
     $('v3dHover').checked = HOVER.on;
+    $('v3dShadows').checked = SESSION.shadows; applyShadows(v);
     $('v3dContourInt').value = String(defaultContour(v.s.T));
     notes(v);
     setMode(v, 'orbit');

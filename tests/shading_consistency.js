@@ -43,6 +43,9 @@ const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? process.arg
       await page.evaluate(q => { localStorage.setItem('asteria.v3dQuality', q); }, q);
       await page.click('#deployBtn');
       await page.waitForFunction(() => window.AsteriaView3D && AsteriaView3D.isOpen() && !AsteriaView3D.debug().refining, null, { timeout: 60000 });
+      // round 6B: shadows are off by default; this check is about the rendered shadows, so it turns them on explicitly
+      await page.evaluate(() => { const c = document.getElementById('v3dShadows'); if (!c.checked) c.click(); });
+      if (!(await page.evaluate(() => !AsteriaView3D.debug().noShadow))) throw new Error('could not turn shadows on');
       const res = await page.evaluate(ts => ts.map(t => AsteriaView3D.shadowProbe(t)), times);
       const nearRes = res.filter(r => r.renderedLitNear !== null && r.renderedLitNear !== undefined);
       const agreeNear = nearRes.filter(r => r.renderedLitCombined === r.validatedSunUp).length, sameAsFar = nearRes.filter(r => r.renderedLitCombined === r.renderedLit).length, farOnSame = nearRes.filter(r => r.renderedLit === r.validatedSunUp).length;

@@ -87,6 +87,39 @@ const screenOf = (page, x, y, z) => page.evaluate(([x, y, z]) => {
     }
     await page.evaluate(() => AsteriaView3D.close(true));
 
+    // ------------------------------------------------------------ Part 2: shadows off by default
+    const OFF_NOTE = 'Shadows off: the terrain is lit from the Sun\'s real direction without cast shadows. Sunlit/shadowed status at the site comes from the validated horizon model (tiles above).';
+    // a time when the Sun is above the flat horizon but hidden by terrain at Shackleton crater centre (Sun light on)
+    await open3d(page, 'shackleton_centre', '2028-09-25T10:04');
+    const snap = () => page.evaluate(() => {
+      const d = AsteriaView3D.debug(), s = AsteriaView3D.testScene(), cv = s.renderer.domElement.getBoundingClientRect();
+      const ins = AsteriaView3D.testInspect(cv.left + cv.width * 0.5, cv.top + cv.height * 0.75);
+      return { tiles: [document.getElementById('v3dTileSun').className, document.getElementById('v3dSun').textContent, document.getElementById('v3dTileEarth').className, document.getElementById('v3dEarth').textContent],
+        x: [document.getElementById('v3dSunX').textContent, document.getElementById('v3dEarthX').textContent], sunDir: d.sunLightDir, earth: d.earthAzEl, sunI: d.sunIntensity,
+        labels: [d.labelSun, d.labelEarth], ins: ins && [ins.h, ins.slope, ins.lat, ins.lon, ins.dist], noShadow: d.noShadow, autoUpd: s.renderer.shadowMap.autoUpdate,
+        box: document.getElementById('v3dShadows').checked, lbl: document.getElementById('v3dShadows').parentNode.textContent.trim(), note: document.querySelector('.v3d-shadownote').textContent,
+        banner: document.getElementById('v3dBanner').hidden ? '' : document.getElementById('v3dBanner').textContent };
+    });
+    const sOff = await snap();
+    expect(`${tag} shadows: off by default, toggle named "Shadows (approximate)", note "${OFF_NOTE.slice(0, 40)}…" shown, shadow maps not rendered`, !sOff.box && sOff.lbl === 'Shadows (approximate)' && sOff.note === OFF_NOTE && sOff.noShadow && sOff.autoUpd === false, JSON.stringify({ box: sOff.box, lbl: sOff.lbl, note: sOff.note }));
+    await page.click('#v3dShadows'); await page.waitForTimeout(250);
+    const sOn = await snap();
+    expect(`${tag} shadows: turning them on shows the existing shadow label and renders the shadow maps`, sOn.box && !sOn.noShadow && sOn.autoUpd && /visual approximation/.test(sOn.note) && sOn.note !== OFF_NOTE, sOn.note);
+    const same = JSON.stringify([sOff.tiles, sOff.x, sOff.sunDir, sOff.earth, sOff.sunI, sOff.labels, sOff.ins]) === JSON.stringify([sOn.tiles, sOn.x, sOn.sunDir, sOn.earth, sOn.sunI, sOn.labels, sOn.ins]);
+    expect(`${tag} shadows: status tiles (${sOff.tiles[1]}, ${sOff.tiles[3]}), Sun/Earth positions, labels and the inspection readout are identical with shadows on and off`, same, JSON.stringify({ off: sOff.tiles, on: sOn.tiles }));
+    expect(`${tag} shadows: the hidden-Sun banner says the ground is drawn lit when shadows are off (and keeps its shadow wording when on)`, (!sOff.banner || /Shadows are off in this view/.test(sOff.banner)) && (!sOn.banner || !/Shadows are off/.test(sOn.banner)), JSON.stringify([sOff.banner.slice(-120), sOn.banner.slice(-80)]));
+    await page.evaluate(() => AsteriaView3D.close(true));
+    await page.evaluate(() => AsteriaApp.openDeploy());
+    await page.waitForFunction(() => AsteriaView3D.debug().open && !AsteriaView3D.debug().refining, null, { timeout: 60000 });
+    const re = await page.evaluate(() => ({ box: document.getElementById('v3dShadows').checked, ls: Object.keys(localStorage).filter(k => /shadow/i.test(k)) }));
+    expect(`${tag} shadows: the choice is remembered for this session (re-opened 3D keeps "on"), not stored on the device`, re.box && re.ls.length === 0, JSON.stringify(re));
+    await page.click('#v3dShadows');   // back off
+    await page.click('#v3dEarthshine'); await page.waitForTimeout(200);
+    const es = await page.evaluate(() => ({ sh: document.getElementById('v3dShadows').checked, noShadow: AsteriaView3D.debug().noShadow }));
+    expect(`${tag} shadows: turning on Earthshine (which only matters in shadow) turns shadows on`, es.sh && !es.noShadow, JSON.stringify(es));
+    await page.click('#v3dEarthshine'); await page.click('#v3dShadows');
+    await page.evaluate(() => AsteriaView3D.close(true));
+
     expect(`${tag} no console errors or warnings`, errors.length === 0, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }

@@ -297,6 +297,19 @@ Decisions taken by the owner's lead engineer before round 6B (recorded here; the
 
 **Classification**: inspection values - Calculated (LOLA), unchanged. **Limitations**: hover needs a mouse; touch screens use tap (as before).
 
+## Round 6B Part 2 - Shadows off by default - DONE
+
+**What changed** (`js/view3d.js`)
+* In Orbit, Walk and Rover the cast shadows are **off by default**; the toggle is now "**Shadows (approximate)**". The choice is remembered for this session only (while the page stays open; not stored on the device).
+* Off: the picture's shadow label reads "Shadows off: the terrain is lit from the Sun's real direction without cast shadows. Sunlit/shadowed status at the site comes from the validated horizon model (tiles above)." On: the existing label ("Shadows from terrain within 16/40 km (visual approximation) …").
+* Off also means the shadow maps are not rendered at all (fewer GPU passes); the lights, their order and their directions are unchanged. Turning shadows on re-renders every shadow map once.
+* Wording kept truthful with shadows off: the "Sun hidden behind terrain" banner says the ground is drawn lit from the Sun's direction (instead of "may still look lit"); the "ground looks almost black" tip says so only when it is true (shadows on, or the Sun below the horizon); otherwise it says the ground is drawn lit, without "Light up", and still offers "Jump to next sunlight". Earthshine only matters where sunlight is blocked, so switching Earthshine on also switches shadows on (otherwise its raised exposure would wash sunlit ground out).
+* `tests/shading_consistency.js` turns shadows on explicitly (and stops if it cannot). `tests/ui_check.js` accepts the "Shadows off" label as the default shadow label.
+
+**Tests**: `node tests/ui_round6b.js` (laptop + phone) - off by default with the new name and note, maps not rendered; on shows the existing label and renders the maps; status tiles, Sun/Earth readouts, positions, labels and an inspection readout identical with shadows on and off; banner wording; remembered for the session and not in localStorage; Earthshine turns shadows on - ALL PASS. `node tests/shading_consistency.js` (shadows on): **Low 97.8 %, Medium 99.0 %, High 99.8 %** - unchanged; 0 unexplained; near cascade 261/264 vs 260/264 (Medium) and 263/264 vs 263/264 (High). `ui_check.js`, `ui_round5.js`, `ui_round6.js`: PASS.
+
+**Classification**: shadows - Approximate (unchanged); the default only changes what is drawn. **Limitations**: with shadows off, ground the validated model says is in shadow is drawn lit; the status tiles, banner and label say so.
+
 ## Branch state
 
 * Branch `round6` contains the commits of Parts 0-5 on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).
