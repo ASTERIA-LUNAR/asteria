@@ -362,3 +362,12 @@ Measured with `tests/ground_detail.js` (same site, time and camera; the round-3 
 * **The full suite list was not re-run for 7D because of the deadline.** Run: ui_seams (owner's site Medium/High, phone), ui_check, ui_round6h, ui_scroll, ui_round6e, shading_consistency (shadows on), validate, accuracy3d, view3d_test. Not re-run: ui_round5, ui_round6/6b/6c/6d/6f/6g, ui_round7, tile_edge, perf3d, perf_modes, the Python DEM checks, and the full 5-site x 3-quality ui_seams matrix with the final rules. That matrix passed on an earlier run, except one point on real unlit terrain at Shackleton centre that the final rules now exclude.
 * Walk and Rover stay on the 6 km tile, so the ring A / ring B edge (16 km) is checked only from a low Orbit view.
 * Screen-measured seam tests are approximate: they rely on luminance profiles and exclude edge points on unlit ground or along terrain light/shadow boundaries.
+
+## 19. Prompt 8: publishing on GitHub Pages - privacy check decisions (owner)
+
+The pre-publication scan of all tracked files and the full history of master and the tags found two items. The owner accepted both, so history was not rewritten and no snapshot was published:
+
+* **Windows user path in two old round 6E logs (history only).** Commits `7f071b8` and `07cbfcc` contain `tests/perf/round6e_suites.log` and `tests/perf/round6e_ui6e.log` with a `C:\Users\...` path. The path holds only the generic name of a separate Windows account. The files are clean at the tip of master. Accepted as is.
+* **JPL Horizons "Inquiries" contact line in `tests/horizons_cache/`.** Every cached Horizons response carries the public institutional contact line that JPL includes in all Horizons output. The files are kept unchanged because they are validation evidence.
+
+Nothing else turned up: no API keys or tokens, and no email addresses other than the noreply commit identity and the Astronomy Engine licence line.
