@@ -274,6 +274,8 @@ details summary { cursor: pointer; color: var(--accent); margin: 10px 0; }
 
 /* ---------------------------------------------------- slip / power / tour */
 .heatwrap { position: relative; margin-top: 12px; }
+.slipfor { margin: 12px 0 0; font-size: .9rem; } .slipfor b { color: #fff; }
+.slipstale { margin-top: 12px; padding: 10px 12px; border: 1px solid #6d5520; border-left-width: 4px; border-radius: 6px; color: #ffe3a3; font-size: .92rem; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 #slipHeat, #slipLine, #pwChart { width: 100%; display: block; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); margin-top: 8px; }
 #slipHeat { cursor: pointer; }
 .tip { position: absolute; pointer-events: none; background: rgba(5, 10, 20, .95); border: 1px solid var(--accent); border-radius: 8px; padding: 7px 9px; font-size: .8rem; white-space: nowrap; z-index: 5; }

@@ -210,11 +210,15 @@
       <span id="slipProgress" class="hint" role="status"></span>
     </div>
     <p class="fineprint" id="slipMinElNote"></p>
+    <div id="slipStale" class="slipstale" role="status" hidden><span id="slipStaleText"></span> <button id="slipStaleRun" class="btn primary" type="button">Recompute</button></div>
+    <div id="slipOut" hidden>
+    <p id="slipFor" class="slipfor"></p>
     <div class="heatwrap"><canvas id="slipHeat" aria-label="Launch slip heatmap"></canvas><div id="slipTip" class="tip" hidden></div></div>
     <div id="slipLegend" class="hint"></div>
     <h3>Chosen metric vs slip: <span id="slipLineSite">current site</span></h3>
     <canvas id="slipLine" aria-label="Metric versus slip"></canvas>
     <div id="slipSummary" class="summary"></div>
+    </div>
     <p class="explain">Each square is one possible landing date. Brighter is better for the selected metric (for darkness and blackout, shorter is better, so the colours are flipped). The white outline marks the nominal date (slip 0) and the green outline the best date in the range. Click a square to open that site and landing date in Explore.</p>
   </div>
 </section>

@@ -143,6 +143,7 @@
     }), S.windowDays >= 90 ? 'Computing ' + S.windowDays + ' days…' : 'Computing…').then(null, function (e) { S.computing = false; document.body.classList.remove('computing'); console.error(e); });
     S.seriesReady = p1.then(null, function () {});
     S.ready = p;
+    slipInputsChanged(true);   // round 6G
     return p;
   }
 
@@ -1410,11 +1411,11 @@
     }
     if (p === 'compare') $('cmpMinElNote').textContent = minElText() + '. Geometric line-of-sight only; antenna, power and ground-station availability are not modelled.';
     if (p === 'slip') {
-      if (!$('slipNominal').value) $('slipNominal').value = toInput(S.start);
-      if (SLIP.res) renderSlip(); else runSlip();
+      syncSlipNominal();
+      ensureSlip();   // round 6G: a result for another point/window/setting is never shown
     }
     if (p === 'power') {
-      if (!$('slipNominal').value) $('slipNominal').value = toInput(S.start);
+      syncSlipNominal();
       runPower();
     }
     writeHash();
@@ -1431,7 +1432,10 @@
     hoursToFirstSunset: { label: 'Hours until first sunset', short: 'To 1st sunset', better: 'max', fmt: null }
   };
   var SLIP_KEYS = ['pctBoth', 'pctSun', 'avgSunFrac', 'pctEarth', 'longestDarkH', 'longestBlackoutH', 'hoursToFirstSunset'];
-  var SLIP = { res: null, layout: null };
+  // round 6G: SLIP.res is valid only for the inputs it was computed from (SLIP.res.key and the horizon arrays); every run
+  // gets a token and only the newest run may write SLIP.res. nomUser: the nominal landing was set on this page (or by a
+  // heatmap click), so it no longer follows the Explore start time.
+  var SLIP = { res: null, layout: null, tok: 0, running: null, nomUser: false, discarded: 0 };
   function slipVal(row, key, durDays) { var v = row[key]; return (key === 'hoursToFirstSunset' && v === null) ? durDays * 24 : v; }
   function slipFmt(row, key) {
     if (key === 'hoursToFirstSunset') { var v = row[key]; return v === null ? 'No sunset within the ' + (SLIP.res && SLIP.res.dur ? SLIP.res.dur + '-day ' : '') + 'mission' : v === 0 ? 'Sun down at landing' : fmtHours(v); }
@@ -1453,31 +1457,111 @@
     else add(S.site, S.useTerrain);
     return list;
   }
-  function runSlip(done) {
+  // round 6G: the Launch slip inputs as they are now (point(s) and horizons, nominal landing, duration, slip range, minimum
+  // link elevation). key: everything that changes the result; the horizon arrays are compared separately (sameMask),
+  // because a custom point's horizon arrives after the point is chosen.
+  function slipSpec() {
+    if (!S.site || !S.start) return null;
     var nominal = fromInput($('slipNominal').value) || S.start;
     var dur = Math.round(+$('slipDuration').value), from = Math.round(+$('slipFrom').value), to = Math.round(+$('slipTo').value), step = Math.max(1, Math.round(+$('slipStep').value));
-    if (!(dur >= 1 && dur <= 120) || !(from >= 0) || !(to > from) || to - from > 365) {
-      $('slipProgress').textContent = 'Check inputs: mission 1-120 days, slip range up to 365 days.'; return;
+    var mode = $('slipSites').value, sites = slipSites(mode);
+    var ok = dur >= 1 && dur <= 120 && from >= 0 && to > from && to - from <= 365;
+    var key = [mode, nominal.getTime(), dur, from, to, step, S.minEl].concat(sites.map(function (x) { return x.key + '@' + x.site.lat + ',' + x.site.lon + ':' + (x.mask ? 'T' : 'S'); })).join('|');
+    return { nominal: nominal, dur: dur, from: from, to: to, step: step, mode: mode, sites: sites, ok: ok, key: key };
+  }
+  function sameMask(a, b) {
+    if (a === b) return true;
+    if (!a || !b || a.length !== b.length) return false;
+    for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+    return true;
+  }
+  // true only if SLIP.res was computed for exactly the current inputs
+  function slipFresh() {
+    var R = SLIP.res, sp = slipSpec(); if (!R || !sp) return false;
+    return R.key === sp.key && R.sites.length === sp.sites.length && sp.sites.every(function (x, i) { return sameMask(x.mask, R.sites[i].mask); });
+  }
+  function slipPointName(sites) {
+    if (!sites || !sites.length) return 'the current point';
+    if (sites.length > 1) return sites.length + ' sites';
+    var s = sites[0].site;
+    return s.id ? sites[0].name : sites[0].name + ' (' + s.lat.toFixed(4) + '°, ' + s.lon.toFixed(4) + '°E)';
+  }
+  // Explore start -> nominal landing, unless the nominal was set on the Launch slip page (round 6G)
+  function syncSlipNominal() {
+    if (!S.start) return;
+    if (!SLIP.nomUser || !$('slipNominal').value) $('slipNominal').value = toInput(S.start);
+  }
+  // round 6G. Called whenever the point, Explore window, horizon or minimum elevation changes (auto, from recompute) and
+  // when a Launch slip input changes: a visible Launch slip page is recomputed for the new inputs; otherwise the result is
+  // only marked out of date (showPage recomputes it when the page is opened). A visible Power page is rerun.
+  function slipInputsChanged(auto) {
+    syncSlipNominal();
+    var onSlip = $('page-slip').classList.contains('active');
+    if (onSlip && auto) ensureSlip(); else renderSlip();
+    if (auto && $('page-power').classList.contains('active')) runPower();
+  }
+  // show the result for the current inputs: the existing one if it matches, else the run already computing them, else a new run
+  function ensureSlip() {
+    var sp = slipSpec(); if (!sp) return;
+    if (slipFresh() || (sp.ok && SLIP.running === sp.key)) renderSlip(); else runSlip();
+  }
+  function runSlip(done) {
+    var sp = slipSpec(); if (!sp) return;
+    if (!sp.ok) {
+      SLIP.tok++; SLIP.running = null; $('slipRun').disabled = false;
+      $('slipProgress').textContent = 'Check inputs: mission 1-120 days, slip range up to 365 days.'; renderSlip(); return;
     }
-    var sites = slipSites($('slipSites').value);
-    var res = { nominal: nominal, dur: dur, from: from, to: to, step: step, minEl: S.minEl, sites: [] };
+    var nominal = sp.nominal, dur = sp.dur, from = sp.from, to = sp.to, step = sp.step, sites = sp.sites, minEl = S.minEl;
+    var res = { nominal: nominal, dur: dur, from: from, to: to, step: step, minEl: minEl, mode: sp.mode, key: sp.key, sites: [] };
+    var tok = ++SLIP.tok;                 // round 6G: replies of an older run are discarded
+    SLIP.running = sp.key;
     $('slipRun').disabled = true;
     $('slipMinElNote').textContent = minElText() + ' (set in Explore, Earth link windows). Geometric line-of-sight only.';
+    renderSlip();                          // hides a result that does not match these inputs
     var k = 0;
     Loader.begin('Computing launch-slip heatmap…');
     (function nextSite() {
+      if (tok !== SLIP.tok) { Loader.end(); return; }
       if (k >= sites.length) {
         Loader.end();
+        SLIP.running = null;
         $('slipRun').disabled = false;
         $('slipProgress').textContent = 'Done: ' + sites.length + ' site(s) x ' + res.sites[0].scan.rows.length + ' landing dates, ' + res.sites[0].scan.stepMin + '-minute sampling.';
         SLIP.res = res; renderSlip(); if (done) done(); return;
       }
       $('slipProgress').textContent = 'Computing ' + (k + 1) + ' / ' + sites.length + ': ' + sites[k].name + ' ...';
       var it = sites[k];
-      Jobs.run('slip', { site: { lat: it.site.lat, lon: it.site.lon }, nominal: nominal.getTime(), dur: dur, from: from, to: to, step: step, mask: it.mask, minEl: S.minEl }).then(function (scan) {
+      Jobs.run('slip', { site: { lat: it.site.lat, lon: it.site.lon }, nominal: nominal.getTime(), dur: dur, from: from, to: to, step: step, mask: it.mask, minEl: minEl }).then(function (scan) {
+        if (tok !== SLIP.tok) { SLIP.discarded++; Loader.end(); return; }
         it.scan = scan; res.sites.push(it); k++; nextSite();
-      }, function (e) { Loader.end(); $('slipRun').disabled = false; $('slipProgress').textContent = 'Error: ' + e.message; });
+      }, function (e) {
+        Loader.end(); if (tok !== SLIP.tok) return;
+        SLIP.running = null; $('slipRun').disabled = false; $('slipProgress').textContent = 'Error: ' + e.message; renderSlip();
+      });
     })();
+  }
+  // round 6G: the heatmap, its line chart and summary are shown only for the current inputs; otherwise they are hidden
+  // and the page says what it is computing or that the previous result is out of date.
+  function renderSlipState() {
+    var R = SLIP.res, fresh = slipFresh(), sp = slipSpec(), stale = $('slipStale');
+    $('slipOut').hidden = !fresh;
+    if (fresh) { stale.hidden = true; return true; }
+    var name = slipPointName(sp && sp.sites), computing = !!(sp && SLIP.running === sp.key);
+    $('slipTip').hidden = true;
+    if (computing) { $('slipStaleText').textContent = 'Computing for ' + name + ' …'; $('slipStaleRun').hidden = true; stale.hidden = false; }
+    else if (R) {
+      $('slipStaleText').textContent = 'Out of date - recompute for ' + name + '. The previous result (' + slipPointName(R.sites) + ', nominal landing ' + fmtUTC(R.nominal) + ' UTC) is hidden.';
+      $('slipStaleRun').hidden = false; stale.hidden = false;
+      if ($('slipProgress').textContent.indexOf('Done') === 0) $('slipProgress').textContent = '';
+    } else stale.hidden = true;
+    return false;
+  }
+  // round 6G: header naming the point(s) and window the visible heatmap was computed for
+  function slipForText(R) {
+    var s0 = R.sites[0], pt;
+    if (R.sites.length > 1) pt = '<b>' + R.sites.length + ' sites</b> (' + R.sites.map(function (x) { return esc(x.name); }).join('; ') + ')';
+    else pt = '<b>' + esc(s0.name) + '</b> (' + s0.site.lat.toFixed(4) + '°, ' + s0.site.lon.toFixed(4) + '°E; ' + (s0.mask ? (isCoarse(s0.site) ? 'terrain horizon, 240 m data' : 'LOLA terrain horizon') : 'smooth horizon') + ')';
+    return 'Computed for ' + pt + ' · nominal landing <b>' + fmtUTC(R.nominal) + ' UTC</b> · ' + R.dur + '-day mission · slips +' + R.from + ' to +' + R.to + ' days every ' + R.step + ' day(s)' + (R.minEl ? ' · Earth link ≥ ' + R.minEl + '° above terrain' : '');
   }
   function heatColor(f) {
     var stops = [[13, 27, 62], [27, 110, 140], [64, 190, 140], [255, 214, 74]];
@@ -1486,7 +1570,9 @@
     return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * t) + ',' + Math.round(a[1] + (b[1] - a[1]) * t) + ',' + Math.round(a[2] + (b[2] - a[2]) * t) + ')';
   }
   function renderSlip() {
-    var R = SLIP.res; if (!R) return;
+    if (!renderSlipState()) return;
+    var R = SLIP.res;
+    $('slipFor').innerHTML = slipForText(R);
     var c = $('slipHeat'); if (!c.clientWidth) return;
     var key = $('slipMetric').value, M = SLIP_METRICS[key];
     var bySite = R.sites.length > 1;
@@ -1543,7 +1629,7 @@
     return R.sites[0];
   }
   function renderSlipLine() {
-    var R = SLIP.res, it = slipLineSite(); if (!R || !it) return;
+    var R = SLIP.res, it = slipLineSite(); if (!R || !it || !slipFresh()) return;
     var c = $('slipLine'); if (!c.clientWidth) return;
     var key = $('slipMetric').value, M = SLIP_METRICS[key];
     var f = fitCanvas(c, 210), ctx = f.ctx, w = f.w, h = f.h, L = 56, Rr = 12, T = 14, B = 28, pw = w - L - Rr, ph = h - T - B;
@@ -1578,7 +1664,7 @@
     $('slipSummary').innerHTML = s;
   }
   function slipCellAt(ev) {
-    var L = SLIP.layout, R = SLIP.res; if (!L || !R) return null;
+    var L = SLIP.layout, R = SLIP.res; if (!L || !R || $('slipOut').hidden) return null;
     var rect = $('slipHeat').getBoundingClientRect(), x = ev.clientX - rect.left, y = ev.clientY - rect.top;
     var i = Math.floor((x - L.labW) / L.cw), ri = Math.floor((y - L.top) / L.rowH);
     if (i < 0 || i >= L.nS || ri < 0 || ri >= L.rows.length) return null;
@@ -1598,6 +1684,7 @@
   function slipClick(ev) {
     var hit = slipCellAt(ev); if (!hit) return;
     var R = SLIP.res, row = hit.row.site.scan.rows[hit.i], site = hit.row.site.site;
+    SLIP.nomUser = true;   // round 6G: keep this heatmap's nominal landing while exploring one of its dates
     openInExplorer(site, new Date(row.landing), R.dur, !!hit.row.site.mask);
   }
   function ensureWindowOption(days) {
@@ -1618,7 +1705,7 @@
   }
 
   // ===================================================================== POWER
-  var PW = { res: null };
+  var PW = { res: null, tok: 0 };
   function powerWindow() {
     var mode = $('pwWindow').value;
     var site = siteObj(), mask = maskFor(S.site, S.useTerrain);
@@ -1658,7 +1745,9 @@
   function runPower() {
     var inp = powerInputs(), opts = inp.opts, load = inp.load, usable = inp.usable;
     if (!inp.ok) { $('pwVerdict').textContent = 'Check inputs.'; return Promise.resolve(); }
+    var tok = ++PW.tok;   // round 6G
     return Loader.track(powerWindow(), 'Computing power…').then(function (win) {
+      if (tok !== PW.tok) return;
       var s = win.series, n = s.t.length, pw = powerOf(s, inp), stepH = pw.stepH;
       var P = pw.P, peak = pw.peak, maxZero = pw.maxZero, Wh = pw.Wh;
       var hours = (n - 1) * stepH, loadWh = load * hours;
@@ -1832,10 +1921,10 @@
     return HZ[s.id].resolution + (HZ[s.id].demProducts ? ' - ' + HZ[s.id].demProducts.join('; ') : '');
   }
   function cfSlip() {
-    var R = SLIP.res; if (!R || !S.site) return null;
+    var R = SLIP.res; if (!R || !S.site || !slipFresh() || R.nominal.getTime() !== S.start.getTime()) return null;   // round 6G
     var mask = maskFor(S.site, S.useTerrain);
     var it = R.sites.filter(function (x) { return (x.site === S.site || (S.site.id && x.site.id === S.site.id)) && x.mask === mask; })[0];
-    if (!it || R.minEl !== S.minEl) return null;
+    if (!it || R.minEl !== S.minEl || !sameMask(it.mask, mask)) return null;
     var rows = it.scan.rows, r0 = rows.filter(function (x) { return x.slip === 0; })[0];
     var best = rows.reduce(function (a, b) { return b.pctBoth > a.pctBoth ? b : a; });
     return { R: R, r0: r0, best: best, stepMin: it.scan.stepMin };
@@ -2267,7 +2356,7 @@
     $('nowBtn').addEventListener('click', function () { var d = new Date(); d.setUTCSeconds(0, 0); S.start = d; S.idx = 0; $('startInput').value = toInput(d); recompute(); });
     $('windowSel').addEventListener('change', function () { S.windowDays = +this.value; S.idx = 0; recompute(); });
     $('minEl').addEventListener('change', function () {
-      var v = Math.max(0, Math.min(30, +this.value || 0)); this.value = v; S.minEl = v; SLIP.res = null; recompute();
+      var v = Math.max(0, Math.min(30, +this.value || 0)); this.value = v; S.minEl = v; recompute();
     });
     $('timeSlider').addEventListener('input', function () { setIdx(+this.value); });
     $('playBtn').addEventListener('click', function () { setPlaying(!S.playing); });
@@ -2301,6 +2390,9 @@
     $('cmpRun').addEventListener('click', function () { runCompare(); });
     var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { Map.invalidate(); renderTimeline(); renderWindows(); renderInstant(); renderSlip(); renderPowerChart(); }, 150); });
     $('slipRun').addEventListener('click', function () { runSlip(); });
+    $('slipStaleRun').addEventListener('click', function () { runSlip(); });   // round 6G
+    $('slipNominal').addEventListener('change', function () { SLIP.nomUser = true; slipInputsChanged(false); });
+    ['slipSites', 'slipDuration', 'slipFrom', 'slipTo', 'slipStep'].forEach(function (id) { $(id).addEventListener('change', function () { slipInputsChanged(false); }); });
     $('slipMetric').addEventListener('change', renderSlip);
     $('slipHeat').addEventListener('mousemove', slipHover);
     $('slipHeat').addEventListener('mouseleave', function () { $('slipTip').hidden = true; });
@@ -2363,7 +2455,7 @@
   window.LunaApp = {
     state: S,
     ready: function () { return S.ready || Promise.resolve(); },
-    runSlip: runSlip, slipResults: function () { return SLIP.res; },
+    runSlip: runSlip, slipResults: function () { return SLIP.res; }, slipFresh: function () { return slipFresh(); }, slipDebug: function () { return { tok: SLIP.tok, running: SLIP.running, discarded: SLIP.discarded, nomUser: SLIP.nomUser }; },
     runPower: runPower, powerResults: function () { return PW.res; },
     runCompare: runCompare, compareResults: function () { return CMPRES; },
     openCasefile: openCasefile, closeCasefile: closeCasefile, openScenarioCasefile: openScenarioCasefile,
