@@ -155,7 +155,7 @@
 
   <div class="grid2">
     <div class="panel earthpanel" id="earthPanel">
-      <div class="panelhead"><h2>Earth link windows <span class="q" data-q="earthWindows"></span></h2></div>
+      <div class="panelhead"><h2>Earth link windows <span class="q" data-q="earthWindows"></span></h2><a href="#" class="csvlink" id="earthCsv" title="Windows table and time series for this site and window (CSV)">Download CSV</a></div>
       <div class="row wrap minelrow">
         <label>Usable link needs Earth at least <span class="inl"><input id="minEl" type="number" min="0" max="30" step="0.5" value="0" aria-label="Minimum Earth elevation above terrain in degrees"> &deg; above the terrain</span></label>
         <span class="q" data-q="minEl"></span>
@@ -167,7 +167,7 @@
       <div class="wlist" id="earthWindows"></div>
     </div>
     <div class="panel sunpanel" id="sunPanel">
-      <div class="panelhead"><h2>Sunlight windows <span class="q" data-q="sunWindows"></span></h2></div>
+      <div class="panelhead"><h2>Sunlight windows <span class="q" data-q="sunWindows"></span></h2><a href="#" class="csvlink" id="sunCsv" title="Windows table and time series for this site and window (CSV)">Download CSV</a></div>
       <div class="wstats" id="sunStats"></div>
       <canvas id="sunChart" aria-label="Sun elevation versus time with the terrain horizon at the Sun's azimuth"></canvas>
       <p class="caption" id="sunChartCap"></p>
@@ -384,6 +384,7 @@
 <script src="data/coarse_validation.js"></script>
 <script src="data/instant_status.js"></script>
 <script src="data/accuracy3d.js"></script>
+<script src="data/version.js"></script>
 <script src="js/jobs.js"></script>
 <script src="js/explain.js"></script>
 <script src="js/map.js"></script>

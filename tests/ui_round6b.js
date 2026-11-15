@@ -173,6 +173,39 @@ const screenOf = (page, x, y, z) => page.evaluate(([x, y, z]) => {
     expect(`${tag} stars: background only - inspection hit and readout, status tiles, Sun/Earth directions, rover readout and the rendered shadow at the site marker are identical with stars on and off; stars cast and receive no shadows`, withStars.visible && !noStars.visible && withStars.casters === 0 && JSON.stringify([withStars.ins, withStars.tiles, withStars.sun, withStars.earth, withStars.rover]) === JSON.stringify([noStars.ins, noStars.tiles, noStars.sun, noStars.earth, noStars.rover]) && shOn.renderedLit === shOff.renderedLit && shOn.validatedSunUp === shOff.validatedSunUp, JSON.stringify({ a: withStars.ins, b: noStars.ins, lit: [shOn.renderedLit, shOff.renderedLit] }));
     await page.evaluate(() => AsteriaView3D.close(true));
 
+    // ------------------------------------------------------------ Part 6: CSV export (Explore)
+    await page.goto(BASE + '#site=peak_shackleton&t=2027-01-10T00:00Z&w=30&me=2');
+    await page.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series, null, { timeout: 30000 });
+    await page.evaluate(() => AsteriaApp.ready());
+    await page.waitForTimeout(300);
+    for (const body of ['sun', 'earth']) {
+      const cv = await page.evaluate(body => {
+        const S = AsteriaApp.state, s = S.series, txt = AsteriaApp.csv(body), lines = txt.trim().split('\n'), mask = window.LUNA_HORIZONS[S.site.id].elevations;
+        const head = lines.filter(l => l.startsWith('#')).join('\n'), iA = lines.indexOf('start_utc,end_utc,duration_h,max_elevation_deg,max_above_terrain_deg,starts_before_period,ends_after_period'), iB = lines.indexOf('utc,sun_az_deg,sun_el_deg,sun_visible_fraction,sun_up,earth_az_deg,earth_el_deg,earth_visible,terrain_horizon_at_sun_az_deg,terrain_horizon_at_earth_az_deg');
+        const wrows = []; for (let k = iA + 1; k < lines.length && lines[k] && !lines[k].startsWith('#'); k++) wrows.push(lines[k].split(','));
+        const W = AsteriaApp.windows(body);
+        const winOK = wrows.length === W.length && W.every((w, k) => Date.parse(wrows[k][0]) === w.start && Date.parse(wrows[k][1]) === w.end && Number(wrows[k][2]) === w.durH && (w.maxEl === null ? wrows[k][3] === '' : Number(wrows[k][3]) === w.maxEl) && Number(wrows[k][5]) === (w.cutStart ? 1 : 0) && Number(wrows[k][6]) === (w.cutEnd ? 1 : 0));
+        const srows = lines.slice(iB + 1).map(l => l.split(','));
+        let bad = 0;
+        srows.forEach((r, i) => {
+          const want = [s.t[i], s.sunAz[i], s.sunEl[i], s.sunFrac[i], s.sunUp[i] ? 1 : 0, s.earthAz[i], s.earthEl[i], s.earthUp[i] ? 1 : 0, LunaEngine.maskAt(mask, s.sunAz[i]), LunaEngine.maskAt(mask, s.earthAz[i])];
+          const got = [Date.parse(r[0])].concat(r.slice(1).map(Number));
+          if (got.length !== 10 || got.some((g, k) => g !== want[k])) bad++;
+        });
+        return { head, winOK, nWin: W.length, nRows: srows.length, nSeries: s.t.length, bad, name: AsteriaApp.csvName(body), txt };
+      }, body);
+      const H = cv.head;
+      expect(`${tag} CSV (${body === 'sun' ? 'Sunlight' : 'Earth link'} windows): header has site, lat/lon, source, horizon model, sampling step, minimum link elevation (2°), app version (git commit), generation time and the validation sentence`,
+        /# site,Peak near Shackleton/.test(H) && /# latitude_deg,-88\.79$/m.test(H) && /# longitude_deg_east,/.test(H) && /# source,https?:\/\//.test(H) && /# horizon_model,.*LOLA terrain horizon mask/.test(H) && /# sampling_step_min,\d+/.test(H) && /# minimum_link_elevation_deg,2,/.test(H) && /# app_version,ASTERIA round6 @ git [0-9a-f]{7}/.test(H) && /# generated_utc,\d{4}-\d\d-\d\dT/.test(H) && H.includes('# Computed by ASTERIA; validated against NASA/JPL Horizons - see VALIDATION_REPORT.md'), H.slice(0, 300));
+      expect(`${tag} CSV (${body}): windows table equals the app's windows exactly (${cv.nWin} windows) and the time series equals the app's series exactly (${cv.nRows} rows: UTC, Sun az/el, visible fraction, Sun up, Earth az/el, Earth visible, terrain horizon at both azimuths)`, cv.winOK && cv.nRows === cv.nSeries && cv.bad === 0, JSON.stringify({ winOK: cv.winOK, rows: cv.nRows, series: cv.nSeries, bad: cv.bad }));
+      if (vp.name === 'laptop') {
+        const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('#' + body + 'Csv')]);
+        const file = fs.readFileSync(await dl.path(), 'utf8');
+        const strip = t => t.replace(/^# generated_utc,.*$/m, '');
+        expect(`${tag} CSV (${body}): the "Download CSV" link in the panel downloads ${dl.suggestedFilename()} with the same content (Blob download, works from file://)`, dl.suggestedFilename() === cv.name && strip(file) === strip(cv.txt), dl.suggestedFilename());
+      }
+    }
+
     expect(`${tag} no console errors or warnings`, errors.length === 0, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }

@@ -829,6 +829,56 @@
     });
     markCurrentWindows();
   }
+  // ------------------------------------------------------ CSV export (round 6B, reproducibility)
+  // One file per panel (Sunlight windows / Earth link windows) for the current site and window: a header block (site,
+  // coordinates, source, horizon model, period, sampling step, minimum link elevation, app version, generation time),
+  // (a) that panel's windows table and (b) the whole sampled time series. Every number is written with full precision
+  // (String(x)), so the file holds exactly the values the app shows and uses. Download through a Blob (works from file://).
+  function csvQ(x) { x = String(x); return /[",\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; }
+  function csvN(x) { return x === null || x === undefined || !isFinite(x) ? '' : String(x); }
+  function csvText(body) {
+    var s = S.series, site = S.site; if (!s || !site) return '';
+    var mask = maskFor(site, S.useTerrain), wins = computeWindows(body), n = s.t.length, ver = window.ASTERIA_VERSION || {};
+    var iso = function (ms) { return new Date(ms).toISOString(); };
+    var hz = mask ? (isCoarse(site) ? 'terrain horizon from coarser 240 m LOLA-derived data (computed in the browser; less precise than curated sites)' : 'LOLA terrain horizon mask (data/horizons: 1 deg azimuth steps interpolated linearly; rays to 300 km; observer 2 m above the ground)') : 'smooth horizon at 0 deg (terrain not included)';
+    var name = site.name || ('Custom point ' + site.lat + ', ' + site.lon);
+    var L = [
+      '# ASTERIA export: ' + (body === 'sun' ? 'Sunlight windows' : 'Earth link windows') + ' and time series',
+      '# site,' + csvQ(name),
+      '# latitude_deg,' + site.lat,
+      '# longitude_deg_east,' + site.lon,
+      '# source,' + csvQ((site.sources || []).join(' ') || (site.id ? '-' : 'custom point chosen on the map')),
+      '# horizon_model,' + csvQ(hz),
+      '# period_start_utc,' + iso(s.t[0]),
+      '# period_end_utc,' + iso(s.t[n - 1]),
+      '# sampling_step_min,' + s.stepMin + ',rise/set times refined to 1 min',
+      '# minimum_link_elevation_deg,' + S.minEl + ',Earth must be at least this far above the terrain horizon',
+      '# app_version,' + csvQ(ver.text || 'unknown'),
+      '# generated_utc,' + new Date().toISOString(),
+      '# Computed by ASTERIA; validated against NASA/JPL Horizons - see VALIDATION_REPORT.md',
+      '',
+      '# (a) ' + (body === 'sun' ? 'Sunlight windows (Sun centre above the terrain horizon)' : 'Earth link windows (Earth centre above the terrain horizon + minimum link elevation)') + '; max elevation from the samples',
+      'start_utc,end_utc,duration_h,max_elevation_deg,max_above_terrain_deg,starts_before_period,ends_after_period'
+    ];
+    wins.forEach(function (w) { L.push([iso(w.start), iso(w.end), csvN(w.durH), csvN(w.maxEl), csvN(w.maxAbove), w.cutStart ? 1 : 0, w.cutEnd ? 1 : 0].join(',')); });
+    L.push('', '# (b) time series (every computed sample)', 'utc,sun_az_deg,sun_el_deg,sun_visible_fraction,sun_up,earth_az_deg,earth_el_deg,earth_visible,terrain_horizon_at_sun_az_deg,terrain_horizon_at_earth_az_deg');
+    for (var i = 0; i < n; i++) {
+      L.push([iso(s.t[i]), csvN(s.sunAz[i]), csvN(s.sunEl[i]), csvN(s.sunFrac[i]), s.sunUp[i] ? 1 : 0, csvN(s.earthAz[i]), csvN(s.earthEl[i]), s.earthUp[i] ? 1 : 0,
+        csvN(mask ? E.maskAt(mask, s.sunAz[i]) : 0), csvN(mask ? E.maskAt(mask, s.earthAz[i]) : 0)].join(','));
+    }
+    return L.join('\n') + '\n';
+  }
+  function csvName(body) {
+    var d = S.series ? new Date(S.series.t[0]).toISOString().slice(0, 16).replace(/[-:]/g, '') : 'x';
+    return 'asteria_' + (S.site && S.site.id ? S.site.id : 'custom') + '_' + (body === 'sun' ? 'sunlight' : 'earthlink') + '_' + d + 'Z_' + S.windowDays + 'd.csv';
+  }
+  function downloadCsv(body) {
+    var text = csvText(body); if (!text) return;
+    var a = document.createElement('a'), url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+    a.href = url; a.download = csvName(body); a.style.display = 'none';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
   function markCurrentWindows() {
     if (!S.series) return;
     var t = S.series.t[S.idx];
@@ -1815,6 +1865,7 @@
     $('slipHeat').addEventListener('mouseleave', function () { $('slipTip').hidden = true; });
     $('slipHeat').addEventListener('click', slipClick);
     $('pwRun').addEventListener('click', function () { runPower(); });
+    ['sun', 'earth'].forEach(function (b) { $(b + 'Csv').addEventListener('click', function (ev) { ev.preventDefault(); downloadCsv(b); }); });
     $('pwMode').addEventListener('change', function () { $('pwFaceWrap').style.display = this.value === 'fixed' ? '' : 'none'; });
     $('pwFaceWrap').style.display = 'none';
     $('shareBtn').addEventListener('click', copyLink);
@@ -1859,6 +1910,7 @@
     runPower: runPower, powerResults: function () { return PW.res; },
     runCompare: runCompare, compareResults: function () { return CMPRES; },
     windows: function (body) { return WIN[body]; },
+    csv: csvText, csvName: csvName,
     jobsMode: function () { return Jobs.mode(); },
     selectSiteById: function (id) { return selectSite(siteById(id)); },
     setIdx: setIdx, openDeploy: openDeploy, jumpNext: jumpNext, horizonsUrl: horizonsUrl, has3D: function () { return has3D(S.site); },

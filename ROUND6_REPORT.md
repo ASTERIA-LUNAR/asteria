@@ -362,6 +362,20 @@ K = 1 matched the edge even more closely on High (+0.2 % / −0.1 %) but flatten
 
 **Classification**: rover model - Illustrative; wheel contact and body tilt - Calculated (unchanged); stars - Calculated (unchanged), on by default.
 
+## Round 6B Part 6 - CSV export (reproducibility) - DONE
+
+**What changed** (`js/app.js`, `index.html`, `css/style.css`, new `tools/stamp_version.js`, `data/version.js`)
+* A small **"Download CSV"** link in the heading of each existing Explore panel, **Earth link windows** and **Sunlight windows** (no new panel). Each file is for the current site and window:
+  * **Header block** (`#` lines): site name, latitude, longitude (east), source (the site's published source URLs, or "custom point chosen on the map"), horizon model (LOLA terrain mask with its method, 240 m data for clicked points, or smooth 0°), period start/end (UTC), sampling step (and "rise/set times refined to 1 min"), minimum link elevation, **app version** ("ASTERIA round6 @ git <commit> (<date>)"), generation time (UTC), and "Computed by ASTERIA; validated against NASA/JPL Horizons - see VALIDATION_REPORT.md".
+  * **(a) Windows table** of that panel: start UTC, end UTC, duration (h), max elevation (deg), max above the terrain (deg), and whether the window starts before / ends after the period.
+  * **(b) Time series**, every computed sample: UTC, Sun azimuth and elevation, visible fraction of the Sun's disk, Sun up (0/1), Earth azimuth and elevation, Earth visible (0/1, including the minimum link elevation), terrain horizon at the Sun's and at Earth's azimuth.
+* Numbers are written at full precision (`String(x)`), so they are exactly the app's values. The file is built in the page and saved through a Blob link, so it works when the app is opened from `file://`. File name e.g. `asteria_peak_shackleton_sunlight_20270110T0000Z_30d.csv`.
+* **App version**: a page opened from `file://` cannot ask git, so `node tools/stamp_version.js` writes the current commit into `data/version.js`. The stamp names the commit that was HEAD when it ran, i.e. the parent of the commit that contains the stamp (stated in the tool); it is re-stamped at hand-over (Part 8).
+
+**Tests** (`node tests/ui_round6b.js`, laptop + phone, Peak near Shackleton, 2027-01-10 + 30 days, minimum link elevation 2°): header contains every field above; the windows table equals `AsteriaApp.windows()` exactly (start, end, duration, max elevation, flags) and all 4,321 series rows equal the app's series exactly, including the terrain horizon (`LunaEngine.maskAt` on the site's mask) - for both files; on the laptop the panel link triggers a real download whose content equals the generated text - ALL PASS. `ui_check.js`, `ui_round5.js`, `features_test.js`: PASS.
+
+**Classification**: export of Calculated values (no new computation). **Limitations**: the windows table lists rise/set times refined to 1 minute; the series is at the sampling step (10 or 60 minutes), as in the app.
+
 ## Branch state
 
 * Branch `round6` contains the commits of Parts 0-5 on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).
