@@ -1,6 +1,6 @@
 # ASTERIA - Validation Report
 
-Generated 2026-11-15T05:56:51.131Z by `node tests/validate.js`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)
+Generated 2026-11-15T07:19:38.224Z by `node tests/validate.js`. (The test code was generated with Claude Code (Anthropic) under human direction; see AI_DISCLOSURE.md.)
 
 ## Overall: **PASS**
 
@@ -243,7 +243,7 @@ Per site (all 21 times):
 
 ## G. 3D terrain accuracy: **PASS**
 
-Run with `node tests/accuracy3d.js` (the app's own 3D code in Node) and `.venv\Scripts\python -I tools\accuracy3d.py` (independent, from the LOLA DEMs); results of 2026-11-14 22:36 UTC.
+Run with `node tests/accuracy3d.js` (the app's own 3D code in Node) and `.venv\Scripts\python -I tools\accuracy3d.py` (independent, from the LOLA DEMs); results of 2026-11-15 05:57 UTC.
 
 **Heights.** Every stored grid point of every 3D terrain product (the 6 km tile of each of the 8 sites, ring A to 16 km, ring B to 40 km, the three 5 m patches, and since round 6 the finer ring grids: ring A at 25 m from LDEM_85S_20M and ring B at 100 m from LDEM_85S_20M or LDEM_80S_80M): its geographic position is computed independently (site up vector rotated by the ground distance; not the great-circle routine the generators use), and the LOLA DEM the product names is sampled there directly (bilinear, raw PDS array). Differences come from the 0.1 m (0.2 m where the relief is larger) storage step.
 

@@ -430,7 +430,7 @@ K = 1 matched the edge even more closely on High (+0.2 % / −0.1 %) but flatten
 
 ## Branch state
 
-* Branch `round6` contains the commits of round 6 Parts 0-5 and round 6B Parts 0-8 on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).
+* Branch `round6` contains the commits of round 6 Parts 0-5, round 6B Parts 0-8 and round 6C Parts 1-3 (section "Round 6C" below) on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).
 
 ## Round 6C - Ground-level terrain appearance (Walk and Rover)
 
@@ -531,3 +531,46 @@ Reading the table:
 | Anisotropic filtering | display only (no physical claim) |
 | Bounded relief shading | Illustrative (display contrast) |
 | Openness shading | Illustrative (display); the sky-view factor is Calculated from LOLA |
+
+### Part 3 - Verification - DONE
+
+**Geometry, readouts and status unchanged** (`node tests/ground_detail_6c.js --invariants --tag after --other before=<checkout of 0ba841e>`): for both sites at Low, Medium and High, in Orbit 60 km, Orbit 3 km, Walk and Rover - vertex hashes of every terrain layer (tile, 5 m patch, rings, skirts) and of the tile's heights and slopes, **216 inspection readouts** (height, slope, lat/lon, distance, data resolution and product, hit point) at fixed pixels, rover wheel heights, hub heights, pitch/roll and the rover readout text, the status tiles and their Sun/Earth readouts, the banner, the Sun light direction and intensity, Earth's direction, the camera and eye height, the shadow camera: **0 differences**, no console errors. `node tests/inspect_perf.js --compare tests/perf/inspect_before.json`: **81/81 readouts identical** (54 Orbit + 27 Walk; largest numeric difference 0; median latency 0.3-0.4 ms per update, measured while other test runs shared the machine - the inspection code is unchanged). Openness shading on vs off (`tests/ui_round6c.js`): inspection readout, Sun/Earth directions, status tiles, camera and the rendered shadow verdict at the site marker identical.
+
+**Shading consistency with shadows on** (`node tests/shading_consistency.js`): **Low 97.8 %, Medium 99.0 %, High 99.8 %** (unchanged), 0 unexplained; near cascade 261/264 vs 260/264 (Medium) and 263/264 vs 263/264 (High). (The shadow maps do not depend on normals or display shading.)
+
+**Performance** (laptop 1440 × 900, `node tests/perf3d.js --quality low,medium,high`, 8 sites; before = checkout of 0ba841e measured the same way, same session; `node tests/perf3d_compare.js tests/perf/round6c_before.json tests/perf/round6c_final.json` - its "v1-stable"/"round6" labels mean before/after here):
+
+| Quality | Build | Orbit FPS (avg) | Render ms (avg) | Deploy → first frame ms (avg; range) | → full terrain ms (avg) | Textures |
+|---|---|---|---|---|---|---|
+| Low | before 6C | 59.9 | 1.5 | 303 (212-445) | 400 | 0 |
+| Low | after 6C | 60.0 | 1.6 | 294 (229-534) | 395 | 2 |
+| Medium | before 6C | 60.0 | 2.1 | 292 (199-724) | 627 | 1 |
+| Medium | after 6C | 60.0 | 1.9 | 363 (325-676) | 717 | 3 |
+| High | before 6C | 59.3 | 2.4 | 330 (206-489) | 1,063 | 2 |
+| High | after 6C | 59.0 | 2.0 | 266 (241-546) | 1,053 | 4-6 |
+
+Gate met: Medium first frame **< 1.5 s** (at most 676 ms), orbiting **≥ 30 frames/s** (59-60, capped by the browser). The extra textures are the tile and patch normal maps and the 1 × 1 openness placeholder; the normal maps are baked when the terrain is built (included in the times above). These round-6B-era numbers (stars on by default, detailed rover) are higher than the round-6 table above for first frames; both builds here were measured in the same session.
+
+**Test suites** (round6 branch with round 6C; laptop 1440 × 900 and emulated phone 390 × 844 for the browser suites):
+
+| Suite | Result |
+|---|---|
+| `node tests/validate.js` | OVERALL: PASS (result files: timestamps only) |
+| `node tests/illumination.js`, `blind_test.js`, `coarse_validation.js`, `one_year_check.js`, `earth_orientation.js`, `instant_status_check.js` | all PASS (result files: timestamps only) |
+| `node tests/accuracy3d.js` | PASS: 14,499,574 grid points within 0.100 m (mean 0.031 m) |
+| `node tests/view3d_test.js` (+ sky-view factor checks), `node tests/features_test.js` | ALL PASS |
+| Python DEM checks: `tools/terrain.py check`, `tools/terrain3d.py check` (0.049 m), `tools/terrain3d_ext.py check` (0.099 m) | PASS |
+| `node tests/shading_consistency.js` (shadows on) | 97.8 / 99.0 / 99.8 % (unchanged) |
+| `node tests/ground_detail_6c.js --invariants` | 0 differences (above) |
+| `node tests/tile_edge.js` | see Part 2 |
+| `node tests/ui_round6c.js` (laptop + phone) | ALL PASS: tile normal map = its grid (301 × 301), 5 m patch normal map in Walk (laptop), anisotropy at the device maximum (16), openness off by default and labelled, no effect in Orbit, display only (readout, directions, tiles, camera, shadow verdict identical), notes with classification labels, relief no longer black at Mons Malapert Rover (26.9 / 255), no AI wording beyond the unchanged "Graphics:" line, no console errors |
+| `node tests/ui_check.js`, `ui_round5.js`, `ui_round6.js`, `ui_round6b.js` (laptop + phone) | all PASS (exit 0, no FAIL lines), no console errors or warnings |
+
+### Round 6C - not done or limited
+
+* **No real sub-grid detail** can be shown (Part 1); Walk and Rover remain smoother than Orbit, now without black/white artefacts.
+* **Openness shading** is off by default (no measured gain); it covers the 6 km tile and the 5 m patch only (rings: no effect), and in Orbit it is not applied. Its first computation runs in the background (1.4 s measured on the emulated phone, 7.1 s on the laptop with the 5 m patch while other tests were running); until then the picture is unchanged.
+* **Photometric model**: Hapke/lunar-Lambert not implemented (no measurable benefit expected; Part 1).
+* **Devices**: headless Chromium on the development laptop; phones emulated; not tested on a real phone, Firefox or Safari. WebGL1 browsers do not get the tile/patch normal maps or openness shading (unchanged picture, stated in the notes).
+
+**Round 6C hand-over**: `data/version.js` stamped with the Part 2 commit (cc5a36f). No merge, no tag, no push; `master` and `v1-stable` unchanged.

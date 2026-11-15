@@ -1,0 +1,345 @@
+=== validate
+Running angle tests vs JPL Horizons ...
+Running event-time tests ...
+Running physics sanity tests (one year, 10-min steps) ...
+Custom point, one-year check (tests/one_year_check.js, from the cache) ...
+Custom point (-70.9457, 67.9235 E), smooth horizon, 2026-11-14 to 2027-11-14, 8761 hourly rows per body
+earth: |dEl| max 0.0026 mean 0.0010 deg; |dAz| max 0.0032 mean 0.0009 deg -> PASS
+sun: |dEl| max 0.0028 mean 0.0011 deg; |dAz| max 0.0039 mean 0.0011 deg -> PASS
+Horizons minimum Earth elevation 1.6344 deg at 2026-12-08T05:31:00.000Z (1-minute table; engine there 1.6344); Earth below 0 deg in 0 of 8761 hours -> Earth does not set in this year
+earth events: Horizons 0, app 0, max |dt| - min, extra 0; next-event checks 24/24 -> PASS
+sun events: Horizons 24, app 24, max |dt| 1.42 min, extra 0; next-event checks 24/24 -> PASS
+ONE-YEAR CHECK: PASS
+Instant status check (tests/instant_status_check.js: Horizons + Python terrain, from the caches) ...
+Instant status: 336/336 agree, 3 on the edge, 0 disagreements outside the edge
+PASS Exact south pole (-90, 0): Sun centre elevation within +-1.7 deg all year - min -1.547 deg, max 1.550 deg
+PASS Apollo 11: Earth above smooth horizon 100% of the year - 100.000% (min Earth el 57.96 deg)
+PASS Chang'e-4 (far side): Earth below smooth horizon 100% of the year - Earth up 0.000% (max Earth el -37.72 deg)
+PASS Equatorial near-side (0, 0): Sun above smooth horizon 45-55% of the year - 48.62%
+PASS Max Sun elevation at 20 random latitudes -60 to -90 (seed 20261114): never above 90 - abs(lat) + 1.6 deg, and within 0.2 deg of 90 - abs(lat) + 1.54 deg - max - (90 - abs(lat)): 1.504 to 1.550 deg; largest deviation from 90 - abs(lat) + 1.54: 0.036 deg
+Angles: 52/52 pass; max |dEl| 0.0038 mean 0.0009; max |dAz| 0.0554 mean 0.0025 deg
+Events: 4/4 pass; max |dt| 0.76 min
+OVERALL: PASS
+exit 0
+=== illumination
+site                 h(m)   sun% terrain  sun% smooth  earth% terrain  both%  longest dark (h)
+im1                    2593       38.3         48.6          100.0    38.3        454
+im2                    5322       43.7         48.6           80.4    35.9        458
+peak_shackleton        1603       49.6         50.9           15.2     7.3        424
+peak_shackleton_lw     1602       61.0         50.9           27.8    17.2        334
+nobile_rim2_dm2        1123       32.6         49.1           24.7     7.7        522
+mons_mouton            5042       29.6         48.6           56.2    20.0        618
+mons_malapert          4917       33.0         48.8          100.0    33.0        493
+shackleton_centre     -2789        0.0         54.6            0.0     0.0       8761
+exit 0
+=== blind_test
+PASS Nobile Rim 2 (site DM2)                          2027-05-04T01:21Z Sun   az 143.6896 vs 143.6899 (d -0.0003)  el -6.2107 vs -6.2123 (d 0.0016)
+PASS Nobile Rim 2 (site DM2)                          2027-05-04T01:21Z Earth az 292.6258 vs 292.6253 (d 0.0005)  el 7.4585 vs 7.4597 (d -0.0012)
+PASS Nobile Rim 2 (site DM2)                          2027-05-16T04:22Z Sun   az 355.6949 vs 355.6945 (d 0.0004)  el 4.2602 vs 4.2600 (d 0.0001)
+PASS Nobile Rim 2 (site DM2)                          2027-05-16T04:22Z Earth az 304.1752 vs 304.1746 (d 0.0007)  el -1.9037 vs -1.9044 (d 0.0007)
+PASS Mons Mouton (landform centre)                    2026-08-22T03:13Z Sun   az 38.2186 vs 38.2223 (d -0.0038)  el 4.2022 vs 4.2043 (d -0.0021)
+PASS Mons Mouton (landform centre)                    2026-08-22T03:13Z Earth az 330.6218 vs 330.6246 (d -0.0029)  el -1.9357 vs -1.9328 (d -0.0029)
+PASS Peak near Shackleton (illuminated area)          2026-12-04T00:50Z Sun   az 118.6532 vs 118.6563 (d -0.0030)  el 0.8774 vs 0.8773 (d 0.0002)
+PASS Peak near Shackleton (illuminated area)          2026-12-04T00:50Z Earth az 242.0814 vs 242.0837 (d -0.0023)  el -6.0020 vs -6.0028 (d 0.0008)
+PASS IM-1 Odysseus                                    2028-10-19T21:25Z Sun   az 159.3497 vs 159.3519 (d -0.0023)  el -7.7581 vs -7.7577 (d -0.0004)
+PASS IM-1 Odysseus                                    2028-10-19T21:25Z Earth az 4.1841 vs 4.1853 (d -0.0011)  el 4.1565 vs 4.1563 (d 0.0002)
+Blind test: 10/10 pass; max |dEl| 0.0029 deg, max |dAz| 0.0038 deg
+exit 0
+=== coarse_validation
+Downsampled DEM: 2534 x 2534 at 240 m, file 8.79 MB
+Implementation check (js/jobs.js vs tools/terrain.py on the same grid): im2 max 3.7e-11 deg, mons_malapert max 1.6e-10 deg, peak_shackleton max 3.7e-10 deg
+
+(1) Curated sites: downsampled-DEM horizon vs 20 m-based horizon (2027, 30-min steps)
+site                 |dHz| mean/max deg   sunlit 20m / coarse   Earth 20m / coarse   ms
+im1                     0.19 / 1.15        38.3 / 38.3        100.0 / 100.0    50
+im2                     0.03 / 0.26        43.7 / 43.8          80.4 / 80.5    42
+peak_shackleton         0.42 / 1.28        49.6 / 53.5          15.2 / 23.7    52
+peak_shackleton_lw      0.46 / 1.97        61.0 / 57.2          27.8 / 24.8   137
+nobile_rim2_dm2         0.19 / 1.25        32.6 / 34.0          24.7 / 24.9    80
+mons_mouton             0.10 / 0.71        29.6 / 29.4          56.2 / 56.3    95
+mons_malapert           2.29 / 4.85        33.0 / 39.8        100.0 / 100.0   103
+shackleton_centre       0.06 / 0.15          0.0 / 0.0            0.0 / 0.0    58
+sunlit |d| mean 2.03 max 6.86 pts; Earth |d| mean 1.49 max 8.54 pts -> PASS
+(2) 50 random points 85-90S vs published map: |d| mean 1.47 median 0.98 max 16.01 pts; within 5 pts: 49; both ~0: 8 -> PASS
+CLICKED-POINT TERRAIN: PASS
+exit 0
+=== one_year_check
+earth: 8761 hourly rows (cache)
+sun: 8761 hourly rows (cache)
+earth: 0 Horizons crossings in the year
+sun: 24 Horizons crossings in the year
+Custom point (-70.9457, 67.9235 E), smooth horizon, 2026-11-14 to 2027-11-14, 8761 hourly rows per body
+earth: |dEl| max 0.0026 mean 0.0010 deg; |dAz| max 0.0032 mean 0.0009 deg -> PASS
+sun: |dEl| max 0.0028 mean 0.0011 deg; |dAz| max 0.0039 mean 0.0011 deg -> PASS
+Horizons minimum Earth elevation 1.6344 deg at 2026-12-08T05:31:00.000Z (1-minute table; engine there 1.6344); Earth below 0 deg in 0 of 8761 hours -> Earth does not set in this year
+earth events: Horizons 0, app 0, max |dt| - min, extra 0; next-event checks 24/24 -> PASS
+sun events: Horizons 24, app 24, max |dt| 1.42 min, extra 0; next-event checks 24/24 -> PASS
+ONE-YEAR CHECK: PASS
+exit 0
+=== earth_orientation
+peak_shackleton  2026-12-03T05:00  app 35.971E -5.198  Horizons 35.969E -5.231  diff 0.033 deg
+peak_shackleton  2027-03-21T17:30  app 89.456E 0.669  Horizons 89.461E 0.672  diff 0.005 deg
+peak_shackleton  2027-09-09T11:00  app 122.757E -26.615  Horizons 122.759E -26.770  diff 0.155 deg
+peak_shackleton  2028-06-30T23:00  app -60.013E -16.107  Horizons 299.989E -16.211  diff 0.104 deg
+im1              2026-12-03T05:00  app 35.979E -5.201  Horizons 35.977E -5.235  diff 0.033 deg
+im1              2027-03-21T17:30  app 89.462E 0.667  Horizons 89.467E 0.670  diff 0.005 deg
+im1              2027-09-09T11:00  app 122.765E -26.615  Horizons 122.766E -26.770  diff 0.155 deg
+im1              2028-06-30T23:00  app -60.007E -16.112  Horizons 299.995E -16.216  diff 0.104 deg
+mons_mouton      2026-12-03T05:00  app 35.966E -5.197  Horizons 35.964E -5.230  diff 0.033 deg
+mons_mouton      2027-03-21T17:30  app 89.449E 0.671  Horizons 89.454E 0.674  diff 0.005 deg
+mons_mouton      2027-09-09T11:00  app 122.750E -26.616  Horizons 122.752E -26.771  diff 0.155 deg
+mons_mouton      2028-06-30T23:00  app -60.020E -16.107  Horizons 299.982E -16.211  diff 0.104 deg
+PASS Earth sub-observer point vs JPL Horizons: 12 cases, worst 0.155 deg (limit 1 deg; Horizons gives geodetic latitude, the app geocentric: up to 0.19 deg apart)
+exit 0
+=== instant_status_check
+edge  im2                2027-08-22T19:58Z sun   Horizons el -0.2276 az 262.005 | Python horizon -0.1874 (margin -0.0402) | app el -0.2276 horizon -0.1870 -> indep false app false
+edge  peak_shackleton_lw 2027-05-30T00:30Z earth Horizons el 3.2569 az 229.253 | Python horizon 3.2406 (margin 0.0163) | app el 3.2573 horizon 3.2438 -> indep true app true
+edge  mons_mouton        2028-08-29T11:16Z earth Horizons el 2.7693 az 335.926 | Python horizon 2.8117 (margin -0.0424) | app el 2.7678 horizon 2.8110 -> indep false app false
+Instant status: 336/336 agree; on the edge (within 0.05 deg): 3 (0 of them disagree); disagreements outside the edge: 0
+App vs Horizons: max |dEl| 0.0028, max |dAz| 0.0041 deg; app mask vs Python exact-azimuth horizon: max 0.050, mean 0.005 deg
+At 2026-11-14 19:11 UTC, 3 of 8 south-pole sites are sunlit. Near the pole the Sun never climbs high: at these sites it is between -2.7° and +4.8° above the flat horizon right now, so a hill or crater wall of a degree or two in the Sun's direction decides between light and shadow. Sunlit: Peak near Shackleton (illuminated area) (Sun +2.76° at azimuth 352°, terrain there -2.71°); Peak near Shackleton - best-lit point (derived) (Sun +2.76° at azimuth 353°, terrain there -2.72°); Nobile Rim 2 (site DM2) (Sun +4.77° at azimuth 56°, terrain there +1.08°). In shadow: IM-1 Odysseus (Sun -2.68°, terrain +9.64°; below the flat horizon too); IM-2 Athena (Sun +1.76°, terrain +2.94°); Mons Mouton (landform centre) (Sun +1.94°, terrain +8.31°); Mons Malapert (landform centre) (Sun -0.37°, terrain +1.19°; below the flat horizon too); Shackleton crater centre (floor) (Sun +1.88°, terrain +20.12°). Sun positions from JPL Horizons; terrain heights computed from the LOLA elevation data in the Sun's direction.
+PASS
+exit 0
+=== accuracy3d
+im1                  6 km tile             5929 pts  max 0.050 m  mean 0.025 m
+im1                  Ring A (to 16 km)   160801 pts  max 0.050 m  mean 0.025 m
+im1                  Ring B (to 40 km)   251001 pts  max 0.050 m  mean 0.025 m
+im2                  6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+im2                  Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+im2                  Ring B (to 40 km)   160801 pts  max 0.100 m  mean 0.050 m
+im2                  Ring B fine, 100 m (round 6)  641601 pts  max 0.100 m  mean 0.050 m
+peak_shackleton      6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+peak_shackleton      Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+peak_shackleton      Ring B (to 40 km)   160801 pts  max 0.050 m  mean 0.025 m
+peak_shackleton      Ring A fine, 25 m (round 6) 1640961 pts  max 0.050 m  mean 0.025 m
+peak_shackleton      Ring B fine, 100 m (round 6)  641601 pts  max 0.050 m  mean 0.025 m
+peak_shackleton      5 m patch (2 km)    160801 pts  max 0.050 m  mean 0.023 m
+peak_shackleton_lw   6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+peak_shackleton_lw   Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+peak_shackleton_lw   Ring B (to 40 km)   160801 pts  max 0.050 m  mean 0.025 m
+peak_shackleton_lw   Ring A fine, 25 m (round 6) 1640961 pts  max 0.050 m  mean 0.025 m
+peak_shackleton_lw   Ring B fine, 100 m (round 6)  641601 pts  max 0.050 m  mean 0.025 m
+peak_shackleton_lw   5 m patch (2 km)    160801 pts  max 0.050 m  mean 0.024 m
+nobile_rim2_dm2      6 km tile             5929 pts  max 0.050 m  mean 0.025 m
+nobile_rim2_dm2      Ring A (to 16 km)   160801 pts  max 0.050 m  mean 0.025 m
+nobile_rim2_dm2      Ring B (to 40 km)   251001 pts  max 0.100 m  mean 0.050 m
+nobile_rim2_dm2      Ring B fine, 100 m (round 6)  641601 pts  max 0.100 m  mean 0.050 m
+mons_mouton          6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+mons_mouton          Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+mons_mouton          Ring B (to 40 km)   160801 pts  max 0.100 m  mean 0.050 m
+mons_mouton          Ring B fine, 100 m (round 6)  641601 pts  max 0.100 m  mean 0.050 m
+mons_malapert        6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+mons_malapert        Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+mons_malapert        Ring B (to 40 km)   160801 pts  max 0.100 m  mean 0.050 m
+mons_malapert        Ring A fine, 25 m (round 6) 1640961 pts  max 0.050 m  mean 0.025 m
+mons_malapert        Ring B fine, 100 m (round 6)  641601 pts  max 0.100 m  mean 0.050 m
+shackleton_centre    6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+shackleton_centre    Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+shackleton_centre    Ring B (to 40 km)   160801 pts  max 0.050 m  mean 0.025 m
+shackleton_centre    Ring A fine, 25 m (round 6) 1640961 pts  max 0.050 m  mean 0.025 m
+shackleton_centre    Ring B fine, 100 m (round 6)  641601 pts  max 0.050 m  mean 0.025 m
+shackleton_centre    5 m patch (2 km)    160801 pts  max 0.050 m  mean 0.020 m
+Heights: 14499574 grid points, max 0.100 m, mean 0.031 m -> PASS
+Slope: Rover readout vs Python, tile grid points (20 m / 80 m): n 200, max 0.169, mean 0.039 (200 of 200 within the storage-step bound (0.05-0.20 deg for 80 m / 20 m spacing))
+Slope: Rover readout vs Python, 5 m patch points (High quality): n 42, max 0.534, mean 0.169 (42 of 42 within the storage-step bound (0.81 deg at 5 m spacing))
+Slope: 3D slope shading (mesh attribute) vs rover readout, same points: n 200, max 0.000, mean 0.000 (same formula, same heights)
+Slope: Before the fix: old rover readout (bilinear gradient inside one cell) vs Python, tile points: n 200, max 15.943, mean 1.075 (different method (one-sided over one cell); fixed this round)
+Slope: Before the fix: old readout vs Python, 5 m patch points: n 42, max 7.799, mean 1.276 (fixed this round)
+Slope: 2D map layer: Python reproduction of the 74 m pixel vs the map's stored class: n 200, max 0.000, mean 0.000 (200 of 200 in the same class)
+Slope: Rover readout (20 m / 80 m) vs the 2D map's 74 m pixel value at the same points: n 200, max 8.055, mean 1.036 (different pixel size, not an error; 155 of 200 readouts fall in the map pixel's class)
+Slope: Python at 37 m spacing (no 74 m averaging) vs the 2D map's 74 m pixel value: n 200, max 5.622, mean 0.788 (effect of averaging alone)
+Slopes -> PASS
+Pos im1                  Low/Medium (tile)  back 0.25 m (cell 80) elev 2618.8 m vs DEM 2618.92 (-0.12) PASS
+Pos im2                  Low/Medium (tile)  back 0.99 m (cell 20) elev 5223.6 m vs DEM 5223.42 (0.18) PASS
+Pos peak_shackleton      Low/Medium (tile)  back 0.67 m (cell 20) elev 1276.7 m vs DEM 1276.65 (0.05) PASS
+Pos peak_shackleton_lw   Low/Medium (tile)  back 0.19 m (cell 20) elev 1221.2 m vs DEM 1221.63 (-0.43) PASS
+Pos nobile_rim2_dm2      Low/Medium (tile)  back 1.08 m (cell 80) elev 1044.7 m vs DEM 1044.90 (-0.20) PASS
+Pos mons_mouton          Low/Medium (tile)  back 0.72 m (cell 20) elev 5111.9 m vs DEM 5111.92 (-0.02) PASS
+Pos mons_malapert        Low/Medium (tile)  back 0.71 m (cell 20) elev 4701.2 m vs DEM 4700.95 (0.25) PASS
+Pos shackleton_centre    Low/Medium (tile)  back 0.94 m (cell 20) elev -2631.4 m vs DEM -2631.14 (-0.26) PASS
+Pos im1                  Low/Medium (tile)  back 1.12 m (cell 80) elev 2717.9 m vs DEM 2717.62 (0.28) PASS
+Pos im2                  Low/Medium (tile)  back 0.73 m (cell 20) elev 5323.8 m vs DEM 5323.76 (0.04) PASS
+Pos peak_shackleton      Low/Medium (tile)  back 0.98 m (cell 20) elev 1143.2 m vs DEM 1143.53 (-0.33) PASS
+Pos peak_shackleton_lw   Low/Medium (tile)  back 0.52 m (cell 20) elev 1437.4 m vs DEM 1437.47 (-0.07) PASS
+Pos nobile_rim2_dm2      Low/Medium (tile)  back 1.41 m (cell 80) elev 834.9 m vs DEM 835.15 (-0.25) PASS
+Pos mons_mouton          Low/Medium (tile)  back 0.04 m (cell 20) elev 5040.7 m vs DEM 5040.62 (0.08) PASS
+Pos shackleton_centre    High (5 m patch)   back 0.20 m (cell 5) elev -2762.7 m vs DEM -2762.75 (0.05) PASS
+Pos peak_shackleton      High (5 m patch)   back 0.65 m (cell 5) elev 1585.3 m vs DEM 1585.25 (0.05) PASS
+Pos peak_shackleton_lw   High (5 m patch)   back 0.56 m (cell 5) elev 1526.4 m vs DEM 1526.65 (-0.25) PASS
+Pos shackleton_centre    High (5 m patch)   back 0.07 m (cell 5) elev -2789.4 m vs DEM -2789.47 (0.07) PASS
+Pos peak_shackleton      High (5 m patch)   back 0.97 m (cell 5) elev 1531.2 m vs DEM 1531.29 (-0.09) PASS
+Pos peak_shackleton_lw   High (5 m patch)   back 0.59 m (cell 5) elev 1433.1 m vs DEM 1433.02 (0.08) PASS
+Positions -> PASS
+PASS
+exit 0
+=== features_test
+PASS horizontal panel power = S*A*eta*sin(E_Horizons) - E=64.199 deg, expected 363.689 W, got 363.685 W, rel err 0.0011%
+PASS tracking vertical panel = S*A*eta*cos(E)
+PASS fixed vertical panel facing the Sun = tracking
+PASS fixed panel facing away gives 0 W
+PASS half-visible disk halves the power
+PASS slip 0 == timeline metrics (peak_shackleton, 14 d) - pctSun 37.6301/37.6301, avgSunFrac 0.3781/0.3781, pctEarth 30.8379/30.8379, pctBoth 30.8379/30.8379, longestDarkH 209.6667/209.6667, longestBlackoutH 221.3333/221.3333, samples 2017/2017
+PASS slip 5 == timeline started 5 days later (peak_shackleton)
+PASS slip 0 == timeline metrics (apollo11, 30 d) - pctSun 49.3173/49.3173, avgSunFrac 0.4932/0.4932, pctEarth 100/100, pctBoth 49.3173/49.3173, longestDarkH 293.8333/293.8333, longestBlackoutH 0/0, samples 4321/4321
+PASS slip 5 == timeline started 5 days later (apollo11)
+PASS slip 0 == timeline metrics (im2, 45 d) - pctSun 49.3062/49.3062, avgSunFrac 0.4922/0.4922, pctEarth 78.4459/78.4459, pctBoth 33.4875/33.4875, longestDarkH 413/413, longestBlackoutH 122/122, samples 1081/1081
+PASS slip 5 == timeline started 5 days later (im2)
+PASS earthMask omitted == earthMask = mask (validated default unchanged)
+PASS minimum link elevation 1 deg == Earth el > horizon + 1 deg - Earth link 53.1% at 0 deg -> 39.9% at 1 deg
+PASS jobs.explorer series == engine series (minEl 1)
+PASS Earth events alternate rise/set and match the series - 2 events
+PASS a minimum elevation can only shorten the Earth link
+PASS js/core.js is up to date with lib/astronomy + js/engine.js
+PASS index.html loads every terrain horizon (8)
+PASS all requestable map tiles exist - 8536 tiles checked, 0 missing
+PASS tile set below 80 MB - 66.7 MB
+PASS map.js projection: Shackleton centre in z5 tile (16,16) px (103,86) - tile (16,16) px (103,86)
+PASS map.js unproject(project(p)) == p
+PASS every site has sourceType primary/secondary and a sourceCheck
+PASS no Wikipedia source left; Chang'e-7 target removed
+PASS removed points have no site, horizon file or computed rows
+PASS Artemis III regions: 9 listed, plotted only via landform centres or a published point - Malapert Massif, Mons Mouton, Nobile Rim 2 plotted; Peak near Cabeus B, Haworth, Mons Mouton Plateau, Nobile Rim 1, de Gerlache Rim 2, Slater Plain by name only
+PASS horizon files == index == curated south-pole sites - im1, im2, mons_malapert, mons_mouton, nobile_rim2_dm2, peak_shackleton, peak_shackleton_lw, shackleton_centre
+PASS one-year table and cross-check list exactly the terrain sites
+PASS downsampled DEM file <= 15 MB - 8.79 MB
+PASS downsampled DEM decodes to the recorded height range - 2534x2534, -7287..7025 m
+PASS shipped DEM + worker code reproduce the stored validation (IM-2 horizon difference) - 0.0326 deg
+PASS clicked-point terrain validation passed (criteria met) before shipping - sites |d sunlit| mean 2.03 max 6.86; random vs PGDA mean 1.47
+PASS app gates terrain for clicked points on the validation result and lazy-loads the DEM
+PASS custom points outside the data use a smooth horizon (no terrain)
+PASS SUBMISSION_LINKS.md: 27 NASA + 21 other links, each "Name - full https URL" and cited elsewhere in the project
+PASS AI disclosure: generator + ai-disclosure meta tags in index.html
+PASS AI disclosure: README "How this was made" names the code-drawn graphics, no image/audio model, NASA/catalogue data
+PASS AI disclosure: AI_DISCLOSURE.md lists code, scripts, documentation, in-app text, code-drawn graphics and where the app discloses it
+PASS AI disclosure: the About credit line and the 3D "Graphics:" line are in the source
+PASS every AI-written source file has the "Generated with Claude Code (Anthropic) under human direction" header (51 files)
+ALL FEATURE TESTS PASS
+exit 0
+=== view3d_test
+PASS 3D Sun direction vector = engine az/el (vs the engine's raw apparent vector, 96 site/time cases) within 0.01° - worst 1.71e-6°
+PASS 3D Earth direction vector = engine az/el within 0.01° - worst 1.21e-6°
+PASS direction -> az/el round trip within 0.01° - worst 1.78e-15°
+PASS convention: az 0 = north = -z, az 90 = east = +x, el 90 = +y
+PASS every south-pole site with a terrain horizon has a 3D tile - 8 tiles
+PASS JS decoder: tile heights at the stored check points (site centre + 3 others) match direct DEM samples within 1 m - worst 0.050 m
+PASS tile centre height = horizon file site height (same DEM) within 1 m - worst 0.000 m
+PASS tile size about 6 km - 6080, 6000, 6000, 6000, 6080, 6000, 6000, 6000
+PASS ENU vertex = h - h0 minus the curvature drop (R+h)θ²/2 (within 1 cm) - worst 0.00 mm
+PASS world -> grid inverse (walk/rover ground lookup) round trip within 1 cm - worst 0.00 mm
+PASS slope of a 10° plane = 10.00° with the downhill direction west (270°) - 10.000015°, 270.000°
+PASS mesh height = bilinear height on a plane
+PASS near-field estimate: a 10° slope blocks a Sun at 5° on the uphill side, not a Sun at 1° on the downhill side - {"east":"9.87","west":"-10.13"}
+PASS vertex normals from the DEM at full resolution: 10° plane -> normal tilted 10.00° toward the west (downhill), slope attribute 10.00° - tilt 9.9944°, slope 10.0000°
+PASS Earth phase: Sun opposite Earth -> fully lit; Sun behind Earth -> unlit - 1.00000 / 0.00000
+PASS Earth phase from az/el equals the engine-vector computation within 0.01° - 19.1409° vs 19.1409°
+PASS grid -> lat/lon: centre is the site; 1 km north is 1000/R rad further north
+PASS extended terrain: ring A (16 km) and ring B (40 km) heights at stored check points (128, incl. far corners) within 1 m of direct DEM samples - worst ring A 0.050 m, ring B 0.097 m
+PASS extended terrain: half-sizes 16 km and 40 km for every site - 16000, 40000
+PASS seams: 9712 hole-edge vertices (tile/ring A, ring A/ring B, Low-quality decimation, 5 m patch/tile) identical to the vertices of the finer mesh - max distance 0 m
+PASS seams: no missing cells around the holes; heights inside the 5 m patch come from the patch - 0 problems
+PASS 5 m patch (peak_shackleton, peak_shackleton_lw, shackleton_centre): heights at stored check points within 1 m of direct LDEM_875S_5M samples - worst 0.047 m; site centre 5 m vs 20 m DEM differ by 0.30 m
+PASS round 6 finer rings: 4 ring A grids (25 m, LDEM_85S_20M) and 7 ring B grids (100 m): stored check points within 1 m of direct DEM samples - worst 0.099 m at 88 points
+PASS round 6 seams: 5120 hole-edge vertices (ring A 50 m / tile, ring B 200 m / ring A) identical to the finer mesh; no missing cells - max 0 m, 0 gap problems
+PASS round 6 normal maps: baked normal = the DEM normal of the mesh at the same node (central differences, curvature included); texture coordinates hit the node's texel centre - normal 0.00e+0, uv 2.97e-8
+PASS real stars: 72 az/el values of 6 bright stars (3 sites, 4 dates) match an independent IAU/WGCCRE 2009 computation within 0.1° - worst 0.0012° (16Alp Boo at peak_shackleton_lw 2030-08-08T20:00:00Z: az/el 4.395/-28.365 vs 4.397/-28.365)
+PASS star list: Yale Bright Star Catalogue to V = 5.0 (1630 stars), source cited in the file
+PASS index.html does not load Three.js, the 3D code or any terrain tile (only the 3D site list) - data/terrain3d/index.js
+PASS Three.js is a local file (lib/three/three.min.js, r149, MIT licence alongside)
+PASS earthshine: full Earth = geometric albedo 0.434 x (R_E/d)^2 (1.195e-4, about 1/8369 of sunlight); quarter Earth uses the Lambert phase law; new Earth gives 0 - full 1.1948e-4 (phase 0.000 deg), quarter 3.819e-5, new 4.657701341737585e-21
+PASS normal-map mip chain: 4 levels (9 -> 4 -> 2 -> 1), each texel the average of 2 x 2 texels of the level above
+PASS sky-view factor (Zaksek et al. 2011): flat ground 1.0000 (1), cone pit centre 0.2668 (independent 0.2668; 1 - sin 45 deg = 0.2929), 20 deg slope 0.8904 (0.8904)
+PASS sky-view factor: heights unchanged by the computation; samples come from the finest grid that contains them (flat patch over the pit centre raises SVF there: 0.293 > 0.267)
+
+ALL PASS
+exit 0
+=== python tools/terrain.py check
+DEMs loaded: LDEM_85S_20M 15168 20.0 m | LDEM_80S_80M 7600 80.0 m
+Height range 85S_20M: -5502 .. 7027 m
+Profile lon  129.78 (lat -90..-89 step .05):  1290   636  -343 -1280 -2177 -2720 -2784 -2757 -2764 -2438 -1994 -1192  -319   571  1280  1097  1059  1060   961  1116  1032
+Profile lon -129.78 (lat -90..-89 step .05):  1290  1372  1300  1150  1041   925   670   808   905  1154  1344  1399  1356  1427  1110   868   485   128  -298  -833 -1234
+Shackleton centre         -2788.7 m  (LDEM_85S_20M)
+IM-1 (LROC 2579 m)         2593.4 m  (LDEM_80S_80M)  LROC ref 2579 m, diff 14 m
+Peak near Shackleton       1602.7 m  (LDEM_85S_20M)
+IM-2                       5321.9 m  (LDEM_85S_20M)
+Mons Mouton                5041.8 m  (LDEM_85S_20M)
+Cross-check (-89,0): 20m -386.1  80m -386.4
+Cross-check (-87,45): 20m 34.0  80m 34.5
+Cross-check (-86,-100): 20m -2163.0  80m -2163.5
+Cross-check (-88.5,200): 20m -2583.0  80m -2582.9
+exit 0
+=== python tools/terrain3d.py check
+im1                  LDEM_80S_80M n=77 d=80 m; centre vs horizon file (LDEM_80S_80M): 2593.4 vs 2593.4
+    (38,38) +0 E +0 N: tile 2593.40  DEM 2593.39  diff +0.008 m
+    (14,39) -1920 E -80 N: tile 2644.70  DEM 2644.66  diff +0.038 m
+    (66,22) +2240 E +1280 N: tile 2666.10  DEM 2666.15  diff -0.049 m
+    (37,41) -80 E -240 N: tile 2612.60  DEM 2612.58  diff +0.022 m
+im2                  LDEM_85S_20M n=301 d=20 m; centre vs horizon file (LDEM_85S_20M): 5321.9 vs 5321.9
+    (150,150) +0 E +0 N: tile 5321.90  DEM 5321.88  diff +0.019 m
+    (55,155) -1900 E -100 N: tile 5302.60  DEM 5302.64  diff -0.042 m
+    (258,86) +2160 E +1280 N: tile 5145.00  DEM 5144.96  diff +0.045 m
+    (145,161) -100 E -220 N: tile 5328.30  DEM 5328.35  diff -0.046 m
+peak_shackleton      LDEM_85S_20M n=301 d=20 m; centre vs horizon file (LDEM_85S_20M): 1602.7 vs 1602.7
+    (150,150) +0 E +0 N: tile 1602.70  DEM 1602.70  diff -0.003 m
+    (135,80) -300 E +1400 N: tile 1458.80  DEM 1458.82  diff -0.020 m
+    (249,294) +1980 E -2880 N: tile 1405.00  DEM 1405.03  diff -0.030 m
+    (282,201) +2640 E -1020 N: tile 1375.50  DEM 1375.55  diff -0.046 m
+peak_shackleton_lw   LDEM_85S_20M n=301 d=20 m; centre vs horizon file (LDEM_85S_20M): 1602.4 vs 1602.4
+    (150,150) +0 E +0 N: tile 1602.40  DEM 1602.37  diff +0.031 m
+    (8,282) -2840 E -2640 N: tile 1267.00  DEM 1267.02  diff -0.018 m
+    (167,151) +340 E -20 N: tile 1576.70  DEM 1576.73  diff -0.026 m
+    (169,270) +380 E -2400 N: tile 1430.30  DEM 1430.32  diff -0.024 m
+nobile_rim2_dm2      LDEM_80S_80M n=77 d=80 m; centre vs horizon file (LDEM_80S_80M): 1123.1 vs 1123.1
+    (38,38) +0 E +0 N: tile 1123.10  DEM 1123.07  diff +0.026 m
+    (34,20) -320 E +1440 N: tile 1143.60  DEM 1143.61  diff -0.005 m
+    (63,75) +2000 E -2960 N: tile 729.40  DEM 729.40  diff -0.003 m
+    (72,51) +2720 E -1040 N: tile 956.20  DEM 956.19  diff +0.009 m
+mons_mouton          LDEM_85S_20M n=301 d=20 m; centre vs horizon file (LDEM_85S_20M): 5041.8 vs 5041.8
+    (150,150) +0 E +0 N: tile 5041.80  DEM 5041.83  diff -0.029 m
+    (299,116) +2980 E +680 N: tile 5183.10  DEM 5183.15  diff -0.045 m
+    (103,155) -940 E -100 N: tile 4964.20  DEM 4964.16  diff +0.037 m
+    (111,213) -780 E -1260 N: tile 5008.60  DEM 5008.55  diff +0.046 m
+mons_malapert        LDEM_85S_20M n=301 d=20 m; centre vs horizon file (LDEM_85S_20M): 4916.6 vs 4916.6
+    (150,150) +0 E +0 N: tile 4916.60  DEM 4916.62  diff -0.019 m
+    (84,282) -1320 E -2640 N: tile 4201.70  DEM 4201.67  diff +0.031 m
+    (133,29) -340 E +2420 N: tile 4491.20  DEM 4491.17  diff +0.027 m
+    (167,148) +340 E +40 N: tile 4886.70  DEM 4886.66  diff +0.044 m
+shackleton_centre    LDEM_85S_20M n=301 d=20 m; centre vs horizon file (LDEM_85S_20M): -2788.7 vs -2788.7
+    (150,150) +0 E +0 N: tile -2788.70  DEM -2788.69  diff -0.009 m
+    (167,46) +340 E +2080 N: tile -2684.80  DEM -2684.78  diff -0.022 m
+    (111,300) -780 E -3000 N: tile -2625.70  DEM -2625.68  diff -0.018 m
+    (0,283) -3000 E -2660 N: tile -2242.80  DEM -2242.77  diff -0.035 m
+Worst |tile - direct DEM sample| = 0.049 m -> PASS (limit 1 m)
+exit 0
+=== python tools/terrain3d_ext.py check
+im1_a.js                     LDEM_75S_120M  n=401 d=80: worst 0.046 m   e.g. -16000 E +16000 N: 2143.70 vs DEM 2143.66 (+0.044)
+im1_b.js                     LDEM_75S_120M  n=501 d=160: worst 0.047 m   e.g. -40000 E +40000 N: 1830.80 vs DEM 1830.78 (+0.020)
+im2_a.js                     LDEM_80S_80M   n=321 d=100: worst 0.034 m   e.g. -16000 E +16000 N: 4354.60 vs DEM 4354.59 (+0.009)
+im2_b.js                     LDEM_75S_120M  n=401 d=200: worst 0.096 m   e.g. -40000 E +40000 N: 531.40 vs DEM 531.50 (-0.096)
+im2_bf.js                    LDEM_80S_80M   n=801 d=100: worst 0.098 m   e.g. -40000 E +40000 N: 532.00 vs DEM 531.98 (+0.017)
+mons_malapert_a.js           LDEM_80S_80M   n=321 d=100: worst 0.039 m   e.g. -16000 E +16000 N: 752.70 vs DEM 752.70 (+0.001)
+mons_malapert_af.js          LDEM_85S_20M   n=1281 d=25: worst 0.049 m   e.g. -16000 E +16000 N: 752.70 vs DEM 752.72 (-0.023)
+mons_malapert_b.js           LDEM_75S_120M  n=401 d=200: worst 0.098 m   e.g. -40000 E +40000 N: -1325.80 vs DEM -1325.79 (-0.005)
+mons_malapert_bf.js          LDEM_80S_80M   n=801 d=100: worst 0.099 m   e.g. -40000 E +40000 N: -1325.50 vs DEM -1325.41 (-0.085)
+mons_mouton_a.js             LDEM_80S_80M   n=321 d=100: worst 0.045 m   e.g. -16000 E +16000 N: 4394.30 vs DEM 4394.27 (+0.033)
+mons_mouton_b.js             LDEM_75S_120M  n=401 d=200: worst 0.091 m   e.g. -40000 E +40000 N: 842.30 vs DEM 842.28 (+0.015)
+mons_mouton_bf.js            LDEM_80S_80M   n=801 d=100: worst 0.093 m   e.g. -40000 E +40000 N: 841.30 vs DEM 841.32 (-0.022)
+nobile_rim2_dm2_a.js         LDEM_80S_80M   n=401 d=80: worst 0.050 m   e.g. -16000 E +16000 N: 1070.40 vs DEM 1070.42 (-0.016)
+nobile_rim2_dm2_b.js         LDEM_75S_120M  n=501 d=160: worst 0.098 m   e.g. -40000 E +40000 N: -3524.20 vs DEM -3524.29 (+0.093)
+nobile_rim2_dm2_bf.js        LDEM_80S_80M   n=801 d=100: worst 0.082 m   e.g. -40000 E +40000 N: -3524.10 vs DEM -3524.06 (-0.044)
+peak_shackleton_a.js         LDEM_80S_80M   n=321 d=100: worst 0.047 m   e.g. -16000 E +16000 N: -1672.90 vs DEM -1672.91 (+0.013)
+peak_shackleton_af.js        LDEM_85S_20M   n=1281 d=25: worst 0.030 m   e.g. -16000 E +16000 N: -1673.60 vs DEM -1673.60 (-0.001)
+peak_shackleton_b.js         LDEM_75S_120M  n=401 d=200: worst 0.044 m   e.g. -40000 E +40000 N: -545.30 vs DEM -545.33 (+0.026)
+peak_shackleton_bf.js        LDEM_85S_20M   n=801 d=100: worst 0.044 m   e.g. -40000 E +40000 N: -545.00 vs DEM -545.00 (-0.005)
+peak_shackleton_lw_a.js      LDEM_80S_80M   n=321 d=100: worst 0.045 m   e.g. -16000 E +16000 N: -1665.90 vs DEM -1665.90 (-0.002)
+peak_shackleton_lw_af.js     LDEM_85S_20M   n=1281 d=25: worst 0.046 m   e.g. -16000 E +16000 N: -1666.40 vs DEM -1666.37 (-0.028)
+peak_shackleton_lw_b.js      LDEM_75S_120M  n=401 d=200: worst 0.050 m   e.g. -40000 E +40000 N: -592.90 vs DEM -592.88 (-0.022)
+peak_shackleton_lw_bf.js     LDEM_85S_20M   n=801 d=100: worst 0.049 m   e.g. -40000 E +40000 N: -592.90 vs DEM -592.90 (-0.001)
+shackleton_centre_a.js       LDEM_80S_80M   n=321 d=100: worst 0.046 m   e.g. -16000 E +16000 N: -389.30 vs DEM -389.29 (-0.010)
+shackleton_centre_af.js      LDEM_85S_20M   n=1281 d=25: worst 0.049 m   e.g. -16000 E +16000 N: -389.20 vs DEM -389.17 (-0.029)
+shackleton_centre_b.js       LDEM_75S_120M  n=401 d=200: worst 0.048 m   e.g. -40000 E +40000 N: 104.50 vs DEM 104.49 (+0.011)
+shackleton_centre_bf.js      LDEM_85S_20M   n=801 d=100: worst 0.044 m   e.g. -40000 E +40000 N: 104.30 vs DEM 104.32 (-0.018)
+peak_shackleton.js           LDEM_875S_5M   n=401 d=5: worst 0.049 m   e.g. -1000 E +1000 N: 1441.00 vs DEM 1441.02 (-0.023)
+peak_shackleton_lw.js        LDEM_875S_5M   n=401 d=5: worst 0.044 m   e.g. -1000 E +1000 N: 1400.70 vs DEM 1400.71 (-0.014)
+shackleton_centre.js         LDEM_875S_5M   n=401 d=5: worst 0.048 m   e.g. -1000 E +1000 N: -2782.80 vs DEM -2782.84 (+0.044)
+Worst |stored - direct DEM sample| = 0.099 m -> PASS (limit 1 m)
+exit 0

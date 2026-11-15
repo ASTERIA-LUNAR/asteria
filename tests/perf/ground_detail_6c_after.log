@@ -1,0 +1,96 @@
+after   peak_shackleton  orbit60  medium default        mean    11 std  12.6 detail  1.49 blk16 1.021 fgRel 2.203 | px/cell 0.3@8093m(25) 0.4@17138m(25) -
+after   peak_shackleton  orbit60  medium relief_off     mean    11 std  12.6 detail  1.49 blk16 1.021 fgRel 2.203
+after   peak_shackleton  orbit60  medium lambert        mean  10.6 std  11.8 detail  1.33 blk16 0.996 fgRel 2.203
+after   peak_shackleton  orbit60  medium ao_on          mean    11 std  12.6 detail  1.49 blk16 1.021 fgRel 2.203
+after   peak_shackleton  orbit60  medium ao_off         mean    11 std  12.6 detail  1.49 blk16 1.021 fgRel 2.203
+after   peak_shackleton  orbit60  medium vertex_normals mean  10.9 std  12.3 detail  0.85 blk16 1.024 fgRel 2.203
+after   peak_shackleton  orbit3   medium default        mean    17 std  13.6 detail  1.18 blk16 0.754 fgRel 0.53 | px/cell 3.7@582m(20) 6.9@1105m(20) 9.2@1458m(20)
+after   peak_shackleton  orbit3   medium relief_off     mean    17 std  13.6 detail  1.18 blk16 0.754 fgRel 0.53
+after   peak_shackleton  orbit3   medium lambert        mean  13.7 std   8.2 detail  0.78 blk16 0.556 fgRel 0.462
+after   peak_shackleton  orbit3   medium ao_on          mean    17 std  13.6 detail  1.18 blk16 0.754 fgRel 0.53
+after   peak_shackleton  orbit3   medium ao_off         mean    17 std  13.6 detail  1.18 blk16 0.754 fgRel 0.53
+after   peak_shackleton  orbit3   medium vertex_normals mean    17 std  13.7 detail  1.29 blk16 0.752 fgRel 0.536
+after   peak_shackleton  walk     medium default        mean 120.2 std  43.5 detail  1.16 blk16 0.35 fgRel 0.088 | px/cell 21.9@21m(5) 140@8m(5) 344.5@5m(5)
+after   peak_shackleton  walk     medium relief_off     mean  94.3 std  35.1 detail  0.89 blk16 0.361 fgRel 0.074
+after   peak_shackleton  walk     medium lambert        mean  35.2 std   5.5 detail  0.16 blk16 0.152 fgRel 0.054
+after   peak_shackleton  walk     medium ao_on          mean 107.8 std  39.7 detail  1.09 blk16 0.355 fgRel 0.086
+after   peak_shackleton  walk     medium ao_off         mean 120.2 std  43.5 detail  1.16 blk16 0.35 fgRel 0.088
+after   peak_shackleton  walk     medium vertex_normals mean   121 std  44.2 detail  1.16 blk16 0.353 fgRel 0.101
+after   peak_shackleton  rover    medium default        mean  34.1 std  15.1 detail  0.12 blk16 0.435 fgRel 0.393 | px/cell 108.8@24m(5) 216.6@20m(5) 373.7@18m(5)
+after   peak_shackleton  rover    medium relief_off     mean  31.8 std  12.4 detail   0.1 blk16 0.384 fgRel 0.32
+after   peak_shackleton  rover    medium lambert        mean  20.2 std   6.5 detail  0.05 blk16 0.318 fgRel 0.28
+after   peak_shackleton  rover    medium ao_on          mean  31.5 std  13.9 detail  0.11 blk16 0.435 fgRel 0.392
+after   peak_shackleton  rover    medium ao_off         mean  34.1 std  15.1 detail  0.12 blk16 0.435 fgRel 0.393
+after   peak_shackleton  rover    medium vertex_normals mean  33.5 std  15.5 detail  0.11 blk16 0.455 fgRel 0.394
+after   peak_shackleton  orbit60  high   default        mean    25 std    28 detail  3.29 blk16 1.058 fgRel 1.103 | px/cell 0.3@8090m(25) 0.4@17138m(25) 2@24611m(100)
+after   peak_shackleton  orbit60  high   relief_off     mean    25 std    28 detail  3.29 blk16 1.058 fgRel 1.103
+after   peak_shackleton  orbit60  high   lambert        mean    23 std  25.4 detail  2.92 blk16 1.049 fgRel 1.04
+after   peak_shackleton  orbit60  high   ao_on          mean    25 std    28 detail  3.29 blk16 1.058 fgRel 1.103
+after   peak_shackleton  orbit60  high   ao_off         mean    25 std    28 detail  3.29 blk16 1.058 fgRel 1.103
+after   peak_shackleton  orbit60  high   vertex_normals mean    25 std    28 detail  4.07 blk16 1.055 fgRel 1.105
+after   peak_shackleton  orbit3   high   default        mean  17.2 std  14.4 detail   2.6 blk16 0.727 fgRel 0.53 | px/cell 0.9@582m(5) 1.8@1105m(5) 9.2@1458m(20)
+after   peak_shackleton  orbit3   high   relief_off     mean  17.2 std  14.4 detail   2.6 blk16 0.727 fgRel 0.53
+after   peak_shackleton  orbit3   high   lambert        mean  13.9 std   8.8 detail  1.67 blk16 0.539 fgRel 0.462
+after   peak_shackleton  orbit3   high   ao_on          mean  17.2 std  14.4 detail   2.6 blk16 0.727 fgRel 0.53
+after   peak_shackleton  orbit3   high   ao_off         mean  17.2 std  14.4 detail   2.6 blk16 0.727 fgRel 0.53
+after   peak_shackleton  orbit3   high   vertex_normals mean  17.3 std  14.6 detail  2.95 blk16 0.725 fgRel 0.536
+after   peak_shackleton  walk     high   default        mean 120.2 std  43.5 detail  1.16 blk16 0.35 fgRel 0.088 | px/cell 21.9@21m(5) 140@8m(5) 344.5@5m(5)
+after   peak_shackleton  walk     high   relief_off     mean  94.3 std  35.1 detail  0.89 blk16 0.361 fgRel 0.074
+after   peak_shackleton  walk     high   lambert        mean  35.2 std   5.5 detail  0.16 blk16 0.152 fgRel 0.054
+after   peak_shackleton  walk     high   ao_on          mean 107.8 std  39.7 detail  1.09 blk16 0.355 fgRel 0.086
+after   peak_shackleton  walk     high   ao_off         mean 120.2 std  43.5 detail  1.16 blk16 0.35 fgRel 0.088
+after   peak_shackleton  walk     high   vertex_normals mean   121 std  44.2 detail  1.16 blk16 0.353 fgRel 0.101
+after   peak_shackleton  rover    high   default        mean  34.1 std  15.1 detail  0.12 blk16 0.435 fgRel 0.393 | px/cell 108.8@24m(5) 216.6@20m(5) 373.7@18m(5)
+after   peak_shackleton  rover    high   relief_off     mean  31.8 std  12.4 detail   0.1 blk16 0.384 fgRel 0.32
+after   peak_shackleton  rover    high   lambert        mean  20.2 std   6.5 detail  0.05 blk16 0.318 fgRel 0.28
+after   peak_shackleton  rover    high   ao_on          mean  31.5 std  13.9 detail  0.11 blk16 0.435 fgRel 0.392
+after   peak_shackleton  rover    high   ao_off         mean  34.1 std  15.1 detail  0.12 blk16 0.435 fgRel 0.393
+after   peak_shackleton  rover    high   vertex_normals mean  33.5 std  15.5 detail  0.11 blk16 0.455 fgRel 0.394
+after   mons_malapert    orbit60  medium default        mean   9.4 std  10.4 detail  0.76 blk16 0.997 fgRel 2.156 | px/cell 0.4@6666m(25) 0.4@16241m(25) 0.3@886m(20)
+after   mons_malapert    orbit60  medium relief_off     mean   9.4 std  10.4 detail  0.76 blk16 0.997 fgRel 2.156
+after   mons_malapert    orbit60  medium lambert        mean   9.3 std   9.8 detail  0.66 blk16 0.97 fgRel 2.156
+after   mons_malapert    orbit60  medium ao_on          mean   9.4 std  10.4 detail  0.76 blk16 0.997 fgRel 2.156
+after   mons_malapert    orbit60  medium ao_off         mean   9.4 std  10.4 detail  0.76 blk16 0.997 fgRel 2.156
+after   mons_malapert    orbit60  medium vertex_normals mean   9.4 std  10.2 detail  0.47 blk16 1.001 fgRel 2.156
+after   mons_malapert    orbit3   medium default        mean  10.3 std   8.2 detail  0.54 blk16 0.687 fgRel 0.801 | px/cell 4.8@562m(20) 7.5@1011m(20) 9.4@1379m(20)
+after   mons_malapert    orbit3   medium relief_off     mean  10.3 std   8.2 detail  0.54 blk16 0.687 fgRel 0.801
+after   mons_malapert    orbit3   medium lambert        mean   9.6 std   6.2 detail  0.36 blk16 0.574 fgRel 0.722
+after   mons_malapert    orbit3   medium ao_on          mean  10.3 std   8.2 detail  0.54 blk16 0.687 fgRel 0.801
+after   mons_malapert    orbit3   medium ao_off         mean  10.3 std   8.2 detail  0.54 blk16 0.687 fgRel 0.801
+after   mons_malapert    orbit3   medium vertex_normals mean  10.3 std   8.1 detail  0.56 blk16 0.686 fgRel 0.796
+after   mons_malapert    walk     medium default        mean 100.1 std  14.8 detail  0.21 blk16 0.146 fgRel 0.042 | px/cell 683.5@7m(20) 1647@5m(20) 3027.5@3m(20)
+after   mons_malapert    walk     medium relief_off     mean  98.2 std  15.4 detail  0.19 blk16 0.156 fgRel 0.051
+after   mons_malapert    walk     medium lambert        mean  56.7 std   2.7 detail  0.02 blk16 0.048 fgRel 0.033
+after   mons_malapert    walk     medium ao_on          mean  77.2 std  11.7 detail  0.16 blk16 0.151 fgRel 0.043
+after   mons_malapert    walk     medium ao_off         mean 100.1 std  14.8 detail  0.21 blk16 0.146 fgRel 0.042
+after   mons_malapert    walk     medium vertex_normals mean  99.9 std  14.6 detail  0.16 blk16 0.144 fgRel 0.042
+after   mons_malapert    rover    medium default        mean  29.4 std   3.6 detail  0.05 blk16 0.12 fgRel 0.064 | px/cell 695.4@25m(20) 960@24m(20) 1430@23m(20)
+after   mons_malapert    rover    medium relief_off     mean  37.6 std   4.6 detail  0.07 blk16 0.118 fgRel 0.06
+after   mons_malapert    rover    medium lambert        mean  27.9 std   1.3 detail  0.02 blk16 0.042 fgRel 0.033
+after   mons_malapert    rover    medium ao_on          mean  23.5 std   3.2 detail  0.05 blk16 0.135 fgRel 0.074
+after   mons_malapert    rover    medium ao_off         mean  29.4 std   3.6 detail  0.05 blk16 0.12 fgRel 0.064
+after   mons_malapert    rover    medium vertex_normals mean  29.1 std   3.6 detail  0.05 blk16 0.12 fgRel 0.061
+after   mons_malapert    orbit60  high   default        mean  16.2 std  17.3 detail  2.13 blk16 0.947 fgRel 0.801 | px/cell 0.4@6666m(25) 0.4@16242m(25) 1.9@23742m(100)
+after   mons_malapert    orbit60  high   relief_off     mean  16.2 std  17.3 detail  2.13 blk16 0.947 fgRel 0.801
+after   mons_malapert    orbit60  high   lambert        mean  14.9 std  14.7 detail  1.83 blk16 0.872 fgRel 0.798
+after   mons_malapert    orbit60  high   ao_on          mean  16.2 std  17.3 detail  2.13 blk16 0.947 fgRel 0.801
+after   mons_malapert    orbit60  high   ao_off         mean  16.2 std  17.3 detail  2.13 blk16 0.947 fgRel 0.801
+after   mons_malapert    orbit60  high   vertex_normals mean  16.1 std  17.2 detail  2.48 blk16 0.948 fgRel 0.793
+after   mons_malapert    orbit3   high   default        mean  10.3 std   8.2 detail  0.54 blk16 0.687 fgRel 0.801 | px/cell 4.8@562m(20) 7.5@1011m(20) 9.4@1379m(20)
+after   mons_malapert    orbit3   high   relief_off     mean  10.3 std   8.2 detail  0.54 blk16 0.687 fgRel 0.801
+after   mons_malapert    orbit3   high   lambert        mean   9.6 std   6.2 detail  0.36 blk16 0.574 fgRel 0.722
+after   mons_malapert    orbit3   high   ao_on          mean  10.3 std   8.2 detail  0.54 blk16 0.687 fgRel 0.801
+after   mons_malapert    orbit3   high   ao_off         mean  10.3 std   8.2 detail  0.54 blk16 0.687 fgRel 0.801
+after   mons_malapert    orbit3   high   vertex_normals mean  10.3 std   8.1 detail  0.56 blk16 0.686 fgRel 0.796
+after   mons_malapert    walk     high   default        mean 100.1 std  14.8 detail  0.21 blk16 0.146 fgRel 0.042 | px/cell 683.5@7m(20) 1647@5m(20) 3027.5@3m(20)
+after   mons_malapert    walk     high   relief_off     mean  98.2 std  15.4 detail  0.19 blk16 0.156 fgRel 0.051
+after   mons_malapert    walk     high   lambert        mean  56.7 std   2.7 detail  0.02 blk16 0.048 fgRel 0.033
+after   mons_malapert    walk     high   ao_on          mean  77.2 std  11.7 detail  0.16 blk16 0.151 fgRel 0.043
+after   mons_malapert    walk     high   ao_off         mean 100.1 std  14.8 detail  0.21 blk16 0.146 fgRel 0.042
+after   mons_malapert    walk     high   vertex_normals mean  99.9 std  14.6 detail  0.16 blk16 0.144 fgRel 0.042
+after   mons_malapert    rover    high   default        mean  29.4 std   3.6 detail  0.05 blk16 0.12 fgRel 0.064 | px/cell 695.4@25m(20) 960@24m(20) 1430@23m(20)
+after   mons_malapert    rover    high   relief_off     mean  37.6 std   4.6 detail  0.07 blk16 0.118 fgRel 0.06
+after   mons_malapert    rover    high   lambert        mean  27.9 std   1.3 detail  0.02 blk16 0.042 fgRel 0.033
+after   mons_malapert    rover    high   ao_on          mean  23.5 std   3.2 detail  0.05 blk16 0.135 fgRel 0.074
+after   mons_malapert    rover    high   ao_off         mean  29.4 std   3.6 detail  0.05 blk16 0.12 fgRel 0.064
+after   mons_malapert    rover    high   vertex_normals mean  29.1 std   3.6 detail  0.05 blk16 0.12 fgRel 0.061
