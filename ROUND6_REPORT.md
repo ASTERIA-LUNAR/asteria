@@ -310,6 +310,31 @@ Decisions taken by the owner's lead engineer before round 6B (recorded here; the
 
 **Classification**: shadows - Approximate (unchanged); the default only changes what is drawn. **Limitations**: with shadows off, ground the validated model says is in shadow is drawn lit; the status tiles, banner and label say so.
 
+## Round 6B Part 3 - Relief shading defaults and the visible square - DONE
+
+**Defaults**: Relief shading is off by default in Orbit and on in Walk and Rover. A change the user makes is kept for the mode it was made in (this session only); switching mode re-applies the other mode's default unless the user changed it there. (Before, one choice applied to all modes.)
+
+**The visible square - cause** (measured, `tests/tile_edge.js`; Peak near Shackleton, Orbit at 60 km, pitch 40°, relief on, laptop): the relief term adds the difference between the DEM normal and a smoothed DEM normal, divided by sin(Sun elevation) (×10 at a low Sun). Inside the 6 km tile that difference comes from per-vertex 20 m normals, i.e. relief smaller than a pixel at this distance (about 40-70 m per pixel): it turns into grain, and because the term is clipped at zero, the grain also raises the mean brightness. The rings outside get their lighting detail from normal maps whose mipmaps average the real normals at distance, so they look smoother. Result: a brighter, grainier square.
+
+**Fix** (display only, `js/view3d.js`): per layer, the relief contrast is scaled by K × (the layer's grid spacing) / (ground size of one pixel), at most 1 (K = 2: relief smaller than about half a pixel fades out). With relief on, a layer without a normal map (5 m patch, tile, rings on Low) also blends its per-vertex DEM normal toward its smoothed DEM normal (the average of real normals over ±4 cells) by the same factor: the counterpart of the normal maps' mipmaps. Near the camera (Walk / Rover foreground) the factor is 1 and nothing changes. Heights, normals in the data, slopes, shadows, the Sun direction and every readout are unchanged.
+
+**Numbers** (mean over 2,548 ground points in bands 150-600 m inside vs outside the tile edge; luminance 0-255; detail = mean absolute difference of neighbouring pixels):
+
+| Quality | | Luminance inside / outside | Difference | Detail inside / outside | Difference |
+|---|---|---|---|---|---|
+| High | before | 67.6 / 45.2 | **+49.4 %** | 46.3 / 23.8 | **+94.2 %** |
+| High | after | 44.2 / 43.8 | **+1.0 %** | 12.0 / 10.6 | **+13.5 %** |
+| Medium | before | 67.5 / 52.7 | +27.9 % | 45.9 / 25.3 | +81.3 % |
+| Medium | after | 44.2 / 46.4 | −4.8 % | 12.0 / 12.5 | −4.2 % |
+
+K = 1 matched the edge even more closely on High (+0.2 % / −0.1 %) but flattened the relief everywhere and gave −18.6 % detail on Medium; K = 4 left +18.5 % / +62.6 %. Screenshots: `docs/tile_edge/before_*.png`, `docs/tile_edge/after_*.png`; raw numbers `tests/perf/tile_edge_before.json`, `tile_edge_after.json`.
+
+**Tests**: `node tests/ui_round6b.js` (laptop + phone): defaults Orbit off / Walk on / Rover on; a change in Walk kept for Walk while Orbit and Rover keep their defaults; inspection readout, Sun direction and status identical with relief on and off - ALL PASS. `ui_check.js` (relief note unchanged), `ui_round5.js` (relief is display only), `ui_round6.js`: PASS.
+
+**Limitations**: the remaining tile-edge contrast is the real difference in data (20 m tile vs 25-100 m rings) plus the geometric step of the mesh (no morphing, see trade-off 2). At grazing angles the pixel footprint is estimated from screen-space derivatives and is direction-dependent (the larger of the two directions is used).
+
+**Classification**: Relief shading - Illustrative (display contrast), unchanged.
+
 ## Branch state
 
 * Branch `round6` contains the commits of Parts 0-5 on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).

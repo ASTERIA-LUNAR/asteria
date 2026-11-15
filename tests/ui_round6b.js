@@ -120,6 +120,22 @@ const screenOf = (page, x, y, z) => page.evaluate(([x, y, z]) => {
     await page.click('#v3dEarthshine'); await page.click('#v3dShadows');
     await page.evaluate(() => AsteriaView3D.close(true));
 
+    // ------------------------------------------------------------ Part 3: relief defaults per mode
+    await open3d(page, 'peak_shackleton', '2028-09-25T10:04');
+    const rel = () => page.evaluate(() => ({ mode: AsteriaView3D.debug().mode, on: AsteriaView3D.debug().relief, box: document.getElementById('v3dRelief').checked }));
+    const seq = [];
+    seq.push(await rel());
+    for (const m of ['walk', 'rover', 'orbit']) { await page.click(`.seg [data-mode="${m}"]`); await page.waitForTimeout(100); seq.push(await rel()); }
+    expect(`${tag} relief: off by default in Orbit, on in Walk and Rover (checkbox follows)`, JSON.stringify(seq.map(x => [x.mode, x.on, x.box])) === JSON.stringify([['orbit', false, false], ['walk', true, true], ['rover', true, true], ['orbit', false, false]]), JSON.stringify(seq));
+    await page.click('.seg [data-mode="walk"]'); await page.click('#v3dRelief'); await page.waitForTimeout(100);
+    const seq2 = [await rel()];
+    for (const m of ['orbit', 'rover', 'walk']) { await page.click(`.seg [data-mode="${m}"]`); await page.waitForTimeout(100); seq2.push(await rel()); }
+    expect(`${tag} relief: a change made in Walk is kept for Walk; switching to Orbit and Rover re-applies their defaults`, JSON.stringify(seq2.map(x => [x.mode, x.on])) === JSON.stringify([['walk', false], ['orbit', false], ['rover', true], ['walk', false]]), JSON.stringify(seq2));
+    await page.click('.seg [data-mode="orbit"]'); await page.click('#v3dRelief'); await page.waitForTimeout(150);
+    const rOn = await page.evaluate(() => { const d = AsteriaView3D.debug(), s = AsteriaView3D.testScene(), cv = s.renderer.domElement.getBoundingClientRect(), r = AsteriaView3D.testInspect(cv.left + cv.width / 2, cv.top + cv.height * 0.7); AsteriaView3D.testRelief(false); const r2 = AsteriaView3D.testInspect(cv.left + cv.width / 2, cv.top + cv.height * 0.7); const d2 = AsteriaView3D.debug(); return { on: d.relief, off: d2.relief, k: d.reliefK, same: JSON.stringify([r.h, r.slope, r.lat, r.lon, d.sunLightDir, d.instant]) === JSON.stringify([r2.h, r2.slope, r2.lat, r2.lon, d2.sunLightDir, d2.instant]) }; });
+    expect(`${tag} relief: display only (inspection readout, Sun direction and status identical with relief on and off; distance normalisation K = ${rOn.k})`, rOn.on && !rOn.off && rOn.same && rOn.k === 2, JSON.stringify(rOn));
+    await page.evaluate(() => { AsteriaView3D.testRelief(null); AsteriaView3D.close(true); });
+
     expect(`${tag} no console errors or warnings`, errors.length === 0, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }
