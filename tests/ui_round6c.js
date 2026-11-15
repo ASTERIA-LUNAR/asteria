@@ -17,7 +17,7 @@ let fails = 0;
 const expect = (name, ok, info) => { console.log((ok ? 'PASS ' : 'FAIL ') + name + (info !== undefined ? ' - ' + info : '')); if (!ok) fails++; };
 const BASE = url.pathToFileURL(path.join(__dirname, '..', 'index.html')).href;
 const AI_RE = /\bAI-|\bAI |artificial intelligence|generated|illustrated by/gi;
-const AI_GRAPHICS = 'Graphics: the rover and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images.';
+const AI_GRAPHICS = 'Graphics: the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain shapes, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images.';
 
 async function open3d(page, site, t) {
   await page.goto(BASE + `#site=${site}&t=${t}Z&w=1`);
@@ -90,7 +90,7 @@ const pixels = page => page.evaluate(() => { const s = AsteriaView3D.testScene()
     expect(`${tag} notes: relief shading described as a bounded factor (no pure black or white)`, /between 0\.4 and 1\.6/.test(relief) && !/70 %/.test(relief));
     // the only allowed AI wording is the round-4B "Graphics:" line (exact text, as in tests/ui_check.js)
     const panelAI = await page.evaluate(([re, g]) => { const t = document.querySelector('.v3d-panel').textContent; const rest = t.split(g).join(' '); return { has: t.indexOf(g) >= 0, hits: rest.match(new RegExp(re, 'gi')) || [] }; }, [AI_RE.source, AI_GRAPHICS]);
-    expect(`${tag} no AI wording in the 3D panel except the unchanged "Graphics:" line`, panelAI.has && panelAI.hits.length === 0, JSON.stringify(panelAI));
+    expect(`${tag} no AI wording in the 3D panel except the "Graphics:" line (as updated in round 6E)`, panelAI.has && panelAI.hits.length === 0, JSON.stringify(panelAI));
 
     // relief bounded: Mons Malapert Rover (black before round 6C)
     if (vp.name === 'laptop') {

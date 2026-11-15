@@ -1,0 +1,4533 @@
+{
+ "peak_shackleton/low": {
+  "orbit60": {
+   "geo": {
+    "tile": "7e7c4144/68403",
+    "tileH": "5b2a9873/22801",
+    "tileSlope": "5c36713e/22801",
+    "tile-skirt": "1d91b0b6/3606",
+    "ringA": "e3140ac/77763"
+   },
+   "insp": [
+    null,
+    [
+     1375.98204112,
+     3.19006089784,
+     -88.8538641617,
+     130.703202015,
+     4322.14313847,
+     100,
+     "ring A (to 16 km)",
+     "LDEM_80S_80M",
+     200,
+     3758.13737994,
+     -232.726102032,
+     2141.70203532
+    ],
+    [
+     -199.551446821,
+     8.53578589038,
+     -88.259888996,
+     136.945621929,
+     18691.4060546,
+     100,
+     "ring A (to 16 km)",
+     "LDEM_80S_80M",
+     200,
+     11368.7007124,
+     -1903.16002644,
+     -14833.3266405
+    ],
+    null,
+    [
+     -252.169478129,
+     5.40333728846,
+     -88.9400870508,
+     146.853948381,
+     14068.7186843,
+     100,
+     "ring A (to 16 km)",
+     "LDEM_80S_80M",
+     200,
+     12221.2857735,
+     -1910.8821092,
+     6964.71415723
+    ],
+    [
+     158.026928207,
+     7.37757744831,
+     -88.2884032249,
+     142.457748882,
+     20416.9209229,
+     100,
+     "ring A (to 16 km)",
+     "LDEM_80S_80M",
+     200,
+     16001.0698695,
+     -1566.50774246,
+     -12683.5746136
+    ],
+    null,
+    null,
+    null
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    39933.31425,
+    38567.25653,
+    22757.35338
+   ],
+   "eye": 46366.71039,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -4002.975276773616,
+    "right": 4002.872974569091,
+    "top": 232.71563594263105,
+    "bottom": -1082.9243333318022,
+    "near": 95994.20952872183,
+    "far": 104044.40176543099,
+    "texel": 7.818211182951862
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "orbit3": {
+   "geo": {
+    "tile": "7e7c4144/68403",
+    "tileH": "5b2a9873/22801",
+    "tileSlope": "5c36713e/22801",
+    "tile-skirt": "1d91b0b6/3606",
+    "ringA": "e3140ac/77763"
+   },
+   "insp": [
+    [
+     1595.65476588,
+     8.18694103372,
+     -88.8194637599,
+     124.273201367,
+     904.882486437,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     -141.821190156,
+     -6.76075044018,
+     894.541055684
+    ],
+    [
+     1596.74424509,
+     7.65621464159,
+     -88.7952029097,
+     124.937140562,
+     320.791766655,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     278.966659131,
+     -6.02101742406,
+     158.978611274
+    ],
+    [
+     1480.75722941,
+     10.799056392,
+     -88.7650971961,
+     125.336223377,
+     928.895681285,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     546.928525258,
+     -121.907551652,
+     -751.789664796
+    ],
+    [
+     1566.83392504,
+     8.93942845577,
+     -88.824822829,
+     125.326632525,
+     1177.76677257,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     514.536694797,
+     -37.0944341801,
+     1060.6080265
+    ],
+    [
+     1554.79574586,
+     7.12412500344,
+     -88.8053045963,
+     125.814621716,
+     956.561403089,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     831.823998168,
+     -48.1199804123,
+     474.043114919
+    ],
+    [
+     1475.45915563,
+     10.5400335274,
+     -88.7829366344,
+     126.194690956,
+     1109.16995751,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     1092.2723223,
+     -127.736010701,
+     -198.215645856
+    ],
+    [
+     1540.85865686,
+     2.68920594367,
+     -88.8280642184,
+     126.004718387,
+     1493.78212926,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     933.938722216,
+     -62.5749181444,
+     1167.51986775
+    ],
+    [
+     1505.89546808,
+     8.84067648772,
+     -88.8114625218,
+     126.369497346,
+     1353.17504397,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     1176.68532537,
+     -97.7494040702,
+     670.574037473
+    ],
+    [
+     1431.78367695,
+     13.3440539094,
+     -88.7929138121,
+     126.703656889,
+     1412.06038487,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     1408.49515321,
+     -171.229353405,
+     115.512772608
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    2362.256785,
+    1267.854736,
+    1346.21214
+   ],
+   "eye": 1421.055446,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -4002.975276773616,
+    "right": 4002.872974569091,
+    "top": 232.71563594263105,
+    "bottom": -1082.9243333318022,
+    "near": 95994.20952872183,
+    "far": 104044.40176543099,
+    "texel": 7.818211182951862
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "walk": {
+   "geo": {
+    "tile": "86c7af7b/271803",
+    "tileH": "e9802639/90601",
+    "tileSlope": "16199149/90601",
+    "patch5m": "314c0d3c/482403",
+    "patch5m-skirt": "9022f9aa/9606",
+    "tile-skirt": "6e9ddf0/7206",
+    "ringA": "e3140ac/77763"
+   },
+   "insp": [
+    [
+     118.232226257,
+     7.37296451942,
+     -88.296958492,
+     140.322490347,
+     19159.2693074,
+     100,
+     "ring A (to 16 km)",
+     "LDEM_80S_80M",
+     200,
+     14079.464806,
+     -1591.1696497,
+     -12995.4357963
+    ],
+    null,
+    [
+     1571.12458214,
+     5.99284284571,
+     -88.7880845307,
+     125.125171576,
+     404.822846717,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     401.30785151,
+     -31.5935319222,
+     -55.9470424158
+    ],
+    [
+     1601.80795656,
+     6.10065079673,
+     -88.7897109537,
+     124.514777602,
+     12.8990419727,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     9.47361042602,
+     -0.916263066232,
+     -8.7717119687
+    ],
+    [
+     1602.39480819,
+     6.44678271623,
+     -88.7898588916,
+     124.514117118,
+     10.0017191012,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     9.04908499065,
+     -0.351917313645,
+     -4.28171148815
+    ],
+    [
+     1602.70958135,
+     5.22669468358,
+     -88.7899593131,
+     124.513967726,
+     9.02887384917,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     8.95258334139,
+     -0.0112640711013,
+     -1.23380929429
+    ],
+    [
+     1602.44769224,
+     3.42493864619,
+     -88.7898637325,
+     124.506946053,
+     6.07118840929,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     4.45240856619,
+     -0.243191473885,
+     -4.13562698837
+    ],
+    [
+     1602.50566444,
+     3.51962144488,
+     -88.7899198564,
+     124.508019229,
+     5.68119040345,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     5.14007417786,
+     -0.199910579715,
+     -2.43210387349
+    ],
+    [
+     1602.60499999,
+     3.7637448456,
+     -88.7899740757,
+     124.509007926,
+     5.8214786851,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     5.7735399076,
+     -0.146813530009,
+     -0.786384431501
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    0,
+    2.100048828,
+    0
+   ],
+   "eye": 2,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -4002.975276773616,
+    "right": 4002.873287828187,
+    "top": 232.71566560347384,
+    "bottom": -1082.9243333318022,
+    "near": 95994.20952872183,
+    "far": 104044.4024268165,
+    "texel": 7.818211488868949
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "rover": {
+   "geo": {
+    "tile": "86c7af7b/271803",
+    "tileH": "e9802639/90601",
+    "tileSlope": "16199149/90601",
+    "patch5m": "314c0d3c/482403",
+    "patch5m-skirt": "9022f9aa/9606",
+    "tile-skirt": "6e9ddf0/7206",
+    "ringA": "e3140ac/77763"
+   },
+   "insp": [
+    [
+     1602.00132006,
+     2.8542265338,
+     -88.7898375644,
+     124.536943294,
+     24.1650133557,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     23.6810947762,
+     -0.695245265262,
+     -4.92249902646
+    ],
+    [
+     1601.90004941,
+     4.90974739098,
+     -88.7899834263,
+     124.540633799,
+     26.0242987098,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     26.0436124239,
+     -0.792292769067,
+     -0.493801009612
+    ],
+    [
+     1601.85534274,
+     5.53671990515,
+     -88.7901344464,
+     124.544301513,
+     28.6577301084,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     28.3908330976,
+     -0.856831726851,
+     4.09159830049
+    ],
+    [
+     1602.25174199,
+     4.70689099471,
+     -88.7899581552,
+     124.53061741,
+     19.6467734133,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     19.6241751152,
+     -0.444388136966,
+     -1.2648023086
+    ],
+    [
+     1602.34604004,
+     5.03332549039,
+     -88.7900631356,
+     124.532669328,
+     21.006211512,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     20.9375332173,
+     -0.3399830407,
+     1.92221762882
+    ],
+    [
+     1602.36328634,
+     4.95589055945,
+     -88.7901637915,
+     124.534917668,
+     22.902544127,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     22.3766161555,
+     -0.336304766824,
+     4.97810607373
+    ],
+    [
+     1602.56279462,
+     5.26221696619,
+     -88.7900267116,
+     124.527057605,
+     17.34467938,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     17.3415454522,
+     -0.137282795506,
+     0.814825532127
+    ],
+    [
+     1602.62057333,
+     4.96358053526,
+     -88.7901033189,
+     124.528652976,
+     18.6123156398,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     18.3628760321,
+     -0.0795114159118,
+     3.14045563403
+    ],
+    [
+     1602.64946996,
+     5.16694541014,
+     -88.7901782164,
+     124.53027196,
+     20.1220501682,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     19.3992362993,
+     -0.050646675285,
+     5.41422808102
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    12.34513004,
+    5.301202352,
+    5.987843207
+   ],
+   "eye": 4.914274179,
+   "rover": "{\"e\":24.976969530211367,\"n\":0,\"h\":1602.0013820530944,\"slope\":4.608662951654945,\"lat\":-88.78999971968592,\"lon\":124.53900605570462,\"nearFieldSunUp\":true,\"warn\":false,\"dist\":0,\"pitch\":-4.461790644270858,\"roll\":-1.334194517367725,\"wheels\":[{\"x\":25.17395263541134,\"z\":-0.801399077010605,\"h\":1601.9879382949262,\"drawnY\":-0.7122440999373794,\"hub\":-0.46224409993737936},{\"x\":25.72996664750697,\"z\":0.3736959907831974,\"h\":1601.9368387446839,\"drawnY\":-0.7633516434580088,\"hub\":-0.5133516434580088},{\"x\":24.27003335249303,\"z\":-0.3736959907831974,\"h\":1602.0451468630415,\"drawnY\":-0.6550225368700922,\"hub\":-0.40502253687009215},{\"x\":24.82604736458866,\"z\":0.801399077010605,\"h\":1602.0356916410826,\"drawnY\":-0.6644857523497194,\"hub\":-0.4144857523497194}]}",
+   "roverReadout": "    Position from site+25 m E, +0 m N (-88.7900°, 124.5390°E)    Terrain elevation1602.0 m    Local slope4.6°    Sun over the tile terrainabove near-field estimate    Body tilt (wheels on LOLA heights)pitch -4.5°, roll -1.3°    Slope warning above  °            About this roverIllustrative model based on NASA VIPER's published dimensions. It is not a mobility simulation: ASTERIA does not predict whether a rover can traverse a slope or surface.What VIPER is: NASA's Volatiles Investigating Polar Exploration Rover, built to map the location of water ice and other potential resources at the Moon's South Pole on a 100-day mission (NASA VIPER mission page).Published facts used here (NASA: VIPER rover and instruments): 2.5 m (8 ft) tall, 1.5 m (5 ft) long and wide; four wheel modules with active suspension and independent steering; headlights; a 1 m drill (TRIDENT); instruments NSS (neutron spectrometer), NIRVSS (near-infrared volatiles spectrometer) and MSolo (mass spectrometer). NASA gives its driving speed as about 0.72 km/h; driving in this view is faster, for viewing.Approximate (not given on those pages): wheel size (drawn 0.5 m across) and tread, body sections and ground clearance, radiator, mast, camera housings and lights on the mast, solar-panel layout (drawn as vertical panels on the left, right and rear sides), wheel-module housings and suspension arms, and the positions of the drill and instruments. These follow the general appearance of NASA's published VIPER pictures, not measured drawings. No NASA images, textures or markings are used. VIPER's mass is not shown.Current status (NASA, 20 October 2026): VIPER \"will embark on a mission to the lunar South Pole region in 2027\"; it is \"currently at NASA's Johnson Space Center in Houston where it is fully built and undergoing final testing before traveling to NASA's Kennedy Space Center in Florida for launch to the Moon\", to be delivered by a Blue Origin Blue Moon Mark 1 lander. Earlier: on 19 September 2025 NASA selected Blue Origin to deliver VIPER in late 2027 (NASA release; NASA's VIPER page names Mons Mouton as the destination); on 17 July 2024 NASA had announced its intent to discontinue VIPER, citing cost increases and launch delays (NASA release).In this view: each wheel rests on the LOLA surface under it and the body's pitch and roll follow from those four heights (Calculated from the DEM at its resolution - 20 m, or 5 m in the patch - so the tilt is the DEM's slope over about one cell; real ground under a rover is rougher). No traction, slip, power, wheel-soil or obstacle physics. The slope warning only compares the DEM slope with the limit you set.  ",
+   "shadowCamera": {
+    "left": -4002.975276773616,
+    "right": 4002.873287828187,
+    "top": 232.71566560347384,
+    "bottom": -1082.9243333318022,
+    "near": 95994.20952872183,
+    "far": 104044.4024268165,
+    "texel": 7.818211488868949
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "errors": []
+ },
+ "peak_shackleton/medium": {
+  "orbit60": {
+   "geo": {
+    "tile": "322e0a28/271803",
+    "tileH": "f9c44c99/90601",
+    "tileSlope": "66105818/90601",
+    "tile-skirt": "6e9ddf0/7206",
+    "ringA": "4bf9b717/309123"
+   },
+   "insp": [
+    null,
+    [
+     1377.67190441,
+     6.02270616606,
+     -88.8538592125,
+     130.702632335,
+     4321.76641824,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     100,
+     3757.81347152,
+     -233.073512667,
+     2141.51744513
+    ],
+    [
+     -197.941848328,
+     7.75298665419,
+     -88.2599106196,
+     136.946432746,
+     18691.1277622,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     100,
+     11369.2989772,
+     -1902.31240325,
+     -14832.5393314
+    ],
+    null,
+    [
+     -253.637430265,
+     6.78405737015,
+     -88.9400824058,
+     146.851996134,
+     14067.614609,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     100,
+     12220.3163742,
+     -1912.29808208,
+     6964.16171214
+    ],
+    null,
+    null,
+    [
+     -165.961265311,
+     10.2107360455,
+     -88.9487146344,
+     154.627405243,
+     18415.7672019,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     100,
+     15998.171048,
+     -1866.36104248,
+     9117.10031597
+    ],
+    null
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    39933.31425,
+    38567.25653,
+    22757.35338
+   ],
+   "eye": 46217.12271,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -21313.30879393839,
+    "right": 21312.702966677443,
+    "top": 1007.2356279331634,
+    "bottom": -4418.911583552792,
+    "near": 78703.20543261827,
+    "far": 121460.59394924343,
+    "texel": 20.8134823049882
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "orbit3": {
+   "geo": {
+    "tile": "322e0a28/271803",
+    "tileH": "f9c44c99/90601",
+    "tileSlope": "66105818/90601",
+    "tile-skirt": "6e9ddf0/7206",
+    "ringA": "4bf9b717/309123"
+   },
+   "insp": [
+    [
+     1595.72774924,
+     8.22912910818,
+     -88.8194583713,
+     124.271783927,
+     904.863786414,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -142.708192801,
+     -7.21224888321,
+     894.381063283
+    ],
+    [
+     1596.74424638,
+     7.6567363371,
+     -88.7952040095,
+     124.937234002,
+     320.860042687,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     279.026033274,
+     -5.98471173225,
+     159.012447643
+    ],
+    [
+     1480.71761707,
+     10.7934579682,
+     -88.7650844943,
+     125.335698232,
+     929.012722329,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     546.590689256,
+     -122.166189026,
+     -752.180106876
+    ],
+    [
+     1566.7051216,
+     8.94527662733,
+     -88.8248273938,
+     125.328223542,
+     1178.33540368,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     515.524912588,
+     -36.3965070504,
+     1060.76077641
+    ],
+    [
+     1554.80177726,
+     7.12358432692,
+     -88.8053037213,
+     125.814543988,
+     956.505555699,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     831.775436272,
+     -48.1617373792,
+     474.015440276
+    ],
+    [
+     1475.44733505,
+     10.5289098527,
+     -88.7829446074,
+     126.195018718,
+     1109.32631342,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1092.47634912,
+     -127.51180485,
+     -197.967528883
+    ],
+    [
+     1540.85663228,
+     2.68879744761,
+     -88.8280643796,
+     126.004798361,
+     1493.81785441,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     933.988219335,
+     -62.5288132643,
+     1167.52606017
+    ],
+    [
+     1505.86869439,
+     8.85829621636,
+     -88.8114671316,
+     126.3699187,
+     1353.47467068,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1176.94585468,
+     -97.449312577,
+     670.722508938
+    ],
+    [
+     1431.80270182,
+     13.3378784348,
+     -88.7929096616,
+     126.703491673,
+     1411.9494926,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1408.3944628,
+     -171.381280207,
+     115.382845369
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    2362.256785,
+    1267.854736,
+    1346.21214
+   ],
+   "eye": 1421.374465,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -21313.30879393839,
+    "right": 21312.702966677443,
+    "top": 1007.2356279331634,
+    "bottom": -4418.911583552792,
+    "near": 78703.20543261827,
+    "far": 121460.59394924343,
+    "texel": 20.8134823049882
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "walk": {
+   "geo": {
+    "tile": "86c7af7b/271803",
+    "tileH": "e9802639/90601",
+    "tileSlope": "16199149/90601",
+    "patch5m": "314c0d3c/482403",
+    "patch5m-skirt": "9022f9aa/9606",
+    "tile-skirt": "6e9ddf0/7206",
+    "ringA": "4bf9b717/309123"
+   },
+   "insp": [
+    [
+     118.11082774,
+     7.52221570897,
+     -88.2971085835,
+     140.319398199,
+     19153.9327711,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     100,
+     14075.5423509,
+     -1590.72577427,
+     -12991.8153453
+    ],
+    null,
+    [
+     1571.12458214,
+     5.99284284571,
+     -88.7880845307,
+     125.125171576,
+     404.822846717,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     401.30785151,
+     -31.5935319222,
+     -55.9470424158
+    ],
+    [
+     1601.80795656,
+     6.10065079673,
+     -88.7897109537,
+     124.514777602,
+     12.8990419727,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     9.47361042602,
+     -0.916263066232,
+     -8.7717119687
+    ],
+    [
+     1602.39480819,
+     6.44678271623,
+     -88.7898588916,
+     124.514117118,
+     10.0017191012,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     9.04908499065,
+     -0.351917313645,
+     -4.28171148815
+    ],
+    [
+     1602.70958135,
+     5.22669468358,
+     -88.7899593131,
+     124.513967726,
+     9.02887384917,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     8.95258334139,
+     -0.0112640711013,
+     -1.23380929429
+    ],
+    [
+     1602.44769224,
+     3.42493864619,
+     -88.7898637325,
+     124.506946053,
+     6.07118840929,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     4.45240856619,
+     -0.243191473885,
+     -4.13562698837
+    ],
+    [
+     1602.50566444,
+     3.51962144488,
+     -88.7899198564,
+     124.508019229,
+     5.68119040345,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     5.14007417786,
+     -0.199910579715,
+     -2.43210387349
+    ],
+    [
+     1602.60499999,
+     3.7637448456,
+     -88.7899740757,
+     124.509007926,
+     5.8214786851,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     5.7735399076,
+     -0.146813530009,
+     -0.786384431501
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    0,
+    2.100048828,
+    0
+   ],
+   "eye": 2,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -21313.30879393839,
+    "right": 21312.702966677443,
+    "top": 1007.2356279331634,
+    "bottom": -4418.911583552792,
+    "near": 78703.20543261827,
+    "far": 121460.59394924343,
+    "texel": 20.8134823049882
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "rover": {
+   "geo": {
+    "tile": "86c7af7b/271803",
+    "tileH": "e9802639/90601",
+    "tileSlope": "16199149/90601",
+    "patch5m": "314c0d3c/482403",
+    "patch5m-skirt": "9022f9aa/9606",
+    "tile-skirt": "6e9ddf0/7206",
+    "ringA": "4bf9b717/309123"
+   },
+   "insp": [
+    [
+     1602.00132006,
+     2.8542265338,
+     -88.7898375644,
+     124.536943294,
+     24.1650133557,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     23.6810947762,
+     -0.695245265262,
+     -4.92249902646
+    ],
+    [
+     1601.90004941,
+     4.90974739098,
+     -88.7899834263,
+     124.540633799,
+     26.0242987098,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     26.0436124239,
+     -0.792292769067,
+     -0.493801009612
+    ],
+    [
+     1601.85534274,
+     5.53671990515,
+     -88.7901344464,
+     124.544301513,
+     28.6577301084,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     28.3908330976,
+     -0.856831726851,
+     4.09159830049
+    ],
+    [
+     1602.25174199,
+     4.70689099471,
+     -88.7899581552,
+     124.53061741,
+     19.6467734133,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     19.6241751152,
+     -0.444388136966,
+     -1.2648023086
+    ],
+    [
+     1602.34604004,
+     5.03332549039,
+     -88.7900631356,
+     124.532669328,
+     21.006211512,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     20.9375332173,
+     -0.3399830407,
+     1.92221762882
+    ],
+    [
+     1602.36328634,
+     4.95589055945,
+     -88.7901637915,
+     124.534917668,
+     22.902544127,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     22.3766161555,
+     -0.336304766824,
+     4.97810607373
+    ],
+    [
+     1602.56279462,
+     5.26221696619,
+     -88.7900267116,
+     124.527057605,
+     17.34467938,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     17.3415454522,
+     -0.137282795506,
+     0.814825532127
+    ],
+    [
+     1602.62057333,
+     4.96358053526,
+     -88.7901033189,
+     124.528652976,
+     18.6123156398,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     18.3628760321,
+     -0.0795114159118,
+     3.14045563403
+    ],
+    [
+     1602.64946996,
+     5.16694541014,
+     -88.7901782164,
+     124.53027196,
+     20.1220501682,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     19.3992362993,
+     -0.050646675285,
+     5.41422808102
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    12.34513004,
+    5.301202352,
+    5.987843207
+   ],
+   "eye": 4.914274179,
+   "rover": "{\"e\":24.976969530211367,\"n\":0,\"h\":1602.0013820530944,\"slope\":4.608662951654945,\"lat\":-88.78999971968592,\"lon\":124.53900605570462,\"nearFieldSunUp\":true,\"warn\":false,\"dist\":0,\"pitch\":-4.461790644270858,\"roll\":-1.334194517367725,\"wheels\":[{\"x\":25.17395263541134,\"z\":-0.801399077010605,\"h\":1601.9879382949262,\"drawnY\":-0.7122440999373794,\"hub\":-0.46224409993737936},{\"x\":25.72996664750697,\"z\":0.3736959907831974,\"h\":1601.9368387446839,\"drawnY\":-0.7633516434580088,\"hub\":-0.5133516434580088},{\"x\":24.27003335249303,\"z\":-0.3736959907831974,\"h\":1602.0451468630415,\"drawnY\":-0.6550225368700922,\"hub\":-0.40502253687009215},{\"x\":24.82604736458866,\"z\":0.801399077010605,\"h\":1602.0356916410826,\"drawnY\":-0.6644857523497194,\"hub\":-0.4144857523497194}]}",
+   "roverReadout": "    Position from site+25 m E, +0 m N (-88.7900°, 124.5390°E)    Terrain elevation1602.0 m    Local slope4.6°    Sun over the tile terrainabove near-field estimate    Body tilt (wheels on LOLA heights)pitch -4.5°, roll -1.3°    Slope warning above  °            About this roverIllustrative model based on NASA VIPER's published dimensions. It is not a mobility simulation: ASTERIA does not predict whether a rover can traverse a slope or surface.What VIPER is: NASA's Volatiles Investigating Polar Exploration Rover, built to map the location of water ice and other potential resources at the Moon's South Pole on a 100-day mission (NASA VIPER mission page).Published facts used here (NASA: VIPER rover and instruments): 2.5 m (8 ft) tall, 1.5 m (5 ft) long and wide; four wheel modules with active suspension and independent steering; headlights; a 1 m drill (TRIDENT); instruments NSS (neutron spectrometer), NIRVSS (near-infrared volatiles spectrometer) and MSolo (mass spectrometer). NASA gives its driving speed as about 0.72 km/h; driving in this view is faster, for viewing.Approximate (not given on those pages): wheel size (drawn 0.5 m across) and tread, body sections and ground clearance, radiator, mast, camera housings and lights on the mast, solar-panel layout (drawn as vertical panels on the left, right and rear sides), wheel-module housings and suspension arms, and the positions of the drill and instruments. These follow the general appearance of NASA's published VIPER pictures, not measured drawings. No NASA images, textures or markings are used. VIPER's mass is not shown.Current status (NASA, 20 October 2026): VIPER \"will embark on a mission to the lunar South Pole region in 2027\"; it is \"currently at NASA's Johnson Space Center in Houston where it is fully built and undergoing final testing before traveling to NASA's Kennedy Space Center in Florida for launch to the Moon\", to be delivered by a Blue Origin Blue Moon Mark 1 lander. Earlier: on 19 September 2025 NASA selected Blue Origin to deliver VIPER in late 2027 (NASA release; NASA's VIPER page names Mons Mouton as the destination); on 17 July 2024 NASA had announced its intent to discontinue VIPER, citing cost increases and launch delays (NASA release).In this view: each wheel rests on the LOLA surface under it and the body's pitch and roll follow from those four heights (Calculated from the DEM at its resolution - 20 m, or 5 m in the patch - so the tilt is the DEM's slope over about one cell; real ground under a rover is rougher). No traction, slip, power, wheel-soil or obstacle physics. The slope warning only compares the DEM slope with the limit you set.  ",
+   "shadowCamera": {
+    "left": -21313.30879393839,
+    "right": 21312.702966677443,
+    "top": 1007.2356279331634,
+    "bottom": -4418.911583552792,
+    "near": 78703.20543261827,
+    "far": 121460.59394924343,
+    "texel": 20.8134823049882
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "errors": []
+ },
+ "peak_shackleton/high": {
+  "orbit60": {
+   "geo": {
+    "tile": "86c7af7b/271803",
+    "tileH": "e9802639/90601",
+    "tileSlope": "16199149/90601",
+    "patch5m": "314c0d3c/482403",
+    "patch5m-skirt": "9022f9aa/9606",
+    "tile-skirt": "6e9ddf0/7206",
+    "ringA": "b4a35f1d/1232643",
+    "ringA-skirt": "820ac21f/15366",
+    "ringB": "efcf1455/482403"
+   },
+   "insp": [
+    [
+     1095.73658744,
+     10.2310616907,
+     -89.3421217439,
+     108.609816032,
+     18336.7090692,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_85S_20M",
+     200,
+     -5465.27001163,
+     -606.974554749,
+     17515.0640207
+    ],
+    [
+     1377.63134035,
+     5.90743394149,
+     -88.8538869828,
+     130.705829107,
+     4323.88034793,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     50,
+     3759.65146026,
+     -231.00206508,
+     2142.56488534
+    ],
+    [
+     -197.91014466,
+     7.71547899561,
+     -88.2599271665,
+     136.947074127,
+     18690.9229779,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     50,
+     11369.7677282,
+     -1901.54817811,
+     -14831.9224609
+    ],
+    [
+     -1141.82058528,
+     31.5119717652,
+     -89.4570184683,
+     137.060837587,
+     20928.8610671,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_85S_20M",
+     200,
+     3578.34197901,
+     -2868.78962204,
+     20606.2125274
+    ],
+    [
+     -253.566942073,
+     6.82964073865,
+     -88.9400800777,
+     146.851017848,
+     14067.0613445,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     50,
+     12219.8362683,
+     -1912.89926073,
+     6963.88810754
+    ],
+    [
+     -352.875598412,
+     6.97161845969,
+     -88.4205564233,
+     149.110732851,
+     21088.2487322,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_85S_20M",
+     200,
+     19938.941479,
+     -2083.10246681,
+     -6852.03529201
+    ],
+    [
+     528.71281349,
+     14.1059778281,
+     -89.3734640675,
+     168.825524686,
+     26642.22033,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_85S_20M",
+     200,
+     13278.7917922,
+     -1279.68472164,
+     23105.3672703
+    ],
+    [
+     -499.385846224,
+     18.377008681,
+     -88.9394133829,
+     161.791048546,
+     22426.1992479,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_85S_20M",
+     200,
+     19478.2038559,
+     -2246.74565199,
+     11100.3150296
+    ],
+    [
+     -59.8445445238,
+     14.6527742992,
+     -88.4897586987,
+     159.78754342,
+     26462.2271606,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_85S_20M",
+     200,
+     26451.2220457,
+     -1866.70416272,
+     -692.774506464
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    39933.31425,
+    38567.35663,
+    22757.35338
+   ],
+   "eye": 46217.22281,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -21313.299691051103,
+    "right": 21312.71596209618,
+    "top": 1008.1206544506178,
+    "bottom": -4428.562025898667,
+    "near": 46775.46961879725,
+    "far": 153508.76957770044,
+    "texel": 10.40674210281916
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "orbit3": {
+   "geo": {
+    "tile": "86c7af7b/271803",
+    "tileH": "e9802639/90601",
+    "tileSlope": "16199149/90601",
+    "patch5m": "314c0d3c/482403",
+    "patch5m-skirt": "9022f9aa/9606",
+    "tile-skirt": "6e9ddf0/7206",
+    "ringA": "b4a35f1d/1232643",
+    "ringA-skirt": "820ac21f/15366",
+    "ringB": "efcf1455/482403"
+   },
+   "insp": [
+    [
+     1595.86357976,
+     11.7089097469,
+     -88.8194588449,
+     124.271909147,
+     904.865328073,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     -142.629844585,
+     -7.07227073843,
+     894.395195281
+    ],
+    [
+     1596.7472803,
+     10.2207351935,
+     -88.795201644,
+     124.937033034,
+     320.713196909,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     278.898333863,
+     -5.96269882587,
+     158.939673803
+    ],
+    [
+     1480.81200249,
+     9.93927675207,
+     -88.7650803678,
+     125.335527514,
+     929.050761332,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     546.480894089,
+     -122.150147344,
+     -752.306998779
+    ],
+    [
+     1566.72071754,
+     8.94456025452,
+     -88.8248268401,
+     125.328030549,
+     1178.26639727,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     515.40504012,
+     -36.3810691196,
+     1060.74224759
+    ],
+    [
+     1554.14749591,
+     6.33736530485,
+     -88.8052877436,
+     125.813124619,
+     955.485733517,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     830.888288284,
+     -48.8244725193,
+     473.509868909
+    ],
+    [
+     1475.45266657,
+     10.5339044079,
+     -88.7829410429,
+     126.194872184,
+     1109.25640211,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1092.38513421,
+     -127.511943607,
+     -198.078455316
+    ],
+    [
+     1540.8608231,
+     2.6896434956,
+     -88.828064046,
+     126.00463283,
+     1493.74391156,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     933.885770426,
+     -62.5241432793,
+     1167.51324312
+    ],
+    [
+     1505.87705387,
+     8.85276679607,
+     -88.8114656891,
+     126.369786847,
+     1353.38091001,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1176.86432855,
+     -97.44312105,
+     670.676048505
+    ],
+    [
+     1431.81361483,
+     13.3342845564,
+     -88.7929072769,
+     126.703396749,
+     1411.88578412,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1408.33661109,
+     -171.368472164,
+     115.308195615
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    2362.256785,
+    1267.954834,
+    1346.21214
+   ],
+   "eye": 1421.474563,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -21313.299691051103,
+    "right": 21312.71596209618,
+    "top": 1008.1206544506178,
+    "bottom": -4428.562025898667,
+    "near": 46775.46961879725,
+    "far": 153508.76957770044,
+    "texel": 10.40674210281916
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "walk": {
+   "geo": {
+    "tile": "86c7af7b/271803",
+    "tileH": "e9802639/90601",
+    "tileSlope": "16199149/90601",
+    "patch5m": "314c0d3c/482403",
+    "patch5m-skirt": "9022f9aa/9606",
+    "tile-skirt": "6e9ddf0/7206",
+    "ringA": "b4a35f1d/1232643",
+    "ringA-skirt": "820ac21f/15366",
+    "ringB": "efcf1455/482403"
+   },
+   "insp": [
+    [
+     117.985037193,
+     7.58098131216,
+     -88.297133549,
+     140.318883804,
+     19153.0451003,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     50,
+     14074.8890407,
+     -1590.65184395,
+     -12991.2123359
+    ],
+    [
+     -367.402769908,
+     8.74772396598,
+     -88.278156812,
+     149.746277202,
+     24633.1243374,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_85S_20M",
+     200,
+     22260.9016554,
+     -2143.80300833,
+     -10533.0824556
+    ],
+    [
+     1571.12458214,
+     5.99284284571,
+     -88.7880845307,
+     125.125171576,
+     404.822846717,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     401.30785151,
+     -31.5935319222,
+     -55.9470424158
+    ],
+    [
+     1601.80795656,
+     6.10065079673,
+     -88.7897109537,
+     124.514777602,
+     12.8990419727,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     9.47361042602,
+     -0.916263066232,
+     -8.7717119687
+    ],
+    [
+     1602.39480819,
+     6.44678271623,
+     -88.7898588916,
+     124.514117118,
+     10.0017191012,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     9.04908499065,
+     -0.351917313645,
+     -4.28171148815
+    ],
+    [
+     1602.70958135,
+     5.22669468358,
+     -88.7899593131,
+     124.513967726,
+     9.02887384917,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     8.95258334139,
+     -0.0112640711013,
+     -1.23380929429
+    ],
+    [
+     1602.44769224,
+     3.42493864619,
+     -88.7898637325,
+     124.506946053,
+     6.07118840929,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     4.45240856619,
+     -0.243191473885,
+     -4.13562698837
+    ],
+    [
+     1602.50566444,
+     3.51962144488,
+     -88.7899198564,
+     124.508019229,
+     5.68119040345,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     5.14007417786,
+     -0.199910579715,
+     -2.43210387349
+    ],
+    [
+     1602.60499999,
+     3.7637448456,
+     -88.7899740757,
+     124.509007926,
+     5.8214786851,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     5.7735399076,
+     -0.146813530009,
+     -0.786384431501
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    0,
+    2.100048828,
+    0
+   ],
+   "eye": 2,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -21313.299691051103,
+    "right": 21312.71596209618,
+    "top": 1008.1206544506178,
+    "bottom": -4428.562025898667,
+    "near": 46775.46961879725,
+    "far": 153508.76957770044,
+    "texel": 10.40674210281916
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "rover": {
+   "geo": {
+    "tile": "86c7af7b/271803",
+    "tileH": "e9802639/90601",
+    "tileSlope": "16199149/90601",
+    "patch5m": "314c0d3c/482403",
+    "patch5m-skirt": "9022f9aa/9606",
+    "tile-skirt": "6e9ddf0/7206",
+    "ringA": "b4a35f1d/1232643",
+    "ringA-skirt": "820ac21f/15366",
+    "ringB": "efcf1455/482403"
+   },
+   "insp": [
+    [
+     1602.00132006,
+     2.8542265338,
+     -88.7898375644,
+     124.536943294,
+     24.1650133557,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     23.6810947762,
+     -0.695245265262,
+     -4.92249902646
+    ],
+    [
+     1601.90004941,
+     4.90974739098,
+     -88.7899834263,
+     124.540633799,
+     26.0242987098,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     26.0436124239,
+     -0.792292769067,
+     -0.493801009612
+    ],
+    [
+     1601.85534274,
+     5.53671990515,
+     -88.7901344464,
+     124.544301513,
+     28.6577301084,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     28.3908330976,
+     -0.856831726851,
+     4.09159830049
+    ],
+    [
+     1602.25174199,
+     4.70689099471,
+     -88.7899581552,
+     124.53061741,
+     19.6467734133,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     19.6241751152,
+     -0.444388136966,
+     -1.2648023086
+    ],
+    [
+     1602.34604004,
+     5.03332549039,
+     -88.7900631356,
+     124.532669328,
+     21.006211512,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     20.9375332173,
+     -0.3399830407,
+     1.92221762882
+    ],
+    [
+     1602.36328634,
+     4.95589055945,
+     -88.7901637915,
+     124.534917668,
+     22.902544127,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     22.3766161555,
+     -0.336304766824,
+     4.97810607373
+    ],
+    [
+     1602.56279462,
+     5.26221696619,
+     -88.7900267116,
+     124.527057605,
+     17.34467938,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     17.3415454522,
+     -0.137282795506,
+     0.814825532127
+    ],
+    [
+     1602.62057333,
+     4.96358053526,
+     -88.7901033189,
+     124.528652976,
+     18.6123156398,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     18.3628760321,
+     -0.0795114159118,
+     3.14045563403
+    ],
+    [
+     1602.64946996,
+     5.16694541014,
+     -88.7901782164,
+     124.53027196,
+     20.1220501682,
+     5,
+     "5 m patch",
+     "LDEM_875S_5M",
+     5,
+     19.3992362993,
+     -0.050646675285,
+     5.41422808102
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth hidden",
+    "Sun el +2.57° · az 334.7° · terrain horizon -1.4° · disk 0.531°",
+    "Earth el -2.89° · az 243.4° · terrain horizon +4.5° · disk 1.88° · 51% lit (phase)",
+    "tile on-sun",
+    "tile off",
+    "2028-09-25 10:04 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    -0.42727363333,
+    0.0448014973632,
+    -0.903011665537
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    -0.893144940045,
+    -0.0504955639413,
+    0.446925401039
+   ],
+   "earthAzEl": {
+    "az": 243.4168390981407,
+    "el": -2.8944136180254176
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853489040000,
+    "sunUp": true,
+    "earthUp": false,
+    "sun": {
+     "az": 334.678119699727,
+     "el": 2.567796206163015,
+     "radius_deg": 0.2657406034108002
+    },
+    "earth": {
+     "az": 243.41683909814074,
+     "el": -2.894413618025417,
+     "radius_deg": 0.9421939003810056
+    }
+   },
+   "camera": [
+    12.34513004,
+    5.301202352,
+    5.987843207
+   ],
+   "eye": 4.914274179,
+   "rover": "{\"e\":24.976969530211367,\"n\":0,\"h\":1602.0013820530944,\"slope\":4.608662951654945,\"lat\":-88.78999971968592,\"lon\":124.53900605570462,\"nearFieldSunUp\":true,\"warn\":false,\"dist\":0,\"pitch\":-4.461790644270858,\"roll\":-1.334194517367725,\"wheels\":[{\"x\":25.17395263541134,\"z\":-0.801399077010605,\"h\":1601.9879382949262,\"drawnY\":-0.7122440999373794,\"hub\":-0.46224409993737936},{\"x\":25.72996664750697,\"z\":0.3736959907831974,\"h\":1601.9368387446839,\"drawnY\":-0.7633516434580088,\"hub\":-0.5133516434580088},{\"x\":24.27003335249303,\"z\":-0.3736959907831974,\"h\":1602.0451468630415,\"drawnY\":-0.6550225368700922,\"hub\":-0.40502253687009215},{\"x\":24.82604736458866,\"z\":0.801399077010605,\"h\":1602.0356916410826,\"drawnY\":-0.6644857523497194,\"hub\":-0.4144857523497194}]}",
+   "roverReadout": "    Position from site+25 m E, +0 m N (-88.7900°, 124.5390°E)    Terrain elevation1602.0 m    Local slope4.6°    Sun over the tile terrainabove near-field estimate    Body tilt (wheels on LOLA heights)pitch -4.5°, roll -1.3°    Slope warning above  °            About this roverIllustrative model based on NASA VIPER's published dimensions. It is not a mobility simulation: ASTERIA does not predict whether a rover can traverse a slope or surface.What VIPER is: NASA's Volatiles Investigating Polar Exploration Rover, built to map the location of water ice and other potential resources at the Moon's South Pole on a 100-day mission (NASA VIPER mission page).Published facts used here (NASA: VIPER rover and instruments): 2.5 m (8 ft) tall, 1.5 m (5 ft) long and wide; four wheel modules with active suspension and independent steering; headlights; a 1 m drill (TRIDENT); instruments NSS (neutron spectrometer), NIRVSS (near-infrared volatiles spectrometer) and MSolo (mass spectrometer). NASA gives its driving speed as about 0.72 km/h; driving in this view is faster, for viewing.Approximate (not given on those pages): wheel size (drawn 0.5 m across) and tread, body sections and ground clearance, radiator, mast, camera housings and lights on the mast, solar-panel layout (drawn as vertical panels on the left, right and rear sides), wheel-module housings and suspension arms, and the positions of the drill and instruments. These follow the general appearance of NASA's published VIPER pictures, not measured drawings. No NASA images, textures or markings are used. VIPER's mass is not shown.Current status (NASA, 20 October 2026): VIPER \"will embark on a mission to the lunar South Pole region in 2027\"; it is \"currently at NASA's Johnson Space Center in Houston where it is fully built and undergoing final testing before traveling to NASA's Kennedy Space Center in Florida for launch to the Moon\", to be delivered by a Blue Origin Blue Moon Mark 1 lander. Earlier: on 19 September 2025 NASA selected Blue Origin to deliver VIPER in late 2027 (NASA release; NASA's VIPER page names Mons Mouton as the destination); on 17 July 2024 NASA had announced its intent to discontinue VIPER, citing cost increases and launch delays (NASA release).In this view: each wheel rests on the LOLA surface under it and the body's pitch and roll follow from those four heights (Calculated from the DEM at its resolution - 20 m, or 5 m in the patch - so the tilt is the DEM's slope over about one cell; real ground under a rover is rougher). No traction, slip, power, wheel-soil or obstacle physics. The slope warning only compares the DEM slope with the limit you set.  ",
+   "shadowCamera": {
+    "left": -21313.299691051103,
+    "right": 21312.71596209618,
+    "top": 1008.1206544506178,
+    "bottom": -4428.562025898667,
+    "near": 46775.46961879725,
+    "far": 153508.76957770044,
+    "texel": 10.40674210281916
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth (below horizon)"
+  },
+  "errors": []
+ },
+ "mons_malapert/low": {
+  "orbit60": {
+   "geo": {
+    "tile": "fe770ffc/68403",
+    "tileH": "983d3cfa/22801",
+    "tileSlope": "65c53d17/22801",
+    "tile-skirt": "5ad6b192/3606",
+    "ringA": "cafa9af5/77763"
+   },
+   "insp": [
+    null,
+    [
+     4010.22217128,
+     21.3157630351,
+     -86.0787397772,
+     -2.61393601317,
+     3590.61043194,
+     100,
+     "ring A (to 16 km)",
+     "LDEM_80S_80M",
+     200,
+     -1961.8478116,
+     -909.897545702,
+     3017.15145202
+    ],
+    [
+     2182.53430091,
+     12.8196949075,
+     -86.3288294952,
+     6.09422527153,
+     18982.316575,
+     100,
+     "ring A (to 16 km)",
+     "LDEM_80S_80M",
+     200,
+     15047.8778188,
+     -2837.88324935,
+     11609.5307824
+    ],
+    null,
+    [
+     1735.86451474,
+     23.9248934562,
+     -86.3322974633,
+     -5.32921874791,
+     13012.2713387,
+     100,
+     "ring A (to 16 km)",
+     "LDEM_80S_80M",
+     200,
+     -7100.33447822,
+     -3232.46695664,
+     10919.6974172
+    ],
+    [
+     4910.15328796,
+     11.8869205058,
+     -85.9676292119,
+     -1.81155531048,
+     481.194916207,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     12901.7994762,
+     -3028.89593245,
+     16018.1309616
+    ],
+    null,
+    [
+     4747.35509155,
+     9.00964524205,
+     -85.9554750835,
+     -1.44419270579,
+     885.935542744,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     -10413.1948201,
+     -3402.41115985,
+     16014.5887396
+    ],
+    null
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    -25055.3965,
+    38567.23668,
+    38533.02254
+   ],
+   "eye": 49739.85984,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -3919.2702749433383,
+    "right": 3919.477914096603,
+    "top": 290.0344129532541,
+    "bottom": -1209.5842998013832,
+    "near": 96076.42526749786,
+    "far": 103972.33502413247,
+    "texel": 7.655027528359318
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "orbit3": {
+   "geo": {
+    "tile": "fe770ffc/68403",
+    "tileH": "983d3cfa/22801",
+    "tileSlope": "65c53d17/22801",
+    "tile-skirt": "5ad6b192/3606",
+    "ringA": "cafa9af5/77763"
+   },
+   "insp": [
+    [
+     4966.95962243,
+     6.68663710166,
+     -85.9771225505,
+     -2.09712959257,
+     912.49940498,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     -911.233998348,
+     49.8113130494,
+     -84.1151530024
+    ],
+    [
+     4918.21322964,
+     10.4262778481,
+     -85.989288967,
+     -1.75639810599,
+     336.14696106,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     -183.760815246,
+     2.46563577093,
+     282.608165263
+    ],
+    [
+     4850.475869,
+     9.98434270562,
+     -86.0015571102,
+     -1.37239545637,
+     908.518217083,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     631.017295833,
+     -66.6844721334,
+     657.143528122
+    ],
+    [
+     4865.14083287,
+     13.9957202556,
+     -85.9939992257,
+     -2.1804541259,
+     1163.44499626,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     -1084.36897816,
+     -52.1591710288,
+     430.510660436
+    ],
+    [
+     4817.13739879,
+     16.8686664335,
+     -86.0044644183,
+     -1.89859473935,
+     886.026144922,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     -484.334098361,
+     -99.639106838,
+     744.863755251
+    ],
+    [
+     4753.1812209,
+     13.6067299544,
+     -86.0152543251,
+     -1.58716825022,
+     1083.30873345,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     175.020214538,
+     -163.220412856,
+     1072.08003862
+    ],
+    [
+     4777.36283554,
+     15.6425420708,
+     -86.0054798131,
+     -2.23878501114,
+     1431.67388721,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     -1204.76088155,
+     -140.881342401,
+     780.723071868
+    ],
+    [
+     4748.76596224,
+     10.646806327,
+     -86.0153184736,
+     -2.00110549764,
+     1279.87034643,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     -699.596166434,
+     -168.802084363,
+     1075.91810994
+    ],
+    [
+     4699.09143094,
+     13.6359298502,
+     -86.025074782,
+     -1.74394473723,
+     1375.72722633,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     40,
+     -155.853037705,
+     -218.186351818,
+     1370.61538319
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    -1482.152972,
+    1267.834883,
+    2279.422473
+   ],
+   "eye": 1862.559975,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -3919.2702749433383,
+    "right": 3919.477914096603,
+    "top": 290.0344129532541,
+    "bottom": -1209.5842998013832,
+    "near": 96076.42526749786,
+    "far": 103972.33502413247,
+    "texel": 7.655027528359318
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "walk": {
+   "geo": {
+    "tile": "239b5e7e/271803",
+    "tileH": "d94c12b1/90601",
+    "tileSlope": "a36982d2/90601",
+    "tile-skirt": "8d1e3d7b/7206",
+    "ringA": "cafa9af5/77763"
+   },
+   "insp": [
+    [
+     4917.56966627,
+     8.64947683852,
+     -85.980269178,
+     -1.66685115777,
+     10.5559879897,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     6.71233454888,
+     1.09982747631,
+     8.185665571
+    ],
+    [
+     4917.76841726,
+     9.59652833397,
+     -85.9802658684,
+     -1.6684701981,
+     8.69318187708,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     3.26105629694,
+     1.22046554857,
+     8.08488362483
+    ],
+    [
+     4917.91799159,
+     10.3452169157,
+     -85.9802633551,
+     -1.66969895438,
+     8.01140778097,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     0.641734998435,
+     1.31202141498,
+     8.00841422536
+    ],
+    [
+     4917.17591512,
+     9.1025394171,
+     -85.980149745,
+     -1.66824275321,
+     5.87984296212,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     3.74600398407,
+     0.602533917641,
+     4.55367744539
+    ],
+    [
+     4917.30971083,
+     9.6283340518,
+     -85.9801575234,
+     -1.66909363939,
+     5.15058170015,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1.93212712004,
+     0.715002574492,
+     4.7901727206
+    ],
+    [
+     4917.42515004,
+     10.0872774353,
+     -85.9801641271,
+     -1.66981607697,
+     4.99221696283,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     0.392075867661,
+     0.810491921613,
+     4.99097013795
+    ],
+    [
+     4917.00696983,
+     9.27166984687,
+     -85.9801033214,
+     -1.66878363596,
+     4.06226275114,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     2.59300894762,
+     0.409235378727,
+     3.14194521935
+    ],
+    [
+     4917.10787923,
+     9.63696903299,
+     -85.9801115594,
+     -1.66935811583,
+     3.6476812398,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1.36834700284,
+     0.50056450977,
+     3.39243645892
+    ],
+    [
+     4917.1991107,
+     9.96874704021,
+     -85.9801188918,
+     -1.66986946796,
+     3.615861559,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     0.278263300748,
+     0.581856947159,
+     3.61540258691
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    0,
+    1.980097656,
+    0
+   ],
+   "eye": 2,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -3919.270457594328,
+    "right": 3919.477914096603,
+    "top": 290.4165844956624,
+    "bottom": -1209.58432371793,
+    "near": 96076.40460252513,
+    "far": 103972.33502413247,
+    "texel": 7.655027706729425
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "rover": {
+   "geo": {
+    "tile": "239b5e7e/271803",
+    "tileH": "d94c12b1/90601",
+    "tileSlope": "a36982d2/90601",
+    "tile-skirt": "8d1e3d7b/7206",
+    "ringA": "cafa9af5/77763"
+   },
+   "insp": [
+    [
+     4916.44851693,
+     6.44588848969,
+     -85.9799543014,
+     -1.65607528214,
+     29.6338749597,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     29.6853911284,
+     -0.218456216389,
+     -1.38605753685
+    ],
+    [
+     4916.31197551,
+     6.27138886731,
+     -85.9800208461,
+     -1.65815246111,
+     25.1934702127,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     25.2567406103,
+     -0.306560402503,
+     0.636517056877
+    ],
+    [
+     4916.17846053,
+     5.95658606852,
+     -85.9800931688,
+     -1.6602904387,
+     20.8328870582,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     20.698598301,
+     -0.440758948447,
+     2.83493333231
+    ],
+    [
+     4915.9328477,
+     5.85988087474,
+     -85.9798574613,
+     -1.65713407729,
+     27.6903921062,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     27.4288516849,
+     -0.864965497283,
+     -4.33140803429
+    ],
+    [
+     4915.83924757,
+     5.80739580901,
+     -85.9799083194,
+     -1.65880025675,
+     23.9705443321,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     23.8764220449,
+     -0.927117322804,
+     -2.78559956764
+    ],
+    [
+     4915.69783677,
+     5.78511358956,
+     -85.979956846,
+     -1.6605008173,
+     20.2359099092,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     20.250798516,
+     -0.934049630072,
+     -1.31060024914
+    ],
+    [
+     4915.61151607,
+     5.44671064627,
+     -85.9797926519,
+     -1.65784428768,
+     26.5952969414,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     25.9151669636,
+     -1.26915357052,
+     -6.30253712666
+    ],
+    [
+     4915.53252453,
+     5.36530618143,
+     -85.9798304714,
+     -1.65924839108,
+     23.4273163292,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     22.921495999,
+     -1.22564909211,
+     -5.15307355409
+    ],
+    [
+     4915.44202442,
+     5.32147532384,
+     -85.9798676007,
+     -1.66063491244,
+     20.3094913797,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     19.965367828,
+     -1.17782057705,
+     -4.02452176339
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    19.76303083,
+    5.598677447,
+    -12.98361097
+   ],
+   "eye": 7.572422725,
+   "rover": "{\"e\":24.929458574396822,\"n\":0,\"h\":4916.218856805568,\"slope\":6.310591122241513,\"lat\":-85.97999991607304,\"lon\":-1.65827295441769,\"nearFieldSunUp\":true,\"warn\":false,\"dist\":0,\"pitch\":8.8982477620301,\"roll\":-1.618469539842956,\"wheels\":[{\"x\":25.789845122765488,\"z\":0.22055539450117706,\"h\":4916.311107302259,\"drawnY\":-0.3090835828334093,\"hub\":-0.05908358283340931},{\"x\":24.58422410393634,\"z\":0.7068453892135536,\"h\":4916.264679648717,\"drawnY\":-0.3554939376190305,\"hub\":-0.10549393761903048},{\"x\":25.41577589606366,\"z\":-0.7068453892135536,\"h\":4916.144846839106,\"drawnY\":-0.4753386788070202,\"hub\":-0.2253386788070202},{\"x\":24.210154877234512,\"z\":-0.22055539450117706,\"h\":4916.1178111341005,\"drawnY\":-0.5023570847697556,\"hub\":-0.2523570847697556}]}",
+   "roverReadout": "    Position from site+25 m E, +0 m N (-85.9800°, -1.6583°E)    Terrain elevation4916.2 m    Local slope6.3°    Sun over the tile terrainabove near-field estimate    Body tilt (wheels on LOLA heights)pitch +8.9°, roll -1.6°    Slope warning above  °            About this roverIllustrative model based on NASA VIPER's published dimensions. It is not a mobility simulation: ASTERIA does not predict whether a rover can traverse a slope or surface.What VIPER is: NASA's Volatiles Investigating Polar Exploration Rover, built to map the location of water ice and other potential resources at the Moon's South Pole on a 100-day mission (NASA VIPER mission page).Published facts used here (NASA: VIPER rover and instruments): 2.5 m (8 ft) tall, 1.5 m (5 ft) long and wide; four wheel modules with active suspension and independent steering; headlights; a 1 m drill (TRIDENT); instruments NSS (neutron spectrometer), NIRVSS (near-infrared volatiles spectrometer) and MSolo (mass spectrometer). NASA gives its driving speed as about 0.72 km/h; driving in this view is faster, for viewing.Approximate (not given on those pages): wheel size (drawn 0.5 m across) and tread, body sections and ground clearance, radiator, mast, camera housings and lights on the mast, solar-panel layout (drawn as vertical panels on the left, right and rear sides), wheel-module housings and suspension arms, and the positions of the drill and instruments. These follow the general appearance of NASA's published VIPER pictures, not measured drawings. No NASA images, textures or markings are used. VIPER's mass is not shown.Current status (NASA, 20 October 2026): VIPER \"will embark on a mission to the lunar South Pole region in 2027\"; it is \"currently at NASA's Johnson Space Center in Houston where it is fully built and undergoing final testing before traveling to NASA's Kennedy Space Center in Florida for launch to the Moon\", to be delivered by a Blue Origin Blue Moon Mark 1 lander. Earlier: on 19 September 2025 NASA selected Blue Origin to deliver VIPER in late 2027 (NASA release; NASA's VIPER page names Mons Mouton as the destination); on 17 July 2024 NASA had announced its intent to discontinue VIPER, citing cost increases and launch delays (NASA release).In this view: each wheel rests on the LOLA surface under it and the body's pitch and roll follow from those four heights (Calculated from the DEM at its resolution - 20 m, or 5 m in the patch - so the tilt is the DEM's slope over about one cell; real ground under a rover is rougher). No traction, slip, power, wheel-soil or obstacle physics. The slope warning only compares the DEM slope with the limit you set.  ",
+   "shadowCamera": {
+    "left": -3919.270457594328,
+    "right": 3919.477914096603,
+    "top": 290.4165844956624,
+    "bottom": -1209.58432371793,
+    "near": 96076.40460252513,
+    "far": 103972.33502413247,
+    "texel": 7.655027706729425
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "errors": []
+ },
+ "mons_malapert/medium": {
+  "orbit60": {
+   "geo": {
+    "tile": "239b5e7e/271803",
+    "tileH": "d94c12b1/90601",
+    "tileSlope": "a36982d2/90601",
+    "tile-skirt": "8d1e3d7b/7206",
+    "ringA": "741fb7cd/309123"
+   },
+   "insp": [
+    [
+     1233.88279986,
+     12.1572036816,
+     -85.5182935091,
+     -8.43806908427,
+     20651.4396862,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     100,
+     -16010.9701801,
+     -3807.27638135,
+     -13065.8586534
+    ],
+    [
+     4012.00148306,
+     20.6622723619,
+     -86.0787329549,
+     -2.61386878632,
+     3590.36096933,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     100,
+     -1961.71351412,
+     -910.127119761,
+     3016.94491417
+    ],
+    [
+     2181.79085967,
+     11.4556558729,
+     -86.3288272797,
+     6.09427018076,
+     18982.3586698,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     100,
+     15047.966962,
+     -2837.97528641,
+     11609.4709358
+    ],
+    null,
+    [
+     1735.12597161,
+     25.948562956,
+     -86.3323882357,
+     -5.33027585531,
+     13015.7036931,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     100,
+     -7102.20434106,
+     -3228.11388261,
+     10922.5731038
+    ],
+    [
+     4910.15340818,
+     11.8868889751,
+     -85.9676292633,
+     -1.81155475734,
+     481.192961752,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     12901.8015113,
+     -3029.02701907,
+     16018.1297544
+    ],
+    null,
+    [
+     4747.35537962,
+     9.00957215234,
+     -85.9554751307,
+     -1.44419313669,
+     885.933841838,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -10413.1951199,
+     -3402.36109329,
+     16014.5892008
+    ],
+    null
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    -25055.3965,
+    38567.23668,
+    38533.02254
+   ],
+   "eye": 60175.23267,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -20863.56968268536,
+    "right": 20845.251961524682,
+    "top": 1346.4862763295469,
+    "bottom": -6375.867720996218,
+    "near": 79147.3598961355,
+    "far": 121117.63499660513,
+    "texel": 20.365635568461933
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "orbit3": {
+   "geo": {
+    "tile": "239b5e7e/271803",
+    "tileH": "d94c12b1/90601",
+    "tileSlope": "a36982d2/90601",
+    "tile-skirt": "8d1e3d7b/7206",
+    "ringA": "741fb7cd/309123"
+   },
+   "insp": [
+    [
+     4966.89989752,
+     6.70993090802,
+     -85.9771380351,
+     -2.09718466357,
+     912.569469618,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -911.347950722,
+     50.0544240426,
+     -83.6434035319
+    ],
+    [
+     4918.26503999,
+     10.4216962294,
+     -85.9892443335,
+     -1.75598180457,
+     334.530985414,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -182.877418384,
+     1.60470695724,
+     281.249577655
+    ],
+    [
+     4850.4336981,
+     9.9854793386,
+     -86.0015695252,
+     -1.37262489062,
+     908.450797589,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     630.528855993,
+     -66.3760102782,
+     657.518502955
+    ],
+    [
+     4865.05928836,
+     14.0242765199,
+     -85.9940096151,
+     -2.18048752897,
+     1163.62466785,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -1084.43707653,
+     -51.9331955106,
+     430.827183682
+    ],
+    [
+     4817.19897934,
+     16.846416063,
+     -86.0044583307,
+     -1.89853743502,
+     885.805383709,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -484.213439383,
+     -99.8044655242,
+     744.678192227
+    ],
+    [
+     4753.28796482,
+     13.6553279669,
+     -86.0152402812,
+     -1.58689174533,
+     1082.98343895,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     175.605086694,
+     -163.725480399,
+     1071.65392687
+    ],
+    [
+     4777.15923268,
+     15.7187832803,
+     -86.0055087441,
+     -2.23886620135,
+     1432.2886514,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -1204.92399374,
+     -140.052988583,
+     781.604337625
+    ],
+    [
+     4748.69470518,
+     10.689347798,
+     -86.0153303189,
+     -2.00121774013,
+     1280.30040913,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -699.831216439,
+     -168.370573799,
+     1076.27959642
+    ],
+    [
+     4699.0649909,
+     13.6334096058,
+     -86.0250771182,
+     -1.74399404255,
+     1375.80944733,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -155.95686439,
+     -218.070021676,
+     1370.6865273
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    -1482.152972,
+    1267.834883,
+    2279.422473
+   ],
+   "eye": 1862.508718,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -20863.56968268536,
+    "right": 20845.251961524682,
+    "top": 1346.4862763295469,
+    "bottom": -6375.867720996218,
+    "near": 79147.3598961355,
+    "far": 121117.63499660513,
+    "texel": 20.365635568461933
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "walk": {
+   "geo": {
+    "tile": "239b5e7e/271803",
+    "tileH": "d94c12b1/90601",
+    "tileSlope": "a36982d2/90601",
+    "tile-skirt": "8d1e3d7b/7206",
+    "ringA": "741fb7cd/309123"
+   },
+   "insp": [
+    [
+     4917.56966627,
+     8.64947683852,
+     -85.980269178,
+     -1.66685115777,
+     10.5559879897,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     6.71233454888,
+     1.09982747631,
+     8.185665571
+    ],
+    [
+     4917.76841726,
+     9.59652833397,
+     -85.9802658684,
+     -1.6684701981,
+     8.69318187708,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     3.26105629694,
+     1.22046554857,
+     8.08488362483
+    ],
+    [
+     4917.91799159,
+     10.3452169157,
+     -85.9802633551,
+     -1.66969895438,
+     8.01140778097,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     0.641734998435,
+     1.31202141498,
+     8.00841422536
+    ],
+    [
+     4917.17591512,
+     9.1025394171,
+     -85.980149745,
+     -1.66824275321,
+     5.87984296212,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     3.74600398407,
+     0.602533917641,
+     4.55367744539
+    ],
+    [
+     4917.30971083,
+     9.6283340518,
+     -85.9801575234,
+     -1.66909363939,
+     5.15058170015,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1.93212712004,
+     0.715002574492,
+     4.7901727206
+    ],
+    [
+     4917.42515004,
+     10.0872774353,
+     -85.9801641271,
+     -1.66981607697,
+     4.99221696283,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     0.392075867661,
+     0.810491921613,
+     4.99097013795
+    ],
+    [
+     4917.00696983,
+     9.27166984687,
+     -85.9801033214,
+     -1.66878363596,
+     4.06226275114,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     2.59300894762,
+     0.409235378727,
+     3.14194521935
+    ],
+    [
+     4917.10787923,
+     9.63696903299,
+     -85.9801115594,
+     -1.66935811583,
+     3.6476812398,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1.36834700284,
+     0.50056450977,
+     3.39243645892
+    ],
+    [
+     4917.1991107,
+     9.96874704021,
+     -85.9801188918,
+     -1.66986946796,
+     3.615861559,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     0.278263300748,
+     0.581856947159,
+     3.61540258691
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    0,
+    1.980097656,
+    0
+   ],
+   "eye": 2,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -20863.56968268536,
+    "right": 20845.251961524682,
+    "top": 1346.4862763295469,
+    "bottom": -6375.867720996218,
+    "near": 79147.3598961355,
+    "far": 121117.63499660513,
+    "texel": 20.365635568461933
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "rover": {
+   "geo": {
+    "tile": "239b5e7e/271803",
+    "tileH": "d94c12b1/90601",
+    "tileSlope": "a36982d2/90601",
+    "tile-skirt": "8d1e3d7b/7206",
+    "ringA": "741fb7cd/309123"
+   },
+   "insp": [
+    [
+     4916.44851693,
+     6.44588848969,
+     -85.9799543014,
+     -1.65607528214,
+     29.6338749597,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     29.6853911284,
+     -0.218456216389,
+     -1.38605753685
+    ],
+    [
+     4916.31197551,
+     6.27138886731,
+     -85.9800208461,
+     -1.65815246111,
+     25.1934702127,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     25.2567406103,
+     -0.306560402503,
+     0.636517056877
+    ],
+    [
+     4916.17846053,
+     5.95658606852,
+     -85.9800931688,
+     -1.6602904387,
+     20.8328870582,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     20.698598301,
+     -0.440758948447,
+     2.83493333231
+    ],
+    [
+     4915.9328477,
+     5.85988087474,
+     -85.9798574613,
+     -1.65713407729,
+     27.6903921062,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     27.4288516849,
+     -0.864965497283,
+     -4.33140803429
+    ],
+    [
+     4915.83924757,
+     5.80739580901,
+     -85.9799083194,
+     -1.65880025675,
+     23.9705443321,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     23.8764220449,
+     -0.927117322804,
+     -2.78559956764
+    ],
+    [
+     4915.69783677,
+     5.78511358956,
+     -85.979956846,
+     -1.6605008173,
+     20.2359099092,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     20.250798516,
+     -0.934049630072,
+     -1.31060024914
+    ],
+    [
+     4915.61151607,
+     5.44671064627,
+     -85.9797926519,
+     -1.65784428768,
+     26.5952969414,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     25.9151669636,
+     -1.26915357052,
+     -6.30253712666
+    ],
+    [
+     4915.53252453,
+     5.36530618143,
+     -85.9798304714,
+     -1.65924839108,
+     23.4273163292,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     22.921495999,
+     -1.22564909211,
+     -5.15307355409
+    ],
+    [
+     4915.44202442,
+     5.32147532384,
+     -85.9798676007,
+     -1.66063491244,
+     20.3094913797,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     19.965367828,
+     -1.17782057705,
+     -4.02452176339
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    19.76303083,
+    5.598677447,
+    -12.98361097
+   ],
+   "eye": 7.572422725,
+   "rover": "{\"e\":24.929458574396822,\"n\":0,\"h\":4916.218856805568,\"slope\":6.310591122241513,\"lat\":-85.97999991607304,\"lon\":-1.65827295441769,\"nearFieldSunUp\":true,\"warn\":false,\"dist\":0,\"pitch\":8.8982477620301,\"roll\":-1.618469539842956,\"wheels\":[{\"x\":25.789845122765488,\"z\":0.22055539450117706,\"h\":4916.311107302259,\"drawnY\":-0.3090835828334093,\"hub\":-0.05908358283340931},{\"x\":24.58422410393634,\"z\":0.7068453892135536,\"h\":4916.264679648717,\"drawnY\":-0.3554939376190305,\"hub\":-0.10549393761903048},{\"x\":25.41577589606366,\"z\":-0.7068453892135536,\"h\":4916.144846839106,\"drawnY\":-0.4753386788070202,\"hub\":-0.2253386788070202},{\"x\":24.210154877234512,\"z\":-0.22055539450117706,\"h\":4916.1178111341005,\"drawnY\":-0.5023570847697556,\"hub\":-0.2523570847697556}]}",
+   "roverReadout": "    Position from site+25 m E, +0 m N (-85.9800°, -1.6583°E)    Terrain elevation4916.2 m    Local slope6.3°    Sun over the tile terrainabove near-field estimate    Body tilt (wheels on LOLA heights)pitch +8.9°, roll -1.6°    Slope warning above  °            About this roverIllustrative model based on NASA VIPER's published dimensions. It is not a mobility simulation: ASTERIA does not predict whether a rover can traverse a slope or surface.What VIPER is: NASA's Volatiles Investigating Polar Exploration Rover, built to map the location of water ice and other potential resources at the Moon's South Pole on a 100-day mission (NASA VIPER mission page).Published facts used here (NASA: VIPER rover and instruments): 2.5 m (8 ft) tall, 1.5 m (5 ft) long and wide; four wheel modules with active suspension and independent steering; headlights; a 1 m drill (TRIDENT); instruments NSS (neutron spectrometer), NIRVSS (near-infrared volatiles spectrometer) and MSolo (mass spectrometer). NASA gives its driving speed as about 0.72 km/h; driving in this view is faster, for viewing.Approximate (not given on those pages): wheel size (drawn 0.5 m across) and tread, body sections and ground clearance, radiator, mast, camera housings and lights on the mast, solar-panel layout (drawn as vertical panels on the left, right and rear sides), wheel-module housings and suspension arms, and the positions of the drill and instruments. These follow the general appearance of NASA's published VIPER pictures, not measured drawings. No NASA images, textures or markings are used. VIPER's mass is not shown.Current status (NASA, 20 October 2026): VIPER \"will embark on a mission to the lunar South Pole region in 2027\"; it is \"currently at NASA's Johnson Space Center in Houston where it is fully built and undergoing final testing before traveling to NASA's Kennedy Space Center in Florida for launch to the Moon\", to be delivered by a Blue Origin Blue Moon Mark 1 lander. Earlier: on 19 September 2025 NASA selected Blue Origin to deliver VIPER in late 2027 (NASA release; NASA's VIPER page names Mons Mouton as the destination); on 17 July 2024 NASA had announced its intent to discontinue VIPER, citing cost increases and launch delays (NASA release).In this view: each wheel rests on the LOLA surface under it and the body's pitch and roll follow from those four heights (Calculated from the DEM at its resolution - 20 m, or 5 m in the patch - so the tilt is the DEM's slope over about one cell; real ground under a rover is rougher). No traction, slip, power, wheel-soil or obstacle physics. The slope warning only compares the DEM slope with the limit you set.  ",
+   "shadowCamera": {
+    "left": -20863.56968268536,
+    "right": 20845.251961524682,
+    "top": 1346.4862763295469,
+    "bottom": -6375.867720996218,
+    "near": 79147.3598961355,
+    "far": 121117.63499660513,
+    "texel": 20.365635568461933
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "errors": []
+ },
+ "mons_malapert/high": {
+  "orbit60": {
+   "geo": {
+    "tile": "239b5e7e/271803",
+    "tileH": "d94c12b1/90601",
+    "tileSlope": "a36982d2/90601",
+    "tile-skirt": "8d1e3d7b/7206",
+    "ringA": "93d71e20/1232643",
+    "ringA-skirt": "f05dc3c1/15366",
+    "ringB": "ade6c70f/482403"
+   },
+   "insp": [
+    [
+     2535.25467232,
+     20.4326876276,
+     -85.6602297079,
+     -8.99515907916,
+     18852.2061072,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_80S_80M",
+     200,
+     -16786.9786902,
+     -2484.91428317,
+     -8638.69329348
+    ],
+    [
+     4011.59527361,
+     20.7208223561,
+     -86.0787634937,
+     -2.61416971742,
+     3591.47764532,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     50,
+     -1962.32318869,
+     -909.084915049,
+     3017.88254069
+    ],
+    [
+     2181.78940185,
+     11.4842314443,
+     -86.3288138728,
+     6.09450584758,
+     18982.5526609,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     50,
+     15048.4757775,
+     -2838.50061924,
+     11609.1293405
+    ],
+    [
+     1103.52064014,
+     4.2668243986,
+     -85.9694116065,
+     -11.4086511007,
+     20707.3804181,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_80S_80M",
+     200,
+     -20670.2695307,
+     -3935.49242554,
+     1435.30814222
+    ],
+    [
+     1734.12301306,
+     26.1245625893,
+     -86.3323261031,
+     -5.32955227084,
+     13013.3542829,
+     25,
+     "ring A (to 16 km)",
+     "LDEM_85S_20M",
+     50,
+     -7100.91828075,
+     -3231.10785387,
+     10920.5952548
+    ],
+    [
+     1475.42530241,
+     19.2949633872,
+     -86.6197742525,
+     2.12958850759,
+     20765.7483312,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_80S_80M",
+     200,
+     6794.15033933,
+     -3565.85442755,
+     19640.9765
+    ],
+    [
+     500.743798456,
+     1.61075077282,
+     -86.2174081815,
+     -13.6211813664,
+     25632.7526631,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_80S_80M",
+     200,
+     -23741.6364906,
+     -4607.34341146,
+     9680.0722301
+    ],
+    [
+     1125.45297112,
+     13.1645774331,
+     -86.5511071023,
+     -8.0892454168,
+     21436.8984557,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_80S_80M",
+     200,
+     -11693.0614072,
+     -3926.4934448,
+     17982.9123318
+    ],
+    [
+     -395.479942606,
+     13.1779232351,
+     -86.8162838402,
+     -0.888186069681,
+     25402.0376648,
+     100,
+     "ring B (to 40 km)",
+     "LDEM_80S_80M",
+     200,
+     1316.30472632,
+     -5497.26304135,
+     25361.2140352
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    -25055.3965,
+    38567.23668,
+    38533.02254
+   ],
+   "eye": 60175.23267,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -20863.566775449766,
+    "right": 20845.271391328766,
+    "top": 1347.8849363207476,
+    "bottom": -6377.166345037902,
+    "near": 47972.01579186591,
+    "far": 152532.6732652302,
+    "texel": 10.182821818061164
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "orbit3": {
+   "geo": {
+    "tile": "239b5e7e/271803",
+    "tileH": "d94c12b1/90601",
+    "tileSlope": "a36982d2/90601",
+    "tile-skirt": "8d1e3d7b/7206",
+    "ringA": "93d71e20/1232643",
+    "ringA-skirt": "f05dc3c1/15366",
+    "ringB": "ade6c70f/482403"
+   },
+   "insp": [
+    [
+     4966.89989752,
+     6.70993090802,
+     -85.9771380351,
+     -2.09718466357,
+     912.569469618,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -911.347950722,
+     50.0544240426,
+     -83.6434035319
+    ],
+    [
+     4918.26503999,
+     10.4216962294,
+     -85.9892443335,
+     -1.75598180457,
+     334.530985414,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -182.877418384,
+     1.60470695724,
+     281.249577655
+    ],
+    [
+     4850.4336981,
+     9.9854793386,
+     -86.0015695252,
+     -1.37262489062,
+     908.450797589,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     630.528855993,
+     -66.3760102782,
+     657.518502955
+    ],
+    [
+     4865.05928836,
+     14.0242765199,
+     -85.9940096151,
+     -2.18048752897,
+     1163.62466785,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -1084.43707653,
+     -51.9331955106,
+     430.827183682
+    ],
+    [
+     4817.19897934,
+     16.846416063,
+     -86.0044583307,
+     -1.89853743502,
+     885.805383709,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -484.213439383,
+     -99.8044655242,
+     744.678192227
+    ],
+    [
+     4753.28796482,
+     13.6553279669,
+     -86.0152402812,
+     -1.58689174533,
+     1082.98343895,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     175.605086694,
+     -163.725480399,
+     1071.65392687
+    ],
+    [
+     4777.15923268,
+     15.7187832803,
+     -86.0055087441,
+     -2.23886620135,
+     1432.2886514,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -1204.92399374,
+     -140.052988583,
+     781.604337625
+    ],
+    [
+     4748.69470518,
+     10.689347798,
+     -86.0153303189,
+     -2.00121774013,
+     1280.30040913,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -699.831216439,
+     -168.370573799,
+     1076.27959642
+    ],
+    [
+     4699.0649909,
+     13.6334096058,
+     -86.0250771182,
+     -1.74399404255,
+     1375.80944733,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     -155.95686439,
+     -218.070021676,
+     1370.6865273
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    -1482.152972,
+    1267.834883,
+    2279.422473
+   ],
+   "eye": 1862.508718,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -20863.566775449766,
+    "right": 20845.271391328766,
+    "top": 1347.8849363207476,
+    "bottom": -6377.166345037902,
+    "near": 47972.01579186591,
+    "far": 152532.6732652302,
+    "texel": 10.182821818061164
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "walk": {
+   "geo": {
+    "tile": "239b5e7e/271803",
+    "tileH": "d94c12b1/90601",
+    "tileSlope": "a36982d2/90601",
+    "tile-skirt": "8d1e3d7b/7206",
+    "ringA": "93d71e20/1232643",
+    "ringA-skirt": "f05dc3c1/15366",
+    "ringB": "ade6c70f/482403"
+   },
+   "insp": [
+    [
+     4917.56966627,
+     8.64947683852,
+     -85.980269178,
+     -1.66685115777,
+     10.5559879897,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     6.71233454888,
+     1.09982747631,
+     8.185665571
+    ],
+    [
+     4917.76841726,
+     9.59652833397,
+     -85.9802658684,
+     -1.6684701981,
+     8.69318187708,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     3.26105629694,
+     1.22046554857,
+     8.08488362483
+    ],
+    [
+     4917.91799159,
+     10.3452169157,
+     -85.9802633551,
+     -1.66969895438,
+     8.01140778097,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     0.641734998435,
+     1.31202141498,
+     8.00841422536
+    ],
+    [
+     4917.17591512,
+     9.1025394171,
+     -85.980149745,
+     -1.66824275321,
+     5.87984296212,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     3.74600398407,
+     0.602533917641,
+     4.55367744539
+    ],
+    [
+     4917.30971083,
+     9.6283340518,
+     -85.9801575234,
+     -1.66909363939,
+     5.15058170015,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1.93212712004,
+     0.715002574492,
+     4.7901727206
+    ],
+    [
+     4917.42515004,
+     10.0872774353,
+     -85.9801641271,
+     -1.66981607697,
+     4.99221696283,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     0.392075867661,
+     0.810491921613,
+     4.99097013795
+    ],
+    [
+     4917.00696983,
+     9.27166984687,
+     -85.9801033214,
+     -1.66878363596,
+     4.06226275114,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     2.59300894762,
+     0.409235378727,
+     3.14194521935
+    ],
+    [
+     4917.10787923,
+     9.63696903299,
+     -85.9801115594,
+     -1.66935811583,
+     3.6476812398,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     1.36834700284,
+     0.50056450977,
+     3.39243645892
+    ],
+    [
+     4917.1991107,
+     9.96874704021,
+     -85.9801188918,
+     -1.66986946796,
+     3.615861559,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     0.278263300748,
+     0.581856947159,
+     3.61540258691
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    0,
+    1.980097656,
+    0
+   ],
+   "eye": 2,
+   "rover": null,
+   "roverReadout": null,
+   "shadowCamera": {
+    "left": -20863.566775449766,
+    "right": 20845.271391328766,
+    "top": 1347.8849363207476,
+    "bottom": -6377.166345037902,
+    "near": 47972.01579186591,
+    "far": 152532.6732652302,
+    "texel": 10.182821818061164
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "rover": {
+   "geo": {
+    "tile": "239b5e7e/271803",
+    "tileH": "d94c12b1/90601",
+    "tileSlope": "a36982d2/90601",
+    "tile-skirt": "8d1e3d7b/7206",
+    "ringA": "93d71e20/1232643",
+    "ringA-skirt": "f05dc3c1/15366",
+    "ringB": "ade6c70f/482403"
+   },
+   "insp": [
+    [
+     4916.44851693,
+     6.44588848969,
+     -85.9799543014,
+     -1.65607528214,
+     29.6338749597,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     29.6853911284,
+     -0.218456216389,
+     -1.38605753685
+    ],
+    [
+     4916.31197551,
+     6.27138886731,
+     -85.9800208461,
+     -1.65815246111,
+     25.1934702127,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     25.2567406103,
+     -0.306560402503,
+     0.636517056877
+    ],
+    [
+     4916.17846053,
+     5.95658606852,
+     -85.9800931688,
+     -1.6602904387,
+     20.8328870582,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     20.698598301,
+     -0.440758948447,
+     2.83493333231
+    ],
+    [
+     4915.9328477,
+     5.85988087474,
+     -85.9798574613,
+     -1.65713407729,
+     27.6903921062,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     27.4288516849,
+     -0.864965497283,
+     -4.33140803429
+    ],
+    [
+     4915.83924757,
+     5.80739580901,
+     -85.9799083194,
+     -1.65880025675,
+     23.9705443321,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     23.8764220449,
+     -0.927117322804,
+     -2.78559956764
+    ],
+    [
+     4915.69783677,
+     5.78511358956,
+     -85.979956846,
+     -1.6605008173,
+     20.2359099092,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     20.250798516,
+     -0.934049630072,
+     -1.31060024914
+    ],
+    [
+     4915.61151607,
+     5.44671064627,
+     -85.9797926519,
+     -1.65784428768,
+     26.5952969414,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     25.9151669636,
+     -1.26915357052,
+     -6.30253712666
+    ],
+    [
+     4915.53252453,
+     5.36530618143,
+     -85.9798304714,
+     -1.65924839108,
+     23.4273163292,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     22.921495999,
+     -1.22564909211,
+     -5.15307355409
+    ],
+    [
+     4915.44202442,
+     5.32147532384,
+     -85.9798676007,
+     -1.66063491244,
+     20.3094913797,
+     20,
+     "6 km tile",
+     "LDEM_85S_20M",
+     20,
+     19.965367828,
+     -1.17782057705,
+     -4.02452176339
+    ]
+   ],
+   "tiles": [
+    "Sun up",
+    "Earth in view",
+    "Sun el +3.03° · az 68.0° · terrain horizon -1.2° · disk 0.531°",
+    "Earth el +5.46° · az 7.4° · terrain horizon -3.4° · disk 1.83° · 26% lit (phase)",
+    "tile on-sun",
+    "tile on-earth",
+    "2028-09-28 03:00 UTC"
+   ],
+   "banner": null,
+   "sunLightDir": [
+    0.926106401381,
+    0.0528154478661,
+    -0.373547134628
+   ],
+   "sunIntensity": 1.7,
+   "earthDir": [
+    0.127476370466,
+    0.0951291411571,
+    -0.98726907248
+   ],
+   "earthAzEl": {
+    "az": 7.357334939660097,
+    "el": 5.458752718513941
+   },
+   "instant": {
+    "idx": 0,
+    "t": 1853722800000,
+    "sunUp": true,
+    "earthUp": true,
+    "sun": {
+     "az": 68.03320295366483,
+     "el": 3.0275108957699217,
+     "radius_deg": 0.265583108770151
+    },
+    "earth": {
+     "az": 7.357334939660097,
+     "el": 5.45875271851394,
+     "radius_deg": 0.9135644796130911
+    }
+   },
+   "camera": [
+    19.76303083,
+    5.598677447,
+    -12.98361097
+   ],
+   "eye": 7.572422725,
+   "rover": "{\"e\":24.929458574396822,\"n\":0,\"h\":4916.218856805568,\"slope\":6.310591122241513,\"lat\":-85.97999991607304,\"lon\":-1.65827295441769,\"nearFieldSunUp\":true,\"warn\":false,\"dist\":0,\"pitch\":8.8982477620301,\"roll\":-1.618469539842956,\"wheels\":[{\"x\":25.789845122765488,\"z\":0.22055539450117706,\"h\":4916.311107302259,\"drawnY\":-0.3090835828334093,\"hub\":-0.05908358283340931},{\"x\":24.58422410393634,\"z\":0.7068453892135536,\"h\":4916.264679648717,\"drawnY\":-0.3554939376190305,\"hub\":-0.10549393761903048},{\"x\":25.41577589606366,\"z\":-0.7068453892135536,\"h\":4916.144846839106,\"drawnY\":-0.4753386788070202,\"hub\":-0.2253386788070202},{\"x\":24.210154877234512,\"z\":-0.22055539450117706,\"h\":4916.1178111341005,\"drawnY\":-0.5023570847697556,\"hub\":-0.2523570847697556}]}",
+   "roverReadout": "    Position from site+25 m E, +0 m N (-85.9800°, -1.6583°E)    Terrain elevation4916.2 m    Local slope6.3°    Sun over the tile terrainabove near-field estimate    Body tilt (wheels on LOLA heights)pitch +8.9°, roll -1.6°    Slope warning above  °            About this roverIllustrative model based on NASA VIPER's published dimensions. It is not a mobility simulation: ASTERIA does not predict whether a rover can traverse a slope or surface.What VIPER is: NASA's Volatiles Investigating Polar Exploration Rover, built to map the location of water ice and other potential resources at the Moon's South Pole on a 100-day mission (NASA VIPER mission page).Published facts used here (NASA: VIPER rover and instruments): 2.5 m (8 ft) tall, 1.5 m (5 ft) long and wide; four wheel modules with active suspension and independent steering; headlights; a 1 m drill (TRIDENT); instruments NSS (neutron spectrometer), NIRVSS (near-infrared volatiles spectrometer) and MSolo (mass spectrometer). NASA gives its driving speed as about 0.72 km/h; driving in this view is faster, for viewing.Approximate (not given on those pages): wheel size (drawn 0.5 m across) and tread, body sections and ground clearance, radiator, mast, camera housings and lights on the mast, solar-panel layout (drawn as vertical panels on the left, right and rear sides), wheel-module housings and suspension arms, and the positions of the drill and instruments. These follow the general appearance of NASA's published VIPER pictures, not measured drawings. No NASA images, textures or markings are used. VIPER's mass is not shown.Current status (NASA, 20 October 2026): VIPER \"will embark on a mission to the lunar South Pole region in 2027\"; it is \"currently at NASA's Johnson Space Center in Houston where it is fully built and undergoing final testing before traveling to NASA's Kennedy Space Center in Florida for launch to the Moon\", to be delivered by a Blue Origin Blue Moon Mark 1 lander. Earlier: on 19 September 2025 NASA selected Blue Origin to deliver VIPER in late 2027 (NASA release; NASA's VIPER page names Mons Mouton as the destination); on 17 July 2024 NASA had announced its intent to discontinue VIPER, citing cost increases and launch delays (NASA release).In this view: each wheel rests on the LOLA surface under it and the body's pitch and roll follow from those four heights (Calculated from the DEM at its resolution - 20 m, or 5 m in the patch - so the tilt is the DEM's slope over about one cell; real ground under a rover is rougher). No traction, slip, power, wheel-soil or obstacle physics. The slope warning only compares the DEM slope with the limit you set.  ",
+   "shadowCamera": {
+    "left": -20863.566775449766,
+    "right": 20845.271391328766,
+    "top": 1347.8849363207476,
+    "bottom": -6377.166345037902,
+    "near": 47972.01579186591,
+    "far": 152532.6732652302,
+    "texel": 10.182821818061164
+   },
+   "labelSun": "Sun",
+   "labelEarth": "Earth"
+  },
+  "errors": []
+ }
+}

@@ -29,7 +29,13 @@ window.AsteriaView3D = (function () {
   var HOVER = { on: false };   // round 6B: "Inspect on hover" (off by default; kept while the page stays open)
   // round 6B: cast shadows are off by default in every mode; the user's choice is kept while the page stays open
   // (this session only, not stored on the device). Display only: no status, readout or Sun/Earth position depends on it.
-  var SESSION = { shadows: false, ao: null };
+  var SESSION = { shadows: false, ao: null, cover: true };
+  // round 6E: close-range surface texture (Illustrative, display only; Walk and Rover): full strength to COVER_NEAR m from
+  // the camera, faded to zero at COVER_FAR m; octaves of the fine pattern (laptop Medium/High, Low or phones)
+  var COVER_NEAR = 60, COVER_FAR = 350, COVER_OCT = 7, COVER_OCT_LOW = 5;
+  // round 6E Part 2: wheel tracks (Illustrative): the rover's path this session, one point every WHEEL_STEP m, the last
+  // WHEEL_N points (about 250 m of path), drawn as two faint darker strips in the covering's albedo (same checkbox)
+  var WHEEL_N = 64, WHEEL_STEP = 4, WHEEL_HALF = 0.6, WHEEL_W = 0.3;
   var RELIEF_PREF = { orbit: null, walk: null, rover: null };   // round 6B: relief choice per mode (null = default)
   // round 6C: openness shading (sky-view factor from the LOLA heights; display only) in Walk and Rover. SESSION.ao = the
   // user's choice for this session (null = default AO_DEFAULT); AO_GAIN: brightness factor = 1 - AO_GAIN x (1 - SVF).
@@ -152,6 +158,8 @@ window.AsteriaView3D = (function () {
       '  <p class="fineprint" id="v3dReliefNote">Relief shading: display contrast only; heights and slopes are the LOLA data.</p>' +
       '  <div class="v3d-ctl"><label class="smallswitch"><input type="checkbox" id="v3dAO"> Openness shading (Walk and Rover)</label></div>' +
       '  <p class="fineprint" id="v3dAONote">Openness shading: display only. Ground that sees less open sky (sky-view factor calculated from the LOLA heights) is drawn darker. It does not change the Sun direction, shadows, status or any value.</p>' +
+      '  <div class="v3d-ctl" id="v3dCoverRow"><label class="smallswitch"><input type="checkbox" id="v3dCover"> Close-range surface texture (illustrative)</label></div>' +
+      '  <p class="fineprint" id="v3dCoverNote">Close-range surface texture is illustrative: fine grain and small craters are drawn for realism, not measured. Heights, slopes, readouts, shadows and the Sun direction are the LOLA data and the validated engine.</p>' +
       '  <div class="v3d-legend" id="v3dLegend" hidden></div>' +
       '  <p class="hint" id="v3dHelp"></p>' +
       '  <div class="v3d-rover" id="v3dRover" hidden>' +
@@ -199,9 +207,10 @@ window.AsteriaView3D = (function () {
       P5 ? cls('Measured') + '<b>Sharper ground near the site</b>: a 2 km × 2 km patch at 5 m from LOLA ' + esc(P5.meta.demProduct) + ' (heights within 0.05 m of direct samples; tools/terrain3d_ext.py check). The label of this product says it is made from preliminary LOLA data. The preliminary 5 m product contains a few isolated spikes that are probably data artifacts (locations in GAPS_AND_ISSUES.md); heights are shown as published.' : null,
       A ? cls('Measured') + '<b>Extended terrain</b>: real LOLA heights to ' + km + ' km from the site: ' + esc((s.gridA || A).meta.demProduct) + ' to 16 km' + (B ? ', and ' + esc((s.gridB || B).meta.demProduct) + ' to 40 km' : '') + ' (stored heights within 0.1 m of direct DEM samples: every grid point checked, tests/accuracy3d.js). Same site-centred frame and curvature as the tile; the meshes share their edge vertices, and short vertical skirts hide the joins.' : (s.extError ? '<b>Extended terrain</b>: could not be loaded (' + esc(s.extError) + ').' : '<b>Extended terrain</b>: loading…'),
       s.areas && s.areas.length ? cls('Calculated') + '<b>Resolution by area</b> (Calculated from measured LOLA heights): ' + s.areas.map(function (a) { return esc(a.name) + ' - geometry: ' + a.geom + ' m grid; lighting detail' + (a.light < a.geom ? ' (normal map)' : '') + ': ' + a.light + ' m LOLA data (' + esc(a.product) + ')'; }).join('; ') + '. A normal map is baked from the same LOLA grid (central differences of the stored heights, never finer than that grid) and gives a coarser mesh the lighting detail of the finer data; it does not change any height. ' + (s.nmapOK ? 'Toward a coarser neighbouring area the lighting detail fades gradually (averaged real normals) instead of changing in a visible step; the meshes themselves keep their exact DEM heights (they are not morphed).' : s.nearNmOK ? 'At this quality only the 6 km tile and the 5 m patch use normal maps; the rings use the normals of their drawn grid.' : 'Normal maps need WebGL2, which this browser does not provide here.') + (s.nearNmOK ? ' The 6 km tile and the 5 m patch are shaded per pixel from normal maps of their own LOLA grids (20 m or 80 m, and 5 m) at every quality level; between grid nodes the normal is interpolated smoothly, which adds no new features.' : '') : null,
-      cls('Approximate') + '<b>Surface shading</b>: Lommel-Seeliger law (a standard photometric model for lunar regolith: brightness proportional to cos i / (cos i + cos e)), with surface normals from the DEM at full resolution. <b>Uniform albedo</b>: no public LOLA 1064 nm normal-albedo map of the south pole at 250 m/pixel or finer was found (LOLA\'s published albedo maps are about 2 km/pixel near the poles; the PDS LOLA polar products named LDRM are roughness maps), so brightness differences come from the terrain\'s shape only. No synthetic rocks, small craters or textures are added. <b>Relief shading</b> (on by default in Walk and Rover): display contrast only; heights and slopes are the LOLA data. It multiplies the Lommel-Seeliger brightness by a factor between 0.4 and 1.6 that follows the ratio of sunlight on the DEM normal to sunlight on a smoothed DEM normal (over ±4 grid cells), because at the grazing views of Walk and Rover the Lommel-Seeliger law makes slopes facing toward and away from the low Sun look almost alike; the factor is bounded, so no slope is pushed to pure black or white. Its contrast is normalised by grid spacing and viewing distance (relief smaller than about half a pixel fades out, using averages of the real DEM normals), so the 6 km tile and the surrounding rings look alike from far away. In Walk and Rover on laptops the 6 km tile is drawn at full resolution and the 5 m patch is used where it exists, at every quality level.',
+      cls('Approximate') + '<b>Surface shading</b>: Lommel-Seeliger law (a standard photometric model for lunar regolith: brightness proportional to cos i / (cos i + cos e)), with surface normals from the DEM at full resolution. <b>Uniform albedo</b>: no public LOLA 1064 nm normal-albedo map of the south pole at 250 m/pixel or finer was found (LOLA\'s published albedo maps are about 2 km/pixel near the poles; the PDS LOLA polar products named LDRM are roughness maps), so brightness differences come from the terrain\'s shape only. No synthetic rocks, small craters or textures are added in Orbit; in Walk and Rover the illustrative close-range surface texture (below) changes only the appearance near the viewer. <b>Relief shading</b> (on by default in Walk and Rover): display contrast only; heights and slopes are the LOLA data. It multiplies the Lommel-Seeliger brightness by a factor between 0.4 and 1.6 that follows the ratio of sunlight on the DEM normal to sunlight on a smoothed DEM normal (over ±4 grid cells), because at the grazing views of Walk and Rover the Lommel-Seeliger law makes slopes facing toward and away from the low Sun look almost alike; the factor is bounded, so no slope is pushed to pure black or white. Its contrast is normalised by grid spacing and viewing distance (relief smaller than about half a pixel fades out, using averages of the real DEM normals), so the 6 km tile and the surrounding rings look alike from far away. In Walk and Rover on laptops the 6 km tile is drawn at full resolution and the 5 m patch is used where it exists, at every quality level.',
       cls('Illustrative') + '<b>Openness shading</b> (Walk and Rover, off by default; display only): ground that sees less open sky is drawn darker, by 1 − 2.5 × (1 − sky-view factor). The sky-view factor is Calculated from the LOLA heights of the 6 km tile and the 5 m patch (horizon angles in 16 directions within 1 km, lunar curvature included; Zakšek et al. 2011, Remote Sensing 3, 398-415). The Moon has no sky light, so this is a relief-visualisation aid, not a light source: it does not change the Sun direction, shadows, status or any readout. It fades out over the tile\'s outer 500 m.',
-      cls('Illustrative') + '<b>Why the ground looks smoother in Walk and Rover than in Orbit</b>: the finest data are 5 m (5 m patch) and 20 m (tile) grids; in Walk and Rover one grid cell covers tens to thousands of screen pixels, so the picture can only show smooth changes between grid points. In Orbit one pixel covers several grid cells, so many real features share the picture. Rocks, small craters and other features smaller than the grid are not in any dataset used and are not invented. Terrain textures use anisotropic filtering at the device maximum (×' + (s.maxAniso || 1) + ').',
+      cls('Illustrative') + '<b>Why the ground looks smoother in Walk and Rover than in Orbit</b>: the finest data are 5 m (5 m patch) and 20 m (tile) grids; in Walk and Rover one grid cell covers tens to thousands of screen pixels, so the picture can only show smooth changes between grid points. In Orbit one pixel covers several grid cells, so many real features share the picture. Rocks, small craters and other features smaller than the grid are not in any dataset used. The close-range surface texture (Walk and Rover, below) adds an illustrative appearance of fine grain and small craters near the viewer; the data limit is unchanged. Terrain textures use anisotropic filtering at the device maximum (×' + (s.maxAniso || 1) + ').',
+      cls('Illustrative') + '<b>Close-range surface texture</b> (Walk and Rover, on by default; checkbox "Close-range surface texture (illustrative)"): a procedural pattern drawn in the shader only, like a carpet over the real floor: brightness variation of about ±5 % (10 cm to 6 m), fine grain and small undulations, small craters (radius about 0.1-5 m) and sparse rock flecks (0.04-0.4 m), drawn in the shading only. Sizes and densities are tuned visually, not statistically matched to published crater or rock counts; none of it is a measured feature or a hazard. It is fixed to the ground in site-centred east/north metres, follows the LOLA slopes, is at full strength within ' + COVER_NEAR + ' m of the camera and fades out by ' + COVER_FAR + ' m (finer octaves fade earlier, at about 2-4 screen pixels; fewer octaves on Low and on phones). It only modulates the sunlit brightness: ground facing away from the Sun or in cast shadow is unchanged, and heights, slopes, readouts, shadows, status, the Sun/Earth directions and Orbit are unchanged (tested). Distant terrain looks as before. Wheel tracks (same checkbox): where the rover has driven this session (the last 250 m or so), two faint, slightly darker strips are drawn in the same way, shading only; they do not change any readout.',
       cls('Calculated') + '<b>Contour lines and slope shading</b> (optional): computed from the same LOLA heights (true heights, also when the vertical scale is exaggerated). Slope by central differences over one grid spacing (5 m, 20 m, 80 m or 100-200 m depending on the area), the same formula as the rover readout; real slopes over a few metres can be steeper.',
       cls('Calculated') + '<b>Sun</b>: direction and disk size from the validated engine (the light direction matches it to better than 0.01°).',
       cls('Calculated') + '<b>Earth</b>: position and size (about ' + (2 * (v.earthRadiusDeg || 0.95)).toFixed(1) + '° across) from the engine. ' + (s.earthTex ? 'Continents from NASA Blue Marble Next Generation (July 2004 cloud-free composite, public domain NASA imagery; ' + s.earthTex + ' × ' + s.earthTex / 2 + ' pixels at ' + Q.label + ' quality); clouds not shown; orientation computed for this time (Earth\'s rotation from Astronomy Engine; the point of Earth facing the site agrees with JPL Horizons within 0.2°, tests/earth_orientation.js). ' : 'Plain blue sphere until the map loads. ') + 'Its lit side is the computed phase from the Sun direction; the unlit side is drawn very faintly so Earth can be found.',
@@ -215,7 +224,7 @@ window.AsteriaView3D = (function () {
       cls('Illustrative') + '<b>Vertical exaggeration</b> above 1× stretches heights (and therefore shadows and the look of slopes); rover slope readouts always use true heights. The distant skyline ring is never exaggerated.',
       cls('Illustrative') + '<b>Rover</b>: model with NASA VIPER\'s published proportions (2.5 m tall, 1.5 m long and wide, four wheel modules; chassis, solar panels, mast with camera housings and lights, wheels with tread, steering housings and suspension arms drawn in detail, but their sizes and layout are approximate; see "About this rover"); Illustrative, not a mobility simulation. Each wheel rests on the LOLA surface and the body\'s pitch and roll follow from the four wheel heights (Calculated at the DEM\'s resolution); speed is for viewing. Elevation = LOLA height at the rover (bilinear); slope = central differences of the LOLA heights over ' + (P5 ? '5 m within 1 km of the site and ' : '') + m.spacing_m + ' m' + (P5 ? ' elsewhere' : '') + ' (checked against an independent computation from the DEM; Validation page, "3D terrain accuracy"). "Sun over the tile terrain" is a near-field estimate using only the tile.',
       cls('Calculated') + '<b>Inspection, hazard view and camera presets</b>: pointing at the terrain shows the LOLA height, slope (central differences over the grid spacing), latitude/longitude, distance from the site and the data resolution there; the hazard view colours DEM slopes above your limit (real slopes over a few metres can be steeper; not a traversability prediction); Look at Sun / Earth use the engine&#39;s directions. The camera wedge on the mini-map and "Show on 2D map" are navigation aids.',
-      '<b>Graphics</b>: the rover and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images.'
+      '<b>Graphics</b>: the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain shapes, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images.'
     ];
     $('v3dNotes').innerHTML = list.filter(Boolean).map(function (x) { return '<li>' + x + '</li>'; }).join('');
     var sn = v.el.querySelector('.v3d-shadownote');
@@ -247,7 +256,8 @@ window.AsteriaView3D = (function () {
 
     // terrain: the tile now (coarse first frame), then the extended rings and the 5 m patch (loadExtended)
     // global uniforms shared by every terrain material; cascade: camera-centred Sun shadow map (Medium/High)
-    var U = { uContour: { value: 0 }, uSlope: { value: 0 }, uRelief: { value: 0 }, uFlat: { value: 0.1 }, uLambert: { value: 0 }, uReliefK: { value: RELIEF_K }, uAO: { value: 0 }, uVNorm: { value: 0 }, uNoShadow: { value: 0 }, uCascadeOn: { value: 1 }, cascade: !!Q.cascade };
+    var U = { uContour: { value: 0 }, uSlope: { value: 0 }, uRelief: { value: 0 }, uFlat: { value: 0.1 }, uLambert: { value: 0 }, uReliefK: { value: RELIEF_K }, uAO: { value: 0 }, uVNorm: { value: 0 }, uNoShadow: { value: 0 }, uCascadeOn: { value: 1 },
+      uCover: { value: 0 }, uCovOct: { value: COVER_OCT }, uCovNear: { value: COVER_NEAR }, uCovFar: { value: COVER_FAR }, uCovDbg: { value: 0 }, uTrk: { value: (function () { var a = []; for (var i = 0; i < 64; i++) a.push(new THREE.Vector2()); return a; })() }, uTrkN: { value: 0 }, cascade: !!Q.cascade };
     var nmapOK = !!(Q.nmap && renderer.capabilities.isWebGL2);
     var floatLinear = !!renderer.extensions.get('OES_texture_float_linear');
     // round 6C: per-pixel normals (normal maps of the LOLA grid) for the 6 km tile and the 5 m patch at every quality
@@ -477,6 +487,110 @@ window.AsteriaView3D = (function () {
   // level (bias up to uBandBias; mip levels are averages of real normals) or, without a map, the normal is blended
   // toward the smoothed DEM normal (uBandMix), so the amount of detail changes gradually toward the coarser
   // neighbouring mesh instead of in a visible step. Heights and vertex positions are never changed by this.
+  // Round 6E: close-range surface texture (Illustrative, display only; Walk and Rover; owner decision, see design
+  // decision 15). A procedural "carpet" drawn only in the fragment shader, in the site-centred ground frame (world x =
+  // east, z = -north, metres), so it is fixed to the ground and continuous across the tile, the 5 m patch and the rings.
+  //   1. albedo: value noise, 7 octaves of 6.4 m down to 0.1 m (each rotated), about +-5 % (mean 0: values -1..1);
+  //   2. micro-relief: the same octaves as a height field of amplitude 0.035 x wavelength (rms slope about 6 deg);
+  //   3. craterlets (radius 0.1-5 m, bowl + raised rim, depth up to 0.35 R) and rock flecks (radius 0.04-0.4 m, domes,
+  //      +15 % albedo), one candidate per grid cell, fewer per area as the size grows. Sizes and densities are tuned
+  //      visually, not statistically matched to published crater or rock counts.
+  // Detail normal: partial-derivative blend on the LOLA height field (n / n_up - grad h), so it follows every LOLA slope;
+  // the pattern is projected on the horizontal ground frame, and craterlet radii are measured along the LOLA surface
+  // (slope-aware). Each octave / feature fades out when it is smaller than about 2-4 screen pixels (dFdx/dFdy of the
+  // world position: no shimmer), and the whole covering fades from uCovNear to uCovFar metres from the camera.
+  // Hashes: Gustavson's mod-289 permutation (exact in float32 for these cell indices; no sin() of large numbers).
+  var COVER_GLSL = [
+    'float asPm( float x ) { return mod( ( x * 34.0 + 1.0 ) * x, 289.0 ); }',
+    'float asH( vec2 c ) { c = mod( c, 289.0 ); return asPm( asPm( c.x ) + c.y ) / 289.0; }',
+    // value noise: x = value (-1..1), yz = gradient w.r.t. p, w = a second, independent value (-1..1) for the albedo
+    'vec4 asVN( vec2 p ) {',
+    '  vec2 i = floor( p ), f = p - i;',
+    '  vec2 u = f * f * ( 3.0 - 2.0 * f ), du = 6.0 * f * ( 1.0 - f );',
+    '  float a = asH( i ), b = asH( i + vec2( 1.0, 0.0 ) ), c = asH( i + vec2( 0.0, 1.0 ) ), d = asH( i + vec2( 1.0, 1.0 ) );',
+    '  float k = a - b - c + d;',
+    '  float v = a + ( b - a ) * u.x + ( c - a ) * u.y + k * u.x * u.y;',
+    '  vec2 g = du * vec2( b - a + k * u.y, c - a + k * u.x );',
+    '  vec4 q = fract( vec4( a, b, c, d ) * 61.0 + 0.37 );',
+    '  float k2 = q.x - q.y - q.z + q.w;',
+    '  float v2 = q.x + ( q.y - q.x ) * u.x + ( q.z - q.x ) * u.y + k2 * u.x * u.y;',
+    '  return vec4( 2.0 * v - 1.0, 2.0 * g, 2.0 * v2 - 1.0 );',
+    '}',
+    // one candidate feature per cell of size C (probability pr, radius rmin..rmax, more small than large); kind 0 =
+    // craterlet, 1 = rock fleck. Adds to the height gradient g (per metre) and the albedo a.
+    'void asFeat( vec2 p, float C, float pr, float rmin, float rmax, float seed, float kind, vec3 nW, float fp, inout vec2 g, inout float a ) {',
+    '  vec2 c = floor( p / C ) + seed;',
+    '  float h1 = asH( c ); if ( h1 > pr ) return;',
+    '  float h2 = asH( c + vec2( 57.0, 11.0 ) ), h3 = asH( c + vec2( 3.0, 91.0 ) ), h4 = asH( c + vec2( 41.0, 7.0 ) );',
+    '  float R = mix( rmin, rmax, h2 * h2 );',
+    '  float w = 1.0 - smoothstep( 0.5 * R, R, fp ); if ( w <= 0.0 ) return;',
+    '  vec2 d = p - ( floor( p / C ) + 0.5 + ( vec2( h3, h4 ) - 0.5 ) * ( 1.0 - 3.2 * R / C ) ) * C;',
+    '  float dy = -( nW.x * d.x + nW.z * d.y ) / max( nW.y, 0.2 );',
+    '  float r = length( vec3( d.x, dy, d.y ) ), t = r / R;',
+    '  if ( t >= 1.5 || r < 1e-4 ) return;',
+    '  float fr = 0.3 + 0.7 * fract( h1 * 13.7 + h2 * 5.3 ), dh;',
+    '  if ( kind < 0.5 ) {',
+    '    float dep = 0.35 * fr, rim = 0.08 * fr, s = ( t - 1.0 ) * 2.0;',
+    '    dh = t < 1.0 ? 2.0 * ( dep + rim ) * t : -rim * 12.0 * s * ( 1.0 - s );',
+    '  } else {',
+    '    dh = t < 1.0 ? -1.2 * fr * t : 0.0;',
+    '    a += w * 0.15 * ( 1.0 - smoothstep( 0.8, 1.0, t ) );',
+    '  }',
+    '  g += w * dh * d / r;',   // dh is d(height / R) / dt = d height / d r
+    '}',
+    // computes asCov (strength), asAlb (albedo factor) and asDN (first-order change of the unit normal when the detail height field is added to the LOLA surface, view space; linear in the detail gradient, so its mean is zero) from the final LOLA normal n
+    'void asCover( vec3 n ) {',
+    '  vec3 wdx = dFdx( vW ), wdy = dFdy( vW );',
+    '  float fp = max( length( wdx ), length( wdy ) );',
+    '  asCov = uCover * ( 1.0 - smoothstep( uCovNear, uCovFar, length( vW - cameraPosition ) ) );',
+    '  if ( asCov <= 0.0 ) return;',
+    '  vec3 nW = normalize( ( vec4( n, 0.0 ) * viewMatrix ).xyz );',
+    '  vec2 p = vW.xz, g = vec2( 0.0 );',
+    '  float a = 0.0, lam = 6.4;',
+    '  mat2 Rk = mat2( 1.0, 0.0, 0.0, 1.0 ), R1 = mat2( 0.8, -0.6, 0.6, 0.8 );',
+    '  for ( int k = 0; k < 7; k++ ) {',
+    '    if ( float( k ) >= uCovOct ) break;',
+    '    float w = 1.0 - smoothstep( 0.25 * lam, 0.5 * lam, fp );',
+    '    if ( w <= 0.0 ) break;',
+    '    vec4 q = asVN( Rk * p / lam + vec2( 17.0, 31.0 ) * float( k ) );',
+    '    g += w * 0.006 * exp2( 0.4 * float( k ) ) * ( q.yz * Rk );',
+    '    a += w * ( lam > 1.0 ? 0.022 : 0.015 ) * q.w;',
+    '    lam *= 0.5; Rk = Rk * R1;',
+    '  }',
+    '  if ( uCovDbg > 2.5 ) { g = vec2( 0.0 ); a = 0.0; }',
+    '  asFeat( p, 30.0, 0.18, 2.0, 5.0, 11.0, 0.0, nW, fp, g, a );',
+    '  asFeat( p, 12.0, 0.22, 0.8, 2.5, 23.0, 0.0, nW, fp, g, a );',
+    '  asFeat( p, 4.0, 0.25, 0.3, 1.0, 37.0, 0.0, nW, fp, g, a );',
+    '  asFeat( p, 1.2, 0.30, 0.1, 0.3, 53.0, 0.0, nW, fp, g, a );',
+    '  asFeat( p, 3.0, 0.05, 0.12, 0.4, 71.0, 1.0, nW, fp, g, a );',
+    '  if ( uCovOct > 5.5 ) asFeat( p, 0.8, 0.06, 0.04, 0.12, 89.0, 1.0, nW, fp, g, a );',
+    // uCovDbg (tests only, round 6E diagnostics): 1 = albedo only, 2 = micro-relief and features only, 3 = features only
+    '  if ( uCovDbg > 0.5 ) { if ( uCovDbg < 1.5 ) g = vec2( 0.0 ); else a = 0.0; }',
+    // wheel tracks: two strips at +-WHEEL_HALF m from the path (uTrk, oldest first), darker by up to 7 %, fading with
+    // the distance driven since (to 0 at the oldest point) and when a strip is narrower than about 2 screen pixels
+    '  if ( uTrkN > 1.5 ) {',
+    '    float tw = 1.0 - smoothstep( 0.5 * ' + WHEEL_W.toFixed(2) + ', ' + WHEEL_W.toFixed(2) + ', fp );',
+    '    if ( tw > 0.0 ) {',
+    '      float tr = 0.0;',
+    '      for ( int k = 0; k < 63; k++ ) {',
+    '        if ( float( k ) >= uTrkN - 1.5 ) break;',
+    '        vec2 A = uTrk[ k ], B = uTrk[ k + 1 ], AB = B - A; float L2 = dot( AB, AB ); if ( L2 < 1e-4 ) continue;',
+    '        float t = clamp( dot( p - A, AB ) / L2, 0.0, 1.0 ); vec2 dp = p - A - t * AB;',
+    '        if ( dot( dp, dp ) > 1.0 ) continue;',
+    '        float lat = abs( ( AB.x * ( p.y - A.y ) - AB.y * ( p.x - A.x ) ) / sqrt( L2 ) );',
+    '        float st = 1.0 - smoothstep( 0.35 * ' + WHEEL_W.toFixed(2) + ', 0.5 * ' + WHEEL_W.toFixed(2) + ', abs( lat - ' + WHEEL_HALF.toFixed(2) + ' ) );',
+    '        tr = max( tr, st * ( float( k ) + t + 1.0 ) / ( uTrkN - 1.0 ) );',
+    '      }',
+    '      a -= 0.07 * tw * tr;',
+    '    }',
+    '  }',
+    '  asAlb = 1.0 + asCov * a;',
+    '  g *= asCov;',
+    '  vec3 up = vec3( viewMatrix[ 1 ] );',   // world +y (up) in view space
+    '  vec3 G = g.x * vec3( viewMatrix[ 0 ] ) + g.y * vec3( viewMatrix[ 2 ] );',
+    '  asDN = -max( dot( n, up ), 0.2 ) * ( G - n * dot( n, G ) );',
+    '}'
+  ].join('\n') + '\n';
   function regolithMaterial(THREE, U, opts) {
     opts = opts || {};
     var mat = new THREE.MeshLambertMaterial({ color: 0x9c9a95 });
@@ -487,11 +601,11 @@ window.AsteriaView3D = (function () {
     if (opts.nmap) mat.defines.AS_NMAP = '';
     if (opts.ao) mat.defines.AS_AO = '';
     mat.onBeforeCompile = function (sh) {
-      ['uContour', 'uSlope', 'uRelief', 'uFlat', 'uLambert', 'uReliefK', 'uAO', 'uVNorm'].forEach(function (k) { sh.uniforms[k] = U[k]; });
+      ['uContour', 'uSlope', 'uRelief', 'uFlat', 'uLambert', 'uReliefK', 'uAO', 'uVNorm', 'uCover', 'uCovOct', 'uCovNear', 'uCovFar', 'uCovDbg', 'uTrk', 'uTrkN'].forEach(function (k) { sh.uniforms[k] = U[k]; });
       Object.keys(L).forEach(function (k) { sh.uniforms[k] = L[k]; });
       lightsPatch(sh, U);
-      sh.vertexShader = 'attribute float aH;\nattribute float aS;\nattribute vec3 aNs;\nattribute vec2 aG;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\n' +
-        sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvH = aH; vS = aS; vNs = normalMatrix * aNs; vG = aG;');
+      sh.vertexShader = 'attribute float aH;\nattribute float aS;\nattribute vec3 aNs;\nattribute vec2 aG;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\nvarying vec3 vW;\n' +
+        sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvH = aH; vS = aS; vNs = normalMatrix * aNs; vG = aG; vW = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;');
       var chunk = THREE.ShaderChunk.lights_lambert_pars_fragment, from = 'vec3 irradiance = dotNL * directLight.color;';
       if (chunk.indexOf(from) < 0) throw new Error('unexpected three.js Lambert shader');
       // Relief shading (round 5, display option, default on in Walk/Rover). Lommel-Seeliger divides cos i by
@@ -515,8 +629,17 @@ window.AsteriaView3D = (function () {
         '\tfloat asNsL = saturate( dot( nsV, directLight.direction ) );\n' +
         '\tfloat asX = clamp( 0.9 * asRelW * ( dotNL - asNsL ) / max( asNsL, 0.06 ), -8.0, 8.0 ), asE2 = exp( 2.0 * asX );\n' +
         '\tfloat relT = lsT * ( 1.0 + 0.6 * ( asE2 - 1.0 ) / ( asE2 + 1.0 ) );\n' +
-        '\tvec3 irradiance = ( uLambert > 0.5 ? dotNL : mix( lsT, relT, uRelief ) ) * directLight.color;');
-      sh.fragmentShader = 'uniform float uContour;\nuniform float uSlope;\nuniform float uRelief;\nuniform float uFlat;\nuniform float uLambert;\nuniform float uReliefK;\nuniform float uReliefD;\nuniform float uAO;\nuniform float uVNorm;\nuniform sampler2D uAOMap;\nuniform float uAOBand0;\nfloat asRelW = 1.0;\nuniform sampler2D uNMap;\nuniform float uBand0;\nuniform float uBandBias;\nuniform float uBandMix;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\n' +
+        '\tvec3 irradiance = ( uLambert > 0.5 ? dotNL : mix( lsT, relT, uRelief ) ) * directLight.color;\n' +
+        // round 6E: close-range surface texture (Illustrative). Only a bounded factor on the SUN term: the albedo variation
+        // times 1 + 0.6 tanh(0.8 (cos i_detail - cos i) / cos i), cos i from the LOLA normal (dotNL). Where the LOLA sunlight
+        // term or the shadow factor (already in directLight.color) is 0, irradiance stays 0: no light on back-facing or
+        // shadowed ground. Earthshine and the fill light are untouched.
+        '\tif ( asCov > 0.0 && asIsSun > 0.5 ) {\n' +
+        '\t\tfloat asDL = dot( asDN, directLight.direction );\n' +
+        '\t\tfloat asY = clamp( 0.8 * asDL / max( dotNL, 0.04 ), -8.0, 8.0 ), asE3 = exp( 2.0 * asY );\n' +
+        '\t\tirradiance *= asAlb * ( 1.0 + 0.45 * ( asE3 - 1.0 ) / ( asE3 + 1.0 ) );\n' +
+        '\t}');
+      sh.fragmentShader = 'uniform float uContour;\nuniform float uSlope;\nuniform float uRelief;\nuniform float uFlat;\nuniform float uLambert;\nuniform float uReliefK;\nuniform float uReliefD;\nuniform float uAO;\nuniform float uVNorm;\nuniform sampler2D uAOMap;\nuniform float uAOBand0;\nfloat asRelW = 1.0;\nuniform float uCover;\nuniform float uCovOct;\nuniform float uCovNear;\nuniform float uCovFar;\nuniform float uCovDbg;\nuniform vec2 uTrk[ 64 ];\nuniform float uTrkN;\nvarying vec3 vW;\nfloat asCov = 0.0;\nfloat asAlb = 1.0;\nvec3 asDN = vec3( 0.0, 0.0, 1.0 );\n' + COVER_GLSL + 'uniform sampler2D uNMap;\nuniform float uBand0;\nuniform float uBandBias;\nuniform float uBandMix;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\n' +
         sh.fragmentShader
           .replace('#include <lights_lambert_pars_fragment>', chunk)
           .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' +
@@ -539,7 +662,8 @@ window.AsteriaView3D = (function () {
             // the counterpart of the normal maps' mipmaps (averaged real normals), so tile and rings look alike at distance.
             '#ifndef AS_NMAP\n' +
             'if ( uRelief > 0.5 && dot( vNs, vNs ) > 0.25 ) normal = normalize( mix( normalize( vNs ), normal, asRelW ) );\n' +
-            '#endif')
+            '#endif\n' +
+            'if ( uCover > 0.0 ) asCover( normal );')
           // round 6C: openness shading (Walk/Rover, display only): the light reflected by the ground is scaled by
           // 1 - AO_GAIN x (1 - SVF), SVF = sky-view factor from the LOLA heights (texture value v: SVF = 0.5 + 0.5 v); faded
           // out over the layer's outer band (uAOBand0) so the 6 km tile does not end in a step
@@ -563,7 +687,7 @@ window.AsteriaView3D = (function () {
             '  float major = abs( mod( floor( q + 0.5 ), 5.0 ) ) < 0.5 ? 1.0 : 0.6;\n' +
             '  gl_FragColor.rgb = mix( gl_FragColor.rgb, vec3( 0.35, 0.85, 1.0 ), line * major * step( w, 0.5 ) );\n}');
     };
-    mat.customProgramCacheKey = function () { return 'asteria-regolith-6c' + (opts.nmap ? '-nm' : '') + (opts.ao ? '-ao' : '') + (U.cascade ? '-cs' : ''); };
+    mat.customProgramCacheKey = function () { return 'asteria-regolith-6e' + (opts.nmap ? '-nm' : '') + (opts.ao ? '-ao' : '') + (U.cascade ? '-cs' : ''); };
     return mat;
   }
   // Round 6: the directional-light loop for every lit material of the view (terrain and rover). Lights, in this order
@@ -581,7 +705,8 @@ window.AsteriaView3D = (function () {
     var from = '\t\tdirectLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );';
     var a = '\t\tgetDirectionalLightInfo( directionalLight, geometry, directLight );', b = '\tDirectionalLight directionalLight;';
     if (chunk.indexOf(from) < 0 || chunk.indexOf(a) < 0 || chunk.indexOf(b) < 0) throw new Error('unexpected three.js light loop');
-    var to = '\t\tasSh = ( directLight.visible && receiveShadow && uNoShadow < 0.5 ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n' +
+    var to = '\t\tasIsSun = UNROLLED_LOOP_INDEX == ' + (U.cascade ? 1 : 0) + ' ? 1.0 : 0.0;\n' +
+      '\t\tasSh = ( directLight.visible && receiveShadow && uNoShadow < 0.5 ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n' +
       (U.cascade ?
         '\t\tif ( UNROLLED_LOOP_INDEX == 0 ) {\n\t\t\tvec3 asC = vDirectionalShadowCoord[ i ].xyz / vDirectionalShadowCoord[ i ].w;\n' +
         '\t\t\tfloat asM = min( min( asC.x, 1.0 - asC.x ), min( asC.y, 1.0 - asC.y ) );\n' +
@@ -590,13 +715,13 @@ window.AsteriaView3D = (function () {
         '\t\t\tdirectLight.color *= asSh;\n\t\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t\t}' :
         '\t\t#endif\n\t\tdirectLight.color *= asSh;\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );');
     chunk = chunk.replace(from, to).replace(a, a + '\n\t\tasSh = 1.0;').replace(b, b + '\n\tfloat asNearSh = 1.0, asNearW = 0.0, asSh = 1.0;');
-    sh.fragmentShader = 'uniform float uNoShadow;\nuniform float uCascadeOn;\n' + sh.fragmentShader.replace('#include <lights_fragment_begin>', chunk);
+    sh.fragmentShader = 'uniform float uNoShadow;\nuniform float uCascadeOn;\nfloat asIsSun = 0.0;\n' + sh.fragmentShader.replace('#include <lights_fragment_begin>', chunk);
   }
   // Rover (and other lit objects): plain Lambert with the same light loop (so the cascade light adds no light twice).
   function litMaterial(THREE, U, color) {
     var m = new THREE.MeshLambertMaterial({ color: color });
     m.onBeforeCompile = function (sh) { lightsPatch(sh, U); };
-    m.customProgramCacheKey = function () { return 'asteria-lit-6' + (U.cascade ? '-cs' : ''); };
+    m.customProgramCacheKey = function () { return 'asteria-lit-6e' + (U.cascade ? '-cs' : ''); };
     return m;
   }
   // Second step of progressive loading: replace the coarse first-frame mesh with the final one (and, once loaded,
@@ -759,6 +884,17 @@ window.AsteriaView3D = (function () {
       ensureAO(v);
     };
     setTimeout(step, 0);
+  }
+  // round 6E: close-range surface texture (Illustrative; display only): Walk and Rover only, on by default, one choice
+  // per session; in Orbit uCover = 0 (no effect at all). Fewer octaves on Low and on phones.
+  function coverActive(v) { return !!(SESSION.cover && v.ctl.mode !== 'orbit'); }
+  function applyCover(v) {
+    var orbit = v.ctl.mode === 'orbit';
+    $('v3dCover').checked = !!SESSION.cover;
+    $('v3dCoverRow').hidden = orbit; $('v3dCoverNote').hidden = orbit;
+    v.s.U.uCover.value = coverActive(v) ? 1 : 0;
+    v.s.U.uCovOct.value = (v.phone || v.s.Q.label === 'Low') ? COVER_OCT_LOW : COVER_OCT;
+    v.dirty = true;
   }
   function aoActive(v) { var on = SESSION.ao === null ? AO_DEFAULT : SESSION.ao; return !!(on && v.ctl.mode !== 'orbit' && v.s.nearNmOK); }
   function applyAO(v) {
@@ -1034,6 +1170,7 @@ window.AsteriaView3D = (function () {
     $('v3dHelp').textContent = help;
     applyRelief(v);
     applyAO(v);
+    applyCover(v);
     if (mode !== 'orbit') ensureFine(v);
     if (mode === 'walk' && c.walk.x === 0 && c.walk.z === 0 && !keepView) c.walk.yaw = v.inst ? v.inst.r.sun.az : 0;
     if (mode === 'rover' && c.rov.dist === 0) { c.rov.yaw = v.inst ? v.inst.r.sun.az + 90 : 0; c.rov.x = 25; c.rov.z = 0; }
@@ -1105,7 +1242,7 @@ window.AsteriaView3D = (function () {
       s.renderer.render(s.scene, cam);
       labels(v); inspectMarker(v);
       hud(v); featureLabels(v); miniMap(v); layoutLabels(v);
-      if (v.ctl.mode === 'rover') { roverReadout(v, ts); trackPush(v); }
+      if (v.ctl.mode === 'rover') { roverReadout(v, ts); trackPush(v); wheelPush(v); }
       v.dirty = false;
       v.frames++;
     }
@@ -1305,6 +1442,7 @@ window.AsteriaView3D = (function () {
     add($('v3dHover'), 'change', function () { HOVER.on = this.checked; v.inspectPinned = false; if (!HOVER.on) showInspect(v, null); });
     add($('v3dRelief'), 'change', function () { RELIEF_PREF[v.ctl.mode] = this.checked; applyRelief(v); });
     add($('v3dAO'), 'change', function () { SESSION.ao = this.checked; applyAO(v); });
+    add($('v3dCover'), 'change', function () { SESSION.cover = this.checked; applyCover(v); });
     add($('v3dRing'), 'change', function () { v.s.ring.visible = this.checked; v.dirty = true; });
     add($('v3dGlare'), 'change', function () { v.s.glare.visible = this.checked && !!(v.inst && v.inst.sunUp); v.dirty = true; });
     add($('v3dStars'), 'change', function () {
@@ -1458,6 +1596,17 @@ window.AsteriaView3D = (function () {
     if (c.mode === 'rover') dtxt += ' · driven ' + fmtLen(c.rov.dist);
     $('v3dDist').textContent = dtxt;
     v.hudState = { heading: head, scaleM: len, metresPerPixel: mpp, distFromSite: d };
+  }
+  // round 6E Part 2: wheel tracks (Illustrative; display only): path points for the covering shader. The last entry
+  // follows the rover; a new one is kept every WHEEL_STEP m; the oldest drop out after WHEEL_N points.
+  function wheelPush(v) {
+    var s = v.s, r = v.ctl.rov, T = s.U.uTrk.value, n = s.U.uTrkN.value;
+    if (n === 0) { T[0].set(r.x, r.z); T[1].set(r.x, r.z); s.U.uTrkN.value = 2; return; }
+    T[n - 1].set(r.x, r.z);
+    if (Math.hypot(r.x - T[n - 2].x, r.z - T[n - 2].y) >= WHEEL_STEP) {
+      if (n >= WHEEL_N) { for (var k = 0; k < n - 1; k++) T[k].copy(T[k + 1]); n--; }
+      T[n].set(r.x, r.z); s.U.uTrkN.value = n + 1;
+    }
   }
   // rover track: fading trail of the last TRACK_MAX positions (one every metre), 0.15 m above the ground
   function trackPush(v) {
@@ -1931,7 +2080,7 @@ window.AsteriaView3D = (function () {
       hud: v.hudState || null, features: v.featState || null, track: s.trackN, distRings: { visible: s.distRings.visible, n: s.distRings.children.length },
       miniMap: !$('v3dMini').hidden && !!s.miniBase, labelEdge: { sun: $('v3dLblSun').classList.contains('edge'), earth: $('v3dLblEarth').classList.contains('edge') },
       reliefPref: Object.assign({}, RELIEF_PREF), reliefK: s.U.uReliefK.value,
-      tileNormalMap: s.tileNormalMap || 0, anisotropy: s.maxAniso, ao: { on: s.U.uAO.value === 1, pref: SESSION.ao, def: AO_DEFAULT, busy: !!v.aoBusy, ms: v.aoMs || 0, ready: [s.T.patch, s.T].filter(Boolean).map(function (G) { return !!AO_CACHE[aoKey(s, G)]; }) },
+      tileNormalMap: s.tileNormalMap || 0, anisotropy: s.maxAniso, cover: { on: s.U.uCover.value === 1, pref: SESSION.cover, wheelPoints: s.U.uTrkN.value, oct: s.U.uCovOct.value, near: s.U.uCovNear.value, far: s.U.uCovFar.value }, ao: { on: s.U.uAO.value === 1, pref: SESSION.ao, def: AO_DEFAULT, busy: !!v.aoBusy, ms: v.aoMs || 0, ready: [s.T.patch, s.T].filter(Boolean).map(function (G) { return !!AO_CACHE[aoKey(s, G)]; }) },
       overlays: { contour: s.terrainMat.userData.uniforms.uContour.value, slope: s.terrainMat.userData.uniforms.uSlope.value }, relief: s.terrainMat.userData.uniforms.uRelief.value === 1, fine: !!s.fine, patch5m: !!s.T.patch, shadowMapSize: s.sun.shadow.mapSize.x, pixelRatio: s.renderer.getPixelRatio(), brightness: v.bright, fillIntensity: s.fill.intensity, exposure: s.renderer.toneMappingExposure, mode: v.ctl.mode, stride: v.stride, phone: v.phone, exaggeration: s.T.k,
       sunLightDir: [lp.x, lp.y, lp.z], sunLight: M.azElFromDir([lp.x, lp.y, lp.z]), sunDiskRadiusDeg: Math.asin(s.sunDisk.scale.x / SUN_D) / DEG,
       earthDir: v.earthDir, earthDirDrawn: [ep.x, ep.y, ep.z], earthAzEl: M.azElFromDir([ep.x, ep.y, ep.z]), earthRadiusDeg: Math.asin(s.earth.scale.x / EARTH_D) / DEG,
@@ -2011,6 +2160,7 @@ window.AsteriaView3D = (function () {
   function testBrightness(b) { if (V) setBrightness(V, b); }
   // test hook: on/off for the current mode; null = automatic (defaults by mode) in every mode
   // round 6C test hook: openness shading on/off for this session; null = default
+  function testCover(on) { if (V) { SESSION.cover = !!on; applyCover(V); } }
   function testAO(on) { if (V) { SESSION.ao = on === null ? null : !!on; applyAO(V); } }
   function testRelief(on) { if (V) { if (on === null) RELIEF_PREF.orbit = RELIEF_PREF.walk = RELIEF_PREF.rover = null; else RELIEF_PREF[V.ctl.mode] = !!on; applyRelief(V); } }
   // diagnostics for the ground-detail comparison (tests/ground_detail.js): plain Lambert (round-3 law); shadow camera
@@ -2022,5 +2172,5 @@ window.AsteriaView3D = (function () {
     if ('vertexNormals' in o) v.s.U.uVNorm.value = o.vertexNormals ? 1 : 0;   // round 6C: normal maps off (per-vertex normals)
     v.dirty = true;
   }
-  return { testInspect: testInspect, ROVER: ROVER, starAzEl: starAzEl, testScene: testScene, QUALITY: QUALITY, shadowProbe: shadowProbe, testCamera: testCamera, testQuality: testQuality, testBrightness: testBrightness, testRelief: testRelief, testAO: testAO, testDiag: testDiag, open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
+  return { testInspect: testInspect, ROVER: ROVER, starAzEl: starAzEl, testScene: testScene, QUALITY: QUALITY, shadowProbe: shadowProbe, testCamera: testCamera, testQuality: testQuality, testBrightness: testBrightness, testRelief: testRelief, testAO: testAO, testCover: testCover, testDiag: testDiag, open: open, close: close, isOpen: function () { return !!V; }, debug: debug, testKey: testKey, testMode: testMode };
 })();

@@ -1,0 +1,1113 @@
+[
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "low",
+  "view": "orbit60",
+  "off": {
+   "hash": "3a489b2c",
+   "w": 1080,
+   "h": 900,
+   "mean": 10.86,
+   "detail": 0.72,
+   "clipWhite": 0,
+   "clipBlack": 43.88
+  },
+  "on": {
+   "hash": "3a489b2c",
+   "w": 1080,
+   "h": 900,
+   "mean": 10.86,
+   "detail": 0.72,
+   "clipWhite": 0,
+   "clipBlack": 43.88
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "low",
+  "view": "orbit3",
+  "off": {
+   "hash": "7c0d5176",
+   "w": 1080,
+   "h": 900,
+   "mean": 16.99,
+   "detail": 1.18,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "7c0d5176",
+   "w": 1080,
+   "h": 900,
+   "mean": 16.99,
+   "detail": 1.18,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "low",
+  "view": "walk",
+  "off": {
+   "hash": "e674e4f0",
+   "w": 1080,
+   "h": 900,
+   "mean": 120.08,
+   "detail": 1.16,
+   "clipWhite": 0.5,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "d5c9f533",
+   "w": 1080,
+   "h": 900,
+   "mean": 121.34,
+   "detail": 3.06,
+   "clipWhite": 0.79,
+   "clipBlack": 0
+  },
+  "changedPx": 404678,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 1.05,
+  "msOff": 2.25,
+  "msOn": 1.83,
+  "unlit": {
+   "unlit": 535963,
+   "lit": 436037,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "low",
+  "view": "rover",
+  "off": {
+   "hash": "3da97908",
+   "w": 1080,
+   "h": 900,
+   "mean": 34.1,
+   "detail": 0.12,
+   "clipWhite": 0,
+   "clipBlack": 0.02
+  },
+  "on": {
+   "hash": "686d405c",
+   "w": 1080,
+   "h": 900,
+   "mean": 34.28,
+   "detail": 0.51,
+   "clipWhite": 0,
+   "clipBlack": 0.02
+  },
+  "changedPx": 607677,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 0.53,
+  "msOff": 0.91,
+  "msOn": 1.06,
+  "unlit": {
+   "unlit": 273153,
+   "lit": 698847,
+   "changed": 1,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "view": "orbit60",
+  "off": {
+   "hash": "428b11b6",
+   "w": 1080,
+   "h": 900,
+   "mean": 10.95,
+   "detail": 1.49,
+   "clipWhite": 0,
+   "clipBlack": 43.75
+  },
+  "on": {
+   "hash": "428b11b6",
+   "w": 1080,
+   "h": 900,
+   "mean": 10.95,
+   "detail": 1.49,
+   "clipWhite": 0,
+   "clipBlack": 43.75
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "view": "orbit3",
+  "off": {
+   "hash": "2705356e",
+   "w": 1080,
+   "h": 900,
+   "mean": 16.95,
+   "detail": 1.18,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "2705356e",
+   "w": 1080,
+   "h": 900,
+   "mean": 16.95,
+   "detail": 1.18,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "view": "walk",
+  "off": {
+   "hash": "a1f0028a",
+   "w": 1080,
+   "h": 900,
+   "mean": 120.08,
+   "detail": 1.16,
+   "clipWhite": 0.47,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "3a9d9788",
+   "w": 1080,
+   "h": 900,
+   "mean": 121.29,
+   "detail": 4.94,
+   "clipWhite": 0.76,
+   "clipBlack": 0
+  },
+  "changedPx": 409556,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 1.01,
+  "msOff": 2.58,
+  "msOn": 0.81,
+  "unlit": {
+   "unlit": 535594,
+   "lit": 436406,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "view": "rover",
+  "off": {
+   "hash": "961430f2",
+   "w": 1080,
+   "h": 900,
+   "mean": 34.1,
+   "detail": 0.12,
+   "clipWhite": 0,
+   "clipBlack": 0.02
+  },
+  "on": {
+   "hash": "76485bda",
+   "w": 1080,
+   "h": 900,
+   "mean": 34.19,
+   "detail": 1.9,
+   "clipWhite": 0,
+   "clipBlack": 0.02
+  },
+  "changedPx": 622017,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 0.26,
+  "msOff": 4.57,
+  "msOn": 1.81,
+  "unlit": {
+   "unlit": 273385,
+   "lit": 698615,
+   "changed": 1,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "high",
+  "view": "orbit60",
+  "off": {
+   "hash": "206562c2",
+   "w": 1080,
+   "h": 900,
+   "mean": 24.94,
+   "detail": 3.28,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "206562c2",
+   "w": 1080,
+   "h": 900,
+   "mean": 24.94,
+   "detail": 3.28,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "high",
+  "view": "orbit3",
+  "off": {
+   "hash": "1c7b51a3",
+   "w": 1080,
+   "h": 900,
+   "mean": 17.23,
+   "detail": 2.58,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "1c7b51a3",
+   "w": 1080,
+   "h": 900,
+   "mean": 17.23,
+   "detail": 2.58,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "high",
+  "view": "walk",
+  "off": {
+   "hash": "fc766561",
+   "w": 1080,
+   "h": 900,
+   "mean": 120.08,
+   "detail": 1.16,
+   "clipWhite": 0.47,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "236aa48a",
+   "w": 1080,
+   "h": 900,
+   "mean": 121.29,
+   "detail": 4.94,
+   "clipWhite": 0.76,
+   "clipBlack": 0
+  },
+  "changedPx": 409555,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 1.01,
+  "msOff": 1.64,
+  "msOn": 1.95,
+  "unlit": {
+   "unlit": 512284,
+   "lit": 459716,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "peak_shackleton",
+  "quality": "high",
+  "view": "rover",
+  "off": {
+   "hash": "1cf979a2",
+   "w": 1080,
+   "h": 900,
+   "mean": 34.1,
+   "detail": 0.12,
+   "clipWhite": 0,
+   "clipBlack": 0.02
+  },
+  "on": {
+   "hash": "9664e31f",
+   "w": 1080,
+   "h": 900,
+   "mean": 34.19,
+   "detail": 1.9,
+   "clipWhite": 0,
+   "clipBlack": 0.02
+  },
+  "changedPx": 622016,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 0.26,
+  "msOff": 4.19,
+  "msOn": 1.8,
+  "unlit": {
+   "unlit": 246538,
+   "lit": 725462,
+   "changed": 1,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "low",
+  "view": "orbit60",
+  "off": {
+   "hash": "4cb13a4d",
+   "w": 1080,
+   "h": 900,
+   "mean": 9.35,
+   "detail": 0.4,
+   "clipWhite": 0,
+   "clipBlack": 41.88
+  },
+  "on": {
+   "hash": "4cb13a4d",
+   "w": 1080,
+   "h": 900,
+   "mean": 9.35,
+   "detail": 0.4,
+   "clipWhite": 0,
+   "clipBlack": 41.88
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "low",
+  "view": "orbit3",
+  "off": {
+   "hash": "92c30bc6",
+   "w": 1080,
+   "h": 900,
+   "mean": 10.37,
+   "detail": 0.54,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "92c30bc6",
+   "w": 1080,
+   "h": 900,
+   "mean": 10.37,
+   "detail": 0.54,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "low",
+  "view": "walk",
+  "off": {
+   "hash": "933105ef",
+   "w": 1080,
+   "h": 900,
+   "mean": 100.08,
+   "detail": 0.21,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "5121dbe4",
+   "w": 1080,
+   "h": 900,
+   "mean": 100.67,
+   "detail": 0.78,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 556516,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 0.59,
+  "msOff": 1.6,
+  "msOn": 0.98,
+  "unlit": {
+   "unlit": 381988,
+   "lit": 590012,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "low",
+  "view": "rover",
+  "off": {
+   "hash": "ef646604",
+   "w": 1080,
+   "h": 900,
+   "mean": 29.37,
+   "detail": 0.06,
+   "clipWhite": 0,
+   "clipBlack": 0.07
+  },
+  "on": {
+   "hash": "e13a522a",
+   "w": 1080,
+   "h": 900,
+   "mean": 28.95,
+   "detail": 0.35,
+   "clipWhite": 0,
+   "clipBlack": 0.07
+  },
+  "changedPx": 706378,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": -1.43,
+  "msOff": 2.15,
+  "msOn": 2.04,
+  "unlit": {
+   "unlit": 195255,
+   "lit": 776745,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "view": "orbit60",
+  "off": {
+   "hash": "6111dbf0",
+   "w": 1080,
+   "h": 900,
+   "mean": 9.43,
+   "detail": 0.77,
+   "clipWhite": 0,
+   "clipBlack": 41.77
+  },
+  "on": {
+   "hash": "6111dbf0",
+   "w": 1080,
+   "h": 900,
+   "mean": 9.43,
+   "detail": 0.77,
+   "clipWhite": 0,
+   "clipBlack": 41.77
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "view": "orbit3",
+  "off": {
+   "hash": "5a5a96e2",
+   "w": 1080,
+   "h": 900,
+   "mean": 10.31,
+   "detail": 0.54,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "5a5a96e2",
+   "w": 1080,
+   "h": 900,
+   "mean": 10.31,
+   "detail": 0.54,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "view": "walk",
+  "off": {
+   "hash": "1344f352",
+   "w": 1080,
+   "h": 900,
+   "mean": 100.08,
+   "detail": 0.21,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "e7c025ff",
+   "w": 1080,
+   "h": 900,
+   "mean": 100.74,
+   "detail": 1.95,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 563747,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 0.66,
+  "msOff": 2.29,
+  "msOn": 0.8,
+  "unlit": {
+   "unlit": 381664,
+   "lit": 590336,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "view": "rover",
+  "off": {
+   "hash": "279806f3",
+   "w": 1080,
+   "h": 900,
+   "mean": 29.37,
+   "detail": 0.06,
+   "clipWhite": 0,
+   "clipBlack": 0.06
+  },
+  "on": {
+   "hash": "7c1f97fe",
+   "w": 1080,
+   "h": 900,
+   "mean": 28.98,
+   "detail": 1.53,
+   "clipWhite": 0,
+   "clipBlack": 0.06
+  },
+  "changedPx": 722766,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": -1.33,
+  "msOff": 4.07,
+  "msOn": 1.76,
+  "unlit": {
+   "unlit": 194395,
+   "lit": 777605,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "high",
+  "view": "orbit60",
+  "off": {
+   "hash": "cbc7b0c",
+   "w": 1080,
+   "h": 900,
+   "mean": 16.21,
+   "detail": 2.14,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "cbc7b0c",
+   "w": 1080,
+   "h": 900,
+   "mean": 16.21,
+   "detail": 2.14,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "high",
+  "view": "orbit3",
+  "off": {
+   "hash": "e0c56cc1",
+   "w": 1080,
+   "h": 900,
+   "mean": 10.31,
+   "detail": 0.54,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "e0c56cc1",
+   "w": 1080,
+   "h": 900,
+   "mean": 10.31,
+   "detail": 0.54,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "high",
+  "view": "walk",
+  "off": {
+   "hash": "446f68e3",
+   "w": 1080,
+   "h": 900,
+   "mean": 100.08,
+   "detail": 0.21,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "fc321e6e",
+   "w": 1080,
+   "h": 900,
+   "mean": 100.74,
+   "detail": 1.95,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 563747,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 0.66,
+  "msOff": 1.47,
+  "msOn": 1.13,
+  "unlit": {
+   "unlit": 381664,
+   "lit": 590336,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "laptop",
+  "site": "mons_malapert",
+  "quality": "high",
+  "view": "rover",
+  "off": {
+   "hash": "f537adee",
+   "w": 1080,
+   "h": 900,
+   "mean": 29.37,
+   "detail": 0.06,
+   "clipWhite": 0,
+   "clipBlack": 0.06
+  },
+  "on": {
+   "hash": "c510a40e",
+   "w": 1080,
+   "h": 900,
+   "mean": 28.98,
+   "detail": 1.53,
+   "clipWhite": 0,
+   "clipBlack": 0.06
+  },
+  "changedPx": 722766,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 7,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": -1.33,
+  "msOff": 1.81,
+  "msOn": 2.94,
+  "unlit": {
+   "unlit": 194395,
+   "lit": 777605,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "phone",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "view": "orbit3",
+  "off": {
+   "hash": "f1c2473d",
+   "w": 390,
+   "h": 456,
+   "mean": 15.75,
+   "detail": 2.14,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "f1c2473d",
+   "w": 390,
+   "h": 456,
+   "mean": 15.75,
+   "detail": 2.14,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "phone",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "view": "walk",
+  "off": {
+   "hash": "3f575358",
+   "w": 390,
+   "h": 456,
+   "mean": 69.13,
+   "detail": 1.02,
+   "clipWhite": 0.02,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "dcf3bc88",
+   "w": 390,
+   "h": 456,
+   "mean": 70.78,
+   "detail": 2.95,
+   "clipWhite": 0.02,
+   "clipBlack": 0
+  },
+  "changedPx": 70344,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 2.39,
+  "msOff": 1.9,
+  "msOn": 1.56,
+  "unlit": {
+   "unlit": 98045,
+   "lit": 79795,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "phone",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "view": "rover",
+  "off": {
+   "hash": "89ca9483",
+   "w": 390,
+   "h": 456,
+   "mean": 22.65,
+   "detail": 0.11,
+   "clipWhite": 0,
+   "clipBlack": 0.01
+  },
+  "on": {
+   "hash": "ec411f76",
+   "w": 390,
+   "h": 456,
+   "mean": 23.17,
+   "detail": 0.76,
+   "clipWhite": 0,
+   "clipBlack": 0.01
+  },
+  "changedPx": 109465,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 2.3,
+  "msOff": 2.17,
+  "msOn": 3.08,
+  "unlit": {
+   "unlit": 48353,
+   "lit": 129487,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "phone",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "view": "orbit3",
+  "off": {
+   "hash": "dc33837",
+   "w": 390,
+   "h": 456,
+   "mean": 9.77,
+   "detail": 0.75,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "dc33837",
+   "w": 390,
+   "h": 456,
+   "mean": 9.77,
+   "detail": 0.75,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "phone",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "view": "walk",
+  "off": {
+   "hash": "62a572c7",
+   "w": 390,
+   "h": 456,
+   "mean": 99.15,
+   "detail": 0.38,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "f4e586d2",
+   "w": 390,
+   "h": 456,
+   "mean": 99.22,
+   "detail": 1.31,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 100220,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 0.07,
+  "msOff": 1.6,
+  "msOn": 1.76,
+  "unlit": {
+   "unlit": 70964,
+   "lit": 106876,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "phone",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "view": "rover",
+  "off": {
+   "hash": "825b1936",
+   "w": 390,
+   "h": 456,
+   "mean": 28.35,
+   "detail": 0.09,
+   "clipWhite": 0,
+   "clipBlack": 0.07
+  },
+  "on": {
+   "hash": "add5519b",
+   "w": 390,
+   "h": 456,
+   "mean": 28.02,
+   "detail": 0.67,
+   "clipWhite": 0,
+   "clipBlack": 0.07
+  },
+  "changedPx": 125895,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": -1.16,
+  "msOff": 2.16,
+  "msOn": 2.15,
+  "unlit": {
+   "unlit": 36311,
+   "lit": 141529,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "cone": null,
+  "azimuth": {
+   "az": 36.643391553399454,
+   "dist": 886.6014436983083
+  }
+ }
+]

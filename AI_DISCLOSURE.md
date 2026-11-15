@@ -32,7 +32,7 @@ ASTERIA (Lunar South Pole Landing Site Navigator) is an entry for the NASA Space
 
 * **In the app (descriptive text)**, exactly two places, by the owner's choice (no AI labels on or next to graphics or controls, no footer):
   * About page, credits list: "Development assisted by Claude Code (Anthropic), an AI coding assistant; details in AI_DISCLOSURE.md (in the project repository)."
-  * 3D view, "What is accurate, what is approximate" (collapsed by default), as its own line: "Graphics: the rover and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images."
+  * 3D view, "What is accurate, what is approximate" (collapsed by default), as its own line: "Graphics: the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain shapes, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images."
 * **Metadata**: `index.html` has `<meta name="generator">` and `<meta name="ai-disclosure">` tags and an HTML comment; every AI-written source file starts with "Generated with Claude Code (Anthropic) under human direction".
 * **Project documents**: README.md "How this was made" and this file.
 * `tests/ui_check.js` searches the rendered text of every page and every 3D mode (Orbit, Walk, Rover), the loader and the intro for "AI-", "AI ", "artificial intelligence", "generated" and "illustrated by", and fails if any appears outside the two lines above; `tests/features_test.js` checks the meta tags, the file headers, README and this file.
@@ -90,3 +90,10 @@ Searched all project files (HTML, CSS, JS, Markdown, and every image file outsid
 * New AI-written files (same header): `tests/ui_round6.js`, `DESIGN_DECISIONS.md`, `ROUND6_REPORT.md`, `docs/ground_detail/round6/README.md`. Changed: `js/view3d.js`, `js/view3d_math.js`, `js/app.js`, `js/map.js`, `index.html`, `css/style.css`, `tools/terrain3d_ext.py`, `tools/accuracy3d.py`, several tests and the documents.
 * New data computed by scripts (not written by hand): `data/terrain3d/ext/*_af.js`, `*_bf.js`, `data/terrain3d/fine_index.js` (LOLA heights), regenerated result files, measurements and screenshots in `docs/ground_detail/round6/`.
 * Graphics drawn in code this round: the VIPER-proportioned rover, the camera wedge on the 3D mini-map, the 2D scale bar and the 3D-position marker. Normal maps and earthshine are computed from LOLA data and the validated engine geometry, not drawn. No image generator was used.
+
+
+## Round 6E (close-range surface texture)
+
+* The 3D "Graphics:" line was updated (the only change to AI wording) because a new code-drawn graphic was added: the close-range surface texture in Walk and Rover (fine grain, small craters and rock flecks drawn procedurally in the terrain shader by code written with Claude Code). The line now reads exactly: "Graphics: the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain shapes, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images."
+* No image- or audio-generation model was used; the texture is computed by shader code at run time, not taken from any image. It is labelled Illustrative in the app (checkbox, disclaimer, notes item, design decision 15).
+* The About credit line is unchanged. `tests/ui_check.js`, `tests/ui_round6c.js`, `tests/ui_round6e.js` and `tests/features_test.js` check the new exact line and that no other AI wording appears.

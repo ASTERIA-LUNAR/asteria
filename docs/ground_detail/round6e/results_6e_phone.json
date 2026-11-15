@@ -1,0 +1,230 @@
+[
+ {
+  "device": "phone",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "view": "orbit3",
+  "off": {
+   "hash": "f1c2473d",
+   "w": 390,
+   "h": 456,
+   "mean": 15.75,
+   "detail": 2.14,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "f1c2473d",
+   "w": 390,
+   "h": 456,
+   "mean": 15.75,
+   "detail": 2.14,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "phone",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "view": "walk",
+  "off": {
+   "hash": "3f575358",
+   "w": 390,
+   "h": 456,
+   "mean": 69.13,
+   "detail": 1.02,
+   "clipWhite": 0.02,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "f49f5f6",
+   "w": 390,
+   "h": 456,
+   "mean": 76.99,
+   "detail": 4.17,
+   "clipWhite": 0.02,
+   "clipBlack": 0
+  },
+  "changedPx": 72204,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 11.37,
+  "msOff": 1.22,
+  "msOn": 0.81,
+  "unlit": {
+   "unlit": 98045,
+   "lit": 79795,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "phone",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "view": "rover",
+  "off": {
+   "hash": "89ca9483",
+   "w": 390,
+   "h": 456,
+   "mean": 22.65,
+   "detail": 0.11,
+   "clipWhite": 0,
+   "clipBlack": 0.01
+  },
+  "on": {
+   "hash": "8dac6033",
+   "w": 390,
+   "h": 456,
+   "mean": 25.5,
+   "detail": 0.88,
+   "clipWhite": 0,
+   "clipBlack": 0.01
+  },
+  "changedPx": 115075,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": 12.58,
+  "msOff": 1.14,
+  "msOn": 1.3,
+  "unlit": {
+   "unlit": 48353,
+   "lit": 129487,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "phone",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "view": "orbit3",
+  "off": {
+   "hash": "dc33837",
+   "w": 390,
+   "h": 456,
+   "mean": 9.77,
+   "detail": 0.75,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "dc33837",
+   "w": 390,
+   "h": 456,
+   "mean": 9.77,
+   "detail": 0.75,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 0,
+  "cover": {
+   "on": false,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  }
+ },
+ {
+  "device": "phone",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "view": "walk",
+  "off": {
+   "hash": "62a572c7",
+   "w": 390,
+   "h": 456,
+   "mean": 99.15,
+   "detail": 0.38,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "on": {
+   "hash": "43c09285",
+   "w": 390,
+   "h": 456,
+   "mean": 96.42,
+   "detail": 1.56,
+   "clipWhite": 0,
+   "clipBlack": 0
+  },
+  "changedPx": 103596,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": -2.75,
+  "msOff": 2.63,
+  "msOn": 1.82,
+  "unlit": {
+   "unlit": 70964,
+   "lit": 106876,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ },
+ {
+  "device": "phone",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "view": "rover",
+  "off": {
+   "hash": "825b1936",
+   "w": 390,
+   "h": 456,
+   "mean": 28.35,
+   "detail": 0.09,
+   "clipWhite": 0,
+   "clipBlack": 0.07
+  },
+  "on": {
+   "hash": "6696336a",
+   "w": 390,
+   "h": 456,
+   "mean": 27.16,
+   "detail": 0.83,
+   "clipWhite": 0,
+   "clipBlack": 0.07
+  },
+  "changedPx": 133369,
+  "cover": {
+   "on": true,
+   "pref": true,
+   "oct": 5,
+   "near": 60,
+   "far": 350
+  },
+  "meanChangePct": -4.2,
+  "msOff": 0.97,
+  "msOn": 1.22,
+  "unlit": {
+   "unlit": 36311,
+   "lit": 141529,
+   "changed": 0,
+   "changedMoreThan1": 0
+  }
+ }
+]

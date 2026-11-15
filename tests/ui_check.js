@@ -20,7 +20,7 @@ const path = require('path'), fs = require('fs'), url = require('url');
   // AI wording in the rendered UI: allowed ONLY in the About credit line and the single "Graphics:" line of the 3D
   // "What is accurate, what is approximate" notes. Scans all text in the document (hidden and collapsed parts included).
   const AI_CREDIT = 'Development assisted by Claude Code (Anthropic), an AI coding assistant; details in AI_DISCLOSURE.md (in the project repository).';
-  const AI_GRAPHICS = 'Graphics: the rover and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images.';
+  const AI_GRAPHICS = 'Graphics: the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain shapes, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images.';
   const AI_RE = /\bAI-|\bAI |artificial intelligence|generated|illustrated by/gi;
   const aiScan = async (page, where) => {
     // text nodes of the whole body except scripts/styles and except the list item that is exactly one of the two allowed lines

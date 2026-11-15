@@ -352,3 +352,18 @@ No AI wording was added (tests/ui_round6c.js and tests/ui_check.js: only the unc
 | Map "Why": "The candidate landing regions NASA announced for Artemis III are all near the lunar south pole (NASA, 28 Oct 2024); since February 2026 the first Artemis landing is planned as Artemis IV, targeted for 2028 (NASA, 27 Feb 2026)." | js/explain.js | changed |
 | Page meta description: "NASA's candidate landing regions (announced for Artemis III)" | index.html | changed |
 | Site labels "Artemis III candidate region (...)", map legend "NASA Artemis III candidate regions (Oct 2024)", tour text | data/sites.js, js/app.js | unchanged: the names under which NASA announced the regions |
+
+## Round 6E Part 1 (close-range surface texture)
+
+| Text | Where | Change |
+|---|---|---|
+| Checkbox "Close-range surface texture (illustrative)" (Walk and Rover only) | js/view3d.js (3D side panel) | new |
+| Disclaimer: "Close-range surface texture is illustrative: fine grain and small craters are drawn for realism, not measured. Heights, slopes, readouts, shadows and the Sun direction are the LOLA data and the validated engine." | js/view3d.js (3D side panel, Walk and Rover) | new (exact text from the owner's brief) |
+| Notes item "Illustrative - Close-range surface texture" (what it is, sizes, "tuned visually, not statistically matched", fading, Sun-term only, what is unchanged) | js/view3d.js | new |
+| Notes: "Surface shading" - "No synthetic rocks, small craters or textures are added" -> "... are added in Orbit; in Walk and Rover the illustrative close-range surface texture (below) changes only the appearance near the viewer." | js/view3d.js | changed |
+| Notes: "Why the ground looks smoother" - adds: "The close-range surface texture (Walk and Rover, below) adds an illustrative appearance of fine grain and small craters near the viewer; the data limit is unchanged." | js/view3d.js | changed |
+| "Graphics:" line -> "Graphics: the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain shapes, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images." | js/view3d.js, AI_DISCLOSURE.md, tests | changed (the only AI wording change) |
+| Design decision 14: "...but it does not add rocks, small craters or texture that the data do not contain." -> "...and does not add any detail to the data. (Amended in round 6E: ... see decision 15.)" | index.html, DESIGN_DECISIONS.md | amended |
+| Design decision 15 "Close-range surface texture in Walk and Rover (round 6E, Illustrative)" (why, what it is, what it is not, how it is tested) | index.html, DESIGN_DECISIONS.md (identical text) | new |
+| README classification table row "Close-range surface texture" (Illustrative) | README.md | new |
+| Notes item and decision 15: one sentence on the wheel tracks (Part 2) | js/view3d.js, index.html, DESIGN_DECISIONS.md | new |
