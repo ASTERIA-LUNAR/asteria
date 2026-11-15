@@ -1019,27 +1019,50 @@
     return { n: n, avgH: n ? tot / n / 3600000 : 0 };
   }
   var CMPRES = null;
+  // DEM slope at a site point (round 6B): the same function and grids as the 3D view's rover / inspection readouts -
+  // central differences over one grid spacing of the site's 6 km LOLA tile, or of the 5 m patch where it exists (the
+  // site's best data resolution). Sites without a 3D tile (custom points, sites away from the pole): null.
+  var SLOPE_CACHE = {};
+  function siteSlope(s) {
+    if (!s || !s.id || T3D_IDS.indexOf(s.id) < 0) return Promise.resolve(null);
+    if (SLOPE_CACHE[s.id]) return SLOPE_CACHE[s.id];
+    var id = s.id;
+    SLOPE_CACHE[id] = Promise.all([loadScript('js/view3d_math.js'), loadScript('data/terrain3d/' + id + '.js'), loadScript('data/terrain3d/hi5m_index.js')]).then(function () {
+      var has5 = (window.ASTERIA_TERRAIN3D_5M_IDS || []).indexOf(id) >= 0;
+      return (has5 ? loadScript('data/terrain3d/hi5m/' + id + '.js') : Promise.resolve()).then(function () {
+        var M3 = window.AsteriaView3DMath, T = M3.decodeTile(window.ASTERIA_TERRAIN3D[id]);
+        if (has5) T.patch = M3.decodeTile(window.ASTERIA_TERRAIN3D_5M[id]);
+        var sl = M3.slopeAt(T, 0, 0);
+        return { slope: sl.slope, d: has5 ? T.patch.d : T.d, product: (has5 ? T.patch : T).meta.demProduct };
+      });
+    }).then(null, function (e) { delete SLOPE_CACHE[id]; console.warn('Slope not available: ' + (e && e.message || e)); return null; });
+    return SLOPE_CACHE[id];
+  }
   function runCompare() {
     $('cmpResult').innerHTML = '<p class="hint">Computing...</p>';
     $('cmpMinElNote').textContent = minElText() + '. Geometric line-of-sight only; antenna, power and ground-station availability are not modelled.';
-    var days = +$('cmpWindow').value;
+    var days = +$('cmpWindow').value, pin = powerInputs();
     var jobs = CMP.map(function (c) {
       var s = siteById(c.siteId) || { id: null, name: 'Custom (' + c.lat + ', ' + c.lon + ')', lat: c.lat, lon: c.lon };
       if (!s.id && c.hz) s.hz = c.hz;
       var mask = c.terrain ? maskFor(s, true) : null;
-      return Jobs.run('scenario', { site: { lat: c.lat, lon: c.lon }, start: c.start.getTime(), days: days, mask: mask, minEl: S.minEl }).then(function (r) {
-        var ser = r.series, st = r.stats;
+      return Promise.all([Jobs.run('scenario', { site: { lat: c.lat, lon: c.lon }, start: c.start.getTime(), days: days, mask: mask, minEl: S.minEl }), siteSlope(s.id ? s : null)]).then(function (rr) {
+        var r = rr[0], ser = r.series, st = r.stats, pw = pin.ok ? powerOf(ser, pin) : null;
         var firstOf = function (list, type) { for (var i = 0; i < list.length; i++) if (list[i].type === type) return list[i]; return null; };
         var sunSet = ser.sunUp[0] ? firstOf(r.events.sun, 'set') : null, earthSet = ser.earthUp[0] ? firstOf(r.events.earth, 'set') : null;
         return { c: c, s: s, mask: mask, ser: ser, st: st, sw: windowsOf(ser, r.events, 'sun'), ew: windowsOf(ser, r.events, 'earth'),
           sunLeftH: ser.sunUp[0] ? (sunSet ? (sunSet.time - c.start) / 3600000 : days * 24) : 0,
           earthLeftH: ser.earthUp[0] ? (earthSet ? (earthSet.time - c.start) / 3600000 : days * 24) : 0,
-          maxSun: minMax(ser.sunEl)[1], maxEarth: minMax(ser.earthEl)[1] };
+          maxSun: minMax(ser.sunEl)[1], maxEarth: minMax(ser.earthEl)[1],
+          energyWh: pw ? pw.Wh : null, batteryWh: pw ? pw.battery : null, slope: rr[1] };
       });
     });
     return Loader.track(Promise.all(jobs), 'Comparing scenarios…').then(function (res) {
       CMPRES = res;
       var pctF = function (v) { return v.toFixed(1) + '%'; };
+      var kWhF = function (v) { return (v / 1000).toFixed(v < 10000 ? 2 : 1) + ' kWh'; };
+      var modeTxt = { track: 'vertical, Sun-tracking', horizontal: 'horizontal', fixed: 'vertical, facing ' + pin.opts.faceAz + '°' }[pin.opts.mode] || pin.opts.mode;
+      var pwLbl = 'Power and terrain (first-order estimate, example values: Power page settings ' + pin.opts.area + ' m², ' + Math.round(pin.opts.eff * 100) + '% efficient, ' + modeTxt + ' panel; ' + pin.load + ' W load; ' + Math.round(pin.usable * 100) + '% usable battery)';
       var left = function (lbl, setW) { return function (v) { return v >= days * 24 ? 'Whole ' + days + '-day window (no ' + setW + ' within it)' : v === 0 ? lbl : fmtHours(v); }; };
       var rows = [
         ['Site', function (r) { return esc(r.s.name); }],
@@ -1061,24 +1084,31 @@
         ['Average Earth link window', function (r) { return r.ew.avgH; }, 'max', function (v) { return v ? fmtHours(v) : '-'; }],
         ['Max Earth elevation', function (r) { return r.maxEarth; }, 'max', function (v) { return v.toFixed(2) + '°'; }],
         ['§both', 'Both'],
-        ['Sunlight + Earth link', function (r) { return r.st.pctBoth; }, 'max', pctF]
+        ['Sunlight + Earth link', function (r) { return r.st.pctBoth; }, 'max', pctF],
+        // round 6B: trade-off rows from the Power page's settings and the DEM
+        ['§power', pin.ok ? pwLbl : 'Power and terrain (Power page inputs are invalid - check them on the Power page)'],
+        ['Solar energy in the window (estimate)', function (r) { return r.energyWh; }, 'max', kWhF],
+        ['Battery for the longest darkness (estimate)', function (r) { return r.batteryWh; }, 'min', kWhF],
+        ['DEM slope at the site point', function (r) { return r.slope ? r.slope.slope : null; }, null, function (v, r) { return v.toFixed(1) + '° <span class="fineprint">(' + r.slope.d + ' m LOLA grid)</span>'; }]
       ];
       var html = '<table class="cmptable"><thead><tr><th>Metric (' + days + '-day window)</th>' + res.map(function (r, k) { return '<th class="num">Scenario ' + (k + 1) + '</th>'; }).join('') + '</tr></thead><tbody>';
       rows.forEach(function (row) {
         if (row[0][0] === '§') { html += '<tr class="sec sec-' + row[0].slice(1) + '"><th colspan="' + (res.length + 1) + '">' + row[1] + '</th></tr>'; return; }
         var vals = res.map(row[1]);
-        var best = null;
-        if (row[2] && res.length > 1) {
-          var b = row[2] === 'max' ? Math.max.apply(null, vals) : Math.min.apply(null, vals);
-          var allSame = vals.every(function (v) { return Math.abs(v - vals[0]) < 1e-9; });
+        var best = null, nums = vals.filter(function (v) { return v !== null && v !== undefined && isFinite(v); });   // "-" values take no part
+        if (row[2] && nums.length > 1) {
+          var b = row[2] === 'max' ? Math.max.apply(null, nums) : Math.min.apply(null, nums);
+          var allSame = nums.every(function (v) { return Math.abs(v - nums[0]) < 1e-9; });
           if (!allSame) best = b;
         }
-        html += '<tr><td>' + row[0] + '</td>' + vals.map(function (v) {
+        html += '<tr><td>' + row[0] + '</td>' + vals.map(function (v, k) {
+          if (v === null || v === undefined || !isFinite(v)) return '<td class="num">-</td>';
           var isBest = best !== null && Math.abs(v - best) < 1e-9;
-          return '<td class="num' + (isBest ? ' best' : '') + '">' + (row[3] ? row[3](v) : v) + '</td>';
+          return '<td class="num' + (isBest ? ' best' : '') + '">' + (row[3] ? row[3](v, res[k]) : v) + '</td>';
         }).join('') + '</tr>';
       });
-      html += '</tbody></table><p class="hint">Highlighted = best in row (higher % and longer windows are better; shorter darkness/blackout is better). Ties are not highlighted. Windows cut by the period start/end count only their part inside it.</p>' +
+      html += '</tbody></table><p class="hint">Highlighted = best in row (higher % and longer windows are better; shorter darkness/blackout is better; more energy and a smaller battery are better). Ties are not highlighted. Windows cut by the period start/end count only their part inside it.</p>' +
+        '<p class="hint">Energy and battery: the Power page\'s model and current settings applied to each scenario\'s series (example values unless you entered your own; no dust, temperature or conversion losses). DEM slope: LOLA slope at the site point by central differences over one grid spacing (5 m where the 5 m LOLA patch exists, otherwise the site\'s 20 m or 80 m tile; the same value as the 3D view\'s readouts); "-" where the site has no 3D terrain tile (custom points). Real slopes over a few metres can be steeper; slope is not ranked.</p>' +
         (res.some(function (r) { return r.sunLeftH >= days * 24 || r.earthLeftH >= days * 24; }) ? '<p class="explain">"Whole ' + days + '-day window": the Sun (or Earth) was up at the start and no sunset (or Earthset) was found within the compared window, so the next one, if any, is later. Compare searches only inside its window.</p>' : '') +
         '<p class="hint x-only">Basis: validated engine, one series per scenario sampled every ' + res[0].ser.stepMin + ' min, horizon as in the "Horizon model" row, events refined to 1 min; statistics accurate to about one sampling step.</p>';
       $('cmpResult').innerHTML = html;
@@ -1486,23 +1516,36 @@
       return { label: S.site.name + ', Explore window: ' + fmtUTC(S.start) + ' UTC + ' + S.windowDays + ' days', start: S.start, days: S.windowDays, series: S.series, mask: mask };
     });
   }
-  function runPower() {
+  // The Power page's current inputs (round 6B: shared with Compare).
+  function powerInputs() {
     var opts = { area: +$('pwArea').value, eff: (+$('pwEff').value) / 100, mode: $('pwMode').value, faceAz: +$('pwFace').value };
     var load = +$('pwLoad').value, usable = (+$('pwDod').value) / 100;
-    if (!(opts.area > 0) || !(opts.eff > 0 && opts.eff <= 1) || !(load >= 0) || !(usable > 0 && usable <= 1)) { $('pwVerdict').textContent = 'Check inputs.'; return Promise.resolve(); }
+    var ok = opts.area > 0 && opts.eff > 0 && opts.eff <= 1 && load >= 0 && usable > 0 && usable <= 1;
+    return { opts: opts, load: load, usable: usable, ok: ok };
+  }
+  // Power at every sample and energy by the trapezoid rule; battery = load x longest darkness / usable fraction.
+  // One function for the Power page and Compare (round 6B), so both give identical numbers for the same inputs.
+  function powerOf(s, inp) {
+    var opts = inp.opts, n = s.t.length, stepH = s.stepMin / 60;
+    var P = new Array(n), peak = 0, zero = 0, maxZero = 0;
+    for (var i = 0; i < n; i++) {
+      P[i] = E.panelPower(opts, s.sunAz[i], s.sunEl[i], s.sunDist[i], s.sunFrac[i]);
+      if (P[i] > peak) peak = P[i];
+      if (P[i] <= 0) { zero++; if (zero > maxZero) maxZero = zero; } else zero = 0;
+    }
+    var Wh = 0; for (i = 1; i < n; i++) Wh += (P[i - 1] + P[i]) / 2 * stepH;   // trapezoid rule
+    var st = E.stats(s), darkH = st.longestDarkH;
+    return { P: P, peak: peak, maxZero: maxZero, stepH: stepH, Wh: Wh, darkH: darkH, battery: inp.load * darkH / inp.usable };
+  }
+  function runPower() {
+    var inp = powerInputs(), opts = inp.opts, load = inp.load, usable = inp.usable;
+    if (!inp.ok) { $('pwVerdict').textContent = 'Check inputs.'; return Promise.resolve(); }
     return Loader.track(powerWindow(), 'Computing power…').then(function (win) {
-      var s = win.series, n = s.t.length, stepH = s.stepMin / 60;
-      var P = new Array(n), peak = 0, zero = 0, maxZero = 0;
-      for (var i = 0; i < n; i++) {
-        P[i] = E.panelPower(opts, s.sunAz[i], s.sunEl[i], s.sunDist[i], s.sunFrac[i]);
-        if (P[i] > peak) peak = P[i];
-        if (P[i] <= 0) { zero++; if (zero > maxZero) maxZero = zero; } else zero = 0;
-      }
-      var Wh = 0; for (i = 1; i < n; i++) Wh += (P[i - 1] + P[i]) / 2 * stepH;   // trapezoid rule
+      var s = win.series, n = s.t.length, pw = powerOf(s, inp), stepH = pw.stepH;
+      var P = pw.P, peak = pw.peak, maxZero = pw.maxZero, Wh = pw.Wh;
       var hours = (n - 1) * stepH, loadWh = load * hours;
-      var st = E.stats(s);
-      var darkH = st.longestDarkH, zeroH = maxZero * stepH;
-      var battery = load * darkH / usable, batteryZero = load * zeroH / usable;
+      var darkH = pw.darkH, zeroH = maxZero * stepH;
+      var battery = pw.battery, batteryZero = load * zeroH / usable;
       PW.res = { P: P, t: s.t, load: load, Wh: Wh, loadWh: loadWh, peak: peak, mean: Wh / hours, darkH: darkH, zeroH: zeroH, battery: battery, batteryZero: batteryZero, hours: hours, win: win, opts: opts, usable: usable };
       var kWh = function (x) { return (x / 1000).toFixed(x < 10000 ? 2 : 1) + ' kWh'; };
       var cards = [

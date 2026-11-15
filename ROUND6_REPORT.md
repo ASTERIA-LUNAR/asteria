@@ -376,6 +376,18 @@ K = 1 matched the edge even more closely on High (+0.2 % / −0.1 %) but flatten
 
 **Classification**: export of Calculated values (no new computation). **Limitations**: the windows table lists rise/set times refined to 1 minute; the series is at the sampling step (10 or 60 minutes), as in the app.
 
+## Round 6B Part 7 - Compare as a trade-off table - DONE
+
+**What changed** (`js/app.js`; no new screen): a "Power and terrain" section at the end of the existing Compare table, for every scenario column:
+* **Solar energy in the window (estimate)** - the Power page's model with its current settings (panel area, efficiency, orientation, load, usable battery), applied to the scenario's series. The section heading states "first-order estimate, example values" and the settings used. Best = most energy (highlighted).
+* **Battery for the longest darkness (estimate)** - load × longest darkness ÷ usable fraction, as on the Power page. Best = smallest (highlighted).
+* **DEM slope at the site point** - central differences over one grid spacing of the site's best LOLA data (5 m patch for the 3 sites that have one, otherwise the 20 m or 80 m tile), the same function and grids as the 3D rover and inspection readouts; the grid is shown next to the value. "-" for points without a 3D terrain tile (custom points). Not ranked (no best highlight), with "Real slopes over a few metres can be steeper".
+* To guarantee identical numbers, the Power page's arithmetic was moved unchanged into shared helpers (`powerInputs`, `powerOf`) used by both pages; best-value highlighting now ignores "-" cells. If the Power page inputs are invalid, the section says so and shows "-".
+
+**Tests** (`node tests/ui_round6b.js`, laptop + phone; Compare with Peak near Shackleton (now and +7 days), Mons Mouton and a custom point, 30 days): the three rows are present with the label and settings, best energy/battery highlighted, slope "-" for the custom point and never highlighted; scenario 1 energy and battery **exactly equal** the Power page's for the same site, start and window (160.168 kWh and 42.563 kWh with the default example values); the slope **exactly equals** the 3D rover readout at the site point (Peak near Shackleton 2.86° on the 5 m grid, Mons Mouton 10.42° on the 20 m grid) - ALL PASS. `ui_check.js` (Compare and Power checks), `features_test.js` (power model), `ui_round5.js`: PASS.
+
+**Classification**: energy and battery - Approximate (first-order model, example inputs); slope - Calculated (LOLA). **Limitations**: the slope is over 5-80 m, not rover scale; Compare loads a site's 3D tile (and 5 m patch) script the first time its slope is needed.
+
 ## Branch state
 
 * Branch `round6` contains the commits of Parts 0-5 on top of `v1-stable`. `master` (the main branch) and the tag `v1-stable` still point to c4c723f. No merge, no `v2-candidate` tag, no push (no remote is configured).

@@ -206,6 +206,47 @@ const screenOf = (page, x, y, z) => page.evaluate(([x, y, z]) => {
       }
     }
 
+    // ------------------------------------------------------------ Part 7: Compare trade-off rows
+    await page.goto(BASE + '#site=peak_shackleton&t=2027-01-10T00:00Z&w=30');
+    await page.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series, null, { timeout: 30000 });
+    await page.evaluate(() => AsteriaApp.ready());
+    await page.click('.tab[data-page="compare"]'); await page.waitForTimeout(200);
+    await page.click('#cmpAdd'); await page.click('#cmpAdd');
+    await page.selectOption('.scenario[data-k="2"] select[data-f="site"]', 'mons_mouton');
+    await page.selectOption('.scenario[data-k="3"] select[data-f="site"]', '__custom');
+    await page.evaluate(() => AsteriaApp.runCompare());
+    await page.waitForFunction(() => document.querySelector('#cmpResult table'), null, { timeout: 120000 });
+    const cr = await page.evaluate(() => {
+      const R = AsteriaApp.compareResults(), rows = [...document.querySelectorAll('#cmpResult tr')].map(tr => [...tr.children].map(td => ({ t: td.textContent.trim(), best: td.classList.contains('best') })));
+      const row = name => rows.find(r => r[0] && r[0].t === name);
+      return { res: R.map(r => ({ id: r.s.id, e: r.energyWh, b: r.batteryWh, sl: r.slope })), energy: row('Solar energy in the window (estimate)'), battery: row('Battery for the longest darkness (estimate)'), slope: row('DEM slope at the site point'), sec: [...document.querySelectorAll('#cmpResult tr.sec th')].map(t => t.textContent).join(' | ') };
+    });
+    expect(`${tag} Compare: new rows for solar energy, battery for the longest darkness and DEM slope, labelled "first-order estimate, example values" with the Power page settings; best energy/battery highlighted; slope "-" for the custom point`,
+      cr.energy && cr.battery && cr.slope && /first-order estimate, example values: Power page settings 1 m², 30% efficient/.test(cr.sec) && cr.energy.slice(1).some(c => c.best) && cr.battery.slice(1).some(c => c.best) && cr.slope[4].t === '-' && cr.slope.slice(1, 4).every(c => /° \(\d+ m LOLA grid\)/.test(c.t)) && !cr.slope.some(c => c.best),
+      JSON.stringify({ e: cr.energy && cr.energy.map(c => c.t), b: cr.battery && cr.battery.map(c => c.t), s: cr.slope && cr.slope.map(c => c.t) }));
+    // equality with the Power page (scenario 1 = the Explore site, start and window)
+    await page.click('.tab[data-page="power"]');
+    const pwr = await page.evaluate(() => AsteriaApp.runPower().then(() => { const p = AsteriaApp.powerResults(); return { Wh: p.Wh, battery: p.battery }; }));
+    expect(`${tag} Compare energy and battery = the Power page for the same inputs (${(pwr.Wh / 1000).toFixed(3)} kWh, ${(pwr.battery / 1000).toFixed(3)} kWh; exactly equal)`, cr.res[0].e === pwr.Wh && cr.res[0].b === pwr.battery, JSON.stringify({ cmp: cr.res[0], pwr }));
+    // equality with the 3D rover readout at the site point (same grids: 5 m patch at Peak near Shackleton, 20 m tile at Mons Mouton)
+    const sl3d = [];
+    for (const [k, id] of [[0, 'peak_shackleton'], [2, 'mons_mouton']]) {
+      await page.click('.tab[data-page="explorer"]'); await page.waitForTimeout(200);   // the map must be visible to select a site
+      await page.evaluate(id => AsteriaApp.selectSiteById(id), id); await page.evaluate(() => AsteriaApp.ready());
+      await page.evaluate(() => AsteriaApp.openDeploy());
+      await page.waitForFunction(() => AsteriaView3D.debug().open && !AsteriaView3D.debug().refining, null, { timeout: 60000 });
+      await page.evaluate(() => { AsteriaView3D.testQuality('high'); });
+      await page.waitForFunction(() => AsteriaView3D.debug().open && AsteriaView3D.debug().quality === 'high' && !AsteriaView3D.debug().refining && AsteriaView3D.debug().patch5m !== undefined, null, { timeout: 60000 });
+      await page.waitForTimeout(500);
+      await page.evaluate(() => { AsteriaView3D.testMode('rover'); AsteriaView3D.testCamera({ rov: { x: 0, z: 0, yaw: 0, dist: 0.001, camYaw: 0, lastX: 0, lastZ: 0 } }); });
+      await page.waitForFunction(() => { const d = AsteriaView3D.debug(); return d.rover && Math.abs(d.rover.e) < 1e-9 && Math.abs(d.rover.n) < 1e-9; }, null, { timeout: 10000 });
+      const d = await page.evaluate(() => { const d = AsteriaView3D.debug(); return { slope: d.rover.slope, txt: document.getElementById('v3dRSlope').textContent, patch: d.patch5m }; });
+      sl3d.push({ id, cmp: cr.res[k].sl && cr.res[k].sl.slope, rover: d.slope, txt: d.txt, d: cr.res[k].sl && cr.res[k].sl.d, patch: d.patch });
+      await page.evaluate(() => AsteriaView3D.close(true));
+    }
+    expect(`${tag} Compare DEM slope = the 3D rover readout at the site point (${sl3d.map(x => x.id + ' ' + (x.cmp || 0).toFixed(2) + '° on the ' + x.d + ' m grid').join(', ')}; exactly equal)`, sl3d.every(x => x.cmp === x.rover), JSON.stringify(sl3d));
+    await page.evaluate(() => { try { localStorage.setItem('asteria.v3dQuality', 'medium'); } catch (e) { /* */ } });
+
     expect(`${tag} no console errors or warnings`, errors.length === 0, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }
