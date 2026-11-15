@@ -54,7 +54,11 @@ const path = require('path'), fs = require('fs'), url = require('url');
     // ---- map fit: the data square fills the map panel on first load (no empty margins)
     const fitOk = m => m && m.left <= 1 && m.top <= 1 && m.right <= 1 && m.bottom <= 1 && (Math.abs(m.left + m.right) <= 2 || Math.abs(m.top + m.bottom) <= 2);
     const m0 = await page.evaluate(() => AsteriaMap.margins());
-    expect(`${tag} first load: the data-coverage square fills the map panel (no empty margins)`, fitOk(m0), JSON.stringify(m0));
+    // round 6H: with the first-visit Getting started open, its step 1 (the map) shows the WHOLE data square (centred,
+    // margins >= 0 on all sides, touching on one axis); without it the first view still fills the panel (ui_round6h)
+    const wholeOk = m => m && m.left >= -1.5 && m.top >= -1.5 && m.right >= -1.5 && m.bottom >= -1.5 && (Math.min(m.left + m.right, m.top + m.bottom) <= 3);
+    const hint0 = await page.isVisible('#hint');
+    expect(`${tag} first load: ${hint0 ? 'Getting started step 1 shows the whole data square (round 6H)' : 'the data-coverage square fills the map panel (no empty margins)'}`, hint0 ? wholeOk(m0) : fitOk(m0), JSON.stringify(m0));
     expect(`${tag} first-visit hint shows`, await page.isVisible('#hint'));
     await shot(page, vp.name + '_1_first_visit', false);
     await page.click('#hintNext'); await page.click('#hintNext'); await page.click('#hintNext'); await page.click('#hintNext');   // round 6F: 4 steps
@@ -303,7 +307,8 @@ const path = require('path'), fs = require('fs'), url = require('url');
     await pickSite('shackleton_centre');
     const lim = await page.evaluate(() => ({ sl: document.getElementById('sunCountLbl').textContent, s: document.getElementById('sunCount').textContent, el: document.getElementById('earthCountLbl').textContent, e: document.getElementById('earthCount').textContent,
       ml: document.getElementById('missionCountLbl').textContent, m: document.getElementById('missionCount').textContent, why: document.getElementById('sunLimitWhy').textContent,
-      whyShown: getComputedStyle(document.getElementById('sunLimitWhy')).display !== 'none', w: AsteriaApp.state.windowDays }));
+      whyShown: getComputedStyle(document.getElementById('sunLimitWhy')).display !== 'none' ||   // round 6H: compact laptop Site Card: the explanations are under the tiles, in "Why 'not within ...'?"
+        (getComputedStyle(document.getElementById('limitWhyBox')).display !== 'none' && document.getElementById('limitWhyAll').textContent.includes(document.getElementById('sunLimitWhy').textContent)), w: AsteriaApp.state.windowDays }));
     const lim430 = 'Not within the next ' + (lim.w + 400) + ' days (search limit)';
     expect(`${tag} no sunrise/Earthrise found: tiles say "${lim430}" (no "> N days"), with a one-line explanation in Explain mode`,
       lim.sl === 'Next sunrise:' && lim.s === lim430 && lim.el === 'Next Earthrise:' && lim.e === lim430 && lim.ml === 'Next change:' && lim.m === lim430 &&

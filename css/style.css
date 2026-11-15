@@ -237,6 +237,7 @@ body.explain-on .q { display: inline-flex; }
 .explain { display: none; background: #0f2236; border: 1px solid #1f4a6e; border-left: 3px solid var(--accent); border-radius: 8px; padding: 9px 12px; font-size: .88rem; color: #cfe3f5; margin: 8px 0 0; }
 body.explain-on .explain { display: block; }
 body.explain-on .explain.limitx:empty { display: none; }
+.limitall { display: none !important; }   /* round 6H: only on the compact laptop Site Card (see below) */
 .explain.limitx { font-size: .8rem; padding: 6px 9px; margin-top: 6px; }
 .tcount b.nolimit { font-family: inherit; font-weight: 600; font-size: .9em; }
 
@@ -620,11 +621,16 @@ details.more[open] > summary { margin-bottom: 4px; }
   .hero.fit .tile { padding: 8px 10px; border-left-width: 4px; border-radius: 10px; }
   .hero.fit .tstate { font-size: 1.2rem; line-height: 1.2; }
   .hero.fit .tcount { font-size: .86rem; line-height: 1.3; }
-  .hero.fit .tcount b { font-size: .98rem; white-space: nowrap; }
+  .hero.fit .tcount b { font-size: .98rem; overflow-wrap: anywhere; }
+  .hero.fit .tcount b.mono { white-space: nowrap; }
+  .hero.fit .tile .limitx { display: none !important; }
+  body.explain-on .hero.fit .limitall:not([hidden]) { display: block !important; margin-top: 0; }
+  .hero.fit .limitall .limitx { display: block; margin-top: 2px; }
   .hero.fit .maplegend { margin-top: 6px; }
   .actrow .cfbtnrow { flex: 0 0 auto; margin-left: auto; }
   .actrow .cfbtn { width: auto; }
   .actrow .jumprow .hint { order: 9; }
+  .hero.fit .jumprow .hint:empty { display: none; }
   .hero.fit + .verified { margin-top: 14px; }
 }
 /* round 6H: while a Getting-started or tour step is shown, space below the page so its target can scroll clear of the step box */
@@ -634,3 +640,6 @@ body.guiding main { padding-bottom: 60vh; }
   .sitecard > .deployrow { order: 1; margin-top: 4px; }
   .sitecard > .verifybox { order: 2; }
 }
+/* round 6H: Mission casefile button beside "Choose a site" */
+.pickrow .cfbtnrow { margin: 0 auto 0 0; }
+.pickrow .cfbtn { width: auto; }

@@ -62,6 +62,7 @@
     <aside class="panel sitecard" id="siteCard">
       <div class="pickrow">
         <button id="pickBtn" class="btn pickbtn" aria-expanded="false" aria-controls="pickPanel">Choose a site &#9662;</button>
+        <div class="cfbtnrow"><button id="cfBtn" class="btn cfbtn" type="button" title="One printable page with every result for this site, time window and your requirements, and the evidence for each">Mission casefile</button></div>   <!-- round 6H: moved up from below the jump buttons -->
         <span id="horizonBadge" class="badge"></span>
       </div>
       <div id="pickPanel" class="pickpanel" hidden>
@@ -114,6 +115,7 @@
           <div class="explain limitx" id="missionLimitWhy"></div>
         </div>
       </div>
+      <details class="more limitall" id="limitWhyBox" hidden><summary>Why &quot;not within the next &hellip; days&quot;?</summary><div class="explain limitx" id="limitWhyAll"></div></details>
       <!-- round 6H: the tiles' "why it matters" lines, in one expandable section (nothing removed) -->
       <details class="more tilewhy" id="tilesWhy"><summary>Why these matter</summary>
         <div class="twhy"><b class="c-sun">Sunlight:</b> solar power and heat.</div>
@@ -128,7 +130,6 @@
         <span class="q" data-q="jump"></span>
         <div class="hint" id="jumpMsg" role="status" aria-live="polite"></div>
       </div>
-      <div class="cfbtnrow"><button id="cfBtn" class="btn cfbtn" type="button" title="One printable page with every result for this site, time window and your requirements, and the evidence for each">Mission casefile</button></div>
       </div>
       <div class="x-only verifybox" id="verifyBox"></div>
     </aside>

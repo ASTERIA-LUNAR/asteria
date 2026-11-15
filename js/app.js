@@ -363,6 +363,11 @@
       $('missionCount').textContent = notWithinText(md); $('missionCount').className = 'nolimit';
       $('missionLimitWhy').textContent = limitWhy('change of sunlight or Earth link', md);
     }
+    // round 6H: on the compact laptop Site Card the tiles sit side by side; their search-limit explanations are shown
+    // once, full width under the tiles (same text; CSS hides the per-tile copies there)
+    $('limitWhyAll').textContent = [['Sunlight', 'sunLimitWhy'], ['Earth link', 'earthLimitWhy'], ['Mission status', 'missionLimitWhy']]
+      .filter(function (x) { return $(x[1]).textContent; }).map(function (x) { return x[0] + ': ' + $(x[1]).textContent; }).join(' ');
+    $('limitWhyBox').hidden = !$('limitWhyAll').textContent;
     renderSky(r);
     renderVerify();
     drawTimelineCursor();
@@ -2519,7 +2524,7 @@
     window.addEventListener('hashchange', function () { var o = readHash(); if (o) { hashReady = false; if (o.req !== undefined && o.req !== reqEncode(REQ)) { REQ = reqDecode(o.req); renderReqGrid(); reqStore(); } applyHash(o); hashReady = true; } });
     // the getting-started hint waits for the first-visit intro (if any) to finish
     var afterIntro = window.AsteriaIntro ? window.AsteriaIntro.whenDone : function (fn) { fn(); };
-    if (pref(HINT_KEY) !== '1') afterIntro(function () { setTimeout(function () { if ($('tour').hidden) hintShow(0); }, 600); });
+    if (pref(HINT_KEY) !== '1') afterIntro(function () { setTimeout(function () { if ($('tour').hidden && pref(HINT_KEY) !== '1') hintShow(0); }, 600); });   // round 6H: dismissal re-checked when it fires (the hint now switches to its tab)
     $('replayIntro').addEventListener('click', function (ev) { ev.preventDefault(); if (window.AsteriaIntro) window.AsteriaIntro.replay(); });
   }
 

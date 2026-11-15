@@ -67,7 +67,6 @@ async function mapChecks(page, vp, tag) {
   if (SHOTS) await page.screenshot({ path: path.join(OUT, `map_showall_${tag}.png`) });
   // outside click (in the hatched strip at the minimum zoom) -> message, nothing selected
   const before = await page.evaluate(() => AsteriaApp.state.site.id);
-  const sx = m4.left > m4.top ? box.x + Math.max(3, m4.left / 2) : box.x + box.w / 2, sy = m4.left > m4.top ? box.y + box.h / 2 : box.y + Math.max(3, m4.top / 2);
   if (Math.max(m4.left, m4.top) > 6) {
     await page.evaluate(() => window.scrollTo(0, 0)); await page.evaluate(() => document.getElementById('lmap').scrollIntoView({ block: 'center' })); await page.waitForTimeout(150);
     const b2 = await page.evaluate(() => { const r = document.getElementById('lmap').getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
@@ -76,7 +75,6 @@ async function mapChecks(page, vp, tag) {
     const after = await page.evaluate(() => ({ id: AsteriaApp.state.site.id, note: !document.getElementById('mapNote').hidden, txt: document.getElementById('mapNote').textContent }));
     expect(`${tag} map: a click outside the data square selects nothing and shows the outside-data message`, after.id === before && after.note && /No elevation data here/.test(after.txt), JSON.stringify(after));
   }
-  void sx; void sy;
   await page.evaluate(() => AsteriaMap.home(false));
 }
 
