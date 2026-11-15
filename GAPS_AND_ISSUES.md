@@ -377,3 +377,10 @@ Nothing else turned up: no API keys or tokens, and no email addresses other than
 * Branch `capsule` (commits `7b4e7af`, `93d04a9`) was merged into master with a normal merge commit. There were no conflicts: the Prompt 8 favicon link, .nojekyll, README links and section 19 are all kept next to the capsule's nav button, loader and docs.
 * Re-run on master after the merge, one at a time: ui_capsule (laptop, phone, reduced motion), ui_check, ui_round6h, ui_round6d, ui_scroll and validate. All passed with no console errors.
 * **The 3D suites were not re-run for this merge** (view3d_test, accuracy3d, shading_consistency, ui_seams, perf3d, perf_modes, tile_edge) because the capsule does not touch the 3D code: it adds js/capsule.js, CSS, one nav button and its lazy loader in index.html, docs and tests only.
+
+## 21. Prompt 11: terrain data preload, loading message, Sky view legend
+
+* `data/dem_coarse.js` (8.79 MB) is now requested in the background once the page has loaded (window "load", then `requestIdleCallback`, or 2 s without it), through the existing `loadDem()` and its cached promise. A custom point chosen during the preload reuses the in-flight load, so the file is requested once. Skipped when `navigator.connection.saveData` is true. The loading mechanism (script element), the worker and the results are unchanged.
+* "Loading terrain data (8.8 MB)..." appears in the status loader (the rocket, where "Computing the terrain horizon…" appears) only while a custom point, the tour / Getting started example point or a shared custom-point link waits for the file. The tour box keeps "Working..." during that wait, because several UI suites (ui_check, ui_round6f, ui_round6h, ui_scroll) wait on that exact text.
+* Sky view legend: the terrain swatch now has the same 6 px gap before its label as Sun and Earth (CSS only). No other legend had the same overlap: the Timeline legend has no nested wrapper, and the map and 3D legends use their own markup.
+* Tested by tests/ui_preload.js (laptop and phone, about 3 Mbit/s throttling, served over local http). Science suites and Python DEM checks re-run; js/engine.js is byte-identical to v1-stable.

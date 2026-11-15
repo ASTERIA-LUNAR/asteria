@@ -372,7 +372,7 @@ No AI wording was added (tests/ui_round6c.js and tests/ui_check.js: only the unc
 
 No AI wording was added (tests/ui_check.js page scan; tests/ui_round6d.js scans the casefile and the requirements block). No score, rank, confidence or recommendation wording in the requirement rows (tests/ui_round6d.js).
 
-| Text | Where | Basis | Status |
+| Text | Where | Claim type | Status |
 |---|---|---|---|
 | Collapsible block "Mission requirements" with "set once, used in Compare and in the Mission casefile" | Compare page (index.html) | - | new |
 | "Example values - set your mission's. These thresholds are placeholders, not requirements of any real mission. Tick a requirement to check it." | Compare page | owner's wording ("example values - set your mission's") | new |
@@ -441,3 +441,9 @@ All text inside the capsule, checked on 2026-11-15. The captions are historical 
 | Canvas labels "SLIM", "IM-1", "Chang'e 6" | 2024 scene | names only | new |
 | Buttons: Play / Pause / Replay from the start, Previous milestone, Next milestone, year buttons (label "year: milestone"), Close the Historical Capsule, Sources, Close | capsule controls (aria labels) | labels | new |
 | About, design decision 17 "Historical Capsule is separate from the science (Prompt 9)"; README section; DESIGN_DECISIONS.md 17 | About page, docs | definition | new |
+
+## Prompt 11 (terrain data preload)
+
+| Text | Where | Claim type | Status |
+|---|---|---|---|
+| "Loading terrain data (8.8 MB)..." | loading status (the rocket loader, in place of "Computing the terrain horizon…") while a custom point, tour step 4 / Getting started "Take me there" or a shared custom-point link waits for data/dem_coarse.js (8.79 MB); no percentage | file size | new |

@@ -459,6 +459,7 @@ body.v3d-open { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .intro { transition: none; } }
 
 .nowrap { white-space: nowrap; }
+.legend .nowrap { display: inline-flex; align-items: center; gap: 10px; }   /* Prompt 11: same swatch-to-text gap as the other legend items (.lg has margin-right -4px for the flex gap) */
 
 /* round 5: proof for judges */
 .verified { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; width: 100%; text-align: left; margin: 0 0 14px; padding: 8px 14px; background: #0d1b2e; border: 1px solid #2c5a3c; border-radius: var(--radius); color: var(--text); cursor: pointer; font: inherit; font-size: .8rem; }

@@ -242,7 +242,8 @@
   var CV = window.LUNA_COARSE_VALIDATION;
   var COARSE_OK = !!(CV && CV.pass);      // shipped only because tests/coarse_validation.js passed
   var COARSE_PX = CV ? CV.dem.pixel_m : 240;
-  var demPromise = null, customToken = 0;
+  var demPromise = null, demReady = false, customToken = 0;
+  var DEM_LOADING_MSG = 'Loading terrain data (8.8 MB)...';   // Prompt 11: shown only while a user action waits for data/dem_coarse.js
   // Load data/dem_coarse.js on first use (8-9 MB), inflate it, undo the row differences, hand it to the jobs.
   function loadDem() {
     if (demPromise) return demPromise;
@@ -263,7 +264,7 @@
         Jobs.local().setDem(dem);
         return Jobs.run('setDem', dem);
       });
-    });
+    }).then(function (v) { demReady = true; return v; });
     demPromise.then(null, function () { demPromise = null; });
     return demPromise;
   }
@@ -289,7 +290,10 @@
     var site = { id: null, name: 'Custom point', lat: +(+lat).toFixed(4), lon: +(+lon).toFixed(4) };
     if (!(COARSE_OK && inMap(site))) return selectSite(site, { fly: false });
     var tok = ++customToken;
-    var p = Loader.track(loadDem().then(function () { return Jobs.run('horizon', { lat: site.lat, lon: site.lon, obsH: 2 }); }), 'Computing the terrain horizon…')
+    // Prompt 11: if the DEM is not ready yet (the background preload may be in flight; loadDem() reuses it), say so first.
+    var dem = loadDem();
+    if (!demReady) dem = Loader.track(dem, DEM_LOADING_MSG);
+    var p = dem.then(function () { return Loader.track(Jobs.run('horizon', { lat: site.lat, lon: site.lon, obsH: 2 }), 'Computing the terrain horizon…'); })
       .then(function (hz) { site.hz = hz; }, function (e) { site.hzError = e && e.message || String(e); });
     S.ready = p.then(function () { if (tok === customToken) return selectSite(site, { fly: false }); });
     return S.ready;
@@ -2562,4 +2566,12 @@
   window.AsteriaApp = window.LunaApp;   // product name alias (internal LunaApp kept for compatibility)
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  // Prompt 11: after the page has loaded and the browser is idle, start the EXISTING lazy load of data/dem_coarse.js
+  // (same loadDem() and cached promise), so the first custom point does not wait. Skipped with Save-Data.
+  function preloadDem() {
+    if (!COARSE_OK || (navigator.connection && navigator.connection.saveData)) return;
+    var go = function () { loadDem().then(null, function () { /* a click will retry and report it */ }); };
+    if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 4000 }); else setTimeout(go, 2000);
+  }
+  if (document.readyState === 'complete') preloadDem(); else window.addEventListener('load', preloadDem);
 })();
