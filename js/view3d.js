@@ -36,6 +36,11 @@ window.AsteriaView3D = (function () {
   // more - each octave and feature fades only by its own screen-space size, and the whole covering fades gently between
   // COVER_NEAR and COVER_FAR m. COVER_RMAX: largest craterlet radius (m), below the DEM grid scale.
   var COVER_NEAR = 1500, COVER_FAR = 2000, COVER_OCT = 7, COVER_OCT_LOW = 5, COVER_RMAX = 5;
+  // round 6F: feature classes [cell size C (m), probability per cell, radius min, radius max (m), seed (also the lattice
+  // rotation, rad), kind (0 craterlet, 1 rock fleck)]: four craterlet classes and the larger fleck class everywhere, then
+  // (laptops at Medium/High only) two overlapping craterlet lattices and the small fleck class
+  var COVER_CLASSES = [[30, 0.18, 2.0, COVER_RMAX, 11, 0], [12, 0.22, 0.8, 2.5, 23, 0], [4.5, 0.30, 0.3, 1.0, 37, 0], [1.4, 0.38, 0.1, 0.3, 53, 0],
+    [3.0, 0.05, 0.12, 0.4, 71, 1], [14, 0.12, 0.8, 2.5, 29, 0], [5.0, 0.15, 0.3, 1.0, 43, 0], [0.8, 0.06, 0.04, 0.12, 89, 1]], COVER_CLASSES_LOW = 5;
   // round 6E Part 2: wheel tracks (Illustrative): the rover's path this session, one point every WHEEL_STEP m, the last
   // WHEEL_N points (about 250 m of path), drawn as two faint darker strips in the covering's albedo (same checkbox)
   var WHEEL_N = 64, WHEEL_STEP = 4, WHEEL_HALF = 0.6, WHEEL_W = 0.3;
@@ -267,7 +272,7 @@ window.AsteriaView3D = (function () {
     // terrain: the tile now (coarse first frame), then the extended rings and the 5 m patch (loadExtended)
     // global uniforms shared by every terrain material; cascade: camera-centred Sun shadow map (Medium/High)
     var U = { uContour: { value: 0 }, uSlope: { value: 0 }, uRelief: { value: 0 }, uFlat: { value: 0.1 }, uLambert: { value: 0 }, uReliefK: { value: RELIEF_K }, uAO: { value: 0 }, uVNorm: { value: 0 }, uNoShadow: { value: 0 }, uCascadeOn: { value: 1 },
-      uCover: { value: 0 }, uCovOct: { value: COVER_OCT }, uCovNear: { value: COVER_NEAR }, uCovFar: { value: COVER_FAR }, uCovDbg: { value: 0 }, uCamW: { value: new THREE.Vector3() }, uTrk: { value: (function () { var a = []; for (var i = 0; i < 64; i++) a.push(new THREE.Vector2()); return a; })() }, uTrkN: { value: 0 }, cascade: !!Q.cascade };
+      uCover: { value: 0 }, uCovOct: { value: COVER_OCT }, uCovNear: { value: COVER_NEAR }, uCovFar: { value: COVER_FAR }, uCovDbg: { value: 0 }, uCamW: { value: new THREE.Vector3() }, uCov3: { value: 3 }, uCovA: { value: COVER_CLASSES.map(function (c) { return new THREE.Vector4(c[0], c[1], c[2], c[3]); }) }, uCovB: { value: COVER_CLASSES.map(function (c) { return new THREE.Vector2(c[4], c[5]); }) }, uTrk: { value: (function () { var a = []; for (var i = 0; i < 64; i++) a.push(new THREE.Vector2()); return a; })() }, uTrkN: { value: 0 }, cascade: !!Q.cascade };
     var nmapOK = !!(Q.nmap && renderer.capabilities.isWebGL2);
     var floatLinear = !!renderer.extensions.get('OES_texture_float_linear');
     // round 6C: per-pixel normals (normal maps of the LOLA grid) for the 6 km tile and the 5 m patch at every quality
@@ -572,9 +577,13 @@ window.AsteriaView3D = (function () {
     '  vec4 P0 = vec4( R, 1.0 + 0.3 * r1, cos( th ), sin( th ) ), P1, P2 = vec4( 6.2832 * r3, 6.2832 * r4, 6.2832 * r5, 0.0 );',
     '  if ( kind < 0.5 ) { P1 = vec4( mix( 0.03, 0.38, s ) * ( 0.75 + 0.5 * h6 ), mix( 0.008, 0.09, s ) * ( 0.7 + 0.6 * r1 ), mix( 0.30, 0.16, s ), s ); P2.w = 0.08 * ( r5 - 0.5 ) + 0.03 * s; }',
     '  else { P0.y = 1.0 + 0.4 * r1; P1 = vec4( 0.3 + 0.4 * r3, 0.0, 1.0, 0.0 ); P2.w = 0.05 + 0.20 * h6; }',
-    '  float e = 0.04 * R;',
-    '  vec2 f0 = asProf( d, P0, P1, P2, kind, nW );',
-    '  g += w * vec2( asProf( d + vec2( e, 0.0 ), P0, P1, P2, kind, nW ).x - f0.x, asProf( d + vec2( 0.0, e ), P0, P1, P2, kind, nW ).x - f0.x ) / e;',
+    '  float e = 0.04 * R; vec2 f0 = vec2( 0.0 ); float hx = 0.0, hy = 0.0;',
+    '  for ( int j = 0; j < 3; j++ ) {',
+    '    if ( float( j ) >= uCov3 ) break;',
+    '    vec2 f = asProf( d + ( j == 1 ? vec2( e, 0.0 ) : j == 2 ? vec2( 0.0, e ) : vec2( 0.0 ) ), P0, P1, P2, kind, nW );',
+    '    if ( j == 0 ) f0 = f; else if ( j == 1 ) hx = f.x; else hy = f.x;',
+    '  }',
+    '  g += w * vec2( hx - f0.x, hy - f0.x ) / e;',
     '  a += w * f0.y;',
     '}',
     // computes asCov (strength), asAlb (albedo factor) and asDN (first-order change of the unit normal when the detail height field is added to the LOLA surface, view space; linear in the detail gradient, so its mean is zero) from the final LOLA normal n
@@ -604,13 +613,13 @@ window.AsteriaView3D = (function () {
     // round 6F: craterlets in four size classes (largest radius COVER_RMAX m, below the DEM grid scale); on laptops at
     // Medium/High two extra lattices of the middle classes (overlapping craterlets); rock flecks in two classes (the
     // smaller one not on Low/phones)
-    '  asFeat( p, 30.0, 0.18, 2.0, ' + COVER_RMAX.toFixed(1) + ', 11.0, 0.0, nW, fp, g, a );',
-    '  asFeat( p, 12.0, 0.22, 0.8, 2.5, 23.0, 0.0, nW, fp, g, a );',
-    '  asFeat( p, 4.5, 0.30, 0.3, 1.0, 37.0, 0.0, nW, fp, g, a );',
-    '  asFeat( p, 1.4, 0.38, 0.1, 0.3, 53.0, 0.0, nW, fp, g, a );',
-    '  if ( uCovOct > 5.5 ) { asFeat( p, 14.0, 0.12, 0.8, 2.5, 29.0, 0.0, nW, fp, g, a ); asFeat( p, 5.0, 0.15, 0.3, 1.0, 43.0, 0.0, nW, fp, g, a ); }',
-    '  asFeat( p, 3.0, 0.05, 0.12, 0.4, 71.0, 1.0, nW, fp, g, a );',
-    '  if ( uCovOct > 5.5 ) asFeat( p, 0.8, 0.06, 0.04, 0.12, 89.0, 1.0, nW, fp, g, a );',
+    // (one call site in a loop over the classes of COVER_CLASSES, uniforms uCovA/uCovB, so the feature code is compiled
+    // once: unrolled copies made the first compile on Windows/D3D take many seconds)
+    '  float nF = uCovOct > 5.5 ? ' + COVER_CLASSES.length.toFixed(1) + ' : ' + COVER_CLASSES_LOW.toFixed(1) + ';',
+    '  for ( int i = 0; i < ' + COVER_CLASSES.length + '; i++ ) {',
+    '    if ( float( i ) >= nF ) break;',
+    '    asFeat( p, uCovA[ i ].x, uCovA[ i ].y, uCovA[ i ].z, uCovA[ i ].w, uCovB[ i ].x, uCovB[ i ].y, nW, fp, g, a );',
+    '  }',
     // uCovDbg (tests only, round 6E diagnostics): 1 = albedo only, 2 = micro-relief and features only, 3 = features only
     '  if ( uCovDbg > 0.5 ) { if ( uCovDbg < 1.5 ) g = vec2( 0.0 ); else a = 0.0; }',
     // wheel tracks: two strips at +-WHEEL_HALF m from the path (uTrk, oldest first), darker by up to 7 %, fading with
@@ -648,7 +657,7 @@ window.AsteriaView3D = (function () {
     if (opts.nmap) mat.defines.AS_NMAP = '';
     if (opts.ao) mat.defines.AS_AO = '';
     mat.onBeforeCompile = function (sh) {
-      ['uContour', 'uSlope', 'uRelief', 'uFlat', 'uLambert', 'uReliefK', 'uAO', 'uVNorm', 'uCover', 'uCovOct', 'uCovNear', 'uCovFar', 'uCovDbg', 'uCamW', 'uTrk', 'uTrkN'].forEach(function (k) { sh.uniforms[k] = U[k]; });
+      ['uContour', 'uSlope', 'uRelief', 'uFlat', 'uLambert', 'uReliefK', 'uAO', 'uVNorm', 'uCover', 'uCovOct', 'uCovNear', 'uCovFar', 'uCovDbg', 'uCamW', 'uCov3', 'uCovA', 'uCovB', 'uTrk', 'uTrkN'].forEach(function (k) { sh.uniforms[k] = U[k]; });
       Object.keys(L).forEach(function (k) { sh.uniforms[k] = L[k]; });
       lightsPatch(sh, U);
       sh.vertexShader = 'attribute float aH;\nattribute float aS;\nattribute vec3 aNs;\nattribute vec2 aG;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\nvarying vec3 vW;\n' +
@@ -686,7 +695,7 @@ window.AsteriaView3D = (function () {
         '\t\tfloat asY = clamp( 0.8 * asDL / max( dotNL, 0.04 ), -8.0, 8.0 ), asE3 = exp( 2.0 * asY );\n' +
         '\t\tirradiance *= asAlb * ( 1.0 + 0.45 * ( asE3 - 1.0 ) / ( asE3 + 1.0 ) );\n' +
         '\t}');
-      sh.fragmentShader = 'uniform float uContour;\nuniform float uSlope;\nuniform float uRelief;\nuniform float uFlat;\nuniform float uLambert;\nuniform float uReliefK;\nuniform float uReliefD;\nuniform float uAO;\nuniform float uVNorm;\nuniform sampler2D uAOMap;\nuniform float uAOBand0;\nfloat asRelW = 1.0;\nuniform float uCover;\nuniform float uCovOct;\nuniform float uCovNear;\nuniform float uCovFar;\nuniform float uCovDbg;\nuniform vec3 uCamW;\nuniform vec2 uTrk[ 64 ];\nuniform float uTrkN;\nvarying vec3 vW;\nfloat asCov = 0.0;\nfloat asAlb = 1.0;\nvec3 asDN = vec3( 0.0, 0.0, 1.0 );\n' + COVER_GLSL + 'uniform sampler2D uNMap;\nuniform float uBand0;\nuniform float uBandBias;\nuniform float uBandMix;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\n' +
+      sh.fragmentShader = 'uniform float uContour;\nuniform float uSlope;\nuniform float uRelief;\nuniform float uFlat;\nuniform float uLambert;\nuniform float uReliefK;\nuniform float uReliefD;\nuniform float uAO;\nuniform float uVNorm;\nuniform sampler2D uAOMap;\nuniform float uAOBand0;\nfloat asRelW = 1.0;\nuniform float uCover;\nuniform float uCovOct;\nuniform float uCovNear;\nuniform float uCovFar;\nuniform float uCovDbg;\nuniform vec3 uCamW;\nuniform float uCov3;\nuniform vec4 uCovA[ ' + COVER_CLASSES.length + ' ];\nuniform vec2 uCovB[ ' + COVER_CLASSES.length + ' ];\nuniform vec2 uTrk[ 64 ];\nuniform float uTrkN;\nvarying vec3 vW;\nfloat asCov = 0.0;\nfloat asAlb = 1.0;\nvec3 asDN = vec3( 0.0, 0.0, 1.0 );\n' + COVER_GLSL + 'uniform sampler2D uNMap;\nuniform float uBand0;\nuniform float uBandBias;\nuniform float uBandMix;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\n' +
         sh.fragmentShader
           .replace('#include <lights_lambert_pars_fragment>', chunk)
           .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' +
