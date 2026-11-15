@@ -254,6 +254,12 @@
         <button id="cmpRun" class="btn primary">Compute</button>
       </div>
     </div>
+    <details class="reqblock" id="reqBlock" open>
+      <summary>Mission requirements <span class="hint">set once, used in Compare and in the Mission casefile</span></summary>
+      <p class="examplenote" id="reqExample"><b>Example values - set your mission's.</b> These thresholds are placeholders, not requirements of any real mission. Tick a requirement to check it.</p>
+      <div class="reqgrid" id="reqGrid"></div>
+      <p class="fineprint">Each scenario shows Met, Not met or Can't assess (with the reason) per ticked requirement, judged on the value shown next to it at the precision shown. There is no overall score: the requirements are not weighted against each other. Energy uses the Power page's current settings (first-order estimate, example values).</p>
+    </details>
     <p class="explain">Pick up to four site + date combinations. A scenario can be the same site on a later date (a launch slip) or a nearby alternative site. Sunlight and Earth-link metrics are shown side by side; the best value in each row is highlighted.</p>
     <div id="cmpScenarios" class="scenarios"></div>
     <p class="fineprint" id="cmpMinElNote"></p>

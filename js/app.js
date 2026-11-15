@@ -1018,7 +1018,96 @@
     if (open !== null) { n++; tot += t1 - open; }
     return { n: n, avgH: n ? tot / n / 3600000 : 0 };
   }
-  var CMPRES = null;
+  // ------------------------------------------------- mission requirements (round 6D)
+  // User thresholds checked against values the app already shows (no new calculation, no score, no weighting).
+  // A verdict is taken from the value at the precision it is displayed with (the number printed next to the verdict),
+  // so the verdict always follows from what the reader sees. Energy: the Power page's own rule (produced >= needed).
+  var REQ_DEF = [
+    { k: 'sun', lbl: 'Minimum % sunlit', short: 'Sunlit', unit: '%', op: 'min', def: 50, max: 100 },
+    { k: 'earth', lbl: 'Minimum % Earth link', short: 'Earth link', unit: '%', op: 'min', def: 50, max: 100 },
+    { k: 'both', lbl: 'Minimum % both (sunlight + Earth link)', short: 'Both', unit: '%', op: 'min', def: 30, max: 100 },
+    { k: 'dark', lbl: 'Maximum longest darkness', short: 'Longest darkness', unit: 'h', op: 'max', def: 72, max: 9000 },
+    { k: 'blackout', lbl: 'Maximum longest Earth blackout', short: 'Longest Earth blackout', unit: 'h', op: 'max', def: 120, max: 9000 },
+    { k: 'energy', lbl: 'Energy balance must be positive (first-order estimate, example values)', short: 'Energy balance', unit: null, op: 'pos' },
+    { k: 'slope', lbl: 'Maximum site slope', short: 'DEM slope at the site point', unit: '°', op: 'max', def: 15, max: 90 }
+  ];
+  var REQ = {};
+  function reqDefaults() { var o = {}; REQ_DEF.forEach(function (d) { o[d.k] = { on: true, v: d.def }; }); return o; }
+  function reqEncode(R) {
+    var p = REQ_DEF.filter(function (d) { return R[d.k] && R[d.k].on; }).map(function (d) { return d.op === 'pos' ? d.k : d.k + ':' + R[d.k].v; });
+    return p.length ? p.join(',') : 'none';
+  }
+  function reqDecode(str) {
+    var R = {}; REQ_DEF.forEach(function (d) { R[d.k] = { on: false, v: d.def }; });
+    String(str || '').split(',').forEach(function (kv) {
+      var a = kv.split(':'), d = REQ_DEF.filter(function (x) { return x.k === a[0]; })[0]; if (!d) return;
+      var v = d.op === 'pos' ? null : +a[1];
+      if (d.op !== 'pos' && !(isFinite(v) && v >= 0 && v <= d.max)) return;
+      R[d.k] = { on: true, v: d.op === 'pos' ? undefined : v };
+    });
+    return R;
+  }
+  function reqStore() { try { sessionStorage.setItem('asteria.req', reqEncode(REQ)); } catch (e) { /* ignore */ } }
+  function reqInit(hashVal) {
+    var stored = null; try { stored = sessionStorage.getItem('asteria.req'); } catch (e) { /* ignore */ }
+    REQ = hashVal !== undefined ? reqDecode(hashVal) : stored ? reqDecode(stored) : reqDefaults();
+    renderReqGrid();
+  }
+  function renderReqGrid() {
+    $('reqGrid').innerHTML = REQ_DEF.map(function (d) {
+      var r = REQ[d.k];
+      return '<label class="req"><input type="checkbox" data-rk="' + d.k + '"' + (r.on ? ' checked' : '') + '> <span>' + esc(d.lbl) + '</span>' +
+        (d.op === 'pos' ? '' : ' <span class="inl"><input type="number" data-rv="' + d.k + '" min="0" max="' + d.max + '" step="' + (d.unit === 'h' ? 1 : 0.5) + '" value="' + r.v + '"' + (r.on ? '' : ' disabled') + ' aria-label="' + esc(d.lbl) + '"> ' + d.unit + '</span>') + '</label>';
+    }).join('');
+  }
+  function reqChange(ev) {
+    var el = ev.target, k = el.dataset.rk || el.dataset.rv; if (!k || !REQ[k]) return;
+    if (el.dataset.rk) REQ[k].on = el.checked;
+    else { var d = REQ_DEF.filter(function (x) { return x.k === k; })[0], v = +el.value; if (!(isFinite(v) && v >= 0)) v = d.def; v = Math.min(d.max, v); el.value = v; REQ[k].v = v; }
+    renderReqGrid(); reqStore(); writeHash();
+    if (CMPRES) renderCompare();
+    if (CF.open && CF.data) renderCasefile();
+  }
+  var kWhF = function (v) { return (v / 1000).toFixed(v < 10000 ? 2 : 1) + ' kWh'; };   // the Power page's kWh format
+  function reqThresholdText(d, r) { return d.op === 'pos' ? 'produced ≥ needed' : (d.op === 'min' ? '≥ ' : '≤ ') + r.v + (d.unit === '%' ? '%' : d.unit === '°' ? '°' : ' h'); }
+  // m: { pctSun, pctEarth, pctBoth, longestDarkH, longestBlackoutH, power: {Wh, loadWh} | null, powerWhy, slope: {slope, d} | null, slopeWhy }
+  function reqCheck(m) {
+    var list = [];
+    REQ_DEF.forEach(function (d) {
+      var r = REQ[d.k]; if (!r || !r.on) return;
+      var it = { k: d.k, label: d.short + ' ' + reqThresholdText(d, r), verdict: 'cant', value: null, valueText: '', reason: '' };
+      var shown = function (x, n, unit) { it.value = +x.toFixed(n); it.valueText = x.toFixed(n) + unit; return it.value; };
+      if (d.k === 'sun' || d.k === 'earth' || d.k === 'both') {
+        var x = m[{ sun: 'pctSun', earth: 'pctEarth', both: 'pctBoth' }[d.k]];
+        it.verdict = shown(x, 1, '%') >= r.v ? 'met' : 'not';
+      } else if (d.k === 'dark' || d.k === 'blackout') {
+        it.verdict = shown(d.k === 'dark' ? m.longestDarkH : m.longestBlackoutH, 1, ' h') <= r.v ? 'met' : 'not';
+      } else if (d.k === 'energy') {
+        if (!m.power) it.reason = m.powerWhy || 'power not computed';
+        else {
+          var bal = m.power.Wh - m.power.loadWh;
+          it.valueText = (m.power.Wh >= m.power.loadWh ? '+' : '−') + kWhF(Math.abs(bal)) + ' (' + kWhF(m.power.Wh) + ' vs ' + kWhF(m.power.loadWh) + ')';
+          it.value = bal; it.verdict = m.power.Wh >= m.power.loadWh ? 'met' : 'not';
+        }
+      } else if (d.k === 'slope') {
+        if (!m.slope) it.reason = m.slopeWhy || 'slope not available';
+        else { it.verdict = shown(m.slope.slope, 1, '°') <= r.v ? 'met' : 'not'; it.valueText += ' (' + m.slope.d + ' m LOLA grid)'; }
+      }
+      list.push(it);
+    });
+    return list;
+  }
+  var VERDICT_TXT = { met: 'Met', not: 'Not met', cant: 'Can\'t assess' };
+  function verdictHtml(it) {
+    return '<span class="rv rv-' + it.verdict + '">' + VERDICT_TXT[it.verdict] + '</span>' + (it.valueText ? ' <span class="mono rvval">' + esc(it.valueText) + '</span>' : '') + (it.reason ? ' <span class="fineprint rvwhy">' + esc(it.reason) + '</span>' : '');
+  }
+  function reqSummary(list) {
+    var met = list.filter(function (x) { return x.verdict === 'met'; }).length, cant = list.filter(function (x) { return x.verdict === 'cant'; }).length;
+    return met + ' of ' + list.length + ' requirements met' + (cant ? ' (' + cant + ' can\'t assess)' : '');
+  }
+  function slopeWhy(s) { return !s || !s.id ? 'no terrain data for a custom point\'s slope (no 3D terrain tile)' : T3D_IDS.indexOf(s.id) < 0 ? 'no 3D terrain tile for this site, so no DEM slope' : 'slope data could not be loaded'; }
+
+  var CMPRES = null, CMPCTX = null, CF = { open: false, data: null };
   // DEM slope at a site point (round 6B): the same function and grids as the 3D view's rover / inspection readouts -
   // central differences over one grid spacing of the site's 6 km LOLA tile, or of the 5 m patch where it exists (the
   // site's best data resolution). Sites without a 3D tile (custom points, sites away from the pole): null.
@@ -1054,11 +1143,23 @@
           sunLeftH: ser.sunUp[0] ? (sunSet ? (sunSet.time - c.start) / 3600000 : days * 24) : 0,
           earthLeftH: ser.earthUp[0] ? (earthSet ? (earthSet.time - c.start) / 3600000 : days * 24) : 0,
           maxSun: minMax(ser.sunEl)[1], maxEarth: minMax(ser.earthEl)[1],
-          energyWh: pw ? pw.Wh : null, batteryWh: pw ? pw.battery : null, slope: rr[1] };
+          energyWh: pw ? pw.Wh : null, batteryWh: pw ? pw.battery : null, loadWh: pw ? pw.loadWh : null, slope: rr[1] };
       });
     });
     return Loader.track(Promise.all(jobs), 'Comparing scenarios…').then(function (res) {
-      CMPRES = res;
+      CMPRES = res; CMPCTX = { days: days, pin: pin };
+      renderCompare();
+    });
+  }
+  // Requirement inputs for one Compare scenario: exactly the values of the rows above (round 6D).
+  function cmpReqMetrics(r, pin) {
+    return { pctSun: r.st.pctSun, pctEarth: r.st.pctEarth, pctBoth: r.st.pctBoth, longestDarkH: r.st.longestDarkH, longestBlackoutH: r.st.longestBlackoutH,
+      power: r.energyWh !== null ? { Wh: r.energyWh, loadWh: r.loadWh } : null, powerWhy: pin.ok ? 'power not computed' : 'Power page inputs are invalid (check them on the Power page)',
+      slope: r.slope, slopeWhy: slopeWhy(r.s) };
+  }
+  function renderCompare() {
+    var res = CMPRES, days = CMPCTX.days, pin = CMPCTX.pin; if (!res) return;
+    (function () {
       var pctF = function (v) { return v.toFixed(1) + '%'; };
       var kWhF = function (v) { return (v / 1000).toFixed(v < 10000 ? 2 : 1) + ' kWh'; };
       var modeTxt = { track: 'vertical, Sun-tracking', horizontal: 'horizontal', fixed: 'vertical, facing ' + pin.opts.faceAz + '°' }[pin.opts.mode] || pin.opts.mode;
@@ -1091,6 +1192,14 @@
         ['Battery for the longest darkness (estimate)', function (r) { return r.batteryWh; }, 'min', kWhF],
         ['DEM slope at the site point', function (r) { return r.slope ? r.slope.slope : null; }, null, function (v, r) { return v.toFixed(1) + '° <span class="fineprint">(' + r.slope.d + ' m LOLA grid)</span>'; }]
       ];
+      // round 6D: requirement verdicts per scenario (no ranking, no score)
+      var checks = res.map(function (r) { return reqCheck(cmpReqMetrics(r, pin)); });
+      var reqRows = '';
+      if (checks[0].length) {
+        reqRows += '<tr class="sec sec-req"><th colspan="' + (res.length + 1) + '">Mission requirements (example values - set your mission\'s, above)</th></tr>';
+        checks[0].forEach(function (it, j) { reqRows += '<tr class="reqrow" data-rk="' + it.k + '"><td>' + esc(it.label) + '</td>' + checks.map(function (c) { return '<td class="num">' + verdictHtml(c[j]) + '</td>'; }).join('') + '</tr>'; });
+        reqRows += '<tr class="reqsum"><td>Requirements met</td>' + checks.map(function (c) { return '<td class="num">' + reqSummary(c) + '</td>'; }).join('') + '</tr>';
+      }
       var html = '<table class="cmptable"><thead><tr><th>Metric (' + days + '-day window)</th>' + res.map(function (r, k) { return '<th class="num">Scenario ' + (k + 1) + '</th>'; }).join('') + '</tr></thead><tbody>';
       rows.forEach(function (row) {
         if (row[0][0] === '§') { html += '<tr class="sec sec-' + row[0].slice(1) + '"><th colspan="' + (res.length + 1) + '">' + row[1] + '</th></tr>'; return; }
@@ -1107,6 +1216,7 @@
           return '<td class="num' + (isBest ? ' best' : '') + '">' + (row[3] ? row[3](v, res[k]) : v) + '</td>';
         }).join('') + '</tr>';
       });
+      html += reqRows;
       html += '</tbody></table><p class="hint">Highlighted = best in row (higher % and longer windows are better; shorter darkness/blackout is better; more energy and a smaller battery are better). Ties are not highlighted. Windows cut by the period start/end count only their part inside it.</p>' +
         '<p class="hint">Energy and battery: the Power page\'s model and current settings applied to each scenario\'s series (example values unless you entered your own; no dust, temperature or conversion losses). DEM slope: LOLA slope at the site point by central differences over one grid spacing (5 m where the 5 m LOLA patch exists, otherwise the site\'s 20 m or 80 m tile; the same value as the 3D view\'s readouts); "-" where the site has no 3D terrain tile (custom points). Real slopes over a few metres can be steeper; slope is not ranked.</p>' +
         (res.some(function (r) { return r.sunLeftH >= days * 24 || r.earthLeftH >= days * 24; }) ? '<p class="explain">"Whole ' + days + '-day window": the Sun (or Earth) was up at the start and no sunset (or Earthset) was found within the compared window, so the next one, if any, is later. Compare searches only inside its window.</p>' : '') +
@@ -1125,7 +1235,7 @@
           }
         });
       });
-    });
+    })();
   }
 
   // ------------------------------------------------------------- validation
@@ -1535,7 +1645,8 @@
     }
     var Wh = 0; for (i = 1; i < n; i++) Wh += (P[i - 1] + P[i]) / 2 * stepH;   // trapezoid rule
     var st = E.stats(s), darkH = st.longestDarkH;
-    return { P: P, peak: peak, maxZero: maxZero, stepH: stepH, Wh: Wh, darkH: darkH, battery: inp.load * darkH / inp.usable };
+    // loadWh: the same expression as runPower's "Energy needed by load" (load x hours, hours = (n - 1) x step), round 6D
+    return { P: P, peak: peak, maxZero: maxZero, stepH: stepH, Wh: Wh, darkH: darkH, battery: inp.load * darkH / inp.usable, loadWh: inp.load * ((n - 1) * stepH) };
   }
   function runPower() {
     var inp = powerInputs(), opts = inp.opts, load = inp.load, usable = inp.usable;
@@ -1644,6 +1755,8 @@
     if (S.minEl) p.push('me=' + S.minEl);
     if (hasTerrain(S.site) && !S.useTerrain) p.push('terrain=0');
     if (tab.page && tab.page !== 'explorer') p.push('tab=' + tab.page);
+    var rq = reqEncode(REQ); if (rq !== reqEncode(reqDefaults())) p.push('req=' + rq);   // round 6D: requirements
+    if (CF.open) p.push('cf=1');                                                       // round 6D: casefile open
     try { history.replaceState(null, '', '#' + p.join('&')); } catch (e) { location.hash = p.join('&'); }
   }
   function readHash() {
@@ -1936,10 +2049,12 @@
     renderProof(); renderVerified();
     $('verifiedCard').addEventListener('click', function () { showPage('validation'); window.scrollTo(0, 0); });
     var h = readHash();
+    reqInit(h ? (h.req !== undefined ? h.req : reqEncode(reqDefaults())) : undefined);   // a share link without req = example defaults
+    $('reqGrid').addEventListener('change', reqChange);
     if (h) applyHash(h); else selectSite(siteById(DEFAULT_SITE) || SITES[0], { fly: false });
     hashReady = true;
     writeHash();
-    window.addEventListener('hashchange', function () { var o = readHash(); if (o) { hashReady = false; applyHash(o); hashReady = true; } });
+    window.addEventListener('hashchange', function () { var o = readHash(); if (o) { hashReady = false; if (o.req !== undefined && o.req !== reqEncode(REQ)) { REQ = reqDecode(o.req); renderReqGrid(); reqStore(); } applyHash(o); hashReady = true; } });
     // the getting-started hint waits for the first-visit intro (if any) to finish
     var afterIntro = window.AsteriaIntro ? window.AsteriaIntro.whenDone : function (fn) { fn(); };
     if (pref(HINT_KEY) !== '1') afterIntro(function () { setTimeout(function () { if ($('tour').hidden) hintShow(0); }, 600); });
@@ -1952,6 +2067,7 @@
     runSlip: runSlip, slipResults: function () { return SLIP.res; },
     runPower: runPower, powerResults: function () { return PW.res; },
     runCompare: runCompare, compareResults: function () { return CMPRES; },
+    requirements: function () { return JSON.parse(JSON.stringify(REQ)); }, reqCheck: function (m) { return reqCheck(m); }, cmpReqMetrics: function (k) { return CMPRES && cmpReqMetrics(CMPRES[k], CMPCTX.pin); },
     windows: function (body) { return WIN[body]; },
     csv: csvText, csvName: csvName,
     jobsMode: function () { return Jobs.mode(); },

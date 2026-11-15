@@ -644,3 +644,27 @@ Result files under `data/` and VALIDATION_REPORT.md differ only in their generat
 * Parts 1 and 2 were committed together (Part 2 was added while Part 1 was passing, within the time box).
 
 **Round 6E hand-over**: `data/version.js` stamped. No merge, no tag, no push; `master` and `v1-stable` unchanged.
+
+## Round 6D - Mission requirements and Mission casefile (unifying decision support)
+
+Goal: one workflow - pick a site -> set mission requirements -> compare options -> open the Mission casefile -> verify every number - built only from results ASTERIA already computes. `js/engine.js`, validated values, horizons, status logic, terrain data and every existing calculation are unchanged.
+
+### Part 1 - Mission requirements (Compare) - DONE
+
+**What / why.** A collapsible "Mission requirements" block at the top of the Compare page (`<details>`, open by default). Seven requirements, each with a tick box and (except energy) a threshold: minimum % sunlit (50), minimum % Earth link (50), minimum % both (30), maximum longest darkness (72 h), maximum longest Earth blackout (120 h), energy balance must be positive (Power page settings; "first-order estimate, example values"), maximum site slope (15°). The defaults are labelled "Example values - set your mission's" and are not requirements of any real mission. The Compare table gains a "Mission requirements" section: one row per ticked requirement with **Met / Not met / Can't assess** per scenario, the value next to the verdict, the reason for "Can't assess", and a neutral "N of M requirements met" row. No score, weighting, ranking or highlighting on these rows (the existing best-value highlighting of the metric rows is unchanged).
+
+**Rule.** A verdict is taken from the value at the precision it is printed with (the % and hour values to 0.1, the slope to 0.1°), so it always follows from the number the reader sees. Energy uses the Power page's own rule (produced >= needed is "Energy positive"). Hours are printed in hours (0.1 h) next to the verdict, even where the metric row shows days.
+
+**Classification and sources.** Verdicts are comparisons of user thresholds with existing values: % sunlit / Earth / both, longest darkness / blackout = Calculated (validated engine + LOLA horizons, or smooth / 240 m horizon as in the "Horizon model" row); energy = Approximate (first-order estimate, example values); slope = Calculated from LOLA heights (5 m / 20 m / 80 m grid).
+
+**Can't assess.** Slope at a custom point or a site without a 3D terrain tile ("no terrain data for a custom point's slope (no 3D terrain tile)"); energy when the Power page inputs are invalid ("Power page inputs are invalid (check them on the Power page)").
+
+**Storage.** In the share link as `req=sun:50,earth:50,...` (ticked requirements only; written only when different from the example defaults; a link without `req` restores the defaults) and in `sessionStorage` (`asteria.req`) for a visit without a link. Editing a requirement re-judges the stored Compare results without recomputing.
+
+**Files.** `index.html` (block), `js/app.js` (`REQ_DEF`, `reqCheck`, `renderCompare` split out of `runCompare` unchanged otherwise; `powerOf` also returns `loadWh` with the exact expression of the Power page's "Energy needed by load"), `css/style.css`, `tests/ui_round6d.js`.
+
+**Tests** (`node tests/ui_round6d.js --part 1`, laptop + phone; 4 scenarios: Peak near Shackleton best-lit point (5 m), the same +7 days, Mons Malapert (20 m), custom smooth point -60°, 0°): requirement inputs equal the Compare values exactly (raw equality, all 4 scenarios); every % and hour verdict shows the same value as its Compare row and follows from it; energy and load of scenario 1 equal the Power page exactly (Explore window, same settings) and the verdict equals the Power page's "Energy positive/negative"; slope equals the Compare slope row; custom-point slope and invalid power inputs give "Can't assess" with the reason; "N of 7 requirements met" with no score/rank wording; unticking/editing re-judges without recomputing; the share link restores ticks and thresholds and a link without `req` restores the defaults; no console errors.
+
+**Performance.** No new computation: the verdicts are a loop over at most 7 x 4 values.
+
+**Limitations.** Verdicts at a threshold depend on the printed precision (by design). Requirements are not stored per scenario. "% both" etc. on a smooth-horizon scenario are judged like any other value; the "Horizon model" row says which horizon was used.
