@@ -149,6 +149,10 @@ For each of the 8 curated south-pole sites, the Site Card shows **» Deploy: 3D 
 | Relief shading (bounded, round 6C) | Illustrative | Display contrast from the DEM normal vs a smoothed DEM normal; factor 0.4-1.6 on Lommel-Seeliger | Not a photometric prediction |
 | Openness shading (round 6C, optional) | Illustrative (sky-view factor Calculated from LOLA) | Sky-view factor (16 directions, 1 km, curvature) checked on synthetic flat, pit and slope grids (tests/view3d_test.js); display only (tests/ui_round6c.js) | The Moon has no sky light: a visualisation aid, not a light source |
 
+### Historical Capsule (not ASTERIA data)
+
+The amber **Historical Capsule** button after About opens a short (about 73 s) illustrated animation of 14 space-exploration milestones, in order: Sputnik 1 (1957), Luna 2, Vostok 1, Luna 9, Apollo 8, Apollo 11, Luna 17 / Lunokhod 1, Apollo 17, LCROSS and LRO (2009), Chang'e 4, Chandrayaan-3, SLIM / IM-1 / Chang'e 6 (2024), Artemis II (2026) and the planned Artemis IV (2028). It ends with "Explore the south-pole landing sites", which opens Explore. It is separate from the science: a banner on every frame reads "Historical illustrations - artistic, simplified, not to scale; not ASTERIA data". The drawings are simplified and made in code. Each caption is one verified fact, with its sources in the capsule's Sources panel. Controls: play/pause, previous/next, a strip of years, Esc or X to exit, Space and Left/Right keys. It honours prefers-reduced-motion. `js/capsule.js` is loaded only on the first click. Details, the verified milestone table and what was cut: [docs/HISTORICAL_CAPSULE.md](docs/HISTORICAL_CAPSULE.md). Test: `node tests/ui_capsule.js`.
+
 ## Sites
 
 There are 8 south-pole sites with LOLA terrain horizons, plus 11 reference sites outside the south pole. The reference sites use a smooth horizon (terrain not included) and are kept for comparison and education. Every site has source links and a note on exactly what its coordinate is (`data/sites.js`).

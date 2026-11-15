@@ -21,14 +21,16 @@ const path = require('path'), fs = require('fs'), url = require('url');
   // "What is accurate, what is approximate" notes. Scans all text in the document (hidden and collapsed parts included).
   const AI_CREDIT = 'Development assisted by Claude Code (Anthropic), an AI coding assistant; details in AI_DISCLOSURE.md (in the project repository).';
   const AI_GRAPHICS = 'Graphics: the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain shapes, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images.';
+  // Prompt 9: the Historical Capsule's Sources panel may contain exactly this line (the capsule is a separate overlay)
+  const AI_CAPSULE = 'Illustrations and animation are drawn by code written with Claude Code (Anthropic), an AI coding assistant; historical facts are from the sources listed.';
   const AI_RE = /\bAI-|\bAI |artificial intelligence|generated|illustrated by/gi;
   const aiScan = async (page, where) => {
     // text nodes of the whole body except scripts/styles and except the list item that is exactly one of the two allowed lines
     const rest = await page.evaluate(allowed => {
       const norm = t => t.replace(/\s+/g, ' ').trim();
-      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: n => { const p = n.parentNode, li = p.closest && p.closest('li'); return /^(SCRIPT|STYLE|NOSCRIPT)$/.test(p.nodeName) || (li && allowed.includes(norm(li.textContent))) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; } });
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: n => { const p = n.parentNode, li = p.closest && p.closest('li'); return /^(SCRIPT|STYLE|NOSCRIPT)$/.test(p.nodeName) || (li && allowed.includes(norm(li.textContent))) || (p.classList && p.classList.contains('cap-credit') && allowed.includes(norm(p.textContent))) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; } });
       let t = '', n; while ((n = w.nextNode())) t += n.nodeValue + ' '; return norm(t);
-    }, [AI_CREDIT, AI_GRAPHICS]);
+    }, [AI_CREDIT, AI_GRAPHICS, AI_CAPSULE]);
     const hits = [...rest.matchAll(AI_RE)].map(m => rest.slice(Math.max(0, m.index - 40), m.index + 40));
     expect(`${where} no AI wording outside the About credit line and the 3D "Graphics:" line`, hits.length === 0, hits.slice(0, 3).join(' | '));
   };
