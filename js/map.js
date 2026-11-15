@@ -55,26 +55,82 @@ window.AsteriaMap = (function () {
     return '<span class="mk mk-' + kind + (sel ? ' sel' : '') + '">' + (count > 1 ? '<b>' + count + '</b>' : '') + '</span>';
   }
 
-  // Group markers that are closer than 16 px on screen into one marker with a count; clicking opens a list.
+  // Round 6H: larger site markers. Visual 18-22 px; the clickable/tappable box (the Leaflet icon element) is
+  // HIT px square: >= 40 px on phones / touch screens, >= 32 px with a mouse. Markers are in the marker pane, above
+  // the 3D-coverage outlines (overlay pane, not interactive), and draw above the custom-point marker (zIndexOffset),
+  // so a click inside a site's box selects the site and a click anywhere else places a custom point.
+  function hitSize() {
+    var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    return (coarse || window.innerWidth <= 640) ? 44 : 34;
+  }
+  // Short map label: the name without a trailing "(...)" or " - ..." part (the Site Card shows the full name).
+  function shortName(n) { return String(n).replace(/\s*\(.*\)\s*$/, '').replace(/\s+-\s+.*$/, ''); }
+  var measureCtx = null;
+  function textW(t, px) {
+    if (!measureCtx) measureCtx = document.createElement('canvas').getContext('2d');
+    measureCtx.font = '600 ' + (px || 12.5) + 'px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
+    return measureCtx.measureText(t).width;
+  }
+  var labelInfo = [];   // for the UI test: placed labels (container px boxes) and the ones left out
+  // Group markers that are closer than 22 px on screen into one marker with a count; clicking opens a list.
   function renderMarkers() {
     if (!map) return;
     markerLayer.clearLayers();
+    labelInfo = [];
+    var HIT = hitSize();
     var pts = sites.filter(function (s) { return inData(s.lat, s.lon); }).map(function (s) { return { s: s, p: map.latLngToLayerPoint([s.lat, s.lon]) }; });
     var groups = [];
     pts.forEach(function (it) {
-      for (var g = 0; g < groups.length; g++) if (groups[g].p.distanceTo(it.p) < 16) { groups[g].items.push(it); return; }
+      for (var g = 0; g < groups.length; g++) if (groups[g].p.distanceTo(it.p) < 22) { groups[g].items.push(it); return; }
       groups.push({ p: it.p, items: [it] });
     });
+    // Label layout (container pixels): the selected marker first, then the others. A label goes right, left, above or
+    // below its marker where it overlaps no other label, marker or map control and stays inside the map; otherwise it
+    // is left out (the name still shows on hover / keyboard focus and in the site list).
+    var size = map.getSize(), obst = [];
+    groups.forEach(function (g) { var c = map.layerPointToContainerPoint(g.p); g.c = c; obst.push({ x0: c.x - 11, y0: c.y - 11, x1: c.x + 11, y1: c.y + 11 }); });
+    var cr = map.getContainer().getBoundingClientRect();
+    map.getContainer().querySelectorAll('.leaflet-control').forEach(function (el) {
+      var r = el.getBoundingClientRect(); if (r.width && r.height) obst.push({ x0: r.left - cr.left - 4, y0: r.top - cr.top - 4, x1: r.right - cr.left + 4, y1: r.bottom - cr.top + 4 });
+    });
+    var placed = [];
+    function hits(b, skip) {
+      if (b.x0 < 2 || b.y0 < 2 || b.x1 > size.x - 2 || b.y1 > size.y - 2) return true;
+      for (var k = 0; k < obst.length; k++) { if (k === skip) continue; var o = obst[k]; if (b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0) return true; }
+      for (var j = 0; j < placed.length; j++) { var q = placed[j]; if (b.x0 < q.x1 && b.x1 > q.x0 && b.y0 < q.y1 && b.y1 > q.y0) return true; }
+      return false;
+    }
+    function cands(c, w, h, gap) {
+      return [
+        ['right', { x0: c.x + gap, y0: c.y - h / 2, x1: c.x + gap + w, y1: c.y + h / 2 }, [gap, 0]],
+        ['left', { x0: c.x - gap - w, y0: c.y - h / 2, x1: c.x - gap, y1: c.y + h / 2 }, [-gap, 0]],
+        ['top', { x0: c.x - w / 2, y0: c.y - gap - h, x1: c.x + w / 2, y1: c.y - gap }, [0, -gap]],
+        ['bottom', { x0: c.x - w / 2, y0: c.y + gap, x1: c.x + w / 2, y1: c.y + gap + h }, [0, gap]]
+      ];
+    }
+    var order = groups.map(function (g, i) { return i; });
+    var isSelG = function (g) { return g.items.some(function (i) { return i.s.id === selId; }); };
+    order.sort(function (a, b) { return (isSelG(groups[b]) ? 1 : 0) - (isSelG(groups[a]) ? 1 : 0); });
+    order.forEach(function (gi) {
+      var g = groups[gi], selItem = g.items.filter(function (i) { return i.s.id === selId; })[0];
+      var extra = g.items.length > 1 ? ' +' + (g.items.length - 1) : '';
+      var texts = selItem ? [selItem.s.name, shortName(selItem.s.name)] : [shortName(g.items[0].s.name)];
+      g.label = null;
+      for (var t = 0; t < texts.length && !g.label; t++) {
+        var w = Math.ceil(textW(texts[t] + extra, selItem && t === 0 ? 14 : 12.5)) + 18, cs = cands(g.c, w, 24, 14);
+        for (var k = 0; k < cs.length; k++) if (!hits(cs[k][1], gi)) { g.label = { dir: cs[k][0], off: cs[k][2], text: texts[t], extra: extra, box: cs[k][1] }; placed.push(cs[k][1]); break; }
+      }
+      labelInfo.push({ ids: g.items.map(function (i) { return i.s.id; }), text: g.label ? g.label.text + g.label.extra : null, box: g.label ? g.label.box : null, dir: g.label ? g.label.dir : null });
+    });
     groups.forEach(function (g) {
-      var first = g.items[0].s, isSel = g.items.some(function (i) { return i.s.id === selId; });
+      var first = g.items[0].s, isSel = isSelG(g), names = g.items.map(function (i) { return i.s.name; }).join(' / ');
       var kind = g.items.length > 1 ? 'group' : markerKind(first);
       var m = L.marker([first.lat, first.lon], {
-        icon: L.divIcon({ className: 'mkwrap', html: iconHtml(kind, isSel, g.items.length), iconSize: [18, 18], iconAnchor: [9, 9] }),
-        keyboard: true, title: g.items.map(function (i) { return i.s.name; }).join(' / '), riseOnHover: true, zIndexOffset: isSel ? 1000 : 0
+        icon: L.divIcon({ className: 'mkwrap mkmain', html: iconHtml(kind, isSel, g.items.length), iconSize: [HIT, HIT], iconAnchor: [HIT / 2, HIT / 2] }),
+        keyboard: true, title: names, alt: names, riseOnHover: true, zIndexOffset: isSel ? 2000 : 1000
       });
       if (g.items.length === 1) {
         m.on('click', function (e) { L.DomEvent.stopPropagation(e); opts.onSelectSite(first); });
-        if (isSel) m.bindTooltip(esc(first.name), { permanent: true, direction: 'right', offset: [10, 0], className: 'mklabel' });
       } else {
         var html = '<div class="grouppop"><div class="gp-h">' + g.items.length + ' sites close together</div>' +
           g.items.map(function (i) { return '<button class="gp-i" data-id="' + i.s.id + '">' + esc(i.s.name) + '</button>'; }).join('') + '</div>';
@@ -84,9 +140,8 @@ window.AsteriaMap = (function () {
             b.addEventListener('click', function () { map.closePopup(); opts.onSelectSite(opts.siteById(b.dataset.id)); });
           });
         });
-        var selItem = g.items.filter(function (i) { return i.s.id === selId; })[0];
-        if (selItem) m.bindTooltip(esc(selItem.s.name) + ' <span class="mkmore">+' + (g.items.length - 1) + '</span>', { permanent: true, direction: 'right', offset: [10, 0], className: 'mklabel' });
       }
+      if (g.label) m.bindTooltip(esc(g.label.text) + (g.label.extra ? ' <span class="mkmore">' + g.label.extra + '</span>' : ''), { permanent: true, direction: g.label.dir, offset: g.label.off, className: 'mklabel' + (isSel ? ' mksel' : ' mkshort'), interactive: false });
       m.addTo(markerLayer);
     });
   }
@@ -147,6 +202,7 @@ window.AsteriaMap = (function () {
       opts.onPickPoint(e.latlng.lat, e.latlng.lng);
     });
     map.on('zoomend', renderMarkers);
+    map.on('moveend', function () { if (!map._animatingZoom && !(map._popup && map.hasLayer(map._popup))) renderMarkers(); });   // round 6H: labels are laid out for the visible area
     map.on('mousemove', function (e) { if (readout) readout.textContent = inData(e.latlng.lat, e.latlng.lng) ? fmtLL(e.latlng.lat, e.latlng.lng) : 'No elevation data here'; });
     map.on('mouseout', function () { if (readout) readout.textContent = 'Click the map to pick a point'; });
     // readout box
@@ -227,7 +283,7 @@ window.AsteriaMap = (function () {
     if (!map) return;
     if (pickMarker) { map.removeLayer(pickMarker); pickMarker = null; }
     if (site && !site.id && inData(site.lat, site.lon)) {
-      pickMarker = L.marker([site.lat, site.lon], { icon: L.divIcon({ className: 'mkwrap', html: '<span class="mk mk-pick"></span>', iconSize: [18, 18], iconAnchor: [9, 9] }), interactive: false }).addTo(map);
+      pickMarker = L.marker([site.lat, site.lon], { icon: L.divIcon({ className: 'mkwrap mkpickwrap', html: '<span class="mk mk-pick"></span>', iconSize: [16, 16], iconAnchor: [8, 8] }), interactive: false, keyboard: false, zIndexOffset: -1000 }).addTo(map);   // round 6H: small amber crosshair, drawn under the site markers
     }
     renderMarkers();
     if (fly && site && inData(site.lat, site.lon)) {
@@ -283,7 +339,7 @@ window.AsteriaMap = (function () {
   }
   return {
     init: init, setSites: setSites, setCoverage: setCoverage, coverageCount: function () { return covLayer ? covLayer.getLayers().length : 0; }, select: select, setOverlay: setOverlay, setMarkersVisible: setMarkersVisible,
-    invalidate: invalidate, home: home, showAll: showAll, zooms: function () { return map ? { cover: coverZoom(), contain: containZoom(), min: map.getMinZoom(), zoom: map.getZoom() } : null; }, showPoint: showPoint, scaleInfo: scaleInfo, scaleState: function () { return scaleState; }, margins: margins, project: project, unproject: unproject, inData: inData,
+    invalidate: invalidate, home: home, showAll: showAll, zooms: function () { return map ? { cover: coverZoom(), contain: containZoom(), min: map.getMinZoom(), zoom: map.getZoom() } : null; }, showPoint: showPoint, scaleInfo: scaleInfo, scaleState: function () { return scaleState; }, margins: margins, labels: function () { return labelInfo; }, hitSize: hitSize, project: project, unproject: unproject, inData: inData,
     leaflet: function () { return map; }
   };
 })();

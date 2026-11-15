@@ -312,7 +312,7 @@
     } else {
       h = '<div class="lgtitle">Terrain ' + q('overlay_none') + '</div><div class="lgnote">Hillshade from LOLA elevation data - synthetic lighting, not real illumination. Up to ' + (TMp['7'] || 18.6).toFixed(1) + ' m/px near the pole.</div>';
     }
-    h += '<div class="lgmk"><span><i class="mk mk-feature"></i>Point inside an Artemis III region</span><span><i class="mk mk-point"></i>Mission / published point</span><span><i class="mk mk-derived"></i>Derived</span><span><i class="mk mk-reference"></i>Reference</span><span><i class="mk mk-group"><b>2</b></i>Overlapping</span><span><i class="cov3d-key"></i>3D terrain (Deploy): outer square Orbit, inner square also Walk and Rover</span></div>';
+    h += '<div class="lgmk"><span><i class="mk mk-feature"></i>Point inside an Artemis III region</span><span><i class="mk mk-point"></i>Mission / published point</span><span><i class="mk mk-derived"></i>Derived</span><span><i class="mk mk-reference"></i>Reference</span><span><i class="mk mk-group"><b>2</b></i>Overlapping</span><span><i class="mk mk-pick"></i>Your point (map click)</span><span><i class="cov3d-key"></i>3D terrain (Deploy): outer square Orbit, inner square also Walk and Rover</span></div>';
     el.innerHTML = h;
     initQ(el);
   }
