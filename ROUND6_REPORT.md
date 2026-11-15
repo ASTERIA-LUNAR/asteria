@@ -792,3 +792,66 @@ Screenshots: `docs/ground_detail/round6f/` - Walk close-up and from above (Peak 
 **Round 6F hand-over**: `data/version.js` stamped. No merge, no tag, no push; `master` unchanged.
 
 
+
+## Round 6G - Launch slip heatmap did not follow the current point (bug fix)
+
+**Owner report**: the Launch slip heatmap was "inaccurate in several areas", did not respond to the latest selected point and needed a page refresh.
+
+### 1. Reproduction (before the fix, headless Chromium, laptop 1366 × 900 and emulated phone 390 × 844)
+
+Start: Peak near Shackleton best-lit point (A), 2028-09-25 10:04 UTC, heatmap computed (14-day mission, slips 0-60 days). Then each change, then the Launch slip tab; every heatmap cell (all 7 metrics × 61 landing dates) compared with a fresh page load for the new point (exact equality):
+
+| Sequence | Heatmap after the change | Legend / line chart / summary | Casefile slip section |
+|---|---|---|---|
+| 1 site B (Mons Malapert) from the site list | **A's result** (all cells differ from B) | name A | pointer (correct - it already refused a result for another site) |
+| 2 custom point by a map click | **A's result** | name A | pointer |
+| 3 custom point, Deploy 3D, close | **A's result** | name A | pointer |
+| 4a share link to B with `tab=slip` (hash change) | **A's result** | name A | - |
+| 4b share link to B without `tab` while the Launch slip page is open | **A's result** | name A | - |
+| 4c share link to a custom point with `tab=slip` | **A's result** | name A | - |
+| fresh page load of a custom-point share link with `tab=slip` | **no heatmap at all** (the run started before the point existed and did nothing) | - | - |
+| Explore start time changed | the nominal landing input kept the old date (it was filled only once) | - | - |
+
+Every sequence failed on both laptop and phone; no console errors (the page looked fine, which is why it read as "inaccurate in several areas").
+
+### 2. Cause and introducing commit
+
+* **Stale cache, never invalidated.** `showPage('slip')` ran `if (SLIP.res) renderSlip(); else runSlip();`. `SLIP.res` was cleared only by a change of the minimum link elevation; a new point, start time, horizon (terrain on/off) or a share link left it in place, so the first result was redrawn for every later point. Introduced in the original heatmap commit **5b16663** ("Parts C-E: launch-slip heatmap ...", 14 Nov 2026) and present unchanged in `v1-stable`; **not** introduced by round 6D or 6F (6D's casefile already checked the site and horizon and so showed the pointer instead of wrong numbers; 6F's `onClose` hash write and "Try it" code are not involved - sequence 3 fails only because the point changed).
+* **No request token.** Worker replies are matched to their request by id (js/jobs.js), so they cannot cross, but the app wrote `SLIP.res` from whichever run finished; with two runs in flight the older one could land last. (Before 6G nothing started a second run automatically, so this was latent.)
+* **Custom-point share link to the Launch slip tab**: `applyHash` opened the tab before the point's 240 m horizon job had finished, so `runSlip` had no point.
+
+**Values for the correct point**: none wrong. After the fix every sequence equals a fresh load exactly, and for B and the custom point the heatmap's slip 0 equals the Explore metrics for the same 14-day window exactly (pctSun, avgSunFrac, pctEarth, pctBoth, longestDarkH, longestBlackoutH, samples). The wrong numbers were always another point's correct result shown under the current point. The calculation (`slip` job, engine) is unchanged.
+
+### 3. Fix (js/app.js, index.html, css/style.css; engine, horizons, status logic, terrain data and the launch-slip calculation unchanged)
+
+* Each result records the inputs it was computed for (`key`: site mode, point(s) with coordinates and horizon type, nominal landing, duration, slip range and step, minimum elevation; plus the horizon arrays themselves, compared value by value). `slipFresh()` is true only when they equal the current inputs.
+* Every change of point, Explore window, horizon or minimum elevation (`recompute()`) and every Launch slip input change calls `slipInputsChanged()`: on the visible Launch slip page the heatmap is **recomputed automatically** for the new point; elsewhere the old heatmap, line chart and summary are **hidden** and the page shows **"Out of date - recompute for <point name>"** with a Recompute button (recomputed automatically when the tab is opened). An edited Launch slip input (e.g. mission days) shows the out-of-date state until Compute/Recompute.
+* **Request token**: every run takes `++SLIP.tok`; a reply for an older token is discarded (counted in `slipDebug().discarded`) and never writes `SLIP.res`.
+* **Header** above the heatmap: "Computed for <point> (lat, lon; horizon) · nominal landing <UTC> · N-day mission · slips +a to +b days every s day(s) [· Earth link ≥ x°]" - always from the result itself.
+* **Nominal landing** follows the Explore start time (as a fresh load does) unless it was set on the Launch slip page or a heatmap square was clicked (then it is kept, so returning to the tab shows the same analysis).
+* **Casefile**: section 8 uses the slip result only if it is current (`slipFresh`), for the casefile's point and horizon (horizon arrays equal), minimum elevation, and its nominal landing equals the casefile's window start; otherwise the existing pointer to the Launch slip tab.
+* **Other per-point results checked**: Power page - rerun when it is visible and the point/window changes (a share link without `tab` used to leave the old point's result), and given a request token; Timeline, Sky view, status tiles and windows already use the Explore token (`S.token`) and are recomputed by `recompute()` - not affected (tested indirectly: the slip-0 = Explore checks and every UI suite); Compare scenarios are explicit site/date pairs, independent of the current point - not affected (a Compare change marks an "All sites in Compare" heatmap out of date through its key).
+
+### 4. Tests
+
+`node tests/ui_round6g.js` (laptop + phone; sequences 1, 2, 3, 4a, 4b, 4c, Explore start, terrain off, minimum elevation 5°, fresh custom-point link with `tab=slip`): after every change the heatmap equals a fresh load for the new point and window exactly (all cells, legend, line chart, summary, header) or shows the out-of-date state with the old heatmap hidden; casefile summary = the result for its point and window, or the pointer; Launch slip input change → out of date → Recompute; a nominal set on the page is kept; stale replies discarded (a run for A overtaken by a share link to B; two runs back to back); slip 0 = Explore metrics (B, custom point); Power page follows a share-link change; no console errors.
+
+**Test run** (final code 2b5936d, run one after another or in three parallel groups on the development laptop):
+
+| Test | Result |
+|---|---|
+| `node tests/ui_round6g.js` (laptop + phone) | ALL PASS, 68 checks, no console errors |
+| `ui_check`, `ui_round5`, `ui_round6`, `ui_round6b`, `ui_round6c`, `ui_round6d`, `ui_round6f` (laptop + phone) | all exit 0, no FAIL lines |
+| `node tests/ui_round6e.js --base <checkout of fe76cd6>` | ALL PASS |
+| `node tests/shading_consistency.js --no-write` (shadows on) | 97.8 / 99.0 / 99.8 % - unchanged, 0 unexplained |
+| Node: features_test, view3d_test, validate, earth_orientation, blind_test, one_year_check, instant_status_check, illumination, coarse_validation, accuracy3d | all exit 0 (result files differed only in timestamps/run times; restored) |
+| Python: `tools/terrain3d.py check`, `tools/terrain3d_ext.py check`, `tools/terrain.py check` | pass |
+
+Screenshots and result files rewritten by ui_round6e/6f were restored. Not run this round: perf3d, tile_edge, ground_detail invariants (the 3D code is unchanged in 6G).
+
+### Round 6G - not done or limited
+
+* A discarded run is not cancelled inside the Web Worker; after quick point changes the newest heatmap waits for the older runs (see GAPS section 15).
+* Headless Chromium only; phones emulated.
+
+**Round 6G hand-over**: `data/version.js` stamped. No merge, no tag, no push; `master` and `v1-stable` unchanged.

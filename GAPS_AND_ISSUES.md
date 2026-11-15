@@ -331,3 +331,10 @@ Measured with `tests/ground_detail.js` (same site, time and camera; the round-3 
 * **Walk/Rover** remain limited to the 6 km tile; points on the ring are Orbit only.
 * **Covering**: still tuned visually, not statistically matched; the fade is from the camera, features fade by screen size, whole texture by 1.5-2 km. On ground facing away from the Sun the texture has no effect by design (Sun term only), so it is invisible there at any distance.
 
+
+## 15. Round 6G: Launch slip follows the current point (branch `round6`, not merged)
+
+* **Fixed**: the Launch slip heatmap kept the first point's result after the point, start time, horizon or a share link changed (since 5b16663; also in `v1-stable`). It is now recomputed automatically when its page is visible, otherwise hidden behind "Out of date - recompute for <point>"; late replies are discarded by a request token; the casefile uses only a result for its own point and window. Details: ROUND6_REPORT.md, Round 6G.
+* **Remaining**: a discarded run is not cancelled in the worker (one Web Worker, jobs in order), so after quick point changes the newest heatmap can wait for older runs to finish (about 1-3 s per point at the default 61 landing dates; up to tens of seconds for "All south-pole sites with terrain").
+* **Behaviour change**: the nominal landing now follows the Explore start time unless it was set on the Launch slip page or a heatmap square was clicked. The Power page's "Launch-slip mission" window uses the same input.
+* `v1-stable` still has the bug (not changed in this round; no merge).
