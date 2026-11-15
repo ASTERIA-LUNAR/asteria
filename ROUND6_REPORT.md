@@ -719,3 +719,76 @@ Result files rewritten by the test runs (VALIDATION_REPORT.md, data/validation.j
 * The anchors for the evidence links were added in Part 2 (they were needed there); Part 3 only lists them.
 
 **Round 6D hand-over**: `data/version.js` stamped. No merge, no tag, no push; `master` unchanged.
+
+## Round 6F - Crater realism, wider covering, "Choose your point -> 3D", larger mode buttons
+
+Started 2026-11-15 about 13:05 Riyadh, time box 16:30. All round 6E rules kept: `js/engine.js`, DEMs, terrain files, vertex positions, heights, slopes, readouts, rover pose, pick rays, mini-map, status tiles, horizons and Sun/Earth directions unchanged; the covering is fragment-shader only, Walk/Rover only, Sun term only.
+
+### Part 1 - Covering: reach and randomness - DONE
+
+**a) Reach.** Confirming the fade by walking 1-2.4 km from the site found that it did **not** travel with the viewer: the shader used Three.js's built-in `cameraPosition`, which Three.js r149 uploads only for Shader/Phong/Toon/Standard materials - for the Lambert terrain material it stayed (0, 0, 0), i.e. the site. So in round 6E the 60-350 m fade was measured from the site marker (the owner's "craters stop appearing about 350 m away"), and with the first 6F constants the covering vanished for any camera more than about 1.7 km from the site (0 % of near-ground pixels changed, all view directions). Fixed (commit e2d9763) with a dedicated uniform `uCamW`, set from the rendering camera in `scene.onBeforeRender`; after the fix the covering is present near the viewer 2 km and 2.4 km from the site (86-90 % of the near-ground pixels change with it on/off at Medium; table in Part 4). The round 6E measurements (camera within about 25 m of the site) are not affected in practice. Now: no cut-off near the viewer; each octave and each feature fades only by its own screen-space size (dFdx/dFdy footprint, as before), and the whole covering fades gently between 1500 and 2000 m from the camera (`COVER_NEAR`/`COVER_FAR`). Choice by measurement: in Walk at Peak near Shackleton, ground near the viewer shows the covering at the site, 1 km and 2 km from it (Part 4 table); a 10 m craterlet (the largest, radius 5 m) facing the camera spans about 3-4 pixels at 2 km on the laptop canvas (pixel angle about 0.0013 rad), so beyond 2 km even the largest feature is near the pixel size and the fade removes nothing a viewer can resolve; on grazing ground the footprint fade removes it much earlier. No larger features were added: craterlet radius stays 0.1-5 m (`COVER_RMAX = 5`, below the 5 m / 20 m grid scale; source-checked by the test), so far ground keeps exactly the LOLA appearance.
+
+**b) Randomness.** Rewritten feature code (`asFeat`/`asProf` in `COVER_GLSL`): per craterlet random ellipticity (aspect 1.0-1.3) and orientation; rim radius (±10 %) and rim height (0-1.7 x, partly broken) modulated by low-frequency noise around the rim (harmonics 1-4 with random phases); degradation state s = u³ (most old: depth about 0.02-0.04 R, rounded crest, rim about 0.006-0.01 R, nearly rimless; fresh: depth up to about 0.48 R, sharp crest, narrow rim, and for the freshest ~5 % a bright halo of up to +10 % albedo to 1.8 R); random depth/diameter (±25 %); interior albedo ±4 %; overlaps (two extra lattices of the 0.8-2.5 m and 0.3-1 m classes on laptops at Medium/High, plus the independent classes); each class on its own rotated and offset lattice with in-cell jitter, and a hash that changes permutation every 289 x 289 cells (the old one repeated every 289 cells), so no rows or columns line up (screenshot from above in Walk); rock flecks with irregular outlines (radius ±37 %), aspect up to 1.4 and brightness +5 to +25 %; the grain octaves are domain-warped (up to 4 m, 23 m wavelength) with a patchy strength (0.75-1.25). Gradients of the features are numerical (forward differences of the profile), linear in the shading as before. Still "tuned visually, not statistically matched".
+
+**c) Performance.** Low and phones keep 5 octaves and lose the smallest fleck class and the two overlap lattices. Frame times below (Part 4).
+
+### Part 2 - "Choose your point -> 3D" - DONE
+
+**Architecture (safest option): offset start in the host site's existing scene.** A custom point inside a site's existing 3D terrain opens that site's 3D view unchanged - same tile, patch and ring meshes, heights, normal maps, Sun/Earth directions (computed at the site, as for the site itself), shadows, skyline, readouts and pick rays - and only the start positions move: the orbit target, Walk position (eye 2 m above the drawn ground there), Rover start (25 m east of the point) and a second, dashed "Your point" marker. Re-centring the scene on the point was rejected because it would change every vertex position and the validated frame. The point's ground coordinates (e, n) are the exact inverse of the view's `latLonAt` (round trip < 1 mm).
+
+* **Coverage**: 6 km tile (Orbit, Walk, Rover) and the 32 km ring A (100 m grid; loaded at every quality level; Orbit only, Walk/Rover and the eye-level presets disabled with the reason "Walk and Rover need the 6 km tile ..."). Ring B (to 40 km) is loaded only at High, so it is not counted. 8 sites (7 distinct areas; the two Peak near Shackleton points overlap). A point in several areas uses the site whose tile contains it, else the nearest centre.
+* **Status tiles** show the main view's values for the point (the point's own 240 m terrain horizon, or smooth horizon): state, Sun/Earth elevation, azimuth and horizon - equal to the 2D tiles (tested at two time steps). The drawn Sun/Earth and their label azimuths are the site's (the same directions in space; the panel note says so).
+* **Outside every area**: Deploy is shown disabled with "3D terrain is available within about 16 km of the 8 sites with 3D terrain (blue squares on the map); this point is outside them." Curated sites without a 3D tile keep no Deploy button (unchanged). The coarse 240 m Orbit-only alternative was not built (disabled-with-reason preferred, as the brief allows).
+* **Map**: thin blue outlines of the 16 squares (solid: tile; dashed: ring), not interactive; one legend line.
+* **Getting started** step 3 (new) "Choose your point, then Deploy 3D" with a "Try it" button; **tour** step 4 of 6 (new), same spotlight style; other steps unchanged.
+* **Share link**: `v3d=1` is written while the 3D view is open (any site) and reopens it; with `lat=`/`lon=` it reopens the custom-point 3D view.
+* No new DEM data; `data/terrain3d/` unchanged.
+
+### Part 3 - Mode buttons - DONE
+
+The Orbit / Walk / Rover selector is a full-width segmented control (46 px tall, 16 px semibold text, 2 px border, selected = filled blue with an underline) under a small "View mode" heading, with 18 px above and 16 px below and separator lines; other panel controls unchanged. Tested on laptop and phone: visible, larger than the other panel buttons, clear selected state, no overlap with its neighbours, inside the panel.
+
+### Part 4 - Verification
+
+Screenshots: `docs/ground_detail/round6f/` - Walk close-up and from above (Peak near Shackleton), Walk 1 km and 2 km from the site, Rover at Peak near Shackleton and Mons Malapert, a custom point in Orbit / Walk / Rover, a point on the ring (Orbit only), the coverage outlines on the map, the tour step, the View mode selector (laptop and phone each), and two top-down views of the pattern (40 m and 150 m; Mons Malapert; covering forced on in Orbit for the screenshot only) showing no rows or columns. Numbers: `results_6f.json`; logs `tests/perf/round6f_*.log`.
+
+**Reach (fade from the camera)** - share of the near-ground half of the picture that changes with the covering on vs off, Walk, Medium, Peak near Shackleton 2028-09-25 10:04 UTC (a sunlit view direction is chosen, since the covering modulates only the Sun term):
+
+| Walk position | laptop | phone |
+|---|---|---|
+| at the site | 88.8 % | 81.6 % |
+| 1 km from the site | 88.0 % | 80.2 % |
+| 2 km from the site | 85.8 % | 89.7 % |
+| before the uCamW fix, about 1.7 km and beyond | 0 % (any direction) | - |
+
+**Fixes found by the verification** (each committed separately): (1) the camera-position bug above (e2d9763); (2) the first version of the feature code was inlined 24 times and made the first shader compile on Windows/D3D take 4.8-15.4 s (im1 laptop Low/Medium, cold browser); one loop over uniform arrays brought it back (a53bf56); (3) a D3D compiler warning (X4000) in the console - single return in `asProf` (9a06715); (4) the share link: the hash write on closing the 3D view is now synchronous (a delayed write undid a following hash change; 91eb489); (5) Getting started "Try it" scrolled late and moved the next step's panel out of view (9a06715).
+
+**Tests** (all on the final code 9a06715 + docs, run one after another):
+
+| Test | Result |
+|---|---|
+| `node tests/ui_round6f.js` (laptop + phone) | ALL PASS, 52 checks, no console errors: no feature class above 5 m radius (source); fade 1500/2000 m from `uCamW` (set in scene.onBeforeRender; cameraPosition unused); covering present near the viewer at the site, 1 km and 2 km; Walk/Rover frame time at Medium 1.8-4.2 ms (both 6E sites); coverage outlines (16) and legend; custom point in a tile: Deploy enabled, opens Peak near Shackleton's scene at the point (e, n within 1 m), status tiles = 2D tiles (state, el, az, horizon) at two time steps, Sun/Earth directions and vertex count = opening the site itself, Walk at the point (eye 2.00 m), Rover within 30 m; share link reopens it; ring point: Orbit only, Walk/Rover disabled with the reason, tiles = 2D; outside: Deploy disabled with the reason; curated site without a tile: no Deploy (unchanged); tour step 4 of 6; View mode selector (46 px, 16 px text vs 12.8 px, selected state, no overlap, 18/16 px spacing) |
+| `node tests/ui_round6e.js --base <fe76cd6>` (laptop Low/Medium/High + phone) | ALL PASS (159): covering off pixel-identical to round 6C in every view; Orbit identical on/off; unlit pixels unchanged; ground mean -1.6 to +0.9 %; readouts, Sun/Earth, status tiles, rover identical |
+| `node tests/ground_detail_6c.js --invariants --other base6c=<fe76cd6>` | INVARIANTS: PASS - 0 differences |
+| `node tests/shading_consistency.js --no-write` (shadows on) | 97.8 / 99.0 / 99.8 % - unchanged |
+| `node tests/tile_edge.js` | Medium +0.0 % / -4.3 % - unchanged |
+| `node tests/perf3d.js --phone --quality low,medium,high` | laptop Medium first frame <= 678 ms (all 8 sites), phone Medium <= 427 ms; 59-60 fps in every row except one laptop Medium row at 51 fps (Peak near Shackleton, 3.5 ms/render - far above 30 fps) |
+| cold first frame, `perf3d --quality low,medium --sites im1,peak_shackleton`, two runs each, pre-6F (a818366) vs 6F | im1 Medium: pre-6F 1412 / 569 ms, 6F 629 / 1812 ms; Peak near Shackleton Medium 312 / 292 vs 315 / 338 ms (`round6f_perf_compare.log`). The very first compile on this machine varies a lot with and without 6F; one 6F run exceeded 1.5 s for im1 (the first site compiled) - see limits |
+| `ui_check`, `ui_round5`, `ui_round6`, `ui_round6b`, `ui_round6c`, `ui_round6d` (laptop + phone) | all pass, no console errors or warnings (updated for 4 Getting-started steps and 6 tour steps; ui_round6b prints the full CSV header on failure) |
+| Node: features_test, view3d_test, validate, earth_orientation, blind_test, one_year_check, instant_status_check, illumination, coarse_validation, accuracy3d | all exit 0 (result files differed only in timestamps; restored) |
+| Python: `tools/terrain3d.py check`, `tools/terrain3d_ext.py check`, `tools/terrain.py check` | pass |
+
+`ui_round6e` rewrites the round 6E screenshots and `results_6e.json`; they were restored (round 6E's record).
+
+### Round 6F - not done or limited
+
+* **Performance gate, cold first compile**: laptop Medium first frame was 193-678 ms for all sites in the final perf3d run, but the very first shader compile of a fresh browser varies (pre-6F code too: 569-1412 ms for im1); one of two 6F cold runs gave 1812 ms for im1. Making the loops fully dynamic would cut this further but needs WebGL2-only shader syntax, so it was not done in this round.
+* **Custom-point 3D** covers the 6 km tile and the 32 km ring A only (ring B is High-only); no 240 m coarse Orbit view. The drawn Sun/Earth/skyline/shadows are the site's; the point's own 240 m horizon is used for its status tiles but not drawn. Walk/Rover only on the tile.
+* **Randomness** is tuned visually, not statistically matched; at the low polar Sun most craterlet interiors are dark whatever their depth (the bounded Sun-term factor saturates), so old and fresh craters differ mostly in rim, size and halo.
+* The round 6E statement "full strength within 60 m of the camera" was wrong in practice (it was measured from the site); corrected here and in design decision 15.
+* Devices: headless Chromium on the development laptop; phones emulated; not tested on a real phone, Firefox or Safari.
+* Commits: Part 1, Part 1 fix (camera), Part 2, Part 3, Part 1 fix 2 (compile time), Part 2 fix (hash), fixes (warning, scroll), Part 4. The About text of design decision 15 went into the Part 2 commit (index.html), DESIGN_DECISIONS.md into Part 4.
+
+**Round 6F hand-over**: `data/version.js` stamped. No merge, no tag, no push; `master` unchanged.
+
+

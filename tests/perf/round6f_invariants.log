@@ -1,0 +1,3 @@
+invariants base6c vs r6f: 0 differences; console errors in r6f: 0
+  compared: 6 site/quality combinations x 4 views; 216 inspection readouts; vertex hashes of every layer; status tiles, Sun/Earth readouts and directions; rover pose and readout
+INVARIANTS: PASS

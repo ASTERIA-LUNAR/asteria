@@ -1,0 +1,112 @@
+PASS [laptop] inspection: "Inspect on hover" is off by default and nothing is shown before a click
+PASS [laptop] inspection: with hover off, moving the mouse shows nothing
+PASS [laptop] inspection: a click at the site marker pins the readout and a marker (distance 0.0 m from the site) - {"pinned":true,"mk":true}
+PASS [laptop] inspection: the pinned readout stays when the mouse moves on
+PASS [laptop] inspection: after the camera turns, the marker stays on the inspected ground point (-0.0, 0.0 px) - {"dx":-9.925997801474296e-10,"dy":2.2248514142120257e-10}
+PASS [laptop] inspection: Esc clears the readout and the marker (the 3D view stays open; a second Esc closes it) - {"open":true,"ins":null,"mk":true,"tip":true}
+PASS [laptop] inspection: with "Inspect on hover" on, the readout follows the mouse (27 m, then 1793 m from the site) - [27.185347876893847,1793.278349840731]
+PASS [laptop] shadows: off by default, toggle named "Shadows (approximate)", note "Shadows off: the terrain is lit from the…" shown, shadow maps not rendered - {"box":false,"lbl":"Shadows (approximate)","note":"Shadows off: the terrain is lit from the Sun's real direction without cast shadows. Sunlit/shadowed status at the site comes from the validated horizon model (tiles above)."}
+PASS [laptop] shadows: turning them on shows the existing shadow label and renders the shadow maps - Shadows from terrain within 16 km (visual approximation); farther terrain casts no shadows here; sunlit and Earth-visible status at the site marker come from the validated horizon model.
+PASS [laptop] shadows: status tiles (Sun down, Earth hidden), Sun/Earth positions, labels and the inspection readout are identical with shadows on and off - {"off":["tile off","Sun down","tile off","Earth hidden"],"on":["tile off","Sun down","tile off","Earth hidden"]}
+PASS [laptop] shadows: the hidden-Sun banner says the ground is drawn lit when shadows are off (and keeps its shadow wording when on) - [" in this view, so the ground is drawn lit from the Sun's direction; turn on \"Shadows (approximate)\" to see cast shadows.","m away casts no shadows in this view, so parts of the ground may still look lit."]
+PASS [laptop] shadows: the choice is remembered for this session (re-opened 3D keeps "on"), not stored on the device - {"box":true,"ls":[]}
+PASS [laptop] shadows: turning on Earthshine (which only matters in shadow) turns shadows on - {"sh":true,"noShadow":false}
+PASS [laptop] relief: off by default in Orbit, on in Walk and Rover (checkbox follows) - [{"mode":"orbit","on":false,"box":false},{"mode":"walk","on":true,"box":true},{"mode":"rover","on":true,"box":true},{"mode":"orbit","on":false,"box":false}]
+PASS [laptop] relief: a change made in Walk is kept for Walk; switching to Orbit and Rover re-applies their defaults - [{"mode":"walk","on":false,"box":false},{"mode":"orbit","on":false,"box":false},{"mode":"rover","on":true,"box":true},{"mode":"walk","on":false,"box":false}]
+PASS [laptop] relief: display only (inspection readout, Sun direction and status identical with relief on and off; distance normalisation K = 2) - {"on":true,"off":false,"k":2,"same":true}
+PASS [laptop] rover model: 4996 triangles (full detail; budget 8000) - {"triangles":4996,"low":false}
+PASS [laptop] rover model: each suspension arm ends at its wheel module's steering housing (worst 0.0e+0 m) and the wheels turn with the distance driven (4.1 m) - [{"endToHousing":0,"spin":-16.265600000000013},{"endToHousing":0,"spin":16.265600000000013},{"endToHousing":0,"spin":-16.265600000000013},{"endToHousing":0,"spin":16.265600000000013}]
+PASS [laptop] stars: on by default (904 catalogue stars drawn, note shown) - {"box":true,"stars":{"n":904,"magLimit":4.5,"visible":true,"time":1795629180000},"note":true}
+PASS [laptop] stars: background only - inspection hit and readout, status tiles, Sun/Earth directions, rover readout and the rendered shadow at the site marker are identical with stars on and off; stars cast and receive no shadows - {"a":[5045.267324563151,9.562905690177296,-84.6000176912191,31.00825909147097,23.574864826327047],"b":[5045.267324563151,9.562905690177296,-84.6000176912191,31.00825909147097,23.574864826327047],"lit":[true,true]}
+PASS [laptop] CSV (Sunlight windows): header has site, lat/lon, source, horizon model, sampling step, minimum link elevation (2°), app version (git commit), generation time and the validation sentence - # ASTERIA export: Sunlight windows and time series
+# site,Peak near Shackleton (illuminated area)
+# latitude_deg,-88.79
+# longitude_deg_east,124.5
+# source,https://iopscience.iop.org/article/10.3847/PSJ/ad1b50 https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/
+# horizon_model,LOLA terrain horizon mask (data/horizons: 1 deg azimuth steps interpolated linearly; rays to 300 km; observer 2 m above the ground)
+# period_start_utc,2027-01-10T00:00:00.000Z
+# period_end_utc,2027-02-09T00:00:00.000Z
+# sampling_step_min,10,rise/set times refined to 1 min
+# minimum_link_elevation_deg,2,Earth must be at least this far above the terrain horizon
+# app_version,ASTERIA round6 @ git 6633263 (2026-11-15)
+# generated_utc,2026-11-15T11:15:43.013Z
+# Computed by ASTERIA; validated against NASA/JPL Horizons - see VALIDATION_REPORT.md
+# (a) Sunlight windows (Sun centre above the terrain horizon); max elevation from the samples
+# (b) time series (every computed sample)
+PASS [laptop] CSV (sun): windows table equals the app's windows exactly (2 windows) and the time series equals the app's series exactly (4321 rows: UTC, Sun az/el, visible fraction, Sun up, Earth az/el, Earth visible, terrain horizon at both azimuths) - {"winOK":true,"rows":4321,"series":4321,"bad":0}
+PASS [laptop] CSV (sun): the "Download CSV" link in the panel downloads asteria_peak_shackleton_sunlight_20270110T0000Z_30d.csv with the same content (Blob download, works from file://) - asteria_peak_shackleton_sunlight_20270110T0000Z_30d.csv
+PASS [laptop] CSV (Earth link windows): header has site, lat/lon, source, horizon model, sampling step, minimum link elevation (2°), app version (git commit), generation time and the validation sentence - # ASTERIA export: Earth link windows and time series
+# site,Peak near Shackleton (illuminated area)
+# latitude_deg,-88.79
+# longitude_deg_east,124.5
+# source,https://iopscience.iop.org/article/10.3847/PSJ/ad1b50 https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/
+# horizon_model,LOLA terrain horizon mask (data/horizons: 1 deg azimuth steps interpolated linearly; rays to 300 km; observer 2 m above the ground)
+# period_start_utc,2027-01-10T00:00:00.000Z
+# period_end_utc,2027-02-09T00:00:00.000Z
+# sampling_step_min,10,rise/set times refined to 1 min
+# minimum_link_elevation_deg,2,Earth must be at least this far above the terrain horizon
+# app_version,ASTERIA round6 @ git 6633263 (2026-11-15)
+# generated_utc,2026-11-15T11:15:43.234Z
+# Computed by ASTERIA; validated against NASA/JPL Horizons - see VALIDATION_REPORT.md
+# (a) Earth link windows (Earth centre above the terrain horizon + minimum link elevation); max elevation from the samples
+# (b) time series (every computed sample)
+PASS [laptop] CSV (earth): windows table equals the app's windows exactly (0 windows) and the time series equals the app's series exactly (4321 rows: UTC, Sun az/el, visible fraction, Sun up, Earth az/el, Earth visible, terrain horizon at both azimuths) - {"winOK":true,"rows":4321,"series":4321,"bad":0}
+PASS [laptop] CSV (earth): the "Download CSV" link in the panel downloads asteria_peak_shackleton_earthlink_20270110T0000Z_30d.csv with the same content (Blob download, works from file://) - asteria_peak_shackleton_earthlink_20270110T0000Z_30d.csv
+PASS [laptop] Compare: new rows for solar energy, battery for the longest darkness and DEM slope, labelled "first-order estimate, example values" with the Power page settings; best energy/battery highlighted; slope "-" for the custom point - {"e":["Solar energy in the window (estimate)","160.2 kWh","151.3 kWh","113.3 kWh","182.9 kWh"],"b":["Battery for the longest darkness (estimate)","42.6 kWh","42.6 kWh","38.3 kWh","35.9 kWh"],"s":["DEM slope at the site point","2.9° (5 m LOLA grid)","2.9° (5 m LOLA grid)","10.4° (20 m LOLA grid)","-"]}
+PASS [laptop] Compare energy and battery = the Power page for the same inputs (160.168 kWh, 42.563 kWh; exactly equal) - {"cmp":{"id":"peak_shackleton","e":160167.66726073372,"b":42562.5,"sl":{"slope":2.8626842963312282,"d":5,"product":"LDEM_875S_5M"}},"pwr":{"Wh":160167.66726073372,"battery":42562.5}}
+PASS [laptop] Compare DEM slope = the 3D rover readout at the site point (peak_shackleton 2.86° on the 5 m grid, mons_mouton 10.42° on the 20 m grid; exactly equal) - [{"id":"peak_shackleton","cmp":2.8626842963312282,"rover":2.8626842963312282,"txt":"2.9°","d":5,"patch":true},{"id":"mons_mouton","cmp":10.422288359745481,"rover":10.422288359745481,"txt":"10.4°","d":20,"patch":false}]
+PASS [laptop] no console errors or warnings - 
+PASS [phone] inspection: "Inspect on hover" is off by default and nothing is shown before a click
+PASS [phone] inspection: a tap at the site marker pins the readout and a marker (distance 0.0 m from the site) - {"pinned":true,"mk":true}
+PASS [phone] inspection: a second tap moves the pinned readout to the new point
+PASS [phone] shadows: off by default, toggle named "Shadows (approximate)", note "Shadows off: the terrain is lit from the…" shown, shadow maps not rendered - {"box":false,"lbl":"Shadows (approximate)","note":"Shadows off: the terrain is lit from the Sun's real direction without cast shadows. Sunlit/shadowed status at the site comes from the validated horizon model (tiles above)."}
+PASS [phone] shadows: turning them on shows the existing shadow label and renders the shadow maps - Shadows from terrain within 16 km (visual approximation); farther terrain casts no shadows here; sunlit and Earth-visible status at the site marker come from the validated horizon model.
+PASS [phone] shadows: status tiles (Sun down, Earth hidden), Sun/Earth positions, labels and the inspection readout are identical with shadows on and off - {"off":["tile off","Sun down","tile off","Earth hidden"],"on":["tile off","Sun down","tile off","Earth hidden"]}
+PASS [phone] shadows: the hidden-Sun banner says the ground is drawn lit when shadows are off (and keeps its shadow wording when on) - [" in this view, so the ground is drawn lit from the Sun's direction; turn on \"Shadows (approximate)\" to see cast shadows.","m away casts no shadows in this view, so parts of the ground may still look lit."]
+PASS [phone] shadows: the choice is remembered for this session (re-opened 3D keeps "on"), not stored on the device - {"box":true,"ls":[]}
+PASS [phone] shadows: turning on Earthshine (which only matters in shadow) turns shadows on - {"sh":true,"noShadow":false}
+PASS [phone] relief: off by default in Orbit, on in Walk and Rover (checkbox follows) - [{"mode":"orbit","on":false,"box":false},{"mode":"walk","on":true,"box":true},{"mode":"rover","on":true,"box":true},{"mode":"orbit","on":false,"box":false}]
+PASS [phone] relief: a change made in Walk is kept for Walk; switching to Orbit and Rover re-applies their defaults - [{"mode":"walk","on":false,"box":false},{"mode":"orbit","on":false,"box":false},{"mode":"rover","on":true,"box":true},{"mode":"walk","on":false,"box":false}]
+PASS [phone] relief: display only (inspection readout, Sun direction and status identical with relief on and off; distance normalisation K = 2) - {"on":true,"off":false,"k":2,"same":true}
+PASS [phone] rover model: 2644 triangles (lower-detail version for phones / Low; budget 3000) - {"triangles":2644,"low":true}
+PASS [phone] rover model: each suspension arm ends at its wheel module's steering housing (worst 2.2e-16 m) and the wheels turn with the distance driven (3.7 m) - [{"endToHousing":0,"spin":-14.932800000000066},{"endToHousing":0,"spin":14.932800000000066},{"endToHousing":0,"spin":-14.932800000000066},{"endToHousing":2.220446049250313e-16,"spin":14.932800000000066}]
+PASS [phone] stars: on by default (904 catalogue stars drawn, note shown) - {"box":true,"stars":{"n":904,"magLimit":4.5,"visible":true,"time":1795629180000},"note":true}
+PASS [phone] stars: background only - inspection hit and readout, status tiles, Sun/Earth directions, rover readout and the rendered shadow at the site marker are identical with stars on and off; stars cast and receive no shadows - {"a":[5045.287199343587,9.55820595390102,-84.60003104376227,31.008216601724698,23.466368251471405],"b":[5045.287199343587,9.55820595390102,-84.60003104376227,31.008216601724698,23.466368251471405],"lit":[true,true]}
+PASS [phone] CSV (Sunlight windows): header has site, lat/lon, source, horizon model, sampling step, minimum link elevation (2°), app version (git commit), generation time and the validation sentence - # ASTERIA export: Sunlight windows and time series
+# site,Peak near Shackleton (illuminated area)
+# latitude_deg,-88.79
+# longitude_deg_east,124.5
+# source,https://iopscience.iop.org/article/10.3847/PSJ/ad1b50 https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/
+# horizon_model,LOLA terrain horizon mask (data/horizons: 1 deg azimuth steps interpolated linearly; rays to 300 km; observer 2 m above the ground)
+# period_start_utc,2027-01-10T00:00:00.000Z
+# period_end_utc,2027-02-09T00:00:00.000Z
+# sampling_step_min,10,rise/set times refined to 1 min
+# minimum_link_elevation_deg,2,Earth must be at least this far above the terrain horizon
+# app_version,ASTERIA round6 @ git 6633263 (2026-11-15)
+# generated_utc,2026-11-15T11:16:01.325Z
+# Computed by ASTERIA; validated against NASA/JPL Horizons - see VALIDATION_REPORT.md
+# (a) Sunlight windows (Sun centre above the terrain horizon); max elevation from the samples
+# (b) time series (every computed sample)
+PASS [phone] CSV (sun): windows table equals the app's windows exactly (2 windows) and the time series equals the app's series exactly (4321 rows: UTC, Sun az/el, visible fraction, Sun up, Earth az/el, Earth visible, terrain horizon at both azimuths) - {"winOK":true,"rows":4321,"series":4321,"bad":0}
+PASS [phone] CSV (Earth link windows): header has site, lat/lon, source, horizon model, sampling step, minimum link elevation (2°), app version (git commit), generation time and the validation sentence - # ASTERIA export: Earth link windows and time series
+# site,Peak near Shackleton (illuminated area)
+# latitude_deg,-88.79
+# longitude_deg_east,124.5
+# source,https://iopscience.iop.org/article/10.3847/PSJ/ad1b50 https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/
+# horizon_model,LOLA terrain horizon mask (data/horizons: 1 deg azimuth steps interpolated linearly; rays to 300 km; observer 2 m above the ground)
+# period_start_utc,2027-01-10T00:00:00.000Z
+# period_end_utc,2027-02-09T00:00:00.000Z
+# sampling_step_min,10,rise/set times refined to 1 min
+# minimum_link_elevation_deg,2,Earth must be at least this far above the terrain horizon
+# app_version,ASTERIA round6 @ git 6633263 (2026-11-15)
+# generated_utc,2026-11-15T11:16:01.363Z
+# Computed by ASTERIA; validated against NASA/JPL Horizons - see VALIDATION_REPORT.md
+# (a) Earth link windows (Earth centre above the terrain horizon + minimum link elevation); max elevation from the samples
+# (b) time series (every computed sample)
+PASS [phone] CSV (earth): windows table equals the app's windows exactly (0 windows) and the time series equals the app's series exactly (4321 rows: UTC, Sun az/el, visible fraction, Sun up, Earth az/el, Earth visible, terrain horizon at both azimuths) - {"winOK":true,"rows":4321,"series":4321,"bad":0}
+PASS [phone] Compare: new rows for solar energy, battery for the longest darkness and DEM slope, labelled "first-order estimate, example values" with the Power page settings; best energy/battery highlighted; slope "-" for the custom point - {"e":["Solar energy in the window (estimate)","160.2 kWh","151.3 kWh","113.3 kWh","182.9 kWh"],"b":["Battery for the longest darkness (estimate)","42.6 kWh","42.6 kWh","38.3 kWh","35.9 kWh"],"s":["DEM slope at the site point","2.9° (5 m LOLA grid)","2.9° (5 m LOLA grid)","10.4° (20 m LOLA grid)","-"]}
+PASS [phone] Compare energy and battery = the Power page for the same inputs (160.168 kWh, 42.563 kWh; exactly equal) - {"cmp":{"id":"peak_shackleton","e":160167.66726073372,"b":42562.5,"sl":{"slope":2.8626842963312282,"d":5,"product":"LDEM_875S_5M"}},"pwr":{"Wh":160167.66726073372,"battery":42562.5}}
+PASS [phone] Compare DEM slope = the 3D rover readout at the site point (peak_shackleton 2.86° on the 5 m grid, mons_mouton 10.42° on the 20 m grid; exactly equal) - [{"id":"peak_shackleton","cmp":2.8626842963312282,"rover":2.8626842963312282,"txt":"2.9°","d":5,"patch":true},{"id":"mons_mouton","cmp":10.422288359745481,"rover":10.422288359745481,"txt":"10.4°","d":20,"patch":false}]
+PASS [phone] no console errors or warnings - 
+
+ALL PASS

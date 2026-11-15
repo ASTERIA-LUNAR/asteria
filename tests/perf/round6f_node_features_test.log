@@ -1,0 +1,41 @@
+PASS horizontal panel power = S*A*eta*sin(E_Horizons) - E=64.199 deg, expected 363.689 W, got 363.685 W, rel err 0.0011%
+PASS tracking vertical panel = S*A*eta*cos(E)
+PASS fixed vertical panel facing the Sun = tracking
+PASS fixed panel facing away gives 0 W
+PASS half-visible disk halves the power
+PASS slip 0 == timeline metrics (peak_shackleton, 14 d) - pctSun 37.6301/37.6301, avgSunFrac 0.3781/0.3781, pctEarth 30.8379/30.8379, pctBoth 30.8379/30.8379, longestDarkH 209.6667/209.6667, longestBlackoutH 221.3333/221.3333, samples 2017/2017
+PASS slip 5 == timeline started 5 days later (peak_shackleton)
+PASS slip 0 == timeline metrics (apollo11, 30 d) - pctSun 49.3173/49.3173, avgSunFrac 0.4932/0.4932, pctEarth 100/100, pctBoth 49.3173/49.3173, longestDarkH 293.8333/293.8333, longestBlackoutH 0/0, samples 4321/4321
+PASS slip 5 == timeline started 5 days later (apollo11)
+PASS slip 0 == timeline metrics (im2, 45 d) - pctSun 49.3062/49.3062, avgSunFrac 0.4922/0.4922, pctEarth 78.4459/78.4459, pctBoth 33.4875/33.4875, longestDarkH 413/413, longestBlackoutH 122/122, samples 1081/1081
+PASS slip 5 == timeline started 5 days later (im2)
+PASS earthMask omitted == earthMask = mask (validated default unchanged)
+PASS minimum link elevation 1 deg == Earth el > horizon + 1 deg - Earth link 53.1% at 0 deg -> 39.9% at 1 deg
+PASS jobs.explorer series == engine series (minEl 1)
+PASS Earth events alternate rise/set and match the series - 2 events
+PASS a minimum elevation can only shorten the Earth link
+PASS js/core.js is up to date with lib/astronomy + js/engine.js
+PASS index.html loads every terrain horizon (8)
+PASS all requestable map tiles exist - 8536 tiles checked, 0 missing
+PASS tile set below 80 MB - 66.7 MB
+PASS map.js projection: Shackleton centre in z5 tile (16,16) px (103,86) - tile (16,16) px (103,86)
+PASS map.js unproject(project(p)) == p
+PASS every site has sourceType primary/secondary and a sourceCheck
+PASS no Wikipedia source left; Chang'e-7 target removed
+PASS removed points have no site, horizon file or computed rows
+PASS Artemis III regions: 9 listed, plotted only via landform centres or a published point - Malapert Massif, Mons Mouton, Nobile Rim 2 plotted; Peak near Cabeus B, Haworth, Mons Mouton Plateau, Nobile Rim 1, de Gerlache Rim 2, Slater Plain by name only
+PASS horizon files == index == curated south-pole sites - im1, im2, mons_malapert, mons_mouton, nobile_rim2_dm2, peak_shackleton, peak_shackleton_lw, shackleton_centre
+PASS one-year table and cross-check list exactly the terrain sites
+PASS downsampled DEM file <= 15 MB - 8.79 MB
+PASS downsampled DEM decodes to the recorded height range - 2534x2534, -7287..7025 m
+PASS shipped DEM + worker code reproduce the stored validation (IM-2 horizon difference) - 0.0326 deg
+PASS clicked-point terrain validation passed (criteria met) before shipping - sites |d sunlit| mean 2.03 max 6.86; random vs PGDA mean 1.47
+PASS app gates terrain for clicked points on the validation result and lazy-loads the DEM
+PASS custom points outside the data use a smooth horizon (no terrain)
+PASS SUBMISSION_LINKS.md: 27 NASA + 21 other links, each "Name - full https URL" and cited elsewhere in the project
+PASS AI disclosure: generator + ai-disclosure meta tags in index.html
+PASS AI disclosure: README "How this was made" names the code-drawn graphics, no image/audio model, NASA/catalogue data
+PASS AI disclosure: AI_DISCLOSURE.md lists code, scripts, documentation, in-app text, code-drawn graphics and where the app discloses it
+PASS AI disclosure: the About credit line and the 3D "Graphics:" line are in the source
+PASS every AI-written source file has the "Generated with Claude Code (Anthropic) under human direction" header (56 files)
+ALL FEATURE TESTS PASS

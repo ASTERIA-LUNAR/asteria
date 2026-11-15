@@ -1,0 +1,11 @@
+earth: 8761 hourly rows (cache)
+sun: 8761 hourly rows (cache)
+earth: 0 Horizons crossings in the year
+sun: 24 Horizons crossings in the year
+Custom point (-70.9457, 67.9235 E), smooth horizon, 2026-11-14 to 2027-11-14, 8761 hourly rows per body
+earth: |dEl| max 0.0026 mean 0.0010 deg; |dAz| max 0.0032 mean 0.0009 deg -> PASS
+sun: |dEl| max 0.0028 mean 0.0011 deg; |dAz| max 0.0039 mean 0.0011 deg -> PASS
+Horizons minimum Earth elevation 1.6344 deg at 2026-12-08T05:31:00.000Z (1-minute table; engine there 1.6344); Earth below 0 deg in 0 of 8761 hours -> Earth does not set in this year
+earth events: Horizons 0, app 0, max |dt| - min, extra 0; next-event checks 24/24 -> PASS
+sun events: Horizons 24, app 24, max |dt| 1.42 min, extra 0; next-event checks 24/24 -> PASS
+ONE-YEAR CHECK: PASS

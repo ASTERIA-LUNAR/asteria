@@ -1,0 +1,21 @@
+Running angle tests vs JPL Horizons ...
+Running event-time tests ...
+Running physics sanity tests (one year, 10-min steps) ...
+Custom point, one-year check (tests/one_year_check.js, from the cache) ...
+Custom point (-70.9457, 67.9235 E), smooth horizon, 2026-11-14 to 2027-11-14, 8761 hourly rows per body
+earth: |dEl| max 0.0026 mean 0.0010 deg; |dAz| max 0.0032 mean 0.0009 deg -> PASS
+sun: |dEl| max 0.0028 mean 0.0011 deg; |dAz| max 0.0039 mean 0.0011 deg -> PASS
+Horizons minimum Earth elevation 1.6344 deg at 2026-12-08T05:31:00.000Z (1-minute table; engine there 1.6344); Earth below 0 deg in 0 of 8761 hours -> Earth does not set in this year
+earth events: Horizons 0, app 0, max |dt| - min, extra 0; next-event checks 24/24 -> PASS
+sun events: Horizons 24, app 24, max |dt| 1.42 min, extra 0; next-event checks 24/24 -> PASS
+ONE-YEAR CHECK: PASS
+Instant status check (tests/instant_status_check.js: Horizons + Python terrain, from the caches) ...
+Instant status: 336/336 agree, 3 on the edge, 0 disagreements outside the edge
+PASS Exact south pole (-90, 0): Sun centre elevation within +-1.7 deg all year - min -1.547 deg, max 1.550 deg
+PASS Apollo 11: Earth above smooth horizon 100% of the year - 100.000% (min Earth el 57.96 deg)
+PASS Chang'e-4 (far side): Earth below smooth horizon 100% of the year - Earth up 0.000% (max Earth el -37.72 deg)
+PASS Equatorial near-side (0, 0): Sun above smooth horizon 45-55% of the year - 48.62%
+PASS Max Sun elevation at 20 random latitudes -60 to -90 (seed 20261114): never above 90 - abs(lat) + 1.6 deg, and within 0.2 deg of 90 - abs(lat) + 1.54 deg - max - (90 - abs(lat)): 1.504 to 1.550 deg; largest deviation from 90 - abs(lat) + 1.54: 0.036 deg
+Angles: 52/52 pass; max |dEl| 0.0038 mean 0.0009; max |dAz| 0.0554 mean 0.0025 deg
+Events: 4/4 pass; max |dt| 0.76 min
+OVERALL: PASS

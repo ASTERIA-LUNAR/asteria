@@ -1,0 +1,70 @@
+im1                  6 km tile             5929 pts  max 0.050 m  mean 0.025 m
+im1                  Ring A (to 16 km)   160801 pts  max 0.050 m  mean 0.025 m
+im1                  Ring B (to 40 km)   251001 pts  max 0.050 m  mean 0.025 m
+im2                  6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+im2                  Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+im2                  Ring B (to 40 km)   160801 pts  max 0.100 m  mean 0.050 m
+im2                  Ring B fine, 100 m (round 6)  641601 pts  max 0.100 m  mean 0.050 m
+peak_shackleton      6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+peak_shackleton      Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+peak_shackleton      Ring B (to 40 km)   160801 pts  max 0.050 m  mean 0.025 m
+peak_shackleton      Ring A fine, 25 m (round 6) 1640961 pts  max 0.050 m  mean 0.025 m
+peak_shackleton      Ring B fine, 100 m (round 6)  641601 pts  max 0.050 m  mean 0.025 m
+peak_shackleton      5 m patch (2 km)    160801 pts  max 0.050 m  mean 0.023 m
+peak_shackleton_lw   6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+peak_shackleton_lw   Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+peak_shackleton_lw   Ring B (to 40 km)   160801 pts  max 0.050 m  mean 0.025 m
+peak_shackleton_lw   Ring A fine, 25 m (round 6) 1640961 pts  max 0.050 m  mean 0.025 m
+peak_shackleton_lw   Ring B fine, 100 m (round 6)  641601 pts  max 0.050 m  mean 0.025 m
+peak_shackleton_lw   5 m patch (2 km)    160801 pts  max 0.050 m  mean 0.024 m
+nobile_rim2_dm2      6 km tile             5929 pts  max 0.050 m  mean 0.025 m
+nobile_rim2_dm2      Ring A (to 16 km)   160801 pts  max 0.050 m  mean 0.025 m
+nobile_rim2_dm2      Ring B (to 40 km)   251001 pts  max 0.100 m  mean 0.050 m
+nobile_rim2_dm2      Ring B fine, 100 m (round 6)  641601 pts  max 0.100 m  mean 0.050 m
+mons_mouton          6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+mons_mouton          Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+mons_mouton          Ring B (to 40 km)   160801 pts  max 0.100 m  mean 0.050 m
+mons_mouton          Ring B fine, 100 m (round 6)  641601 pts  max 0.100 m  mean 0.050 m
+mons_malapert        6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+mons_malapert        Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+mons_malapert        Ring B (to 40 km)   160801 pts  max 0.100 m  mean 0.050 m
+mons_malapert        Ring A fine, 25 m (round 6) 1640961 pts  max 0.050 m  mean 0.025 m
+mons_malapert        Ring B fine, 100 m (round 6)  641601 pts  max 0.100 m  mean 0.050 m
+shackleton_centre    6 km tile            90601 pts  max 0.050 m  mean 0.025 m
+shackleton_centre    Ring A (to 16 km)   103041 pts  max 0.050 m  mean 0.025 m
+shackleton_centre    Ring B (to 40 km)   160801 pts  max 0.050 m  mean 0.025 m
+shackleton_centre    Ring A fine, 25 m (round 6) 1640961 pts  max 0.050 m  mean 0.025 m
+shackleton_centre    Ring B fine, 100 m (round 6)  641601 pts  max 0.050 m  mean 0.025 m
+shackleton_centre    5 m patch (2 km)    160801 pts  max 0.050 m  mean 0.020 m
+Heights: 14499574 grid points, max 0.100 m, mean 0.031 m -> PASS
+Slope: Rover readout vs Python, tile grid points (20 m / 80 m): n 200, max 0.169, mean 0.039 (200 of 200 within the storage-step bound (0.05-0.20 deg for 80 m / 20 m spacing))
+Slope: Rover readout vs Python, 5 m patch points (High quality): n 42, max 0.534, mean 0.169 (42 of 42 within the storage-step bound (0.81 deg at 5 m spacing))
+Slope: 3D slope shading (mesh attribute) vs rover readout, same points: n 200, max 0.000, mean 0.000 (same formula, same heights)
+Slope: Before the fix: old rover readout (bilinear gradient inside one cell) vs Python, tile points: n 200, max 15.943, mean 1.075 (different method (one-sided over one cell); fixed this round)
+Slope: Before the fix: old readout vs Python, 5 m patch points: n 42, max 7.799, mean 1.276 (fixed this round)
+Slope: 2D map layer: Python reproduction of the 74 m pixel vs the map's stored class: n 200, max 0.000, mean 0.000 (200 of 200 in the same class)
+Slope: Rover readout (20 m / 80 m) vs the 2D map's 74 m pixel value at the same points: n 200, max 8.055, mean 1.036 (different pixel size, not an error; 155 of 200 readouts fall in the map pixel's class)
+Slope: Python at 37 m spacing (no 74 m averaging) vs the 2D map's 74 m pixel value: n 200, max 5.622, mean 0.788 (effect of averaging alone)
+Slopes -> PASS
+Pos im1                  Low/Medium (tile)  back 0.25 m (cell 80) elev 2618.8 m vs DEM 2618.92 (-0.12) PASS
+Pos im2                  Low/Medium (tile)  back 0.99 m (cell 20) elev 5223.6 m vs DEM 5223.42 (0.18) PASS
+Pos peak_shackleton      Low/Medium (tile)  back 0.67 m (cell 20) elev 1276.7 m vs DEM 1276.65 (0.05) PASS
+Pos peak_shackleton_lw   Low/Medium (tile)  back 0.19 m (cell 20) elev 1221.2 m vs DEM 1221.63 (-0.43) PASS
+Pos nobile_rim2_dm2      Low/Medium (tile)  back 1.08 m (cell 80) elev 1044.7 m vs DEM 1044.90 (-0.20) PASS
+Pos mons_mouton          Low/Medium (tile)  back 0.72 m (cell 20) elev 5111.9 m vs DEM 5111.92 (-0.02) PASS
+Pos mons_malapert        Low/Medium (tile)  back 0.71 m (cell 20) elev 4701.2 m vs DEM 4700.95 (0.25) PASS
+Pos shackleton_centre    Low/Medium (tile)  back 0.94 m (cell 20) elev -2631.4 m vs DEM -2631.14 (-0.26) PASS
+Pos im1                  Low/Medium (tile)  back 1.12 m (cell 80) elev 2717.9 m vs DEM 2717.62 (0.28) PASS
+Pos im2                  Low/Medium (tile)  back 0.73 m (cell 20) elev 5323.8 m vs DEM 5323.76 (0.04) PASS
+Pos peak_shackleton      Low/Medium (tile)  back 0.98 m (cell 20) elev 1143.2 m vs DEM 1143.53 (-0.33) PASS
+Pos peak_shackleton_lw   Low/Medium (tile)  back 0.52 m (cell 20) elev 1437.4 m vs DEM 1437.47 (-0.07) PASS
+Pos nobile_rim2_dm2      Low/Medium (tile)  back 1.41 m (cell 80) elev 834.9 m vs DEM 835.15 (-0.25) PASS
+Pos mons_mouton          Low/Medium (tile)  back 0.04 m (cell 20) elev 5040.7 m vs DEM 5040.62 (0.08) PASS
+Pos shackleton_centre    High (5 m patch)   back 0.20 m (cell 5) elev -2762.7 m vs DEM -2762.75 (0.05) PASS
+Pos peak_shackleton      High (5 m patch)   back 0.65 m (cell 5) elev 1585.3 m vs DEM 1585.25 (0.05) PASS
+Pos peak_shackleton_lw   High (5 m patch)   back 0.56 m (cell 5) elev 1526.4 m vs DEM 1526.65 (-0.25) PASS
+Pos shackleton_centre    High (5 m patch)   back 0.07 m (cell 5) elev -2789.4 m vs DEM -2789.47 (0.07) PASS
+Pos peak_shackleton      High (5 m patch)   back 0.97 m (cell 5) elev 1531.2 m vs DEM 1531.29 (-0.09) PASS
+Pos peak_shackleton_lw   High (5 m patch)   back 0.59 m (cell 5) elev 1433.1 m vs DEM 1433.02 (0.08) PASS
+Positions -> PASS
+PASS

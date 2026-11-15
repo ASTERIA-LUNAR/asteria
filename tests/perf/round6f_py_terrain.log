@@ -1,0 +1,13 @@
+DEMs loaded: LDEM_85S_20M 15168 20.0 m | LDEM_80S_80M 7600 80.0 m
+Height range 85S_20M: -5502 .. 7027 m
+Profile lon  129.78 (lat -90..-89 step .05):  1290   636  -343 -1280 -2177 -2720 -2784 -2757 -2764 -2438 -1994 -1192  -319   571  1280  1097  1059  1060   961  1116  1032
+Profile lon -129.78 (lat -90..-89 step .05):  1290  1372  1300  1150  1041   925   670   808   905  1154  1344  1399  1356  1427  1110   868   485   128  -298  -833 -1234
+Shackleton centre         -2788.7 m  (LDEM_85S_20M)
+IM-1 (LROC 2579 m)         2593.4 m  (LDEM_80S_80M)  LROC ref 2579 m, diff 14 m
+Peak near Shackleton       1602.7 m  (LDEM_85S_20M)
+IM-2                       5321.9 m  (LDEM_85S_20M)
+Mons Mouton                5041.8 m  (LDEM_85S_20M)
+Cross-check (-89,0): 20m -386.1  80m -386.4
+Cross-check (-87,45): 20m 34.0  80m 34.5
+Cross-check (-86,-100): 20m -2163.0  80m -2163.5
+Cross-check (-88.5,200): 20m -2583.0  80m -2582.9

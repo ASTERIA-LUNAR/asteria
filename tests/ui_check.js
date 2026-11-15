@@ -57,7 +57,7 @@ const path = require('path'), fs = require('fs'), url = require('url');
     expect(`${tag} first load: the data-coverage square fills the map panel (no empty margins)`, fitOk(m0), JSON.stringify(m0));
     expect(`${tag} first-visit hint shows`, await page.isVisible('#hint'));
     await shot(page, vp.name + '_1_first_visit', false);
-    await page.click('#hintNext'); await page.click('#hintNext'); await page.click('#hintNext');
+    await page.click('#hintNext'); await page.click('#hintNext'); await page.click('#hintNext'); await page.click('#hintNext');   // round 6F: 4 steps
     expect(`${tag} hint dismissed and stored`, await page.isHidden('#hint') && await page.evaluate(() => localStorage.getItem('asteria.hintDismissed') === '1'));
     await page.reload(); await page.waitForFunction(() => window.AsteriaApp && AsteriaApp.state.series); await page.waitForTimeout(900);
     expect(`${tag} hint not shown again after dismissal`, await page.isHidden('#hint'));
@@ -425,7 +425,7 @@ const path = require('path'), fs = require('fs'), url = require('url');
 
     // ---- tour (all numbers read live)
     await page.click('#tourBtn');
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {   // round 6F: 6 steps
       await page.waitForFunction(() => !/Working/.test(document.getElementById('tourText').textContent), null, { timeout: 120000 });
       const cap = await page.textContent('#tourText');
       expect(`${tag} tour step ${i + 1} caption`, /\d/.test(cap) && !/NaN|undefined|Infinity/.test(cap), cap.replace(/\s+/g, ' ').slice(0, 420));

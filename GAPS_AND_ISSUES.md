@@ -322,3 +322,12 @@ Measured with `tests/ground_detail.js` (same site, time and camera; the round-3 
 * **Casefile scope**: power always uses the Explore window (the Power page can also show the Launch-slip mission window); the launch-slip summary appears only after the Launch slip tab was computed for the same site, horizon and minimum elevation; periods of "both" are summarised as a percentage and status, not listed as windows (ASTERIA has no such list, and none was added).
 * **Printing / PDF** was checked with the print stylesheet in headless Chromium (computed styles and a PDF export); not checked in Firefox or Safari print engines or on a real phone.
 * Requirements are global (one set for all scenarios), not per scenario.
+
+## 14. Round 6F: covering reach, custom-point 3D (branch `round6`, not merged)
+
+* **Custom-point 3D uses existing terrain only.** Coverage = the 6 km tile (Orbit, Walk, Rover) and the 32 km ring A (100 m grid, Orbit only) of the 8 sites with 3D terrain. Ring B (to 40 km) is loaded only at High quality, so it is not counted; points beyond 16 km from a site get Deploy disabled with the reason. A coarse 240 m Orbit-only view from `data/dem_coarse.js` was not built (time box; the disabled-with-reason option was preferred).
+* **Frame of the scene.** A custom point is shown in the host site's scene (no re-centring, no vertex change). The Sun/Earth are drawn from the site's computed directions (the same directions in space; the parallax over 16 km is below 0.003° for Earth and nil for the Sun), and their label azimuths are measured at the site marker, while the status tiles show the point's own values (main view). Near the pole, azimuths at the point and at the site can differ by many degrees because north turns quickly; the panel note says which is which.
+* **Skyline ring and shadows** are the site's (exact only from the site marker, as before). The point's own horizon (240 m data) is used for its status tiles but is not drawn.
+* **Walk/Rover** remain limited to the 6 km tile; points on the ring are Orbit only.
+* **Covering**: still tuned visually, not statistically matched; the fade is from the camera, features fade by screen size, whole texture by 1.5-2 km. On ground facing away from the Sun the texture has no effect by design (Sun term only), so it is invisible there at any distance.
+

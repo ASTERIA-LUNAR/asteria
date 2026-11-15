@@ -1,0 +1,16 @@
+Downsampled DEM: 2534 x 2534 at 240 m, file 8.79 MB
+Implementation check (js/jobs.js vs tools/terrain.py on the same grid): im2 max 3.7e-11 deg, mons_malapert max 1.6e-10 deg, peak_shackleton max 3.7e-10 deg
+
+(1) Curated sites: downsampled-DEM horizon vs 20 m-based horizon (2027, 30-min steps)
+site                 |dHz| mean/max deg   sunlit 20m / coarse   Earth 20m / coarse   ms
+im1                     0.19 / 1.15        38.3 / 38.3        100.0 / 100.0    31
+im2                     0.03 / 0.26        43.7 / 43.8          80.4 / 80.5    41
+peak_shackleton         0.42 / 1.28        49.6 / 53.5          15.2 / 23.7    42
+peak_shackleton_lw      0.46 / 1.97        61.0 / 57.2          27.8 / 24.8    67
+nobile_rim2_dm2         0.19 / 1.25        32.6 / 34.0          24.7 / 24.9    72
+mons_mouton             0.10 / 0.71        29.6 / 29.4          56.2 / 56.3    34
+mons_malapert           2.29 / 4.85        33.0 / 39.8        100.0 / 100.0    41
+shackleton_centre       0.06 / 0.15          0.0 / 0.0            0.0 / 0.0    37
+sunlit |d| mean 2.03 max 6.86 pts; Earth |d| mean 1.49 max 8.54 pts -> PASS
+(2) 50 random points 85-90S vs published map: |d| mean 1.47 median 0.98 max 16.01 pts; within 5 pts: 49; both ~0: 8 -> PASS
+CLICKED-POINT TERRAIN: PASS

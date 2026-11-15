@@ -174,7 +174,7 @@ function loadData(file, name) { const w = {}; new Function('window', fs.readFile
       await p.waitForSelector('#hint:not([hidden])', { timeout: 15000 });
       return { c, p };
     };
-    const finishHint = async p => { for (let k = 0; k < 3; k++) await p.click('#hintNext'); await p.waitForTimeout(200); };
+    const finishHint = async p => { for (let k = 0; k < 4; k++) await p.click('#hintNext'); await p.waitForTimeout(200); };
     const spotState = p => p.evaluate(() => {
       const b = document.getElementById('tourBtn').getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2;
       const atBtn = document.elementFromPoint(x, y), atMid = document.elementFromPoint(innerWidth / 2, innerHeight * 0.7);

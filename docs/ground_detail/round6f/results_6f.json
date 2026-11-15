@@ -1,0 +1,71 @@
+{
+ "generated": "2026-11-15T11:10:16.283Z",
+ "results": {
+  "laptop": {
+   "cover_site": {
+    "yawFromSun": 90,
+    "pos": [
+     0,
+     0
+    ],
+    "frac": 0.8876018886679921,
+    "n": 357171
+   },
+   "cover_1km": {
+    "yawFromSun": 150,
+    "pos": [
+     1000,
+     -300
+    ],
+    "frac": 0.8799254473161033,
+    "n": 354082
+   },
+   "cover_2km": {
+    "yawFromSun": 210,
+    "pos": [
+     0,
+     -2000
+    ],
+    "frac": 0.8582604373757455,
+    "n": 345364
+   },
+   "frame_walk": 1.7666666666666666,
+   "frame_rover": 2.396666666865349,
+   "frame_rover_malapert": 2.8266666660706203,
+   "hintButton": false
+  },
+  "phone": {
+   "cover_site": {
+    "yawFromSun": 90,
+    "pos": [
+     0,
+     0
+    ],
+    "frac": 0.8157594841805368,
+    "n": 163209
+   },
+   "cover_1km": {
+    "yawFromSun": 150,
+    "pos": [
+     1000,
+     -300
+    ],
+    "frac": 0.8022842005298145,
+    "n": 160513
+   },
+   "cover_2km": {
+    "yawFromSun": 210,
+    "pos": [
+     0,
+     -2000
+    ],
+    "frac": 0.8967011545958914,
+    "n": 179403
+   },
+   "frame_walk": 4.219999999801318,
+   "frame_rover": 1.9966666668653488,
+   "frame_rover_malapert": 2,
+   "hintButton": false
+  }
+ }
+}

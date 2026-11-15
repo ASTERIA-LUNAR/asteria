@@ -1,0 +1,16 @@
+pre6f run1: laptop            im1                  low     first frame   646 ms  refined   984 ms   
+pre6f run1: laptop            im1                  medium  first frame  1412 ms  refined  1419 ms   
+pre6f run1: laptop            peak_shackleton      low     first frame   268 ms  refined   401 ms   
+pre6f run1: laptop            peak_shackleton      medium  first frame   312 ms  refined   570 ms   
+r6f   run1: laptop            im1                  low     first frame   634 ms  refined  1112 ms   
+r6f   run1: laptop            im1                  medium  first frame   629 ms  refined  1731 ms   
+r6f   run1: laptop            peak_shackleton      low     first frame   234 ms  refined   355 ms   
+r6f   run1: laptop            peak_shackleton      medium  first frame   315 ms  refined   685 ms   
+pre6f run2: laptop            im1                  low     first frame   551 ms  refined   966 ms   
+pre6f run2: laptop            im1                  medium  first frame   569 ms  refined  1363 ms   
+pre6f run2: laptop            peak_shackleton      low     first frame   325 ms  refined   414 ms   
+pre6f run2: laptop            peak_shackleton      medium  first frame   292 ms  refined   591 ms   
+r6f   run2: laptop            im1                  low     first frame  1076 ms  refined  1080 ms   
+r6f   run2: laptop            im1                  medium  first frame  1812 ms  refined  1816 ms   
+r6f   run2: laptop            peak_shackleton      low     first frame   378 ms  refined   465 ms   
+r6f   run2: laptop            peak_shackleton      medium  first frame   338 ms  refined   710 ms   
