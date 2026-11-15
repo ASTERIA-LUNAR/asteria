@@ -135,7 +135,7 @@ For each of the 8 curated south-pole sites, the Site Card shows **» Deploy: 3D 
 
 There are 8 south-pole sites with LOLA terrain horizons, plus 11 reference sites outside the south pole. The reference sites use a smooth horizon (terrain not included) and are kept for comparison and education. Every site has source links and a note on exactly what its coordinate is (`data/sites.js`).
 
-**NASA Artemis III candidate regions.** NASA's 28 Oct 2024 list of nine regions publishes the region boundaries only as images, with no coordinates. A region is plotted (with sunlight and Earth calculations) **only** where a point is genuinely inside it:
+**NASA candidate landing regions (announced for Artemis III).** Since February 2026 NASA plans Artemis III (2027) as a crewed test flight in low Earth orbit and the first Artemis Moon landing as Artemis IV, targeted for 2028 ([NASA, 27 Feb 2026](https://www.nasa.gov/news-release/nasa-adds-mission-to-artemis-lunar-program-updates-architecture/)); NASA's [Artemis IV mission page](https://www.nasa.gov/mission/artemis-iv/) shows the same nine candidate regions. NASA's 28 Oct 2024 list of nine regions publishes the region boundaries only as images, with no coordinates. A region is plotted (with sunlight and Earth calculations) **only** where a point is genuinely inside it:
 
 | Region (NASA) | Plotted point | Lat, E-lon |
 |---|---|---|

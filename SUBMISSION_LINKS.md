@@ -14,6 +14,8 @@ Every link below is a full public https:// URL (no login) that the project actua
 6. NASA NTRS, Mazarico et al., lunar polar illumination method (abstract, cited for the illumination cross-check) - https://ntrs.nasa.gov/citations/20120010094
 7. NASA NSSDC, Apollo lunar landing site coordinates - https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html
 8. NASA, "NASA Provides Update on Artemis III Moon Landing Regions" (28 Oct 2024, the nine candidate regions) - https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/
+8a. NASA, "NASA Adds Mission to Artemis Lunar Program, Updates Architecture" (27 Feb 2026: Artemis III in 2027 tests systems in low Earth orbit; Artemis IV landing in 2028) - https://www.nasa.gov/news-release/nasa-adds-mission-to-artemis-lunar-program-updates-architecture/
+8b. NASA, Artemis IV mission page ("Crewed Surface Landing", launch "Early 2028"; shows the nine candidate regions under "Lunar Site Selection") - https://www.nasa.gov/mission/artemis-iv/
 9. NASA, "NASA Identifies Candidate Regions for Landing Next Americans on Moon" (2022 list, Peak near Shackleton) - https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/
 10. LROC (NASA LRO camera, NASA/GSFC/Arizona State University), Chang'e-4 lander position - https://lroc.im-ldi.com/images/1087
 11. LROC, Chandrayaan-3 (Vikram) lander position - https://lroc.im-ldi.com/images/1314

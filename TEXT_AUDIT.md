@@ -341,3 +341,14 @@ No AI wording was added to the interface (`tests/ui_check.js`); no traversabilit
 | About, Design decisions: entry "14. Ground-level shading without invented detail (round 6C)" (same text as DESIGN_DECISIONS.md) | ROUND6_REPORT.md Round 6C | new |
 
 No AI wording was added (tests/ui_round6c.js and tests/ui_check.js: only the unchanged "Graphics:" line and the About credit line).
+
+## Round 6E Part 0 (accuracy checks)
+
+| Text | Where | Change |
+|---|---|---|
+| 3D note on the 5 m patch: "The preliminary 5 m product contains a few isolated spikes that are probably data artifacts (locations in GAPS_AND_ISSUES.md); heights are shown as published." | js/view3d.js | added (evidence: GAPS_AND_ISSUES.md section 12, tools/spike_check_6e.py) |
+| About heading "NASA Artemis III candidate regions" -> "NASA candidate landing regions (announced for Artemis III)" | index.html | changed |
+| About regions text: "... nine candidate regions, announced for Artemis III. Since February 2026 NASA plans Artemis III (2027) as a crewed test flight in low Earth orbit, and the first Artemis Moon landing as Artemis IV, targeted for 2028 (NASA, 27 Feb 2026); NASA's Artemis IV mission page shows the same nine candidate regions." | js/app.js | added (NASA release 27 Feb 2026; Artemis IV page) |
+| Map "Why": "The candidate landing regions NASA announced for Artemis III are all near the lunar south pole (NASA, 28 Oct 2024); since February 2026 the first Artemis landing is planned as Artemis IV, targeted for 2028 (NASA, 27 Feb 2026)." | js/explain.js | changed |
+| Page meta description: "NASA's candidate landing regions (announced for Artemis III)" | index.html | changed |
+| Site labels "Artemis III candidate region (...)", map legend "NASA Artemis III candidate regions (Oct 2024)", tour text | data/sites.js, js/app.js | unchanged: the names under which NASA announced the regions |

@@ -5,7 +5,7 @@ Status as of 2026-11-15 (round 6 on branch `round6`, not merged: finer real terr
 * **19 sites** in total:
   * **8 south-pole sites** with LOLA terrain horizons.
   * **11 reference sites** outside the south pole (Apollo 11-17 and robotic landers), shown as "Reference sites (outside the south pole)" with a smooth horizon (terrain not included).
-* **NASA Artemis III regions** (28 Oct 2024 list of nine; names confirmed from the NASA release).
+* **NASA Artemis III regions** (28 Oct 2024 list of nine; names confirmed from the NASA release). Since February 2026 the first Artemis landing is planned as Artemis IV, targeted for 2028 (Artemis III, 2027, is a crewed test flight in low Earth orbit; NASA release of 27 Feb 2026); NASA's Artemis IV mission page shows the same nine regions. Site labels keep "Artemis III candidate region", the name under which NASA announced them.
   * NASA publishes the region boundaries **only as images**, with no numeric coordinates.
   * Plotted (with terrain horizon and computed values) only where a point is genuinely inside the region:
     * **Malapert Massif**: centre of the named landform Mons Malapert (IAU 16338). "Malapert Massif" is not an IAU name.
@@ -291,3 +291,24 @@ Measured with `tests/ground_detail.js` (same site, time and camera; the round-3 
 * Walk/Rover in sunlight look the same as before where the DEM itself is smooth: nothing below the grid resolution is shown or invented.
 * Performance numbers are from headless Chromium on the development laptop; phones were emulated (screen size and touch on the laptop GPU). Not measured on a real phone, in Firefox or in Safari. Exact GPU memory in bytes is not available in browsers.
 * The science.nasa.gov VIPER page (21 Sep 2026) and NASA's 20 Oct 2026 update differ on VIPER's status; the app quotes the newer page with its date.
+
+## 12. Round 6E: data checks (branch `round6`, not merged)
+
+### Isolated spike in the 5 m patch near Peak near Shackleton (probably a DEM artifact; terrain not edited)
+
+* **What is seen**: in Walk/Rover at "Peak near Shackleton - best-lit point" a sharp cone stands about 890 m from the site (inspection near -88.7618, 125.1504 E: height 1486.6 m, slope 44.4° on the 5 m patch).
+* **Evidence** (`tools/spike_check_6e.py`, read-only; numbers in `tests/spikes_6e.json`):
+  * The highest 5 m node (LDEM_875S_5M) is at -88.76152, 125.1511 E: **1498.5 m**, i.e. **7.0 m above the highest of its 8 neighbours**, about 24 m above the ground 20-60 m around it (ring means 1474.9 / 1474.3 m).
+  * At the same place **LDEM_85S_20M gives 1474.2 m** (the 3 × 3 surrounding 20 m nodes reach at most 1477.5 m) and **LDEM_80S_80M gives 1475.0 m**: neither shows any hill. The 5 m and 20 m profiles agree within about 1-2 m everywhere beyond 15 m from the node (east-west and north-south, ±60 m).
+  * Shape: one node with straight sides falling over 2-3 nodes (10-15 m) to the surrounding level - a 35 m wide, 24 m high cone, the typical result of gridding one outlier height measurement. No published LOLA-derived product used here shows a landform there.
+  * The LDEM_875S_5M label describes its heights as generated from preliminary LOLA data.
+* **Verdict**: probably a data artifact of the preliminary 5 m product, not a real landform. Heights are shown as published (not edited or filtered); the 3D note on the 5 m patch says so. The owner decides later about any visual flag.
+* **Scan of all 5 m patches** (2 km × 2 km, 163,216 nodes each; criterion: a node ≥ 2 m above all 8 neighbours AND ≥ 10 m above LDEM_85S_20M at the same point): Peak near Shackleton (illuminated area) 1 spike, Peak near Shackleton - best-lit point 1 spike (the same node, both patches contain it), Shackleton crater centre 0. Nodes ≥ 2 m above all 8 neighbours but consistent with the 20 m grid: 4, 6 and 0 respectively (small real knolls or noise, not listed as spikes).
+
+| Location (node) | 5 m height | Above 8 neighbours | Above LDEM_85S_20M | Distance from site |
+|---|---|---|---|---|
+| -88.76152, 125.1511 E | 1498.5 m | 7.0 m | 24.3 m | 887 m (best-lit point), 961 m (illuminated area) |
+
+### Artemis III / Artemis IV wording
+
+* NASA (release of 27 Feb 2026, https://www.nasa.gov/news-release/nasa-adds-mission-to-artemis-lunar-program-updates-architecture/): Artemis III (2027) tests systems in low Earth orbit; the first Artemis landing is Artemis IV, targeted for 2028 (Artemis IV page: "Early 2028"). The app and documents now say the regions were announced for Artemis III and that the first landing is now planned as Artemis IV. NASA's Artemis IV mission page shows the same nine regions under "Lunar Site Selection"; no NASA text read says more than that, so ASTERIA claims nothing further.

@@ -1852,7 +1852,7 @@
     document.querySelectorAll('input[name=ovl]').forEach(function (r) { r.addEventListener('change', function () { Map.setOverlay(this.value); renderLegend(this.value); }); });
     $('markersToggle').addEventListener('change', function () { Map.setMarkersVisible(this.checked); });
     $('homeBtn').addEventListener('click', function () { Map.home(true); });
-    $('aboutRegions').innerHTML = 'NASA\'s 28 October 2024 update lists nine candidate regions. Their boundaries are published only as images, with no numeric coordinates. ASTERIA plots a region only where a point is genuinely inside it:<ul>' +
+    $('aboutRegions').innerHTML = 'NASA\'s 28 October 2024 update lists nine candidate regions, announced for Artemis III. Since February 2026 NASA plans Artemis III (2027) as a crewed test flight in low Earth orbit, and the first Artemis Moon landing as Artemis IV, targeted for 2028 (NASA, 27 Feb 2026); NASA\'s Artemis IV mission page shows the same nine candidate regions. Their boundaries are published only as images, with no numeric coordinates. ASTERIA plots a region only where a point is genuinely inside it:<ul>' +
       REG.regions.map(function (r) {
         return '<li><b>' + esc(r.name) + '</b>: ' + (r.sites.length ? r.sites.map(function (id) { var s = siteById(id); return esc(s.name) + ' (' + s.lat.toFixed(2) + '°, ' + s.lon.toFixed(2) + '°E)'; }).join('; ') + ' - ' + esc(r.how) : 'not plotted. ' + esc(REG.notPlottedNote)) + '</li>';
       }).join('') + '</ul><a href="' + esc(REG.source) + '" target="_blank" rel="noopener">NASA announcement (28 Oct 2024)</a>.';
