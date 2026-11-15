@@ -132,8 +132,8 @@ window.AsteriaView3D = (function () {
       '    <div class="row"><input id="v3dBright" type="range" min="0.5" max="6" step="0.1" value="1" aria-describedby="v3dBrightNote"><button class="btn small" id="v3dLightUp" aria-pressed="false">Light up</button></div>' +
       '    <p class="fineprint" id="v3dBrightNote">Display brightness only (like camera exposure). Real polar shadows are almost black; this does not change the computed lighting.</p>' +
       '  </div>' +
-      '  <div class="v3d-ctl">' +
-      '    <div class="seg" role="radiogroup" aria-label="Camera mode"><button data-mode="orbit" class="on">Orbit</button><button data-mode="walk">Walk</button><button data-mode="rover">Rover</button></div>' +
+      '  <div class="v3d-modes" role="group" aria-labelledby="v3dModeHead"><div class="v3d-modehead" id="v3dModeHead">View mode</div>' +
+      '    <div class="seg seg-mode" role="radiogroup" aria-label="Camera mode"><button data-mode="orbit" class="on">Orbit</button><button data-mode="walk">Walk</button><button data-mode="rover">Rover</button></div>' +
       '    <div class="fineprint" id="v3dModeWhy" hidden></div>' +
       '  </div>' +
       '  <div class="v3d-ctl v3d-presets" role="group" aria-label="Camera presets"><span class="lbl">View</span><button class="btn small" data-preset="overview">Overview</button><button class="btn small" data-preset="eye">Site eye level (2 m)</button><button class="btn small" data-preset="sun">Look at Sun</button><button class="btn small" data-preset="earth">Look at Earth</button><button class="btn small" id="v3dTo2D" type="button">Show on 2D map</button></div>' +

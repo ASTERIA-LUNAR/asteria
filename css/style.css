@@ -551,3 +551,14 @@ body.cf-open { overflow: hidden; }
 .cov3d-key { display: inline-block; width: 14px; height: 10px; border: 1px solid #7fd3ff; outline: 1px dashed rgba(127, 211, 255, .55); outline-offset: 2px; margin: 0 7px 0 3px; vertical-align: middle; }
 .v3d-lbl.site.pt { border-style: dashed; }
 .v3d-ptnote { border-left: 3px solid #7fd3ff; padding-left: 8px; }
+/* round 6F Part 3: View mode selector - larger segmented control with its own heading and spacing */
+.v3d-modes { margin: 18px 0 16px; padding: 12px 0 14px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.v3d-modehead { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted, #9aa7bd); margin-bottom: 8px; }
+.seg.seg-mode { display: flex; width: 100%; border: 2px solid #3b7fb0; border-radius: 12px; }
+.seg.seg-mode button { flex: 1 1 0; min-height: 46px; padding: 10px 8px; font-size: 16px; font-weight: 600; letter-spacing: .02em; }
+.seg.seg-mode button + button { border-left: 2px solid #3b7fb0; }
+.seg.seg-mode button:hover:not(:disabled) { background: rgba(59, 127, 176, .25); }
+.seg.seg-mode button.on { background: #2387c4; color: #fff; box-shadow: inset 0 -3px 0 #9fe0ff; }
+.seg.seg-mode button:disabled { opacity: .45; cursor: not-allowed; }
+.seg.seg-mode button:focus-visible { outline: 2px solid #9fe0ff; outline-offset: -4px; }
+.v3d-modes .fineprint { margin-top: 8px; }
