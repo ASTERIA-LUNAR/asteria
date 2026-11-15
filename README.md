@@ -1,5 +1,8 @@
 # ASTERIA - Lunar South Pole Landing Site Navigator
 
+* **Live website:** https://asteria-lunar.github.io/asteria/
+* **Repository:** https://github.com/ASTERIA-LUNAR/asteria
+
 Entry for the **NASA Space Apps Challenge 2026** challenge "Lunar Landing Site Navigator".
 *Not affiliated with NASA's ASTERIA CubeSat mission. Not endorsed by NASA.*
 
