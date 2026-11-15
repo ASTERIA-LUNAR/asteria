@@ -32,7 +32,10 @@ window.AsteriaView3D = (function () {
   var SESSION = { shadows: false, ao: null, cover: true };
   // round 6E: close-range surface texture (Illustrative, display only; Walk and Rover): full strength to COVER_NEAR m from
   // the camera, faded to zero at COVER_FAR m; octaves of the fine pattern (laptop Medium/High, Low or phones)
-  var COVER_NEAR = 60, COVER_FAR = 350, COVER_OCT = 7, COVER_OCT_LOW = 5;
+  // round 6F: the distance fade is measured from the camera (it travels with the viewer); no cut-off near the viewer any
+  // more - each octave and feature fades only by its own screen-space size, and the whole covering fades gently between
+  // COVER_NEAR and COVER_FAR m. COVER_RMAX: largest craterlet radius (m), below the DEM grid scale.
+  var COVER_NEAR = 1500, COVER_FAR = 2000, COVER_OCT = 7, COVER_OCT_LOW = 5, COVER_RMAX = 5;
   // round 6E Part 2: wheel tracks (Illustrative): the rover's path this session, one point every WHEEL_STEP m, the last
   // WHEEL_N points (about 250 m of path), drawn as two faint darker strips in the covering's albedo (same checkbox)
   var WHEEL_N = 64, WHEEL_STEP = 4, WHEEL_HALF = 0.6, WHEEL_W = 0.3;
@@ -516,27 +519,56 @@ window.AsteriaView3D = (function () {
     '  float v2 = q.x + ( q.y - q.x ) * u.x + ( q.z - q.x ) * u.y + k2 * u.x * u.y;',
     '  return vec4( 2.0 * v - 1.0, 2.0 * g, 2.0 * v2 - 1.0 );',
     '}',
-    // one candidate feature per cell of size C (probability pr, radius rmin..rmax, more small than large); kind 0 =
-    // craterlet, 1 = rock fleck. Adds to the height gradient g (per metre) and the albedo a.
+    // round 6F: hash over unbounded cell indices - a different permutation in every 289 x 289 block of cells, so the
+    // feature pattern does not repeat every 289 cells (asH alone would repeat every 405 m for the 1.4 m class)
+    'float asHB( vec2 c ) { vec2 b = floor( c / 289.0 ); return asH( c + floor( vec2( asH( b + 3.0 ), asH( b + 19.0 ) ) * 289.0 + 0.5 ) ); }',
+    // round 6F: profile of one feature at offset d (world xz, metres): x = height (m), y = albedo change.
+    // P0 = (R, aspect, cos, sin of the orientation), P1 = (depth, rim height (both in units of R), rim width, freshness),
+    // P2 = (three phases of the rim noise, interior albedo), kind 0 = craterlet, 1 = rock fleck.
+    'vec2 asProf( vec2 d, vec4 P0, vec4 P1, vec4 P2, float kind, vec3 nW ) {',
+    '  float dy = -( nW.x * d.x + nW.z * d.y ) / max( nW.y, 0.2 );',   // slope-aware: radii measured along the LOLA surface
+    '  vec2 q = vec2( P0.z * d.x + P0.w * d.y, -P0.w * d.x + P0.z * d.y ); q.y *= P0.y;',   // elliptical (aspect P0.y)
+    '  float r = length( vec3( q.x, dy, q.y ) ), phi = r > 1e-5 ? atan( q.y, q.x ) : 0.0;',
+    '  float m1 = 0.6 * sin( 2.0 * phi + P2.x ) + 0.4 * sin( 3.0 * phi + P2.y );',   // low-frequency noise around the rim
+    '  float m2 = 0.5 * sin( phi + P2.z ) + 0.5 * sin( 4.0 * phi + P2.x - P2.y );',
+    '  float R = P0.x, s = P1.w;',
+    '  if ( kind < 0.5 ) {',
+    '    float Rl = R * ( 1.0 + 0.10 * m1 ), t = r / Rl;',   // irregular rim radius
+    '    if ( t >= 2.0 ) return vec2( 0.0 );',
+    '    float rim = P1.y * clamp( 0.55 + 1.1 * m2, 0.0, 1.7 ), h;',   // rim height varies around the rim, partly broken
+    '    if ( t < 1.0 ) { float t2 = t * t; h = -P1.x + ( P1.x + rim ) * mix( t2 * ( 3.0 - 2.0 * t ), t2, s ); }',   // old: rounded; fresh: sharp crest
+    '    else { float u = ( t - 1.0 ) / P1.z; h = rim * exp( -u * u ); }',
+    '    float al = P2.w * ( 1.0 - smoothstep( 0.6, 1.0, t ) ) + 0.10 * max( 0.0, s - 0.85 ) / 0.15 * ( 1.0 - smoothstep( 0.9, 1.8, t ) );',   // interior albedo; bright halo for the freshest
+    '    return vec2( h * R, al );',
+    '  }',
+    '  float Rl = R * ( 1.0 + 0.25 * m1 + 0.12 * m2 ), t = r / Rl;',   // rock fleck: irregular outline
+    '  if ( t >= 1.0 ) return vec2( 0.0 );',
+    '  return vec2( P1.x * ( 1.0 - t * t ) * R, P2.w * ( 1.0 - smoothstep( 0.75, 1.0, t ) ) );',
+    '}',
+    // one candidate feature per cell of size C (probability pr, radius rmin..rmax, more small than large) on a lattice
+    // rotated and offset per class (seed), position jittered inside the cell; kind 0 = craterlet, 1 = rock fleck.
+    // Adds to the height gradient g (per metre, numerical: forward differences of the profile) and the albedo a.
     'void asFeat( vec2 p, float C, float pr, float rmin, float rmax, float seed, float kind, vec3 nW, float fp, inout vec2 g, inout float a ) {',
-    '  vec2 c = floor( p / C ) + seed;',
-    '  float h1 = asH( c ); if ( h1 > pr ) return;',
-    '  float h2 = asH( c + vec2( 57.0, 11.0 ) ), h3 = asH( c + vec2( 3.0, 91.0 ) ), h4 = asH( c + vec2( 41.0, 7.0 ) );',
+    '  float ca = cos( seed ), sa = sin( seed );',
+    '  vec2 o = vec2( 7.31, 3.17 ) * seed, pq = vec2( ca * p.x + sa * p.y, -sa * p.x + ca * p.y ) + o;',
+    '  vec2 cl = floor( pq / C ), c = cl + seed;',
+    '  float h1 = asHB( c ); if ( h1 > pr ) return;',
+    '  float h2 = asHB( c + vec2( 57.0, 11.0 ) ), h3 = asHB( c + vec2( 3.0, 91.0 ) ), h4 = asHB( c + vec2( 41.0, 7.0 ) ), h5 = asHB( c + vec2( 13.0, 29.0 ) ), h6 = asHB( c + vec2( 71.0, 53.0 ) );',
     '  float R = mix( rmin, rmax, h2 * h2 );',
     '  float w = 1.0 - smoothstep( 0.5 * R, R, fp ); if ( w <= 0.0 ) return;',
-    '  vec2 d = p - ( floor( p / C ) + 0.5 + ( vec2( h3, h4 ) - 0.5 ) * ( 1.0 - 3.2 * R / C ) ) * C;',
-    '  float dy = -( nW.x * d.x + nW.z * d.y ) / max( nW.y, 0.2 );',
-    '  float r = length( vec3( d.x, dy, d.y ) ), t = r / R;',
-    '  if ( t >= 1.5 || r < 1e-4 ) return;',
-    '  float fr = 0.3 + 0.7 * fract( h1 * 13.7 + h2 * 5.3 ), dh;',
-    '  if ( kind < 0.5 ) {',
-    '    float dep = 0.35 * fr, rim = 0.08 * fr, s = ( t - 1.0 ) * 2.0;',
-    '    dh = t < 1.0 ? 2.0 * ( dep + rim ) * t : -rim * 12.0 * s * ( 1.0 - s );',
-    '  } else {',
-    '    dh = t < 1.0 ? -1.2 * fr * t : 0.0;',
-    '    a += w * 0.15 * ( 1.0 - smoothstep( 0.8, 1.0, t ) );',
-    '  }',
-    '  g += w * dh * d / r;',   // dh is d(height / R) / dt = d height / d r
+    '  float ext = kind < 0.5 ? 2.2 : 1.4;',   // largest extent in units of R (rim noise included)
+    '  vec2 cq = ( cl + 0.5 + ( vec2( h3, h4 ) - 0.5 ) * max( 0.0, 1.0 - 2.0 * ext * R / C ) ) * C - o;',
+    '  vec2 d = p - vec2( ca * cq.x - sa * cq.y, sa * cq.x + ca * cq.y );',
+    '  if ( dot( d, d ) >= ext * ext * R * R ) return;',
+    '  float r1 = fract( h1 * 13.7 + h2 * 5.3 ), r2 = fract( h3 * 17.3 + h5 * 3.9 ), r3 = fract( h4 * 23.1 + h6 * 7.7 ), r4 = fract( h5 * 29.9 + h2 * 11.3 ), r5 = fract( h6 * 31.3 + h3 * 2.9 );',
+    '  float th = 6.2832 * r2, s = h5 * h5 * h5;',   // freshness 0 (old) .. 1 (fresh): most are old, a few fresh
+    '  vec4 P0 = vec4( R, 1.0 + 0.3 * r1, cos( th ), sin( th ) ), P1, P2 = vec4( 6.2832 * r3, 6.2832 * r4, 6.2832 * r5, 0.0 );',
+    '  if ( kind < 0.5 ) { P1 = vec4( mix( 0.03, 0.38, s ) * ( 0.75 + 0.5 * h6 ), mix( 0.008, 0.09, s ) * ( 0.7 + 0.6 * r1 ), mix( 0.30, 0.16, s ), s ); P2.w = 0.08 * ( r5 - 0.5 ) + 0.03 * s; }',
+    '  else { P0.y = 1.0 + 0.4 * r1; P1 = vec4( 0.3 + 0.4 * r3, 0.0, 1.0, 0.0 ); P2.w = 0.05 + 0.20 * h6; }',
+    '  float e = 0.04 * R;',
+    '  vec2 f0 = asProf( d, P0, P1, P2, kind, nW );',
+    '  g += w * vec2( asProf( d + vec2( e, 0.0 ), P0, P1, P2, kind, nW ).x - f0.x, asProf( d + vec2( 0.0, e ), P0, P1, P2, kind, nW ).x - f0.x ) / e;',
+    '  a += w * f0.y;',
     '}',
     // computes asCov (strength), asAlb (albedo factor) and asDN (first-order change of the unit normal when the detail height field is added to the LOLA surface, view space; linear in the detail gradient, so its mean is zero) from the final LOLA normal n
     'void asCover( vec3 n ) {',
@@ -547,21 +579,29 @@ window.AsteriaView3D = (function () {
     '  vec3 nW = normalize( ( vec4( n, 0.0 ) * viewMatrix ).xyz );',
     '  vec2 p = vW.xz, g = vec2( 0.0 );',
     '  float a = 0.0, lam = 6.4;',
+    // round 6F: domain warp (up to about 4 m, wavelength 23 m) and a patchy strength (0.75-1.25), so the grain is not uniform
+    '  vec4 wq = asVN( p / 23.0 + vec2( 3.7, 1.3 ) ), wq2 = asVN( p / 23.0 + vec2( 11.3, 5.9 ) );',
+    '  vec2 pw = p + 4.0 * vec2( wq.x, wq2.x );',
+    '  float pa = 1.0 + 0.25 * wq2.w;',
     '  mat2 Rk = mat2( 1.0, 0.0, 0.0, 1.0 ), R1 = mat2( 0.8, -0.6, 0.6, 0.8 );',
     '  for ( int k = 0; k < 7; k++ ) {',
     '    if ( float( k ) >= uCovOct ) break;',
     '    float w = 1.0 - smoothstep( 0.25 * lam, 0.5 * lam, fp );',
     '    if ( w <= 0.0 ) break;',
-    '    vec4 q = asVN( Rk * p / lam + vec2( 17.0, 31.0 ) * float( k ) );',
-    '    g += w * 0.006 * exp2( 0.4 * float( k ) ) * ( q.yz * Rk );',
-    '    a += w * ( lam > 1.0 ? 0.022 : 0.015 ) * q.w;',
+    '    vec4 q = asVN( Rk * pw / lam + vec2( 17.0, 31.0 ) * float( k ) );',
+    '    g += w * pa * 0.006 * exp2( 0.4 * float( k ) ) * ( q.yz * Rk );',
+    '    a += w * pa * ( lam > 1.0 ? 0.022 : 0.015 ) * q.w;',
     '    lam *= 0.5; Rk = Rk * R1;',
     '  }',
     '  if ( uCovDbg > 2.5 ) { g = vec2( 0.0 ); a = 0.0; }',
-    '  asFeat( p, 30.0, 0.18, 2.0, 5.0, 11.0, 0.0, nW, fp, g, a );',
+    // round 6F: craterlets in four size classes (largest radius COVER_RMAX m, below the DEM grid scale); on laptops at
+    // Medium/High two extra lattices of the middle classes (overlapping craterlets); rock flecks in two classes (the
+    // smaller one not on Low/phones)
+    '  asFeat( p, 30.0, 0.18, 2.0, ' + COVER_RMAX.toFixed(1) + ', 11.0, 0.0, nW, fp, g, a );',
     '  asFeat( p, 12.0, 0.22, 0.8, 2.5, 23.0, 0.0, nW, fp, g, a );',
-    '  asFeat( p, 4.0, 0.25, 0.3, 1.0, 37.0, 0.0, nW, fp, g, a );',
-    '  asFeat( p, 1.2, 0.30, 0.1, 0.3, 53.0, 0.0, nW, fp, g, a );',
+    '  asFeat( p, 4.5, 0.30, 0.3, 1.0, 37.0, 0.0, nW, fp, g, a );',
+    '  asFeat( p, 1.4, 0.38, 0.1, 0.3, 53.0, 0.0, nW, fp, g, a );',
+    '  if ( uCovOct > 5.5 ) { asFeat( p, 14.0, 0.12, 0.8, 2.5, 29.0, 0.0, nW, fp, g, a ); asFeat( p, 5.0, 0.15, 0.3, 1.0, 43.0, 0.0, nW, fp, g, a ); }',
     '  asFeat( p, 3.0, 0.05, 0.12, 0.4, 71.0, 1.0, nW, fp, g, a );',
     '  if ( uCovOct > 5.5 ) asFeat( p, 0.8, 0.06, 0.04, 0.12, 89.0, 1.0, nW, fp, g, a );',
     // uCovDbg (tests only, round 6E diagnostics): 1 = albedo only, 2 = micro-relief and features only, 3 = features only
