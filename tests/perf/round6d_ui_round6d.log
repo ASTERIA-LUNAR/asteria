@@ -1,0 +1,138 @@
+PASS [laptop] requirements block: 7 requirements, all ticked by default with example values; labelled "Example values - set your mission's"; collapsible
+PASS [laptop] requirement inputs are the Compare values exactly (% sunlit, % Earth, % both, darkness, blackout, energy, load, slope) for all 4 scenarios
+PASS [laptop] % and hour verdicts show the same value as the Compare rows (same precision) and follow from it
+PASS [laptop] energy requirement: scenario 1 energy and load equal the Power page exactly (202.5 kWh vs 72.0 kWh); verdict = the Power page's "Energy positive/negative"; values printed in the cell
+PASS [laptop] slope requirement: the value equals the Compare slope row (5 m and 20 m grids) and the verdict follows; custom point: "Can't assess" with the reason
+PASS [laptop] neutral summary "N of M requirements met" per scenario, no score or ranking
+PASS [laptop] unticking a requirement removes its row; a new threshold re-judges the same values (no recompute)
+PASS [laptop] invalid Power page inputs: energy "Can't assess" with the reason, in every scenario
+PASS [laptop] share link carries the requirements (req=sun:99.5,earth:50,dark:72,blackout:120,energy,slope:15)
+PASS [laptop] opening the share link restores the requirements (ticks and thresholds)
+PASS [laptop] a share link without requirements restores the example defaults
+PASS [laptop] casefile 5 m site: opened from Compare scenario 1: Explore shows that site, start and 30-day window
+PASS [laptop] casefile 5 m site: status now = the Explore tiles (Sun, Earth, mission)
+PASS [laptop] casefile 5 m site: % sunlit, longest darkness, % Earth link, longest blackout, % both, average illumination = Explore statistics (text and raw values)
+PASS [laptop] casefile 5 m site: window counts and averages = the Explore windows panels
+PASS [laptop] casefile 5 m site: window tables = the first 2 / 1 rows of the Explore tables
+PASS [laptop] casefile 5 m site: scenario: window start, sampling step, minimum link elevation
+PASS [laptop] casefile 5 m site: power = the Power page cards for the Explore window (energy 202.5 kWh, needed 72.0 kWh, balance +130.5 kWh, mean/peak 281 / 413 W, battery ≈ 28.4 kWh (80% usable))
+PASS [laptop] casefile 5 m site: slope = the Compare slope row (6.5° (5 m LOLA grid))
+PASS [laptop] casefile 5 m site: requirements check = the Compare verdicts for scenario 1 (7 requirements; 3 of 7 requirements met)
+PASS [laptop] casefile 5 m site: launch slip summary = the Launch slip results (slip 0 % both 17.0%; highest +52 days 49.7%)
+PASS [laptop] casefile 5 m site: classification on every result section and every evidence row (10 rows)
+PASS [laptop] casefile 5 m site: validation results read live from the result files (angles 0.0038°, status 336 of 336, slope 0.534°)
+PASS [laptop] casefile 5 m site: links: 14 internal anchors exist on the Validation page; 17 external links are cited URLs (About page, site sources, the JPL Horizons query)
+PASS [laptop] casefile 5 m site: "Verify with NASA" = the JPL Horizons queries for this site and the selected time (Sun and Earth)
+PASS [laptop] casefile 5 m site: footer: share link of this exact view (cf=1), app version, creation time, "Not endorsed by NASA"
+PASS [laptop] casefile 5 m site: the casefile fits the laptop width (no horizontal page scroll)
+PASS [laptop] casefile 5 m site: print stylesheet: app chrome (top bar, pages, footer) and the action buttons hidden; casefile printed in the page flow
+PASS [laptop] casefile 5 m site: "Download CSV" = the existing Sunlight-windows export (asteria_peak_shackleton_lw_sunlight_20280925T1004Z_30d.csv)
+PASS [laptop] casefile 5 m site: opening the share link reopens this casefile with the same values
+PASS [laptop] casefile 5 m site: an evidence link ("Methods: power") closes the casefile and shows that row of the Validation page; the link no longer says cf=1
+PASS [laptop] casefile 20 m site: opened from Compare scenario 2: Explore shows that site, start and 30-day window
+PASS [laptop] casefile 20 m site: status now = the Explore tiles (Sun, Earth, mission)
+PASS [laptop] casefile 20 m site: % sunlit, longest darkness, % Earth link, longest blackout, % both, average illumination = Explore statistics (text and raw values)
+PASS [laptop] casefile 20 m site: window counts and averages = the Explore windows panels
+PASS [laptop] casefile 20 m site: window tables = the first 1 / 1 rows of the Explore tables
+PASS [laptop] casefile 20 m site: scenario: window start, sampling step, minimum link elevation
+PASS [laptop] casefile 20 m site: power = the Power page cards for the Explore window (energy 108.3 kWh, needed 72.0 kWh, balance +36.3 kWh, mean/peak 150 / 406 W, battery ≈ 53.7 kWh (80% usable))
+PASS [laptop] casefile 20 m site: slope = the Compare slope row (9.6° (20 m LOLA grid))
+PASS [laptop] casefile 20 m site: requirements check = the Compare verdicts for scenario 2 (7 requirements; 5 of 7 requirements met)
+PASS [laptop] casefile 20 m site: no Launch-slip result for this site: one-line pointer to the Launch slip tab
+PASS [laptop] casefile 20 m site: classification on every result section and every evidence row (10 rows)
+PASS [laptop] casefile 20 m site: validation results read live from the result files (angles 0.0038°, status 336 of 336, slope 0.534°)
+PASS [laptop] casefile 20 m site: links: 14 internal anchors exist on the Validation page; 16 external links are cited URLs (About page, site sources, the JPL Horizons query)
+PASS [laptop] casefile 20 m site: "Verify with NASA" = the JPL Horizons queries for this site and the selected time (Sun and Earth)
+PASS [laptop] casefile 20 m site: footer: share link of this exact view (cf=1), app version, creation time, "Not endorsed by NASA"
+PASS [laptop] casefile 20 m site: the casefile fits the laptop width (no horizontal page scroll)
+PASS [laptop] casefile custom smooth point: opened from Compare scenario 3: Explore shows that site, start and 30-day window
+PASS [laptop] casefile custom smooth point: status now = the Explore tiles (Sun, Earth, mission)
+PASS [laptop] casefile custom smooth point: % sunlit, longest darkness, % Earth link, longest blackout, % both, average illumination = Explore statistics (text and raw values)
+PASS [laptop] casefile custom smooth point: window counts and averages = the Explore windows panels
+PASS [laptop] casefile custom smooth point: window tables = the first 1 / 1 rows of the Explore tables
+PASS [laptop] casefile custom smooth point: scenario: window start, sampling step, minimum link elevation
+PASS [laptop] casefile custom smooth point: power = the Power page cards for the Explore window (energy 137.7 kWh, needed 72.0 kWh, balance +65.7 kWh, mean/peak 191 / 410 W, battery ≈ 42.7 kWh (80% usable))
+PASS [laptop] casefile custom smooth point: slope = the Compare slope row (-)
+PASS [laptop] casefile custom smooth point: requirements check = the Compare verdicts for scenario 3 (7 requirements; 5 of 7 requirements met (1 can't assess))
+PASS [laptop] casefile custom smooth point: no Launch-slip result for this site: one-line pointer to the Launch slip tab
+PASS [laptop] casefile custom smooth point: classification on every result section and every evidence row (10 rows)
+PASS [laptop] casefile custom smooth point: validation results read live from the result files (angles 0.0038°, status 336 of 336, slope 0.534°)
+PASS [laptop] casefile custom smooth point: links: 13 internal anchors exist on the Validation page; 10 external links are cited URLs (About page, site sources, the JPL Horizons query)
+PASS [laptop] casefile custom smooth point: "Verify with NASA" = the JPL Horizons queries for this site and the selected time (Sun and Earth)
+PASS [laptop] casefile custom smooth point: footer: share link of this exact view (cf=1), app version, creation time, "Not endorsed by NASA"
+PASS [laptop] casefile custom smooth point: the casefile fits the laptop width (no horizontal page scroll)
+PASS [laptop] Explore: one "Mission casefile" button on the Site Card; Escape closes the casefile
+PASS [laptop] no AI wording in the casefile or the requirements block
+PASS [laptop] About: one workflow sentence (site -> requirements -> compare -> casefile -> verify); no new tour steps
+PASS [laptop] About design decision 16 = DESIGN_DECISIONS.md (title and text)
+PASS [laptop] no console errors or warnings
+PASS [phone] requirements block: 7 requirements, all ticked by default with example values; labelled "Example values - set your mission's"; collapsible
+PASS [phone] requirement inputs are the Compare values exactly (% sunlit, % Earth, % both, darkness, blackout, energy, load, slope) for all 4 scenarios
+PASS [phone] % and hour verdicts show the same value as the Compare rows (same precision) and follow from it
+PASS [phone] energy requirement: scenario 1 energy and load equal the Power page exactly (202.5 kWh vs 72.0 kWh); verdict = the Power page's "Energy positive/negative"; values printed in the cell
+PASS [phone] slope requirement: the value equals the Compare slope row (5 m and 20 m grids) and the verdict follows; custom point: "Can't assess" with the reason
+PASS [phone] neutral summary "N of M requirements met" per scenario, no score or ranking
+PASS [phone] unticking a requirement removes its row; a new threshold re-judges the same values (no recompute)
+PASS [phone] invalid Power page inputs: energy "Can't assess" with the reason, in every scenario
+PASS [phone] share link carries the requirements (req=sun:99.5,earth:50,dark:72,blackout:120,energy,slope:15)
+PASS [phone] opening the share link restores the requirements (ticks and thresholds)
+PASS [phone] a share link without requirements restores the example defaults
+PASS [phone] casefile 5 m site: opened from Compare scenario 1: Explore shows that site, start and 30-day window
+PASS [phone] casefile 5 m site: status now = the Explore tiles (Sun, Earth, mission)
+PASS [phone] casefile 5 m site: % sunlit, longest darkness, % Earth link, longest blackout, % both, average illumination = Explore statistics (text and raw values)
+PASS [phone] casefile 5 m site: window counts and averages = the Explore windows panels
+PASS [phone] casefile 5 m site: window tables = the first 2 / 1 rows of the Explore tables
+PASS [phone] casefile 5 m site: scenario: window start, sampling step, minimum link elevation
+PASS [phone] casefile 5 m site: power = the Power page cards for the Explore window (energy 202.5 kWh, needed 72.0 kWh, balance +130.5 kWh, mean/peak 281 / 413 W, battery ≈ 28.4 kWh (80% usable))
+PASS [phone] casefile 5 m site: slope = the Compare slope row (6.5° (5 m LOLA grid))
+PASS [phone] casefile 5 m site: requirements check = the Compare verdicts for scenario 1 (7 requirements; 3 of 7 requirements met)
+PASS [phone] casefile 5 m site: launch slip summary = the Launch slip results (slip 0 % both 17.0%; highest +52 days 49.7%)
+PASS [phone] casefile 5 m site: classification on every result section and every evidence row (10 rows)
+PASS [phone] casefile 5 m site: validation results read live from the result files (angles 0.0038°, status 336 of 336, slope 0.534°)
+PASS [phone] casefile 5 m site: links: 14 internal anchors exist on the Validation page; 17 external links are cited URLs (About page, site sources, the JPL Horizons query)
+PASS [phone] casefile 5 m site: "Verify with NASA" = the JPL Horizons queries for this site and the selected time (Sun and Earth)
+PASS [phone] casefile 5 m site: footer: share link of this exact view (cf=1), app version, creation time, "Not endorsed by NASA"
+PASS [phone] casefile 5 m site: the casefile fits the phone width (no horizontal page scroll)
+PASS [phone] casefile 5 m site: print stylesheet: app chrome (top bar, pages, footer) and the action buttons hidden; casefile printed in the page flow
+PASS [phone] casefile 5 m site: "Download CSV" = the existing Sunlight-windows export (asteria_peak_shackleton_lw_sunlight_20280925T1004Z_30d.csv)
+PASS [phone] casefile 5 m site: opening the share link reopens this casefile with the same values
+PASS [phone] casefile 5 m site: an evidence link ("Methods: power") closes the casefile and shows that row of the Validation page; the link no longer says cf=1
+PASS [phone] casefile 20 m site: opened from Compare scenario 2: Explore shows that site, start and 30-day window
+PASS [phone] casefile 20 m site: status now = the Explore tiles (Sun, Earth, mission)
+PASS [phone] casefile 20 m site: % sunlit, longest darkness, % Earth link, longest blackout, % both, average illumination = Explore statistics (text and raw values)
+PASS [phone] casefile 20 m site: window counts and averages = the Explore windows panels
+PASS [phone] casefile 20 m site: window tables = the first 1 / 1 rows of the Explore tables
+PASS [phone] casefile 20 m site: scenario: window start, sampling step, minimum link elevation
+PASS [phone] casefile 20 m site: power = the Power page cards for the Explore window (energy 108.3 kWh, needed 72.0 kWh, balance +36.3 kWh, mean/peak 150 / 406 W, battery ≈ 53.7 kWh (80% usable))
+PASS [phone] casefile 20 m site: slope = the Compare slope row (9.6° (20 m LOLA grid))
+PASS [phone] casefile 20 m site: requirements check = the Compare verdicts for scenario 2 (7 requirements; 5 of 7 requirements met)
+PASS [phone] casefile 20 m site: no Launch-slip result for this site: one-line pointer to the Launch slip tab
+PASS [phone] casefile 20 m site: classification on every result section and every evidence row (10 rows)
+PASS [phone] casefile 20 m site: validation results read live from the result files (angles 0.0038°, status 336 of 336, slope 0.534°)
+PASS [phone] casefile 20 m site: links: 14 internal anchors exist on the Validation page; 16 external links are cited URLs (About page, site sources, the JPL Horizons query)
+PASS [phone] casefile 20 m site: "Verify with NASA" = the JPL Horizons queries for this site and the selected time (Sun and Earth)
+PASS [phone] casefile 20 m site: footer: share link of this exact view (cf=1), app version, creation time, "Not endorsed by NASA"
+PASS [phone] casefile 20 m site: the casefile fits the phone width (no horizontal page scroll)
+PASS [phone] casefile custom smooth point: opened from Compare scenario 3: Explore shows that site, start and 30-day window
+PASS [phone] casefile custom smooth point: status now = the Explore tiles (Sun, Earth, mission)
+PASS [phone] casefile custom smooth point: % sunlit, longest darkness, % Earth link, longest blackout, % both, average illumination = Explore statistics (text and raw values)
+PASS [phone] casefile custom smooth point: window counts and averages = the Explore windows panels
+PASS [phone] casefile custom smooth point: window tables = the first 1 / 1 rows of the Explore tables
+PASS [phone] casefile custom smooth point: scenario: window start, sampling step, minimum link elevation
+PASS [phone] casefile custom smooth point: power = the Power page cards for the Explore window (energy 137.7 kWh, needed 72.0 kWh, balance +65.7 kWh, mean/peak 191 / 410 W, battery ≈ 42.7 kWh (80% usable))
+PASS [phone] casefile custom smooth point: slope = the Compare slope row (-)
+PASS [phone] casefile custom smooth point: requirements check = the Compare verdicts for scenario 3 (7 requirements; 5 of 7 requirements met (1 can't assess))
+PASS [phone] casefile custom smooth point: no Launch-slip result for this site: one-line pointer to the Launch slip tab
+PASS [phone] casefile custom smooth point: classification on every result section and every evidence row (10 rows)
+PASS [phone] casefile custom smooth point: validation results read live from the result files (angles 0.0038°, status 336 of 336, slope 0.534°)
+PASS [phone] casefile custom smooth point: links: 13 internal anchors exist on the Validation page; 10 external links are cited URLs (About page, site sources, the JPL Horizons query)
+PASS [phone] casefile custom smooth point: "Verify with NASA" = the JPL Horizons queries for this site and the selected time (Sun and Earth)
+PASS [phone] casefile custom smooth point: footer: share link of this exact view (cf=1), app version, creation time, "Not endorsed by NASA"
+PASS [phone] casefile custom smooth point: the casefile fits the phone width (no horizontal page scroll)
+PASS [phone] Explore: one "Mission casefile" button on the Site Card; Escape closes the casefile
+PASS [phone] no AI wording in the casefile or the requirements block
+PASS [phone] About: one workflow sentence (site -> requirements -> compare -> casefile -> verify); no new tour steps
+PASS [phone] About design decision 16 = DESIGN_DECISIONS.md (title and text)
+PASS [phone] no console errors or warnings
+
+ALL PASS

@@ -1,0 +1,35 @@
+PASS 3D Sun direction vector = engine az/el (vs the engine's raw apparent vector, 96 site/time cases) within 0.01° - worst 1.71e-6°
+PASS 3D Earth direction vector = engine az/el within 0.01° - worst 1.21e-6°
+PASS direction -> az/el round trip within 0.01° - worst 1.78e-15°
+PASS convention: az 0 = north = -z, az 90 = east = +x, el 90 = +y
+PASS every south-pole site with a terrain horizon has a 3D tile - 8 tiles
+PASS JS decoder: tile heights at the stored check points (site centre + 3 others) match direct DEM samples within 1 m - worst 0.050 m
+PASS tile centre height = horizon file site height (same DEM) within 1 m - worst 0.000 m
+PASS tile size about 6 km - 6080, 6000, 6000, 6000, 6080, 6000, 6000, 6000
+PASS ENU vertex = h - h0 minus the curvature drop (R+h)θ²/2 (within 1 cm) - worst 0.00 mm
+PASS world -> grid inverse (walk/rover ground lookup) round trip within 1 cm - worst 0.00 mm
+PASS slope of a 10° plane = 10.00° with the downhill direction west (270°) - 10.000015°, 270.000°
+PASS mesh height = bilinear height on a plane
+PASS near-field estimate: a 10° slope blocks a Sun at 5° on the uphill side, not a Sun at 1° on the downhill side - {"east":"9.87","west":"-10.13"}
+PASS vertex normals from the DEM at full resolution: 10° plane -> normal tilted 10.00° toward the west (downhill), slope attribute 10.00° - tilt 9.9944°, slope 10.0000°
+PASS Earth phase: Sun opposite Earth -> fully lit; Sun behind Earth -> unlit - 1.00000 / 0.00000
+PASS Earth phase from az/el equals the engine-vector computation within 0.01° - 19.1409° vs 19.1409°
+PASS grid -> lat/lon: centre is the site; 1 km north is 1000/R rad further north
+PASS extended terrain: ring A (16 km) and ring B (40 km) heights at stored check points (128, incl. far corners) within 1 m of direct DEM samples - worst ring A 0.050 m, ring B 0.097 m
+PASS extended terrain: half-sizes 16 km and 40 km for every site - 16000, 40000
+PASS seams: 9712 hole-edge vertices (tile/ring A, ring A/ring B, Low-quality decimation, 5 m patch/tile) identical to the vertices of the finer mesh - max distance 0 m
+PASS seams: no missing cells around the holes; heights inside the 5 m patch come from the patch - 0 problems
+PASS 5 m patch (peak_shackleton, peak_shackleton_lw, shackleton_centre): heights at stored check points within 1 m of direct LDEM_875S_5M samples - worst 0.047 m; site centre 5 m vs 20 m DEM differ by 0.30 m
+PASS round 6 finer rings: 4 ring A grids (25 m, LDEM_85S_20M) and 7 ring B grids (100 m): stored check points within 1 m of direct DEM samples - worst 0.099 m at 88 points
+PASS round 6 seams: 5120 hole-edge vertices (ring A 50 m / tile, ring B 200 m / ring A) identical to the finer mesh; no missing cells - max 0 m, 0 gap problems
+PASS round 6 normal maps: baked normal = the DEM normal of the mesh at the same node (central differences, curvature included); texture coordinates hit the node's texel centre - normal 0.00e+0, uv 2.97e-8
+PASS real stars: 72 az/el values of 6 bright stars (3 sites, 4 dates) match an independent IAU/WGCCRE 2009 computation within 0.1° - worst 0.0012° (16Alp Boo at peak_shackleton_lw 2030-08-08T20:00:00Z: az/el 4.395/-28.365 vs 4.397/-28.365)
+PASS star list: Yale Bright Star Catalogue to V = 5.0 (1630 stars), source cited in the file
+PASS index.html does not load Three.js, the 3D code or any terrain tile (only the 3D site list) - data/terrain3d/index.js
+PASS Three.js is a local file (lib/three/three.min.js, r149, MIT licence alongside)
+PASS earthshine: full Earth = geometric albedo 0.434 x (R_E/d)^2 (1.195e-4, about 1/8369 of sunlight); quarter Earth uses the Lambert phase law; new Earth gives 0 - full 1.1948e-4 (phase 0.000 deg), quarter 3.819e-5, new 4.657701341737585e-21
+PASS normal-map mip chain: 4 levels (9 -> 4 -> 2 -> 1), each texel the average of 2 x 2 texels of the level above
+PASS sky-view factor (Zaksek et al. 2011): flat ground 1.0000 (1), cone pit centre 0.2668 (independent 0.2668; 1 - sin 45 deg = 0.2929), 20 deg slope 0.8904 (0.8904)
+PASS sky-view factor: heights unchanged by the computation; samples come from the finest grid that contains them (flat patch over the pit centre raises SVF there: 0.293 > 0.267)
+
+ALL PASS

@@ -1,0 +1,14 @@
+=== ui_round6d
+exit 0
+=== ui_check
+exit 0
+=== ui_round5
+exit 0
+=== ui_round6
+exit 0
+=== ui_round6b
+exit 0
+=== ui_round6c
+exit 0
+=== ui_round6e --noshots
+exit 0

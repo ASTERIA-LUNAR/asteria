@@ -1,0 +1,2 @@
+laptop            peak_shackleton_lw   medium  first frame  1266 ms  refined  1950 ms   60 fps   2.3 ms/render  90601 + 103041 vertices  tile final 677 ms  full terrain 1514 ms  GPU geo 11 tex 3 calls 11 tris 380720
+laptop            mons_malapert        medium  first frame   555 ms  refined  1089 ms   60 fps   2.2 ms/render  90601 + 103041 vertices  tile final 500 ms  full terrain 968 ms  GPU geo 11 tex 3 calls 11 tris 380720

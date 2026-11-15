@@ -694,3 +694,28 @@ Goal: one workflow - pick a site -> set mission requirements -> compare options 
 **Docs.** README.md (Compare: Mission requirements; Mission casefile; Workflow line), DESIGN_DECISIONS.md (16), TEXT_AUDIT.md (Round 6D: every new on-screen text), GAPS_AND_ISSUES.md (section 13: limits of requirements and casefile).
 
 **Tests** (`node tests/ui_round6d.js --part 3`, laptop + phone): About shows the workflow sentence; the tour has 5 steps; About decision 16 = DESIGN_DECISIONS.md (title and text); no console errors. Evidence-link targets and the jump to the Validation row are tested in Part 2.
+
+### Part 4 - Tests - DONE
+
+All on the final code, logs in `tests/perf/round6d_*.log`.
+
+| Test | Result |
+|---|---|
+| `node tests/ui_round6d.js` (laptop + phone; parts 1-3) | ALL PASS, 136 checks, no console errors: requirement values = Compare/Power/slope exactly and verdicts follow from the displayed values; Can't assess cases; share link restores requirements; casefile numbers = the app for a 5 m site, a 20 m site and a custom smooth-horizon point (tiles, statistics, windows, Power cards, slope, requirement verdicts, launch slip, validation results); classifications on every item; internal anchors exist, external links are cited URLs; print stylesheet hides the chrome; CSV = existing export; share link reopens the casefile; About text |
+| `ui_check` (185), `ui_round5` (73), `ui_round6` (48), `ui_round6b` (54), `ui_round6c` (24), `ui_round6e --noshots` (129) - laptop + phone | all pass, no console errors; AI wording only in the About credit line and the 3D "Graphics:" line (unchanged) |
+| Node: features_test, view3d_test, validate, earth_orientation, blind_test, one_year_check, instant_status_check, illumination, coarse_validation, accuracy3d | all pass (exit 0) |
+| Python: `tools/terrain3d.py check`, `tools/terrain3d_ext.py check`, `tools/terrain.py check` | pass |
+| `node tests/shading_consistency.js` (shadows on) | Low 97.8 %, Medium 99.0 %, High 99.8 % - unchanged |
+| `node tests/perf3d.js --quality medium --sites peak_shackleton_lw,mons_malapert --phone` | 60 fps everywhere, 1.0-1.5 ms per render; first frame laptop 1097 / 357 ms, phone 440 / 254 ms. Same command on the round 6E runtime files (07cbfcc index.html, app.js, style.css; `round6d_perf3d_base6e.log`): laptop 1266 / 555 ms - the 3D view is unaffected by round 6D (the slower first frame than round 6E's report is this machine's state today, seen equally on the round 6E code) |
+
+Result files rewritten by the test runs (VALIDATION_REPORT.md, data/validation.js, instant_status.js, coarse_validation.js, accuracy3d.js, shading_consistency.js) differed from the committed ones only in their timestamps (checked with the timestamps stripped) and were restored; `docs/ground_detail/round6e/results_6e.json` (rewritten by `ui_round6e` without `--base`) differed only in frame times and the wheel-track pixel count (8,210 vs 8,109, which depends on the rover path of the session) and was restored. `ui_round6e` was run without `--base` (the pixel comparison with the round 6C build needs a separate checkout; round 6D does not touch the 3D view, js/view3d*.js, js/engine.js or any data file).
+
+### Round 6D - not done or limited
+
+* Everything in Parts 1-4 was done; nothing was reverted.
+* Periods of "both" are not listed as windows in the casefile (no such list exists in ASTERIA; adding one would be a new calculation).
+* The casefile's Power section always uses the Explore window; the launch-slip summary needs the Launch slip tab to have been computed for the same site.
+* Printing checked in headless Chromium only (computed print styles and a PDF export); not in Firefox/Safari or on a real phone (phones emulated).
+* The anchors for the evidence links were added in Part 2 (they were needed there); Part 3 only lists them.
+
+**Round 6D hand-over**: `data/version.js` stamped. No merge, no tag, no push; `master` unchanged.

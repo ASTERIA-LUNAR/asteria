@@ -1,0 +1,11 @@
+PASS Nobile Rim 2 (site DM2)                          2027-05-04T01:21Z Sun   az 143.6896 vs 143.6899 (d -0.0003)  el -6.2107 vs -6.2123 (d 0.0016)
+PASS Nobile Rim 2 (site DM2)                          2027-05-04T01:21Z Earth az 292.6258 vs 292.6253 (d 0.0005)  el 7.4585 vs 7.4597 (d -0.0012)
+PASS Nobile Rim 2 (site DM2)                          2027-05-16T04:22Z Sun   az 355.6949 vs 355.6945 (d 0.0004)  el 4.2602 vs 4.2600 (d 0.0001)
+PASS Nobile Rim 2 (site DM2)                          2027-05-16T04:22Z Earth az 304.1752 vs 304.1746 (d 0.0007)  el -1.9037 vs -1.9044 (d 0.0007)
+PASS Mons Mouton (landform centre)                    2026-08-22T03:13Z Sun   az 38.2186 vs 38.2223 (d -0.0038)  el 4.2022 vs 4.2043 (d -0.0021)
+PASS Mons Mouton (landform centre)                    2026-08-22T03:13Z Earth az 330.6218 vs 330.6246 (d -0.0029)  el -1.9357 vs -1.9328 (d -0.0029)
+PASS Peak near Shackleton (illuminated area)          2026-12-04T00:50Z Sun   az 118.6532 vs 118.6563 (d -0.0030)  el 0.8774 vs 0.8773 (d 0.0002)
+PASS Peak near Shackleton (illuminated area)          2026-12-04T00:50Z Earth az 242.0814 vs 242.0837 (d -0.0023)  el -6.0020 vs -6.0028 (d 0.0008)
+PASS IM-1 Odysseus                                    2028-10-19T21:25Z Sun   az 159.3497 vs 159.3519 (d -0.0023)  el -7.7581 vs -7.7577 (d -0.0004)
+PASS IM-1 Odysseus                                    2028-10-19T21:25Z Earth az 4.1841 vs 4.1853 (d -0.0011)  el 4.1565 vs 4.1563 (d 0.0002)
+Blind test: 10/10 pass; max |dEl| 0.0029 deg, max |dAz| 0.0038 deg

@@ -1,0 +1,26 @@
+=== features_test
+exit 0
+=== view3d_test
+exit 0
+=== validate
+exit 0
+=== earth_orientation
+exit 0
+=== blind_test
+exit 0
+=== one_year_check
+exit 0
+=== instant_status_check
+exit 0
+=== illumination
+exit 0
+=== coarse_validation
+exit 0
+=== accuracy3d
+exit 0
+=== tools/terrain3d.py check
+exit 0
+=== tools/terrain3d_ext.py check
+exit 0
+=== tools/terrain.py check
+exit 0

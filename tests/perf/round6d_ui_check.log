@@ -1,0 +1,193 @@
+PASS [laptop] default view is the derived best-supported point near Peak near Shackleton, 30 days - {"name":"Peak near Shackleton - best-lit point (derived)","kind":"Derived by ASTERIA: best-supported point near Peak near Shackleton (not a published coordinate)","hash":"#site=peak_shackleton_lw&t=2026-11-15T09:54Z&w=30","w":30,"mode":"worker","title":"ASTERIA - Lunar South Pole Landing Site Navigator"}
+PASS [laptop] title is ASTERIA
+PASS [laptop] computations run in a Blob Web Worker under file:// - worker {"inWorker":true,"engine":true}
+PASS [laptop] first load: the data-coverage square fills the map panel (no empty margins) - {"left":-1,"top":-5,"right":0,"bottom":-5,"w":814,"h":805,"zoom":1.67065624911844}
+PASS [laptop] first-visit hint shows
+PASS [laptop] hint dismissed and stored
+PASS [laptop] hint not shown again after dismissal
+PASS [laptop] status tiles match the computed state (Sun amber / Earth blue / both green / neither grey) - {"su":true,"eu":false,"sun":"tile on-sun","earth":"tile off","mission":"tile on-sun","ms":"Sunlight only","cnt":"7d 06h 50m"}
+PASS [laptop] 3D: Three.js, the 3D code and terrain tiles are not loaded before Deploy - {"three":"undefined","v3d":"undefined","tile":"undefined","scripts":0}
+PASS [laptop] 3D: Deploy button shown for a curated south-pole site with a terrain tile
+[laptop] 3D opened in 510 ms (incl. loading Three.js and the 90601-vertex tile; stride 1)
+PASS [laptop] 3D: Sun light direction = engine az/el within 0.01° (light 345.0494°/2.7286°, engine 345.0494°/2.7286°) - error 4.44e-16°
+PASS [laptop] 3D: Earth at engine az/el within 0.01°, Sun and Earth angular sizes from the engine - error 4.44e-16°, Earth diameter 1.809°
+PASS [laptop] 3D: status tiles = validated horizon model at the same time (same colours as the main app) - ["tile on-sun","tile off"]
+PASS [laptop] 3D: shadow label, true-scale badge and the accurate/approximate notes are shown - {"note":"Shadows off: the terrain is lit from the Sun's real direction without cast shadows. Sunlit/shadowed status at the site comes from the validated horizon model (tiles above).","badge":"Vertical
+PASS [laptop] 3D: "What is accurate, what is approximate" has exactly one AI line, the "Graphics:" line, as its own item - ["Graphics: the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain shapes, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images."]
+PASS [laptop] 3D orbit: no AI wording outside the About credit line and the 3D "Graphics:" line
+PASS [laptop] 3D: extended LOLA terrain drawn around the tile (ring A, 410881 vertices; high: casts shadows true), labelled with source and grid - ["patch5m","patch5m-skirt","tile-skirt","ringA","ringA-skirt","ringB"]
+PASS [laptop] 3D: time slider synced with the main app; Sun/Earth/lighting updated (error 0.0e+0°) - {"idx":37,"slider":37,"d":37}
+PASS [laptop] 3D: main-app time change updates the 3D view
+PASS [laptop] 3D: vertical exaggeration toggle (default 1×) is labelled on screen
+PASS [laptop] 3D quality: automatic level from device hints is selected and explained (high: (automatic: dedicated graphics)) - {"q":"high","why":"dedicated graphics","gpu":"ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Laptop GPU (0x00002D19) Direct3D11 vs_5_0 ps_5_0, D3D11)"}
+PASS [laptop] 3D quality: override to medium rebuilds the view (shadow map 2048 px, pixel ratio ≤ 1.5), keeps the time and is remembered - {"q":"medium","sm":2048,"ls":"medium"}
+PASS [laptop] 3D brightness: "Light up" changes only display brightness (exposure 1 -> 3, fill 0.05 -> 0.15); Sun light direction, Sun intensity and status tiles unchanged; not remembered (session only, round 5); labelled
+PASS [laptop] 3D: contour lines (every 25 m) and slope shading toggle on, with a legend; Lommel-Seeliger shading and uniform albedo explained - {"contour":25,"slope":1}
+PASS [laptop] 3D: real stars (1630 from the Bright Star Catalogue to magnitude 5) drawn at their computed directions for the shown time, with the camera note - {"drawn":{"az":214.67124694278945,"el":37.565015715545144},"want":{"az":214.67124680923087,"el":37.56501517375482}}
+PASS [laptop] 3D Earth: Blue Marble 2048 px map; the textured globe faces the site at the computed sub-observer point (87.9°E, -22.3°; mesh 3.6e-15° off); caption shown - {"tex":2048,"sub":{"lat":-22.29429492040649,"lon":87.86371112426143},"mesh":{"lat":-22.294294920406486,"lon":87.86371112426143},"cap":"Earth: continents from NASA Blue Marble (cloud-free composite); clouds not shown; orientation computed for this time.","phase":0.6906617635900016}
+PASS [laptop] 3D: Sun/Earth labels follow the validated status at 618 times ("Sun", "Sun (hidden by terrain)", "Earth (below horizon)", "Earth (hidden by terrain)", "Earth"); no glare from a hidden Sun
+PASS [laptop] 3D: compass ("Facing NW (310°)"), scale bar ("1 km (at the view centre)"), distance readout and mini-map ("Top view, north up, 32 km across; shade …") shown
+PASS [laptop] 3D: named features from the IAU Gazetteer (Slater, Shackleton, Haynes), with Gazetteer links in the notes - ["Slater (crater, 25 km)","Shackleton (crater, 21 km)","Haynes (crater, 17 km)"]
+[laptop] 3D: 59 frames/s while orbiting (headless Chromium, GPU via ANGLE/D3D11)
+PASS [laptop] 3D: orbit camera moves with the keyboard and renders continuously while moving - 59 fps
+PASS [laptop] 3D: mouse drag rotates the orbit camera
+PASS [laptop] 3D: walk mode (on-screen button) moves over the terrain with the eye 2 m above the ground - eye 2.000 m
+PASS [laptop] 3D walk: no AI wording outside the About credit line and the 3D "Graphics:" line
+PASS [laptop] 3D rover: fading track (5 points), 500 m distance rings (5) and distance driven shown - {"track":5,"rings":{"visible":true,"n":5},"dist":"Rover 30 m from the site (E) · driven 5 m"}
+PASS [laptop] 3D rover: drives, shows position / DEM elevation / slope, warns above the user's threshold, near-field Sun labelled - {"r":{"e":29.67434501521855,"n":1.2543091733957699,"h":1599.5947999529621,"slope":11.862526241801053,"lat":-88.7850582414793,"lon":124.38995340252009,"nearFieldSunUp":true,"warn":true,"dist":4.866399999999975,"pitch":-8.77712118687303,"roll":9.76529474654424,"
+PASS [laptop] 3D rover: label shows just "Rover" (no AI label on the graphic)
+PASS [laptop] 3D rover: no AI wording outside the About credit line and the 3D "Graphics:" line
+PASS [laptop] 3D: leaving 3D (Close button) frees GPU memory (0 geometries, 0 textures) and removes the view - {"d":{"open":false,"lastClosed":{"afterDispose":{"geometries":0,"textures":0},"frames":234,"at":1794736507703}},"el":false,"cls":false,"canv":0}
+PASS [laptop] 3D: on phones the mesh resolution is reduced automatically - stride 1, 90601 vertices
+PASS [laptop] 3D quality: frame-rate probe below 30 fps (simulated 20) steps down one level and says so - {"fps":20,"stepped":true,"from":"high"} Quality lowered to Medium automatically (20 frames/s at High). You can change it under Quality.
+PASS [laptop] 3D: no Deploy button for a site without a terrain tile
+PASS [laptop] map CRS puts Shackleton centre on the tile pixel of the DEM floor (z5 tile 16,16 px 103,86) - {"dx":0,"dy":0,"tile":[16,16],"px":[103,86]}
+PASS [laptop] site markers drawn (overlapping ones grouped) - 6 marker icons
+PASS [laptop] slope legend states sample spacing and pixel averaging - Slope (°) ?051015202530>40From the LOLA DEM: slope sampled every 37 m and averaged over 74 m pixels (zoomed out: averaged over larger pixels). Steeper slopes ov
+PASS [laptop] illumination layer: 60 m map + outer 120 m map, coverage note, source and both definitions - Average illumination, published by NASA (%) ?001020304050607080NASA's published illumination map covers about 85°S-90°S only (inside the dashed yellow square: A
+PASS [laptop] clicking inside the map picks a custom point with a terrain horizon from 240 m data (validated), clearly labelled - {"id":null,"lat":-88.6859,"lon":125.9338,"name":"Custom point","kind":"Custom point · terrain from coarser 240 m data (less precise than curated sites)"} {"badge":"Terrain horizon (240 m data)","msg":"Custom point. Sun and Earth positions come from the validated engine (elevations within 0.004° of NASA/JPL Horizons in the tests); the horizon is terrain
+PASS [laptop] click outside the map data (1.03 x half-width): no point selected, coverage message shown - {"note":"No elevation data here - this map covers the lunar south pole (about 80°S to the pole).","lat":-88.6859,"lon":125.9338,"computing":false}
+PASS [laptop] click outside the map data (1.5 x half-width): no point selected, coverage message shown - {"note":"No elevation data here - this map covers the lunar south pole (about 80°S to the pole).","lat":-88.6859,"lon":125.9338,"computing":false}
+PASS [laptop] panning is limited to the area covered by the map data - {"x":0.9006347656250003,"y":-0.8961181640625002}
+PASS [laptop] "Whole pole" button: data-coverage square fills the map panel, centred on the pole - {"left":-20,"top":-1,"right":-20,"bottom":0,"w":814,"h":853,"zoom":1.7380922596204906}
+PASS [laptop] typed point outside the map: smooth horizon, clearly labelled - {"kind":"Custom point outside the south-pole map · smooth horizon (a Moon without mountains)","badge":"Smooth horizon - terrain not included","hz":false,"msg":"Custom point. Sun and Earth positions come from the validate
+PASS [laptop] unplotted Artemis III regions listed by name only (no point), with the NASA link - {"ids":["mons_malapert","mons_mouton","nobile_rim2_dm2","peak_shackleton_lw","im1","im2","peak_shackleton","shackleton_centre","apollo11","apollo12","apollo14","apollo15","apollo16","apollo17","chandrayaan3","change4","change6","slim","bgm1"],"names":"Not plotted (6): Peak near Cabeus B, Haworth, Mo
+PASS [laptop] Artemis landform centre labelled "centre of the named landform; region boundary not plotted" with terrain - {"kind":"Artemis III region: Malapert Massif · centre of the named landform; region boundary not plotted","badge":"Terrain horizon (LOLA)","warn":true}
+PASS [laptop] reference site outside the pole: map note + "smooth horizon, terrain not included" - {"note":"Apollo 11 (0.67°, 23.47°E) is outside this south-pole map. It is a reference site: smooth horizon, terrain not included.","badge":"Smooth horizon - terrain not included"}
+PASS [laptop] no sunrise/Earthrise found: tiles say "Not within the next 430 days (search limit)" (no "> N days"), with a one-line explanation in Explain mode - {"sl":"Next sunrise:","s":"Not within the next 430 days (search limit)","el":"Next Earthrise:","e":"Not within the next 430 days (search limit)","ml":"Next change:","m":"Not within the next 430 days (search limit)","why":"ASTERIA searched 430 days ahead (the selected window, then 400 more days in 60-minute steps) and found no sunrise; if there is one, it is later.","whyShown":true,"w":30}
+PASS [laptop] limit explanation hidden when Explain mode is off
+PASS [laptop] 365-day window computed off the main thread (page answered within 7 ms), took 192 ms; loader shown only if > 250 ms - {"shown":4,"n":8761}
+PASS [laptop] Sky view (beginner): "How to read this" caption, terrain named "Mountains and crater walls (LOLA terrain)", Sun/Earth tags match the validated status (Earth now: hidden; Sun now: visible)
+PASS [laptop] Sky view (Expert): the detailed chart and caption are kept - Brown: LOLA terrain skyline (2 m above ground); dashed: smoo
+PASS [laptop] Expert view reveals technical values
+PASS [laptop] beginner view hides technical values
+PASS [laptop] "?" explains a metric and why it matters - Sunlight"Sun up" means the centre of the Sun is above the local horizon, includi
+PASS [laptop] Earth windows listed and their total time matches % Earth link (within sampling) - {"pct":23.8139319601944,"inside":23.80787037037037,"n":1,"rows":1,"stepPct":0.023148148148148147}
+PASS [laptop] minimum link elevation 2 deg lowers Earth link time and is in the URL - 23.8% -> 10.1%
+PASS [laptop] heatmap slip 0 == Explore metrics (minimum elevation 2 deg applied to both) - pctSun 68.13237676463781/68.13237676463781, avgSunFrac 0.6818417539208692/0.6818417539208692, pctEarth 10.06711409395973/10.06711409395973, pctBoth 0/0, longestDarkH 229.5/229.5, longestBlackoutH 466.66666666666663/466.66666666666663, samples 4321/4321
+[laptop] terrain-sites heatmap (8 sites x 61 slips) computed in 1524 ms
+PASS [laptop] heatmap tooltip shows
+PASS [laptop] clicking a heatmap cell opens Explore with the mission window - {"tab":"explorer","w":14}
+PASS [laptop] power verdict rendered - Energy positive over the window (estimate): generates 117.9 kWh vs 33.6 kWh needed; batter
+PASS [laptop] power inputs labelled "example values - enter your mission's values" - Example values - enter your mission's values. The panel area, efficiency, load a
+PASS [laptop] Compare shows Earth-link metrics next to sunlight metrics
+PASS [laptop] Compare never shows "> window"
+PASS [laptop] Validation cross-check lists the landform centres and no removed crater-centre points
+PASS [laptop] About: disclaimer and the nine Artemis regions
+PASS [laptop] About: the AI credit line is in the credits list; no "How this was made" section, no AI wording in the footer - {"t":"Development assisted by Claude Code (Anthropic), an AI coding assistant; details in AI_DISCLOSURE.md (in the project repository).","howMade":false,"footerAI":false}
+PASS [laptop] all pages (after Explore, Launch slip, Power, Compare, Validation, About): no AI wording outside the About credit line and the 3D "Graphics:" line
+PASS [laptop] loader (pixel-art rocket shown: true): no AI wording outside the About credit line and the 3D "Graphics:" line
+PASS [laptop] tour step 1 caption - This is the lunar south pole, from about 80°S to 90°S, built from NASA LOLA elevation data. ASTERIA has 8 south-pole sites with computed terrain horizons. Of NASA's 9 Artemis III candidate regions (Oct 2024), 3 have a plotted point inside them; the others are listed by name only, because their boundaries are published only as images. Why the pole? NASA notes that its permanently shadowed areas can preserve resources,
+PASS [laptop] tour step 2 caption - Peak near Shackleton - best-lit point (derived): the Sun skims around the horizon, its centre between -0.1° and +2.4° over these 30 days. The brown skyline is the terrain from LOLA elevation data (-3.0° to +3.7°) and it decides when the Sun is visible: Sun up 66% of the time, against 85% for a perfectly smooth Moon. By contrast, at Apollo 11 near the equator the Sun climbs to 88° and is up 51% of the time in one long
+PASS [laptop] tour step 3 caption - Earth link: seen from the pole, Earth stays near the horizon and moves up and down a little as the Moon's orientation toward Earth changes (libration), so a direct line of sight comes and goes. In these 30 days Earth's centre moves between -7.6° and +5.6° elevation and is in view 10% of the time in 1 window(s); the longest blackout lasts 23.2 days. Earth is hidden now; the next Earthrise is in 3d 20h 33m (2026-12-20 
+PASS [laptop] tour step 4 caption - Launch slips: each column is a landing date, each row a metric for a 14-day mission. Landing on the nominal date: Sun up 40%, Earth link 21%, both together 13%, longest darkness 8.4 days. A 2-week slip changes that to Sun up 86%, Earth link 0%, both 0%, longest darkness 46 hours. The best landing in the next 60 days is +48 days with 24%. Click any square to open that date.
+PASS [laptop] tour step 5 caption - Power check for the nominal 14-day mission: a 1 m², 30%-efficient vertical Sun-tracking panel (example values) generates 56.9 kWh against 33.6 kWh for a 100 W load, so the mission is energy positive. Surviving the longest darkness (8.4 days) needs about 25.1 kWh of battery at 80% usable capacity (example values). First-order estimate only.
+PASS [laptop] tour closes after the last step
+PASS [laptop] URL hash restores site/date/window/min elevation/tab - {"site":"apollo11","t":"2027-01-01T00:00:00.000Z","w":14,"me":3,"tab":"compare"}
+PASS [laptop] URL hash restores custom coordinates (terrain recomputed from 240 m data) - {"lat":-89.9,"lon":45,"id":null,"w":7,"hz":true}
+PASS [laptop] VERIFY_YOURSELF share link: Expert view matches JPL Horizons within 0.01 deg - {"cur":"2026-12-04 00:50 UTC","sEl":"+0.877°","sAz":"118.653°","eEl":"-6.002°","eAz":"242.081°"}
+PASS [laptop] no horizontal page scroll - 0 px
+PASS [phone] default view is the derived best-supported point near Peak near Shackleton, 30 days - {"name":"Peak near Shackleton - best-lit point (derived)","kind":"Derived by ASTERIA: best-supported point near Peak near Shackleton (not a published coordinate)","hash":"#site=peak_shackleton_lw&t=2026-11-15T09:55Z&w=30","w":30,"mode":"worker","title":"ASTERIA - Lunar South Pole Landing Site Navigator"}
+PASS [phone] title is ASTERIA
+PASS [phone] computations run in a Blob Web Worker under file:// - worker {"inWorker":true,"engine":true}
+PASS [phone] first load: the data-coverage square fills the map panel (no empty margins) - {"left":-59,"top":-1,"right":-58,"bottom":0,"w":342,"h":458,"zoom":0.842350343413808}
+PASS [phone] first-visit hint shows
+PASS [phone] hint dismissed and stored
+PASS [phone] hint not shown again after dismissal
+PASS [phone] status tiles match the computed state (Sun amber / Earth blue / both green / neither grey) - {"su":true,"eu":false,"sun":"tile on-sun","earth":"tile off","mission":"tile on-sun","ms":"Sunlight only","cnt":"7d 06h 49m"}
+PASS [phone] 3D: Three.js, the 3D code and terrain tiles are not loaded before Deploy - {"three":"undefined","v3d":"undefined","tile":"undefined","scripts":0}
+PASS [phone] 3D: Deploy button shown for a curated south-pole site with a terrain tile
+[phone] 3D opened in 427 ms (incl. loading Three.js and the 22801-vertex tile; stride 2)
+PASS [phone] 3D: Sun light direction = engine az/el within 0.01° (light 345.0409°/2.7286°, engine 345.0409°/2.7286°) - error 4.44e-16°
+PASS [phone] 3D: Earth at engine az/el within 0.01°, Sun and Earth angular sizes from the engine - error 0.00e+0°, Earth diameter 1.809°
+PASS [phone] 3D: status tiles = validated horizon model at the same time (same colours as the main app) - ["tile on-sun","tile off"]
+PASS [phone] 3D: shadow label, true-scale badge and the accurate/approximate notes are shown - {"note":"Shadows off: the terrain is lit from the Sun's real direction without cast shadows. Sunlit/shadowed status at the site comes from the validated horizon model (tiles above).","badge":"Vertical
+PASS [phone] 3D: "What is accurate, what is approximate" has exactly one AI line, the "Graphics:" line, as its own item - ["Graphics: the rover, the close-range surface texture in Walk and Rover, and the pixel-art rocket, Earth and Moon are drawn by code written with Claude Code (Anthropic), an AI coding assistant. Terrain shapes, maps, stars and the Earth texture are renderings of NASA and catalogue data, not generated images."]
+PASS [phone] 3D orbit: no AI wording outside the About credit line and the 3D "Graphics:" line
+PASS [phone] 3D: extended LOLA terrain drawn around the tile (ring A, 25921 vertices; low: casts shadows false), labelled with source and grid - ["tile-skirt","ringA"]
+PASS [phone] 3D: time slider synced with the main app; Sun/Earth/lighting updated (error 4.4e-16°) - {"idx":37,"slider":37,"d":37}
+PASS [phone] 3D: main-app time change updates the 3D view
+PASS [phone] 3D: vertical exaggeration toggle (default 1×) is labelled on screen
+PASS [phone] 3D quality: automatic level from device hints is selected and explained (low: (automatic: touch screen or small window)) - {"q":"low","why":"touch screen or small window","gpu":"ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Laptop GPU (0x00002D19) Direct3D11 vs_5_0 ps_5_0, D3D11)"}
+PASS [phone] 3D quality: override to high rebuilds the view (shadow map 4096 px, pixel ratio ≤ 2), keeps the time and is remembered - {"q":"high","sm":4096,"ls":"high"}
+PASS [phone] 3D brightness: "Light up" changes only display brightness (exposure 1 -> 3, fill 0.05 -> 0.15); Sun light direction, Sun intensity and status tiles unchanged; not remembered (session only, round 5); labelled
+PASS [phone] 3D: contour lines (every 25 m) and slope shading toggle on, with a legend; Lommel-Seeliger shading and uniform albedo explained - {"contour":25,"slope":1}
+PASS [phone] 3D: real stars (287 from the Bright Star Catalogue to magnitude 3.5) drawn at their computed directions for the shown time, with the camera note - {"drawn":{"az":214.66222279831968,"el":37.5649083392753},"want":{"az":214.6622241532741,"el":37.564907477586424}}
+PASS [phone] 3D Earth: Blue Marble 512 px map; the textured globe faces the site at the computed sub-observer point (87.6°E, -22.3°; mesh 3.6e-15° off); caption shown - {"tex":512,"sub":{"lat":-22.29185483699184,"lon":87.62152875382131},"mesh":{"lat":-22.291854836991842,"lon":87.62152875382132},"cap":"Earth: continents from NASA Blue Marble (cloud-free composite); clouds not shown; orientation computed for this time.","phase":0.6906012645527398}
+PASS [phone] 3D: Sun/Earth labels follow the validated status at 618 times ("Sun", "Sun (hidden by terrain)", "Earth (below horizon)", "Earth (hidden by terrain)", "Earth"); no glare from a hidden Sun
+PASS [phone] 3D: compass ("Facing NW (310°)"), scale bar ("1 km (at the view centre)"), distance readout and mini-map ("Top view, north up, 32 km across; shade …") shown
+PASS [phone] 3D: named features from the IAU Gazetteer (Slater (direction), Shackleton (direction), Haynes (direction)), with Gazetteer links in the notes - ["Slater (crater, 25 km), 24 km away","Shackleton (crater, 21 km), 27 km away","Haynes (crater, 17 km), 27 km away"]
+[phone] 3D: 60 frames/s while orbiting (headless Chromium, GPU via ANGLE/D3D11)
+PASS [phone] 3D: orbit camera moves with the keyboard and renders continuously while moving - 60 fps
+PASS [phone] 3D: mouse drag rotates the orbit camera
+PASS [phone] 3D: walk mode (on-screen button) moves over the terrain with the eye 2 m above the ground - eye 2.000 m
+PASS [phone] 3D walk: no AI wording outside the About credit line and the 3D "Graphics:" line
+PASS [phone] 3D rover: fading track (5 points), 500 m distance rings (5) and distance driven shown - {"track":5,"rings":{"visible":true,"n":5},"dist":"Rover 30 m from the site (E) · driven 5 m"}
+PASS [phone] 3D rover: drives, shows position / DEM elevation / slope, warns above the user's threshold, near-field Sun labelled - {"r":{"e":29.674160072710674,"n":1.2550031980733083,"h":1599.6124225026658,"slope":9.636529576570656,"lat":-88.78505821859682,"lon":124.38995311400424,"nearFieldSunUp":true,"warn":true,"dist":4.866400000000045,"pitch":-6.901536797188653,"roll":5.97613695539791
+PASS [phone] 3D rover: label shows just "Rover" (no AI label on the graphic)
+PASS [phone] 3D rover: no AI wording outside the About credit line and the 3D "Graphics:" line
+PASS [phone] 3D: leaving 3D (Escape) frees GPU memory (0 geometries, 0 textures) and removes the view - {"d":{"open":false,"lastClosed":{"afterDispose":{"geometries":0,"textures":0},"frames":237,"at":1794736548262}},"el":false,"cls":false,"canv":0}
+PASS [phone] 3D: on phones the mesh resolution is reduced automatically - stride 2, 22801 vertices
+PASS [phone] 3D: no Deploy button for a site without a terrain tile
+PASS [phone] map CRS puts Shackleton centre on the tile pixel of the DEM floor (z5 tile 16,16 px 103,86) - {"dx":0,"dy":0,"tile":[16,16],"px":[103,86]}
+PASS [phone] site markers drawn (overlapping ones grouped) - 6 marker icons
+PASS [phone] slope legend states sample spacing and pixel averaging - Slope (°) ?051015202530>40From the LOLA DEM: slope sampled every 37 m and averaged over 74 m pixels (zoomed out: averaged over larger pixels). Steeper slopes ov
+PASS [phone] illumination layer: 60 m map + outer 120 m map, coverage note, source and both definitions - Average illumination, published by NASA (%) ?001020304050607080NASA's published illumination map covers about 85°S-90°S only (inside the dashed yellow square: A
+PASS [phone] clicking inside the map picks a custom point with a terrain horizon from 240 m data (validated), clearly labelled - {"id":null,"lat":-88.6862,"lon":125.8678,"name":"Custom point","kind":"Custom point · terrain from coarser 240 m data (less precise than curated sites)"} {"badge":"Terrain horizon (240 m data)","msg":"Custom point. Sun and Earth positions come from the validated engine (elevations within 0.004° of NASA/JPL Horizons in the tests); the horizon is terrain
+PASS [phone] click outside the map data (1.03 x half-width): no point selected, coverage message shown - {"note":"No elevation data here - this map covers the lunar south pole (about 80°S to the pole).","lat":-88.6862,"lon":125.8678,"computing":false}
+PASS [phone] click outside the map data (1.5 x half-width): no point selected, coverage message shown - {"note":"No elevation data here - this map covers the lunar south pole (about 80°S to the pole).","lat":-88.6862,"lon":125.8678,"computing":false}
+PASS [phone] panning is limited to the area covered by the map data - {"x":0.958459583202325,"y":-0.9441016526337771}
+PASS [phone] "Whole pole" button: data-coverage square fills the map panel, centred on the pole - {"left":-59,"top":-1,"right":-58,"bottom":0,"w":342,"h":458,"zoom":0.842350343413808}
+PASS [phone] typed point outside the map: smooth horizon, clearly labelled - {"kind":"Custom point outside the south-pole map · smooth horizon (a Moon without mountains)","badge":"Smooth horizon - terrain not included","hz":false,"msg":"Custom point. Sun and Earth positions come from the validate
+PASS [phone] unplotted Artemis III regions listed by name only (no point), with the NASA link - {"ids":["mons_malapert","mons_mouton","nobile_rim2_dm2","peak_shackleton_lw","im1","im2","peak_shackleton","shackleton_centre","apollo11","apollo12","apollo14","apollo15","apollo16","apollo17","chandrayaan3","change4","change6","slim","bgm1"],"names":"Not plotted (6): Peak near Cabeus B, Haworth, Mo
+PASS [phone] Artemis landform centre labelled "centre of the named landform; region boundary not plotted" with terrain - {"kind":"Artemis III region: Malapert Massif · centre of the named landform; region boundary not plotted","badge":"Terrain horizon (LOLA)","warn":true}
+PASS [phone] reference site outside the pole: map note + "smooth horizon, terrain not included" - {"note":"Apollo 11 (0.67°, 23.47°E) is outside this south-pole map. It is a reference site: smooth horizon, terrain not included.","badge":"Smooth horizon - terrain not included"}
+PASS [phone] no sunrise/Earthrise found: tiles say "Not within the next 430 days (search limit)" (no "> N days"), with a one-line explanation in Explain mode - {"sl":"Next sunrise:","s":"Not within the next 430 days (search limit)","el":"Next Earthrise:","e":"Not within the next 430 days (search limit)","ml":"Next change:","m":"Not within the next 430 days (search limit)","why":"ASTERIA searched 430 days ahead (the selected window, then 400 more days in 60-minute steps) and found no sunrise; if there is one, it is later.","whyShown":true,"w":30}
+PASS [phone] limit explanation hidden when Explain mode is off
+PASS [phone] 365-day window computed off the main thread (page answered within 3 ms), took 167 ms; loader shown only if > 250 ms - {"shown":7,"n":8761}
+PASS [phone] Sky view (beginner): "How to read this" caption, terrain named "Mountains and crater walls (LOLA terrain)", Sun/Earth tags match the validated status (Earth now: hidden; Sun now: visible)
+PASS [phone] Sky view (Expert): the detailed chart and caption are kept - Brown: LOLA terrain skyline (2 m above ground); dashed: smoo
+PASS [phone] Expert view reveals technical values
+PASS [phone] beginner view hides technical values
+PASS [phone] "?" explains a metric and why it matters - Sunlight"Sun up" means the centre of the Sun is above the local horizon, includi
+PASS [phone] Earth windows listed and their total time matches % Earth link (within sampling) - {"pct":23.8139319601944,"inside":23.80642361111111,"n":1,"rows":1,"stepPct":0.023148148148148147}
+PASS [phone] minimum link elevation 2 deg lowers Earth link time and is in the URL - 23.8% -> 10.1%
+PASS [phone] heatmap slip 0 == Explore metrics (minimum elevation 2 deg applied to both) - pctSun 68.10923397361722/68.10923397361722, avgSunFrac 0.6818419249747876/0.6818419249747876, pctEarth 10.06711409395973/10.06711409395973, pctBoth 0/0, longestDarkH 229.66666666666666/229.66666666666666, longestBlackoutH 466.66666666666663/466.66666666666663, samples 4321/4321
+[phone] terrain-sites heatmap (8 sites x 61 slips) computed in 2301 ms
+PASS [phone] heatmap tooltip shows
+PASS [phone] clicking a heatmap cell opens Explore with the mission window - {"tab":"explorer","w":14}
+PASS [phone] power verdict rendered - Energy positive over the window (estimate): generates 77.7 kWh vs 33.6 kWh needed; battery
+PASS [phone] power inputs labelled "example values - enter your mission's values" - Example values - enter your mission's values. The panel area, efficiency, load a
+PASS [phone] Compare shows Earth-link metrics next to sunlight metrics
+PASS [phone] Compare never shows "> window"
+PASS [phone] Validation cross-check lists the landform centres and no removed crater-centre points
+PASS [phone] About: disclaimer and the nine Artemis regions
+PASS [phone] About: the AI credit line is in the credits list; no "How this was made" section, no AI wording in the footer - {"t":"Development assisted by Claude Code (Anthropic), an AI coding assistant; details in AI_DISCLOSURE.md (in the project repository).","howMade":false,"footerAI":false}
+PASS [phone] all pages (after Explore, Launch slip, Power, Compare, Validation, About): no AI wording outside the About credit line and the 3D "Graphics:" line
+PASS [phone] loader (pixel-art rocket shown: true): no AI wording outside the About credit line and the 3D "Graphics:" line
+PASS [phone] tour step 1 caption - This is the lunar south pole, from about 80°S to 90°S, built from NASA LOLA elevation data. ASTERIA has 8 south-pole sites with computed terrain horizons. Of NASA's 9 Artemis III candidate regions (Oct 2024), 3 have a plotted point inside them; the others are listed by name only, because their boundaries are published only as images. Why the pole? NASA notes that its permanently shadowed areas can preserve resources,
+PASS [phone] tour step 2 caption - Peak near Shackleton - best-lit point (derived): the Sun skims around the horizon, its centre between -0.1° and +2.6° over these 30 days. The brown skyline is the terrain from LOLA elevation data (-3.0° to +3.7°) and it decides when the Sun is visible: Sun up 66% of the time, against 85% for a perfectly smooth Moon. By contrast, at Apollo 11 near the equator the Sun climbs to 88° and is up 49% of the time in one long
+PASS [phone] tour step 3 caption - Earth link: seen from the pole, Earth stays near the horizon and moves up and down a little as the Moon's orientation toward Earth changes (libration), so a direct line of sight comes and goes. In these 30 days Earth's centre moves between -7.6° and +5.6° elevation and is in view 10% of the time in 1 window(s); the longest blackout lasts 19.2 days. Earth is hidden now; the next Earthrise is in 7d 20h 33m (2026-12-20 
+PASS [phone] tour step 4 caption - Launch slips: each column is a landing date, each row a metric for a 14-day mission. Landing on the nominal date: Sun up 69%, Earth link 21%, both together 13%, longest darkness 4.4 days. A 2-week slip changes that to Sun up 58%, Earth link 0%, both 0%, longest darkness 5.9 days. The best landing in the next 60 days is +52 days with 24%. Click any square to open that date.
+PASS [phone] tour step 5 caption - Power check for the nominal 14-day mission: a 1 m², 30%-efficient vertical Sun-tracking panel (example values) generates 97.5 kWh against 33.6 kWh for a 100 W load, so the mission is energy positive. Surviving the longest darkness (4.4 days) needs about 13.1 kWh of battery at 80% usable capacity (example values). First-order estimate only.
+PASS [phone] tour closes after the last step
+PASS [phone] URL hash restores site/date/window/min elevation/tab - {"site":"apollo11","t":"2027-01-01T00:00:00.000Z","w":14,"me":3,"tab":"compare"}
+PASS [phone] URL hash restores custom coordinates (terrain recomputed from 240 m data) - {"lat":-89.9,"lon":45,"id":null,"w":7,"hz":true}
+PASS [phone] VERIFY_YOURSELF share link: Expert view matches JPL Horizons within 0.01 deg - {"cur":"2026-12-04 00:50 UTC","sEl":"+0.877°","sAz":"118.653°","eEl":"-6.002°","eAz":"242.081°"}
+PASS [phone] no horizontal page scroll - 0 px
+PASS [reduced-motion] loader is a simple spinner - {"cls":"loader reduced","spinner":true,"canvas":false}
+PASS [intro] shows on a fresh first visit: rocket, "ASTERIA", subtitle, Skip; no loading claim; INTRO_MS = 3000 - {"shown":true,"txt":"ASTERIALunar South Pole Landing Site NavigatorSkip","ms":3000,"seen":"1"}
+PASS [intro] the app computes normally behind the intro (first results after 405 ms while the intro is still up; hint waits) - {"intro":true,"hint":false}
+PASS [intro] title card: no AI wording outside the About credit line and the 3D "Graphics:" line
+PASS [intro] Skip button closes it; the getting-started hint follows
+PASS [intro] not shown on the second visit
+PASS [intro] "Replay intro" on the About page plays it; a key press skips it
+PASS [intro] phone: shown, then closes by itself after INTRO_MS (3 s)
+PASS [intro] a tap anywhere skips it
+PASS [intro] not shown when the URL has a share-link hash (#site=...)
+PASS [intro] not shown with a #lat=... share link
+PASS [intro] not shown with prefers-reduced-motion
+PASS [intro] automated tests skip it unless they opt in
+PASS loader not shown for a 50 ms operation (only after 250 ms) - shown 0 times
+No console errors or warnings.
+UI CHECK PASS
