@@ -408,3 +408,12 @@ New or changed on-screen text (all in plain language; no AI wording added; class
 * Tour step 4 of 6 (new): "Choose your point, then Deploy 3D. Click any point on the map; inside a thin blue square (the 3D terrain around 8 sites) the site card offers Deploy: 3D terrain view, and the 3D view opens at your point. This one is <d> from <site>; its status tiles in 3D are the same values as here." Other steps unchanged (renumbered 5 and 6).
 * About, design decision 15: title "(round 6E, amended in round 6F; Illustrative)"; randomness and reach sentences; identical in DESIGN_DECISIONS.md.
 
+## Round 6H (map, Explore first screen, guided steps)
+
+New or changed on-screen text (plain language, no AI wording added, classifications unchanged; nothing removed - moved text listed):
+* Map control (new): house button "Show all: the whole map data extent" (title and aria-label).
+* Map legend: new key "Your point (map click)" (amber crosshair). The layer notes ("Hillshade from LOLA elevation data ...", the slope note, the NASA illumination note) moved into an expandable "About this layer" (text unchanged).
+* Map labels (new): short site names next to the markers (the name without "(...)" or " - ..."; the selected site shows its full name). The full names are unchanged in the marker tooltip, the site list and the Site Card.
+* Site Card: the three "Why it matters" lines moved from the tiles into an expandable "Why these matter" (now "Sunlight: solar power and heat.", "Earth link: a line of sight for direct radio contact with Earth.", "Mission status: <the existing mission text>"); the custom-point note moved into an expandable "How reliable is this point?" (text unchanged).
+* Site Card (compact laptop layout): new expandable "Why "not within the next … days"?" holding the tiles' existing search-limit explanations, each prefixed "Sunlight:", "Earth link:" or "Mission status:"; the "Mission casefile" button moved beside "Choose a site" (text unchanged).
+* Getting started step 3: "... (the 3D terrain around the sites; the map now shows those near Peak near Shackleton) ..."; its button "Try it: a point near Peak near Shackleton" is now "Take me there: a point near Peak near Shackleton".

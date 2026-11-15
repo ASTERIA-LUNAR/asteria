@@ -855,3 +855,143 @@ Screenshots and result files rewritten by ui_round6e/6f were restored. Not run t
 * Headless Chromium only; phones emulated.
 
 **Round 6G hand-over**: `data/version.js` stamped. No merge, no tag, no push; `master` and `v1-stable` unchanged.
+
+
+
+## Round 6H - Map usability, Explore first screen, guided-step navigation, site inventory
+
+**Owner feedback**: (1) zooming out no longer showed the full map extent; (2) the main sites were hard to select near custom points and the 3D-coverage outlines; (3) the Explore tab had grown - the "Verified against NASA data" card should be visible without scrolling; (4) every introduction / Getting-started / tour step must take the reader to the place it describes; (5) report site/point data not shown on the map. Rules kept: `js/engine.js`, validated values, horizons, status logic, terrain data, the projection and every calculation unchanged; AI disclosure unchanged (round 6E text); no information removed (secondary text moved into expandable sections).
+
+### Part 1 - Map extent - DONE (218e687)
+
+**Cause.** The zoom code in `js/map.js` is identical in `v1-stable` and `round6` (minimum zoom = "cover" zoom since round 2C, aecf384: the data square fills the map box, its side = the box's longer side). What changed is the **map box**: it stretches to the height of the Site Card next to it, and **3b27576** (round 6D Part 2, "Mission casefile" button on the Site Card) made the Site Card - and so the map box - 58 px taller (749 -> 807 px; 784 px at 837d6ce). Measured in headless Chromium (map box w x h):
+
+| Window | v1-stable (= 3b27576^) | 3b27576 | 837d6ce (before 6H) | after 6H |
+|---|---|---|---|---|
+| 1366 x 768 | 771 x 749 at y 128 (bottom 877, already below the window) | 771 x 807 (taller than wide: the cover zoom cropped the square's sides by 19 px) | 771 x 784 | 690 x 446, bottom 574 |
+| 1440 x 900 | 816 x 749, bottom 877 (whole map on screen) | 816 x 807, bottom **935** (below the window) | 816 x 784, bottom 912 | 730 x 578, bottom 706 |
+| phone 390 x 844 | 344 x 460 (cover zoom crops 59 px left and right) | same | same | same box |
+
+So at 1440 x 900 the bottom of the map (and with it part of the data square) left the window with 3b27576, and on every size the minimum zoom could never show the whole square on a non-square box.
+
+**Fix.** Minimum zoom = **contain zoom** (the whole data square fits the map box; side = the box's shorter side); a new **"Show all"** control (house icon, under the zoom buttons) fits exactly that. The first view and "Whole pole" are unchanged (the square fills the box, pole centred, no area outside the data). Panning is still limited to the data (`maxBounds`, viscosity 1; round 2b): at the minimum zoom the square is held centred and the strip beside it is the existing hatched "no data" area with the orange "Edge of the map data" outline; at any larger zoom no area outside the data can be panned into view; a click outside the data still shows "No elevation data here ...". Leaflet snapped every zoom to 0.5 before clamping, so a pan at the fractional minimum zoom re-snapped it upwards (0.41 -> 0.5 on a phone: the full extent was lost again) - a zoom equal to the minimum or to the current zoom is now kept as it is. Part 3 brings the map box back inside the window on laptops.
+
+### Part 2 - Markers and selection - DONE (1f54ccf)
+
+* Site markers: same shapes and colours (white mission/published point, dashed derived point, violet Artemis diamond, pink reference, numbered group), visual 18-22 px (was 13-18 px), clickable box **34 px** with a mouse and **44 px** on touch screens / phones (was 18 px).
+* Order: markers are in Leaflet's marker pane above the 3D-coverage outlines (overlay pane, `interactive: false`, so they never take a click) and above the custom-point marker (`zIndexOffset`). A click inside a site's box selects the site even when a custom point or an outline is under it; a click anywhere else places a custom point (tested next to a custom point and where an outline crosses a marker's box).
+* Custom point: a small amber crosshair (14 px, not clickable) instead of a white ring; legend line "Your point (map click)".
+* Labels: every marker gets a short label (name without the "(...)" / " - ..." part; the selected site shows its full name, or the short one if the full one does not fit), placed right, left, above or below where it overlaps no other label, marker or map control and stays inside the map; otherwise it is left out (the name still shows on hover / focus, and in the site list). Laid out again after every pan/zoom (not while a group's list is open).
+* Keyboard: markers were already focusable (Tab), but Enter did nothing for a single site (Leaflet 1.9 maps Enter only to popups; same in `v1-stable`) - Enter or Space now selects it; Space also opens a group's list (Enter already did).
+
+### Part 3 - Explore first screen - DONE (310d2e5)
+
+At laptop widths (> 1180 px) `fitHero()` sizes the map + Site Card row to the window (480-1000 px tall) so that the row and the **"Verified against NASA data" card** below it fit without page scrolling; the Site Card column is wider (1.2fr : 1fr) and compact:
+* Deploy note beside the Deploy button; the three status tiles side by side (state 1.2 rem instead of 1.45 rem, count 0.86 rem - no text below the page's smallest size, .66 rem).
+* Moved into expandable sections (nothing removed): the tiles' "Why it matters" lines -> **"Why these matter"**; the map layer notes -> **"About this layer"** (colour bars and the marker key stay visible); the custom-point reliability note -> **"How reliable is this point?"** (the kind line above it still says which horizon is used).
+* "Mission casefile" button moved up beside "Choose a site" (it was on its own row under the jump buttons).
+* On the compact card the tiles' search-limit explanations (Explain mode, only when a countdown says "Not within the next N days (search limit)") are shown once under the tiles in an expandable **"Why "not within the next … days"?"** (same text, prefixed with the tile name) instead of inside each narrow tile; long countdown text wraps inside its tile (it overflowed into the next tile in the first version of this part).
+* Checked for every curated south-pole site, two reference sites and a custom point at 1366 x 768 and 1440 x 900: the Site Card content fits without scrolling inside the card (fix commit after Part 4).
+* Not applied in Expert view (the card then shows every technical value at full length; the page scrolls as before) or below 1181 px (one column).
+* Phones: map, then the Site Card (site, time, **status tiles**, why, jump/casefile, then Deploy - moved after the tiles with CSS `order`), then the Verified card.
+
+Screenshots: `docs/ui_round6h/before_explore_{l1366,l1440,phone}.png` (837d6ce) and `after_explore_*.png`; also `map_showall_*`, `markers_*`, `tour1_*`, `tour4_*`.
+
+| | 1366 x 768 before | after | 1440 x 900 before | after |
+|---|---|---|---|---|
+| status tiles | 2 of 3 fully visible | all 3 | stacked in the Site Card | all 3 |
+| Verified card | below the window (scroll needed) | fully visible | below the window (scroll needed) | fully visible |
+| map box | 771 x 784 (bottom off-screen) | 690 x 446 | 816 x 784 (bottom off-screen) | 730 x 578 |
+
+### Part 4 - Guided steps navigate - DONE (13b8629)
+
+One guide function (`guideTo`) for Getting started and the tour: switch to the step's tab, open collapsed `<details>` around the target, scroll inner scroll areas (the Site Card on laptops) and the page so the target lies between the top bar and the step box (top-aligned when taller than that space; smooth, instant with prefers-reduced-motion; while a step is shown there is extra space below the page so targets near its end can clear the box), and spotlight it (`.tour-hl`).
+
+| Step | Goes to | Set-up |
+|---|---|---|
+| Getting started 1 - the map | Explore, map panel | whole map extent ("Show all"); button "Show the whole pole" now also shows the whole extent |
+| Getting started 2 - status tiles | Explore, the three tiles (was the whole Site Card) | - |
+| Getting started 3 - Choose your point, then Deploy 3D | Explore, map panel | map moved to the blue 3D squares near Peak near Shackleton; button **"Take me there"** (was "Try it") places the example point and guides to Deploy |
+| Getting started 4 - Go deeper | Explore, Sky view | (buttons unchanged) |
+| Tour 1-6 | map (whole extent), Sky view, Earth link panel, Deploy row (example custom point selected), Launch slip heatmap, Power verdict | each step already selected its site/point and computed its numbers; tab switch, scrolling and spotlight now through `guideTo` |
+
+A step opened from another tab switches back to its tab. The round 5 spotlight points at the Tour button in the top bar (page scrolled to the top; unchanged); the first-visit intro (`js/intro.js`) is a title card that describes no place.
+
+Also fixed while testing: "Show on 2D map" (3D view) kept its point exactly centred only until the layout resize that follows closing the 3D view (Leaflet's pan path truncates the offset to whole pixels; 4 m off at zoom 7; found by ui_round6) - now re-centred with a reset view.
+
+### Part 5 - Site inventory (report only; nothing added or removed)
+
+"On 2D map" = drawn as a marker on the south-pole map. The map covers the LOLA tile square (about 80°S on the axes, 76°S in the corners; `AsteriaMap.inData`).
+
+**A. Curated sites (`data/sites.js`, 19 entries)**
+
+| Site (id) | Lat, E-lon | Source | On 2D map | Used in | Why |
+|---|---|---|---|---|---|
+| IM-1 Odysseus (im1) | -80.13, 1.44 | LROC image 1360 | yes | Explore, terrain horizons, 3D, illumination, instant status, blind test, coarse validation, Compare, Launch slip, casefile | inside the map |
+| IM-2 Athena (im2) | -84.7906, 29.1957 | LROC 1408 | yes (grouped with Mons Mouton when zoomed out) | same | inside |
+| Peak near Shackleton (peak_shackleton) | -88.79, 124.5 | Mahanti et al. 2024 (PSJ 5, 62) | yes (grouped with the derived point when zoomed out) | same + PGDA cross-check, tour, Getting started | inside |
+| Peak near Shackleton - best-lit point, derived (peak_shackleton_lw) | -88.7851, 124.3438 | derived by ASTERIA (LOLA + PGDA 69 + Mahanti) | yes | same; default site | inside |
+| Nobile Rim 2, site DM2 (nobile_rim2_dm2) | -84.20156, 60.69989 | Peña-Asensio et al. (arXiv 2406.19863) | yes | same | inside |
+| Mons Mouton, landform centre (mons_mouton) | -84.60, 31.00 | IAU Gazetteer 16070 | yes | same | inside |
+| Mons Malapert, landform centre (mons_malapert) | -85.98, -1.67 | IAU Gazetteer 16338 | yes | same | inside |
+| Shackleton crater centre (shackleton_centre) | -89.67, 129.78 | IAU Gazetteer 5450 | yes | same | inside |
+| Apollo 11, 12, 14, 15, 16, 17 | 0.67416, 23.47314 / -3.0128, -23.4219 / -3.64589, -17.47194 / 26.13239, 3.6333 / -8.9734, 15.5011 / 20.1911, 30.7723 | NSSDC | no | site list, Explore (smooth horizon), Compare, Launch slip; Apollo 11 in tour step 2 and the Horizons angle checks; Apollo 15 in the angle checks | outside the south-pole map; the map note says so when one is selected |
+| Chandrayaan-3 (Vikram) | -69.3741, 32.32 | LROC 1314 | no | site list, Compare; Horizons event check | 69°S: outside the map data |
+| Chang'e-4, Chang'e-6 | -45.457, 177.589 / -41.6385, 206.0148 | LROC 1087 / 1374 | no | site list, Compare; Chang'e-4 in the angle checks and the far-side sanity test | outside |
+| SLIM, Blue Ghost Mission 1 | -13.316, 25.251 / 18.5623, 61.8103 | LROC 1358 / 1407 | no | site list, Compare | outside |
+
+**B. NASA Artemis III candidate regions (`LUNA_ARTEMIS_REGIONS`, 9)**: Malapert Massif, Mons Mouton and Nobile Rim 2 are shown through their points above. **Peak near Cabeus B, Haworth, Mons Mouton Plateau, Nobile Rim 1, de Gerlache Rim 2, Slater Plain**: listed by name only (site list, About, tour text) - NASA publishes the boundaries only as images, with no coordinates; crater-centre points were removed in round 2 because a crater centre is not inside a rim, peak or plain region.
+
+**C. Points in other data files (none shown on the map)**
+
+| Data | Points | Used in |
+|---|---|---|
+| `validation.js` angle checks | "Near south pole (test point)" -89.5, 0 (synthetic); "Polar test point near Shackleton" -88.8, 123.4 (test geometry); "East limb test point" 0, 88; Apollo 11, Apollo 15, Chang'e-4 | JPL Horizons comparison (Validation page, VALIDATION_REPORT.md) |
+| `validation.js` sanity tests | 20 seeded random points 60-90°S (e.g. -63.8852, -42.4320; -88.8353, 136.2311) | Sun-elevation sanity test |
+| `validation.js` / `blind_test.js` blind cases | Nobile Rim 2, Mons Mouton, Peak near Shackleton, IM-1 at random times | blind test (the sites themselves are shown) |
+| `one_year_check.js` | custom point -70.9457, 67.9235 | one-year hourly Horizons check (outside the map data) |
+| `coarse_validation.js` | the 8 sites + 50 random points 85-89.3°S | validation of the 240 m terrain for clicked points |
+| `illum_crosscheck.js` | the 8 sites + 317 grid points within about 500 m of the published Peak near Shackleton point | PGDA cross-check; choice of the derived best-lit point |
+| `illumination.js`, `instant_status.js`, `accuracy3d.js`, `data/horizons/`, `data/terrain3d/` | the 8 sites (accuracy3d: 20 rover/inspection positions inside their 3D tiles) | Validation, 3D, tests |
+| `data/terrain3d/features.js` | 15 IAU named features near the sites (Shackleton, Slater, Nobile, Malapert A, Mons Mouton, Haynes, Oberbeck, Scott M, Jaci, Masina, Dawa, Lhamu, Floss, Spudis, Marvin) | labels in the 3D view only |
+
+**Recommendations (owner decides; nothing changed):**
+* **Keep the 11 reference sites hidden on the 2D map**: they lie outside its data (69°S to 26°N). They stay selectable from the site list, where the map note explains that they are outside the map.
+* **Keep test, random and grid points hidden** (validation, sanity, coarse-validation randoms, PGDA grid, the one-year custom point): they are test inputs, not sites, and about 400 extra points would bury the 8 sites; they are documented on the Validation page and in VALIDATION_REPORT.md.
+* **Keep the 6 name-only Artemis III regions hidden** until NASA publishes coordinates or a sourced point inside each region exists (plotting a guess would break the round 2 rule).
+* **Could be shown (optional)**: the 15 IAU feature names from the 3D view as small text labels on the 2D map at closer zooms (published Gazetteer coordinates). Not done: it adds clutter near the sites and was not requested.
+
+### Part 6 - Tests - DONE
+
+`tests/ui_round6h.js` (new; laptop 1366 x 768, laptop 1440 x 900, emulated phone 390 x 844): first view filled with data; zooming out reaches the contain zoom with the whole square in the box; panning at the minimum zoom keeps it whole (no re-snap); at a larger zoom panning shows no area outside the data; "Show all" control fits the whole extent; outside click -> message, nothing selected; marker box >= 32 / 40 px and visual >= 16 px; a click just outside a marker's box places a custom point (crosshair, under the marker, not clickable) and a click inside the box near its edge selects the site; the 16 coverage outlines are not interactive and, where one crosses a marker's box, the marker is on top and a click selects it (or opens its group list); labels never overlap another label or a marker (whole pole and zoomed; font >= 12 px); focus + Enter selects a marker; Explore first screen (laptops: map, site selector, Site Card essentials, three tiles and the full Verified card inside the window at scroll 0, no scrolling inside the card; phone: map, tiles, Verified card in that order); every Getting-started step (4) and tour step (6) on its tab with its target highlighted, its top below the top bar and above the step box and at least 75 % of the visible space used; "Take me there"; a step started from the About tab switches back; reduced motion scrolls at once; no console errors.
+
+Older tests changed only where they hard-coded the old layout or step behaviour:
+* `tests/ui_round6.js`: Getting started step 2 highlights the tiles (`statusTiles`, was `siteCard`); step 3's button is "Take me there: ..." (was "Try it: ...").
+* `tests/ui_check.js`: the first-load fit check runs with Getting started open, whose step 1 now shows the whole data square (checked as "whole square visible"; the filled first view without Getting started is checked in ui_round6h); the search-limit explanation may be in the new section under the tiles on the compact laptop card.
+
+Also found by the suites and fixed: the first-visit Getting started, scheduled 600 ms after load, now re-checks that it was not dismissed in the meantime (it now switches to its tab, which pulled a reader who had already moved on back to Explore; found by ui_check); "Show on 2D map" centring (ui_round6, above).
+
+**Test run** (final code, headless Chromium on the development laptop; UI suites re-run after the last Site Card change):
+
+| Test | Result |
+|---|---|
+| `node tests/ui_round6h.js` (l1366, l1440, phone) | ALL PASS, 102 checks, no console errors |
+| `ui_check` | UI CHECK PASS, 187 checks, no console errors or warnings |
+| `ui_round5`, `ui_round6`, `ui_round6b`, `ui_round6c`, `ui_round6d`, `ui_round6f`, `ui_round6g` | all pass (73, 52, 54, 24, 136, 52, 68 checks), no FAIL lines |
+| `node tests/ui_round6e.js --base <checkout of fe76cd6>` | ALL PASS (159) |
+| `node tests/shading_consistency.js --no-write` (shadows on) | 97.8 / 99.0 / 99.8 % - unchanged, 0 unexplained |
+| Node: features_test, view3d_test, validate, earth_orientation, blind_test, one_year_check, instant_status_check, illumination, coarse_validation, accuracy3d | all exit 0 (result files differed only in timestamps and run times; restored) |
+| Python: `tools/terrain3d.py check`, `tools/terrain3d_ext.py check`, `tools/terrain.py check` | pass |
+
+Screenshots and result files rewritten by ui_round6e / ui_round6f were restored. Not run: perf3d, tile_edge, ground-detail invariants (3D code unchanged in 6H).
+
+### Round 6H - not done or limited
+
+* At the smallest zoom on a non-square map box the hatched no-data strip beside the square is visible (needed to show the whole extent; panning is still limited to the data).
+* Labels that do not fit are left out (name on hover/focus and in the site list); close sites are grouped when zoomed out.
+* Phones: the status tiles are about 1.5 screens below the top (after the map, site name and time); the Verified card follows the Site Card.
+* The compact Site Card is sized for laptop windows of at least about 1181 x 700; Expert view keeps the long card (page scrolls).
+* Headless Chromium only; phones emulated; not tested on a real phone, Firefox or Safari.
+* Site inventory: report only; no site, point or region added, removed or changed.
+
+**Round 6H hand-over**: `data/version.js` stamped. No merge, no tag, no push; `master` and `v1-stable` unchanged.

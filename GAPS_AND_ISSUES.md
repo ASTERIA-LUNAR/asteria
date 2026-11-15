@@ -338,3 +338,12 @@ Measured with `tests/ground_detail.js` (same site, time and camera; the round-3 
 * **Remaining**: a discarded run is not cancelled in the worker (one Web Worker, jobs in order), so after quick point changes the newest heatmap can wait for older runs to finish (about 1-3 s per point at the default 61 landing dates; up to tens of seconds for "All south-pole sites with terrain").
 * **Behaviour change**: the nominal landing now follows the Explore start time unless it was set on the Launch slip page or a heatmap square was clicked. The Power page's "Launch-slip mission" window uses the same input.
 * `v1-stable` still has the bug (not changed in this round; no merge).
+
+## 16. Round 6H: map, Explore first screen, guided steps (branch `round6`, not merged)
+
+* **Minimum zoom shows the whole data square**: on a non-square map box the strip beside it is the hatched "no data" area (only at the smallest zooms; panning is still limited to the data, and the first view / "Whole pole" fill the box with data). This is the trade-off between "whole extent visible" and "no area outside the data" on a non-square box.
+* **Labels**: a label that would overlap another label, a marker or a map control is left out (name on hover/focus and in the site list); when zoomed out, close sites are still grouped into one numbered marker (e.g. the two Peak near Shackleton points, IM-2 Athena with Mons Mouton).
+* **Explore first screen** is sized for laptop windows from about 1181 x 700; in Expert view and on windows below 1181 px wide the page scrolls as before. On a very short window (row below 480 px) the page scrolls. The Site Card scrolls inside itself if its content is taller than the row (e.g. a selected site with a long warning line).
+* **Phones**: the status tiles come after the site name and time (about 1.5 screens down below the map); the Verified card follows the Site Card.
+* **Guided steps** are checked in headless Chromium (laptop sizes and an emulated phone), not on a real phone, Firefox or Safari. Very short windows (less than 160 px between the top bar and the step box) ignore the step box when scrolling.
+* **Site inventory**: see ROUND6_REPORT.md, Round 6H Part 5 (recommendations only; no data added or removed).

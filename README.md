@@ -60,13 +60,20 @@ Double-click **`index.html`**. It runs offline in any modern browser, with no se
 * **Validation**: "How we know the numbers are right" (plain language), Verify with NASA, "Methods and formulas" (with links to the source files), "Reproduce it yourself", download of VALIDATION_REPORT.md; then the JPL Horizons comparison, sanity tests, the instant status check, 3D terrain accuracy and the terrain illumination cross-check against NASA's published map.
 * **About**: methods, what is computed vs estimated, limitations, credits.
 
-**Tour** (5 steps, all numbers read live from the app):
+**Tour** (6 steps, all numbers read live from the app; each step switches to its tab, opens what it needs, scrolls its target into view and highlights it - round 6H):
 
-1. The south-pole map, and why the pole matters.
+1. The south-pole map (whole extent), and why the pole matters.
 2. The selected polar site: the Sun skims the horizon and terrain blocks it, compared with Apollo 11 near the equator.
 3. Earth link windows and the next Earthset.
-4. What a 2-week launch slip changes.
-5. The power and battery verdict.
+4. Choose your point, then Deploy 3D (an example point inside the 3D terrain of Peak near Shackleton).
+5. What a 2-week launch slip changes.
+6. The power and battery verdict.
+
+**Getting started** (first visit, 4 steps) goes to each place the same way: the map, the status tiles, the blue 3D squares on the map ("Take me there" places an example point and shows Deploy), the Sky view.
+
+**Map (round 6H)**: zooming out reaches the whole map data extent; the house button under the zoom buttons ("Show all") fits it, "Whole pole" fills the map with data. Panning stays inside the data. Site markers are larger (clickable 34 px with a mouse, 44 px on phones), drawn above custom points and the blue 3D outlines, with short labels that do not overlap; Enter or Space selects a focused marker. A custom point is a small amber crosshair.
+
+**Explore first screen (round 6H)**: on laptop screens (1366 x 768 and up) the map, the site card with the three status tiles and the "Verified against NASA data" card fit without scrolling; secondary notes are in expandable sections ("Why these matter", "About this layer", "How reliable is this point?").
 
 **Shareable links**: `#site=...&t=...&w=...&me=...&tab=...` (or `#lat=..&lon=..` for a custom point) reopens the exact view.
 
@@ -197,6 +204,7 @@ The Validation page starts with "How we know the numbers are right" and a "Verif
 | **Terrain for clicked points** (`node tests/coarse_validation.js`), 240 m data | curated sites: % sunlit differs from the 20 m horizons by 2.0 points on average, 6.9 at most (limits 5 / 10); 50 random points in 85-90°S vs NASA's map: 1.5 points on average (limit 5) -> PASS, shipped |
 | **Instant status check** (`node tests/instant_status_check.js`, round 5): 8 south-pole sites × 21 times (the time the cases were chosen + 20 random in 2026-2028) × Sun and Earth; angles straight from JPL Horizons, terrain horizon at the exact azimuth from `tools/terrain.py horizon_at` (Python, DEM) | 336/336 agree with the app; 3 "on the edge" (body within 0.05° of the horizon), all agree; no bug found |
 | **3D terrain accuracy** (`node tests/accuracy3d.js` + `tools/accuracy3d.py`, round 5) | heights: every grid point (3.44 million) within 0.10 m of LOLA; slopes: rover readout vs Python central differences within 0.17° (20/80 m) and 0.53° (5 m), the storage-step bound; 2D map slope layer reproduced at 200/200 points; 20 rover positions within 1.4 m and 0.43 m |
+| `node tests/ui_round6h.js` | browser (round 6H; laptop 1366 x 768 and 1440 x 900, phone): zooming out and "Show all" show the whole data square, panning stays inside the data, outside click message; markers' clickable size, labels not overlapping, a marker selected next to a custom point and where a 3D outline crosses it, custom points still placeable, keyboard selection; Explore first screen (map, tiles, full Verified card without scrolling); every Getting-started and tour step's target on its tab, highlighted and in view (also with reduced motion); no console errors |
 | `node tests/ui_round6f.js` | browser (round 6F): covering present near the viewer 1 km and 2 km from the site (fade from the camera), no feature class above 5 m radius, Walk/Rover frame time; coverage outlines; custom point inside a tile / on the ring / outside (Deploy, Orbit-only, disabled with reason); 3D status tiles = 2D tiles; same scene as the site; share link reopens it; tour step 4 of 6; View mode selector; laptop + phone, no console errors |
 | `node tests/ui_round5.js` | browser: instant status at stored case times = independent status, rover readout = verified values, relief shading changes no height/slope/light/status, Light up auto-off, jump buttons (series-checked, 3D, minimum elevation, Shackleton floor not found), tour spotlight, Deploy icon, 3D labels inside and not overlapping, Verify with NASA URL = cached validation query, Verified card numbers, Validation sections and report download; laptop + phone, no console errors |
 | `node tests/view3d_test.js` | 3D geometry: Sun and Earth direction vectors vs the engine's raw apparent vectors (96 site/time cases, worst 1.7e-6°), tile decoder vs DEM check points (0.05 m), curvature, world-to-grid inverse, slope, near-field Sun, Earth phase, lazy loading |
