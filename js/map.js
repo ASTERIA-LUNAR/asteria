@@ -177,6 +177,7 @@ window.AsteriaMap = (function () {
       if (Math.abs(z - this.getMinZoom()) < 1e-6 || (this._zoom !== undefined && Math.abs(z - this._zoom) < 1e-6)) return Math.max(this.getMinZoom(), Math.min(this.getMaxZoom(), z));
       return L.Map.prototype._limitZoom.call(this, z);
     };
+    wheelGate(el);
     var ZMAX = 9;
     layers.hill = L.tileLayer(LY.hill.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.hill.full[1], noWrap: true,
       attribution: 'LOLA DEMs: NASA LRO/LOLA, PDS Geosciences Node' }).addTo(map);
@@ -341,6 +342,37 @@ window.AsteriaMap = (function () {
     pinned = { ll: [lat, lon], t: Date.now() };
     return { lat: lat, lon: lon, zoom: map.getZoom(), centre: map.getCenter() };
   }
+  // Prompt 7C: the map fills most of the Explore first screen, so a plain mouse wheel / touchpad swipe over it scrolls
+  // the PAGE. The map zooms with Ctrl (or Cmd) + wheel (this is also what a touchpad pinch sends), or with a plain wheel
+  // after a click/tap into the map, until the next click outside it. A plain wheel over an inactive map shows a short
+  // hint. Unchanged: the +/- and "Show all" buttons, double-click zoom, touch pinch-zoom, dragging. The arrow keys pan
+  // the map only while the map itself has keyboard focus (Leaflet's keyboard handler: a click into the map focuses it,
+  // a click outside removes the focus); otherwise they scroll the page.
+  var wheel = { active: false, hintEl: null, timer: 0, shown: 0 };
+  var WHEEL_HINT = /Mac|iPhone|iPad/.test(navigator.platform || '') ? 'Use Cmd + scroll to zoom the map' : 'Use Ctrl + scroll to zoom the map';
+  function wheelGate(el) {
+    // capture phase on the container: runs before Leaflet's own wheel listener (same element, bubble phase), so the
+    // wheel event never reaches Leaflet and is not cancelled: the browser scrolls the page as over any other element
+    el.addEventListener('wheel', function (e) {
+      if (e.ctrlKey || e.metaKey || wheel.active) return;          // Leaflet zooms (and stops the browser's page zoom)
+      e.stopImmediatePropagation();
+      if (Math.abs(e.deltaY) >= Math.abs(e.deltaX)) wheelHint();
+    }, { capture: true, passive: true });
+    el.addEventListener('pointerdown', function () { wheel.active = true; wheelHint(false); }, true);
+    document.addEventListener('pointerdown', function (e) { if (!el.contains(e.target)) wheel.active = false; }, true);
+    window.addEventListener('blur', function () { wheel.active = false; });
+  }
+  function wheelHint(on) {
+    if (!map) return;
+    if (!wheel.hintEl) {
+      var d = wheel.hintEl = L.DomUtil.create('div', 'mapwheelhint', map.getContainer());
+      d.setAttribute('role', 'status'); d.textContent = WHEEL_HINT;
+    }
+    clearTimeout(wheel.timer);
+    if (on === false) { wheel.hintEl.classList.remove('on'); return; }
+    wheel.hintEl.classList.add('on'); wheel.shown++;
+    wheel.timer = setTimeout(function () { wheel.hintEl.classList.remove('on'); }, 1500);
+  }
   // round 6F: outlines of the areas with 3D terrain (subtle; not interactive). list: [{ ll: [[lat, lon], ...], tile }]
   var covLayer = null;
   function setCoverage(list) {
@@ -353,6 +385,7 @@ window.AsteriaMap = (function () {
   return {
     init: init, setSites: setSites, setCoverage: setCoverage, coverageCount: function () { return covLayer ? covLayer.getLayers().length : 0; }, select: select, setOverlay: setOverlay, setMarkersVisible: setMarkersVisible,
     invalidate: invalidate, home: home, showAll: showAll, zooms: function () { return map ? { cover: coverZoom(), contain: containZoom(), min: map.getMinZoom(), zoom: map.getZoom() } : null; }, showPoint: showPoint, scaleInfo: scaleInfo, scaleState: function () { return scaleState; }, margins: margins, labels: function () { return labelInfo; }, hitSize: hitSize, project: project, unproject: unproject, inData: inData,
-    leaflet: function () { return map; }
+    leaflet: function () { return map; },
+    wheelState: function () { return { active: wheel.active, hint: !!(wheel.hintEl && wheel.hintEl.classList.contains('on')), shown: wheel.shown, text: WHEEL_HINT }; }   // Prompt 7C (tests)
   };
 })();

@@ -417,3 +417,10 @@ New or changed on-screen text (plain language, no AI wording added, classificati
 * Site Card: the three "Why it matters" lines moved from the tiles into an expandable "Why these matter" (now "Sunlight: solar power and heat.", "Earth link: a line of sight for direct radio contact with Earth.", "Mission status: <the existing mission text>"); the custom-point note moved into an expandable "How reliable is this point?" (text unchanged).
 * Site Card (compact laptop layout): new expandable "Why "not within the next … days"?" holding the tiles' existing search-limit explanations, each prefixed "Sunlight:", "Earth link:" or "Mission status:"; the "Mission casefile" button moved beside "Choose a site" (text unchanged).
 * Getting started step 3: "... (the 3D terrain around the sites; the map now shows those near Peak near Shackleton) ..."; its button "Try it: a point near Peak near Shackleton" is now "Take me there: a point near Peak near Shackleton".
+
+## Prompt 7C (page scroll over the map)
+
+New or changed on-screen text (plain language, no AI wording added):
+* Map hint (new, shown for about 1.5 s over the map when a plain mouse wheel / touchpad swipe scrolls the page instead of zooming the map): "Use Ctrl + scroll to zoom the map" ("Use Cmd + scroll to zoom the map" on a Mac).
+* Getting started step 1: "Drag to pan, scroll or pinch to zoom." is now "Drag to pan; zoom with Ctrl + scroll, pinch or the +/− buttons."
+* "?" explanation of the map: "Drag to pan, scroll or pinch to zoom," is now "Drag to pan; zoom with Ctrl + scroll (or scroll after clicking into the map), pinch or the +/− buttons;".

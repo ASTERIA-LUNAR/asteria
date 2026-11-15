@@ -1025,3 +1025,87 @@ The 1,767 ms in run 1 is im1 Medium, the first shader compile of a fresh browser
 **Walk and Rover at Medium** (`node tests/perf_modes.js`, new; frames rendered by the 3D view while driving forward for 2 s, plus the GPU-synced render time; raw `tests/perf/p7_modes_medium.json` / `.log`): 60.0-60.8 frames/s in Walk and 60.2-60.5 in Rover at all 8 sites; 1.5-3.9 ms per render in Walk, 2.8-7.1 ms in Rover. One earlier attempt of this script timed out waiting for the first 3D view to open (im1, 90 s); the immediate re-run passed and is the one reported.
 
 Gate met: merged into master.
+
+## Prompt 7C: page stopped scrolling on Explore after the tour (bug fix)
+
+Branch `scrollfix` from `master` (v2-candidate, c574530). Not changed: `js/engine.js`, calculations, data, horizons, status logic, terrain, results, the AI disclosure, the 3D view (`js/view3d.js`).
+
+### 1. Reproduction (Playwright, Microsoft Edge 157 via channel "msedge", fresh profile, 1366 x 768 and 1440 x 900)
+
+Sequence: Tour -> Next x 5 -> Finish (the tour ends on the **Power** tab, step 6 of 6, not Compare as reported; Compare was also visited) -> Compare -> Explore. Then a 300 px wheel at each place with the page at the top, and keys with focus where the sequence left it.
+
+| Input (after the tour) | Before the fix | Cause |
+|---|---|---|
+| Wheel over the map | page did not move; the map zoomed (zoom 5 -> 3.5: the tour leaves the map zoomed in at its example point; at the minimum zoom nothing visible happens) | Leaflet `scrollWheelZoom` takes every wheel event over the map and cancels it |
+| Wheel over the side card / status tiles | page did not move, and the card did not move either (it was not taller than its box) | CSS `.hero.fit .sitecard { overflow-y: auto; overscroll-behavior: contain }` (round 6H): a contained scroll box never hands the scroll to the page, even when it has nothing to scroll |
+| Wheel over the top bar / page margins | page scrolled | - |
+| Arrow Down / Page Down, focus on the clicked tab | page scrolled | - |
+| Arrow Down after a click into the map | page did not move (the map panned) | Leaflet keyboard handler while the map has focus |
+| Page Down after a click into the side card | page did not move (3 presses) | same `overscroll-behavior: contain` |
+| Space on a focused tab button | page did not move (presses the button) | browser default for buttons |
+
+On the laptop first screen (round 6H) the map and the side card cover almost the whole window, so the only places where the wheel reached the page were the top bar and narrow margins: the page "stops scrolling". The results were the same after the tour was closed with Esc or X, after it was skipped, and with no tour at all. The only difference was the map: the tour leaves it zoomed in at step 4, so wheel input visibly zooms it out first.
+
+Guide state after Finish / Esc / X / Getting started: no `guiding` class (the round 6H 60vh bottom space is removed), no `.tour-hl`, step boxes hidden, no dimming overlay (`#spot` hidden, no `spot-on`), html/body overflow `visible`, no inline styles, and no preventDefault wheel/key listeners from the guide. One loose end: after **Finish** or **X** the focused button was hidden inside the closed box, so focus fell back to the page body.
+
+### 2. Root cause
+
+* (a) **Yes**: the Leaflet map captures the wheel (and the arrow keys when it has focus), and it now fills most of the first screen.
+* (c) **Yes, as CSS**: `overscroll-behavior: contain` on the compact Site Card blocks wheel and keyboard scrolling from reaching the page.
+* Together, (a) and (c) left almost no area of the first screen where the wheel scrolled the page.
+* (b) **No**: the tour and guideTo leave no scroll lock, overflow, padding, overlay or focus trap behind. Only the focus was lost to the body when the box closed, and that is fixed too.
+
+### 3. Fix
+
+* `js/map.js`: a capture-phase wheel listener on the map container hands a plain wheel to the page and shows a short hint over the map for about 1.5 s: "Use Ctrl + scroll to zoom the map" ("Cmd" on a Mac). Leaflet never sees the event and nothing is cancelled.
+  * Ctrl/Cmd + wheel zooms the map as before, and Leaflet stops the browser's page zoom. A touchpad pinch sends Ctrl + wheel, so it zooms the map.
+  * After a pointer press inside the map (click, tap, drag), a plain wheel zooms the map until a press outside it (or until the window loses focus).
+  * Arrow keys: Leaflet's behaviour is unchanged, so they pan only while the map container has focus (after a click into it) and otherwise scroll the page.
+  * +/-, Show all, double-click, touch pinch and dragging are unchanged.
+  * Test hook: `AsteriaMap.wheelState()`.
+* `css/style.css`: `overscroll-behavior: contain` removed from the compact Site Card. The card still scrolls inside itself when its content is taller; at its end the scroll continues on the page. Hint style added (reduced motion: no fade).
+* `js/app.js`:
+  * When the tour or Getting started closes (Finish, Done, X, Esc, or a tab chosen by the user), focus that was in the box (or lost with it) goes to `<main>` (tabindex -1, no outline), not the map. Arrow keys, Page Down and Space then scroll the page.
+  * A tab chosen by the user now closes an open tour or Getting-started step (its target is on another tab).
+  * Getting started step 1 text updated.
+* `js/explain.js`: map "?" text updated. TEXT_AUDIT.md lists the new and changed text.
+* Optional phone "Earth" edge label vs shadow note: tried (shadow note added to the 3D label-layout obstacles) and **reverted**. On the phone Walk view the Sun and Earth labels then found no free place and fell onto other panels (`ui_round5` phone, 2 FAIL). The issue is left as it was (GAPS section 17).
+
+### 4. Tests
+
+`tests/ui_scroll.js` (new; Edge engine, l1366, l1440, phone 390 x 844; fresh profile per sequence) runs these sequences: the owner's sequence (tour to Finish -> Compare -> Explore), the tour closed with Esc, with X and by choosing a tab, and Getting started closed with Done and with X.
+
+After each sequence it checks:
+* No leftovers: bottom space, spotlight, step box, overlay, overflow or inline styles; focus is not in the map; the map is the topmost element at its centre.
+* A plain wheel over the map, the side card / tiles, the side-card text and the top bar scrolls the page, and the map zoom is unchanged.
+* The hint appears inside the map and goes away.
+* Arrow Down, Page Down and Space scroll the page.
+* No console errors.
+
+After the owner's sequence it also checks:
+* Ctrl + wheel zooms in and out without moving the page.
+* A drag pans and activates the map; a plain wheel then zooms and Arrow Down pans.
+* After a click outside the map, the wheel and Arrow Down scroll the page again.
+* +/-, Show all and double-click still work.
+* On the phone: touch pinch (CDP pinch gesture) and one-finger drag.
+
+**265 checks, all pass.** On the unfixed master the same test fails at the first wheel over the map (it zooms instead of scrolling) and at focus after Finish.
+
+| Suite | Result |
+|---|---|
+| `ui_scroll` (new) | 265 pass, 0 fail |
+| `ui_check` | UI CHECK PASS, 187 checks, no console errors or warnings |
+| `ui_round5` | 73 pass (after reverting the optional label change; with it: 71 pass, 2 FAIL phone, see above) |
+| `ui_round6`, `6b`, `6c`, `6d`, `6f`, `6g`, `6h`, `7` | 52, 54, 24, 136, 52, 68, 102, 93 pass, 0 fail |
+| `ui_round6e --base <checkout of fe76cd6>` | 159 pass |
+| `shading_consistency --no-write` (shadows on) | 97.8 / 99.0 / 99.8 %, 0 unexplained (unchanged) |
+| Node: features_test, view3d_test, validate, earth_orientation, blind_test, one_year_check, instant_status_check, illumination, coarse_validation, accuracy3d --python | all exit 0 (result files differed only in timestamps; restored) |
+| Python: `tools/terrain3d.py check`, `tools/terrain3d_ext.py check`, `tools/terrain.py check` | pass (worst 0.049 m, 0.099 m) |
+
+Older tests updated: none (no test used plain-wheel map zoom). The screenshots rewritten by ui_round6e and ui_round6f were restored.
+
+The UI suites other than ui_round5 and ui_round7 ran while the optional 3D-label change was still in place. After the revert, `js/view3d.js` is byte-identical to master, and ui_round5 and ui_round7 (the 3D-label suites) were re-run on the final code. Not run: perf3d, tile_edge, ground-detail invariants (3D code unchanged).
+
+Limits: Edge headless on Windows, phones emulated; not checked with a real touchpad, a real phone, Firefox or Safari.
+
+Merged into master (fast-forward) and tagged `v2-candidate-b`; `v1-stable` and `v2-candidate` unchanged; nothing pushed.

@@ -2215,7 +2215,7 @@
   // ======================================================= FIRST-VISIT HINT
   var HINT_KEY = 'asteria.hintDismissed';
   var HINTS = [
-    ['mapPanel', '<b>1. The south-pole map.</b> Click a marker to open a site (violet diamonds are points inside NASA\'s Artemis III candidate regions), or click anywhere to test your own point. Drag to pan, scroll or pinch to zoom.',
+    ['mapPanel', '<b>1. The south-pole map.</b> Click a marker to open a site (violet diamonds are points inside NASA\'s Artemis III candidate regions), or click anywhere to test your own point. Drag to pan; zoom with Ctrl + scroll, pinch or the +/− buttons.',
       [['Open a site: Peak near Shackleton', function () { selectSite(siteById('peak_shackleton')); }], ['Show the whole pole', function () { Map.showAll(true); }]],
       function () { Map.showAll(false); }],
     ['statusTiles', '<b>2. Three status tiles.</b> <span class="c-sun">Sunlight</span>, <span class="c-earth">Earth link</span> and <span class="c-both">mission status</span> at the selected time, each with a countdown to the next change.',
@@ -2249,8 +2249,17 @@
     box.hidden = !box.children.length;
     guideTo(tgt, $('hint'));    // after the box has its final size
   }
+  // Prompt 7C: when a step box closes, focus that was inside it (or lost with it) goes to the main content (not the
+  // map, so the arrow keys, Page Down and Space scroll the page); nothing of the guide (spotlight, extra space below
+  // the page) stays behind.
+  function guideFocusBack(box) {
+    var a = document.activeElement;
+    if (a && a !== document.body && a !== document.documentElement && !box.contains(a)) return;
+    var m = document.querySelector('main');
+    if (m) { if (!m.hasAttribute('tabindex')) m.setAttribute('tabindex', '-1'); m.focus({ preventScroll: true }); }
+  }
   function hintClose() {
-    $('hint').hidden = true; guideTo(null);
+    $('hint').hidden = true; guideTo(null); guideFocusBack($('hint'));
     try { localStorage.setItem(HINT_KEY, '1'); } catch (e) { /* storage unavailable: the hint just shows again next time */ }
   }
 
@@ -2358,7 +2367,7 @@
     $('tourNext').textContent = i === TOUR_STEPS.length - 1 ? 'Finish' : 'Next';
     setTimeout(function () { TOUR_STEPS[i](function (hlId, html) { if (TOUR.i !== i) return; $('tourText').innerHTML = html; highlight(hlId); }); }, 30);
   }
-  function tourClose() { $('tour').hidden = true; highlight(null); }
+  function tourClose() { $('tour').hidden = true; highlight(null); guideFocusBack($('tour')); }
 
   // ------------------------------------------------------------------ prefs
   function setExpert(on) {
@@ -2455,7 +2464,11 @@
       if (!$('pickPanel').hidden && !ev.target.closest('#pickPanel') && !ev.target.closest('#pickBtn')) togglePicker(false);
     }, true);
     initQ(document);
-    document.querySelectorAll('.tab').forEach(function (t) { t.addEventListener('click', function () { showPage(t.dataset.page); }); });
+    document.querySelectorAll('.tab').forEach(function (t) { t.addEventListener('click', function () {
+      if (!$('tour').hidden) tourClose();   // Prompt 7C: a tab chosen by the user ends an open tour / Getting started (its target is on another tab)
+      if (!$('hint').hidden) hintClose();
+      showPage(t.dataset.page);
+    }); });
     $('cmpAdd').addEventListener('click', function () { addScenario(S.site.id || '__custom', S.start, S.site.lat, S.site.lon); });
     $('cmpSlip').addEventListener('click', function () {
       var f = CMP[0]; if (!f) return;

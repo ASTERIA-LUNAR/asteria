@@ -347,3 +347,11 @@ Measured with `tests/ground_detail.js` (same site, time and camera; the round-3 
 * **Phones**: the status tiles come after the site name and time (about 1.5 screens down below the map); the Verified card follows the Site Card.
 * **Guided steps** are checked in headless Chromium (laptop sizes and an emulated phone), not on a real phone, Firefox or Safari. Very short windows (less than 160 px between the top bar and the step box) ignore the step box when scrolling.
 * **Site inventory**: see ROUND6_REPORT.md, Round 6H Part 5 (recommendations only; no data added or removed).
+
+## 17. Prompt 7C: page scroll over the map (branch `scrollfix`)
+
+* **Map wheel zoom needs Ctrl (or Cmd) + wheel**, or a click/tap into the map first (then a plain wheel zooms until the next click outside the map). A plain wheel over the map scrolls the page and shows "Use Ctrl + scroll to zoom the map" for about 1.5 s. A touchpad pinch sends Ctrl + wheel, so it zooms the map as before. The +/- and "Show all" buttons, double-click zoom, touch pinch and dragging are unchanged.
+* **Arrow keys** pan the map only while the map has keyboard focus (after a click into it, not on a marker); otherwise they scroll the page. On a focused button Space presses the button (browser default) rather than scrolling.
+* **Phones**: a one-finger swipe that starts on the map still pans the map (unchanged); the page scrolls when the swipe starts outside the map.
+* Checked in Microsoft Edge 157 (Playwright channel "msedge", headless) at 1366 x 768, 1440 x 900 and an emulated phone; not on a real touchpad, a real phone, Firefox or Safari.
+* **3D view on phones**: the off-screen "Earth" (or "Sun") edge label can still sit on the shadow note at the bottom. Making the note a label-layout obstacle was tried and reverted: on the short phone picture in Walk mode the Sun and Earth labels then found no free place and fell back onto other panels (tests/ui_round5.js, phone).

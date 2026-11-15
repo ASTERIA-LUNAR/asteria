@@ -117,6 +117,11 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--accen
 .leaflet-control-attribution a { color: var(--accent) !important; }
 .leaflet-bar a { background: #101a2c; color: var(--text); border-bottom-color: var(--line); }
 .leaflet-bar a:hover { background: #15213a; color: #fff; }
+main:focus { outline: none; }   /* Prompt 7C: focus parked on the main content after a guide closes */
+/* Prompt 7C: short hint over the map when a plain wheel scrolls the page instead of zooming the map */
+.mapwheelhint { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 1000; pointer-events: none; background: rgba(7, 11, 20, .86); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; font-size: .95rem; opacity: 0; transition: opacity .2s; white-space: nowrap; }
+.mapwheelhint.on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .mapwheelhint { transition: none; } }
 .mapreadout { background: rgba(7, 11, 20, .8); color: var(--text); font: 12px var(--mono); padding: 3px 7px; border-radius: 6px; border: 1px solid var(--line); }
 .mapnote { position: absolute; left: 24px; right: 24px; top: 56px; z-index: 500; background: rgba(42, 33, 16, .94); border: 1px solid #6d5520; color: #ffe3a3; border-radius: 10px; padding: 9px 12px; font-size: .86rem; }
 .maplegend { font-size: .78rem; color: var(--muted); margin-top: 8px; }
@@ -611,7 +616,7 @@ details.more[open] > summary { margin-bottom: 4px; }
   .hero.fit { height: var(--heroH); }
   .hero.fit .mappanel { min-height: 0; }
   .hero.fit .lmap { min-height: 260px; }
-  .hero.fit .sitecard { overflow-y: auto; overscroll-behavior: contain; gap: 6px; padding: 12px 14px; scrollbar-width: thin; }
+  .hero.fit .sitecard { overflow-y: auto; gap: 6px; padding: 12px 14px; scrollbar-width: thin; }
   .hero.fit .sitecard h1 { margin-bottom: 0; font-size: 1.35rem; }
   .hero.fit .deployrow { margin: 2px 0 0; flex-wrap: nowrap; }
   .hero.fit .deployrow .btn { flex: none; }
