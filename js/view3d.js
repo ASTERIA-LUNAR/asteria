@@ -538,6 +538,7 @@ window.AsteriaView3D = (function () {
     // P0 = (R, aspect, cos, sin of the orientation), P1 = (depth, rim height (both in units of R), rim width, freshness),
     // P2 = (three phases of the rim noise, interior albedo), kind 0 = craterlet, 1 = rock fleck.
     'vec2 asProf( vec2 d, vec4 P0, vec4 P1, vec4 P2, float kind, vec3 nW ) {',
+    '  vec2 res = vec2( 0.0 );',   // one return (avoids a D3D "potentially uninitialized" warning)
     '  float dy = -( nW.x * d.x + nW.z * d.y ) / max( nW.y, 0.2 );',   // slope-aware: radii measured along the LOLA surface
     '  vec2 q = vec2( P0.z * d.x + P0.w * d.y, -P0.w * d.x + P0.z * d.y ); q.y *= P0.y;',   // elliptical (aspect P0.y)
     '  float r = length( vec3( q.x, dy, q.y ) ), phi = r > 1e-5 ? atan( q.y, q.x ) : 0.0;',
@@ -546,16 +547,18 @@ window.AsteriaView3D = (function () {
     '  float R = P0.x, s = P1.w;',
     '  if ( kind < 0.5 ) {',
     '    float Rl = R * ( 1.0 + 0.10 * m1 ), t = r / Rl;',   // irregular rim radius
-    '    if ( t >= 2.0 ) return vec2( 0.0 );',
-    '    float rim = P1.y * clamp( 0.55 + 1.1 * m2, 0.0, 1.7 ), h;',   // rim height varies around the rim, partly broken
-    '    if ( t < 1.0 ) { float t2 = t * t; h = -P1.x + ( P1.x + rim ) * mix( t2 * ( 3.0 - 2.0 * t ), t2, s ); }',   // old: rounded; fresh: sharp crest
-    '    else { float u = ( t - 1.0 ) / P1.z; h = rim * exp( -u * u ); }',
-    '    float al = P2.w * ( 1.0 - smoothstep( 0.6, 1.0, t ) ) + 0.10 * max( 0.0, s - 0.85 ) / 0.15 * ( 1.0 - smoothstep( 0.9, 1.8, t ) );',   // interior albedo; bright halo for the freshest
-    '    return vec2( h * R, al );',
+    '    if ( t < 2.0 ) {',
+    '      float rim = P1.y * clamp( 0.55 + 1.1 * m2, 0.0, 1.7 ), h = 0.0;',   // rim height varies around the rim, partly broken
+    '      if ( t < 1.0 ) { float t2 = t * t; h = -P1.x + ( P1.x + rim ) * mix( t2 * ( 3.0 - 2.0 * t ), t2, s ); }',   // old: rounded; fresh: sharp crest
+    '      else { float u = ( t - 1.0 ) / P1.z; h = rim * exp( -u * u ); }',
+    '      float al = P2.w * ( 1.0 - smoothstep( 0.6, 1.0, t ) ) + 0.10 * max( 0.0, s - 0.85 ) / 0.15 * ( 1.0 - smoothstep( 0.9, 1.8, t ) );',   // interior albedo; bright halo for the freshest
+    '      res = vec2( h * R, al );',
+    '    }',
+    '  } else {',
+    '    float Rl = R * ( 1.0 + 0.25 * m1 + 0.12 * m2 ), t = r / Rl;',   // rock fleck: irregular outline
+    '    if ( t < 1.0 ) res = vec2( P1.x * ( 1.0 - t * t ) * R, P2.w * ( 1.0 - smoothstep( 0.75, 1.0, t ) ) );',
     '  }',
-    '  float Rl = R * ( 1.0 + 0.25 * m1 + 0.12 * m2 ), t = r / Rl;',   // rock fleck: irregular outline
-    '  if ( t >= 1.0 ) return vec2( 0.0 );',
-    '  return vec2( P1.x * ( 1.0 - t * t ) * R, P2.w * ( 1.0 - smoothstep( 0.75, 1.0, t ) ) );',
+    '  return res;',
     '}',
     // one candidate feature per cell of size C (probability pr, radius rmin..rmax, more small than large) on a lattice
     // rotated and offset per class (seed), position jittered inside the cell; kind 0 = craterlet, 1 = rock fleck.

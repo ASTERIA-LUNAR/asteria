@@ -2079,7 +2079,7 @@
     ['siteCard', '<b>2. Three status tiles.</b> <span class="c-sun">Sunlight</span>, <span class="c-earth">Earth link</span> and <span class="c-both">mission status</span> at the selected time, each with a countdown to the next change.',
       [['Explain the Sunlight tile', function () { setExplain(true); var q = document.querySelector('#siteCard .qb[data-q="sun"]'); if (q) showQ(q); }]]],
     ['mapPanel', '<b>3. Choose your point, then Deploy 3D.</b> Click any point inside a thin blue square on the map (the 3D terrain around the sites), then press <b>Deploy: 3D terrain view</b> on the site card: the 3D view opens at your point.',
-      [['Try it: a point near Peak near Shackleton', function () { tourPoint().then(function () { var b = $('deployRow'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'center' }); }); }]]],
+      [['Try it: a point near Peak near Shackleton', function () { var at = hintI; tourPoint().then(function () { var b = $('deployRow'); if (b && b.scrollIntoView && hintI === at && !$('hint').hidden) b.scrollIntoView({ block: 'center' }); }); }]]],   // only while this step is still shown
     ['skyPanel', '<b>4. Go deeper.</b> Press play in the Sky view, switch on <b>Expert view</b> for all technical values, tap <b>?</b> for explanations, or take the <b>Tour</b>.',
       [['Play the Sky view', function () { if (!S.playing) setPlaying(true); }], ['Turn on Expert view', function () { setExpert(true); }],
        ['Show ? explanations', function () { setExplain(true); var q = document.querySelector('#skyPanel .qb[data-q="sky"]'); if (q) showQ(q); }], ['Start the Tour', function () { tourShow(0); }]]]
