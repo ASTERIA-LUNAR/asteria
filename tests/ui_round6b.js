@@ -136,6 +136,43 @@ const screenOf = (page, x, y, z) => page.evaluate(([x, y, z]) => {
     expect(`${tag} relief: display only (inspection readout, Sun direction and status identical with relief on and off; distance normalisation K = ${rOn.k})`, rOn.on && !rOn.off && rOn.same && rOn.k === 2, JSON.stringify(rOn));
     await page.evaluate(() => { AsteriaView3D.testRelief(null); AsteriaView3D.close(true); });
 
+    // ------------------------------------------------------------ Part 5: rover model and stars
+    await open3d(page, 'mons_mouton', '2026-11-25T17:53');
+    await page.evaluate(() => AsteriaView3D.testMode('rover'));
+    await page.evaluate(() => AsteriaView3D.testKey('KeyW', true)); await page.waitForTimeout(900); await page.evaluate(() => AsteriaView3D.testKey('KeyW', false));
+    await page.waitForTimeout(300);
+    const rm = await page.evaluate(() => {
+      const d = AsteriaView3D.debug(), s = AsteriaView3D.testScene(), R = AsteriaView3D.ROVER, out = [];
+      s.roverWheels.forEach((wh, k) => {
+        const a = s.roverStruts[k], half = new THREE.Vector3(0, a.scale.y / 2, 0).applyQuaternion(a.quaternion);
+        const top = new THREE.Vector3(R.wheelR + 0.17, 0, 0).applyQuaternion(wh.quaternion).add(wh.position);
+        out.push({ endToHousing: a.position.clone().add(half).distanceTo(top), spin: s.roverSpin[k].rotation.y });
+      });
+      return { model: d.roverModel, arms: out, wheels: d.rover.wheels, dist: d.rover.dist };
+    });
+    expect(`${tag} rover model: ${rm.model.triangles} triangles (${rm.model.low ? 'lower-detail version for phones / Low' : 'full detail'}; budget ${rm.model.low ? 3000 : 8000})`, rm.model.low === (vp.name === 'phone') && rm.model.triangles > 1000 && rm.model.triangles < (rm.model.low ? 3000 : 8000), JSON.stringify(rm.model));
+    expect(`${tag} rover model: each suspension arm ends at its wheel module's steering housing (worst ${Math.max(...rm.arms.map(a => a.endToHousing)).toExponential(1)} m) and the wheels turn with the distance driven (${rm.dist.toFixed(1)} m)`, rm.arms.every(a => a.endToHousing < 1e-6) && rm.arms.every(a => Math.abs(a.spin) > 0.1), JSON.stringify(rm.arms));
+    if (SHOTS) await page.screenshot({ path: path.join(OUT, `r6b_${vp.name}_rover.png`) });
+    // stars: on by default, background only
+    const st0 = await page.evaluate(() => { const d = AsteriaView3D.debug(); return { box: document.getElementById('v3dStars').checked, stars: d.stars, note: !document.getElementById('v3dStarNote').hidden }; });
+    expect(`${tag} stars: on by default (${st0.stars && st0.stars.n} catalogue stars drawn, note shown)`, st0.box && st0.stars && st0.stars.visible && st0.stars.n > 100 && st0.note, JSON.stringify(st0));
+    const calc = () => page.evaluate(() => {
+      const d = AsteriaView3D.debug(), s = AsteriaView3D.testScene(), cv = s.renderer.domElement.getBoundingClientRect();
+      const ins = AsteriaView3D.testInspect(cv.left + cv.width * 0.45, cv.top + cv.height * 0.8);
+      let casters = 0; s.stars.traverse(o => { if (o.castShadow || o.receiveShadow) casters++; });
+      return { ins: ins && [ins.h, ins.slope, ins.lat, ins.lon, ins.dist], tiles: [document.getElementById('v3dSun').textContent, document.getElementById('v3dEarth').textContent, document.getElementById('v3dSunX').textContent, document.getElementById('v3dEarthX').textContent],
+        sun: d.sunLightDir, earth: d.earthAzEl, rover: d.rover && [d.rover.h, d.rover.slope, d.rover.lat, d.rover.lon, d.rover.pitch, d.rover.roll], casters, visible: !!(d.stars && d.stars.visible) };
+    });
+    const withStars = await calc();
+    await page.click('#v3dShadows');
+    const shOn = await page.evaluate(() => { const t = AsteriaView3D.debug().instant.t; return AsteriaView3D.shadowProbe(t); });
+    await page.click('#v3dStars'); await page.waitForTimeout(150);
+    const noStars = await calc();
+    const shOff = await page.evaluate(() => { const t = AsteriaView3D.debug().instant.t; return AsteriaView3D.shadowProbe(t); });
+    await page.click('#v3dStars'); await page.click('#v3dShadows');
+    expect(`${tag} stars: background only - inspection hit and readout, status tiles, Sun/Earth directions, rover readout and the rendered shadow at the site marker are identical with stars on and off; stars cast and receive no shadows`, withStars.visible && !noStars.visible && withStars.casters === 0 && JSON.stringify([withStars.ins, withStars.tiles, withStars.sun, withStars.earth, withStars.rover]) === JSON.stringify([noStars.ins, noStars.tiles, noStars.sun, noStars.earth, noStars.rover]) && shOn.renderedLit === shOff.renderedLit && shOn.validatedSunUp === shOff.validatedSunUp, JSON.stringify({ a: withStars.ins, b: noStars.ins, lit: [shOn.renderedLit, shOff.renderedLit] }));
+    await page.evaluate(() => AsteriaView3D.close(true));
+
     expect(`${tag} no console errors or warnings`, errors.length === 0, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }
