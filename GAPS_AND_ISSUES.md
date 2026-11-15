@@ -371,3 +371,9 @@ The pre-publication scan of all tracked files and the full history of master and
 * **JPL Horizons "Inquiries" contact line in `tests/horizons_cache/`.** Every cached Horizons response carries the public institutional contact line that JPL includes in all Horizons output. The files are kept unchanged because they are validation evidence.
 
 Nothing else turned up: no API keys or tokens, and no email addresses other than the noreply commit identity and the Astronomy Engine licence line.
+
+## 20. Prompt 10: Historical Capsule merged into master
+
+* Branch `capsule` (commits `7b4e7af`, `93d04a9`) was merged into master with a normal merge commit. There were no conflicts: the Prompt 8 favicon link, .nojekyll, README links and section 19 are all kept next to the capsule's nav button, loader and docs.
+* Re-run on master after the merge, one at a time: ui_capsule (laptop, phone, reduced motion), ui_check, ui_round6h, ui_round6d, ui_scroll and validate. All passed with no console errors.
+* **The 3D suites were not re-run for this merge** (view3d_test, accuracy3d, shading_consistency, ui_seams, perf3d, perf_modes, tile_edge) because the capsule does not touch the 3D code: it adds js/capsule.js, CSS, one nav button and its lazy loader in index.html, docs and tests only.
