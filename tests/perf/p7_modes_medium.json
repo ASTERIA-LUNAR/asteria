@@ -1,0 +1,146 @@
+[
+ {
+  "site": "im1",
+  "quality": "medium",
+  "fps": 60.56093323405312,
+  "rafFps": 60.56093323405312,
+  "renderMs": 3.1100000003973642,
+  "mode": "walk",
+  "want": "walk"
+ },
+ {
+  "site": "im1",
+  "quality": "medium",
+  "fps": 60.41843511259797,
+  "rafFps": 60.41843511259797,
+  "renderMs": 5.716666666666667,
+  "mode": "rover",
+  "want": "rover"
+ },
+ {
+  "site": "im2",
+  "quality": "medium",
+  "fps": 60.18104048524881,
+  "rafFps": 60.18104048524881,
+  "renderMs": 3.3033333331346513,
+  "mode": "walk",
+  "want": "walk"
+ },
+ {
+  "site": "im2",
+  "quality": "medium",
+  "fps": 60.43352312456296,
+  "rafFps": 60.43352312456296,
+  "renderMs": 5.490000000596046,
+  "mode": "rover",
+  "want": "rover"
+ },
+ {
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "fps": 60.03770963544923,
+  "rafFps": 60.03770963544923,
+  "renderMs": 3.85,
+  "mode": "walk",
+  "want": "walk"
+ },
+ {
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "fps": 60.22597182764571,
+  "rafFps": 60.22597182764571,
+  "renderMs": 7.080000000198682,
+  "mode": "rover",
+  "want": "rover"
+ },
+ {
+  "site": "peak_shackleton_lw",
+  "quality": "medium",
+  "fps": 60.81451572630979,
+  "rafFps": 60.81451572630979,
+  "renderMs": 1.95,
+  "mode": "walk",
+  "want": "walk"
+ },
+ {
+  "site": "peak_shackleton_lw",
+  "quality": "medium",
+  "fps": 60.5068690173284,
+  "rafFps": 60.5068690173284,
+  "renderMs": 3.8933333337306975,
+  "mode": "rover",
+  "want": "rover"
+ },
+ {
+  "site": "nobile_rim2_dm2",
+  "quality": "medium",
+  "fps": 60.52788251637234,
+  "rafFps": 60.52788251637234,
+  "renderMs": 2.373333332935969,
+  "mode": "walk",
+  "want": "walk"
+ },
+ {
+  "site": "nobile_rim2_dm2",
+  "quality": "medium",
+  "fps": 60.466743290469424,
+  "rafFps": 60.466743290469424,
+  "renderMs": 4.2,
+  "mode": "rover",
+  "want": "rover"
+ },
+ {
+  "site": "mons_mouton",
+  "quality": "medium",
+  "fps": 60.42748701486173,
+  "rafFps": 60.42748701486173,
+  "renderMs": 2.3866666664679843,
+  "mode": "walk",
+  "want": "walk"
+ },
+ {
+  "site": "mons_mouton",
+  "quality": "medium",
+  "fps": 60.46674329100983,
+  "rafFps": 60.46674329100983,
+  "renderMs": 4.55,
+  "mode": "rover",
+  "want": "rover"
+ },
+ {
+  "site": "mons_malapert",
+  "quality": "medium",
+  "fps": 60.50686901714958,
+  "rafFps": 60.50686901714958,
+  "renderMs": 1.4533333331346512,
+  "mode": "walk",
+  "want": "walk"
+ },
+ {
+  "site": "mons_malapert",
+  "quality": "medium",
+  "fps": 60.35815832721158,
+  "rafFps": 60.35815832721158,
+  "renderMs": 2.8066666662693023,
+  "mode": "rover",
+  "want": "rover"
+ },
+ {
+  "site": "shackleton_centre",
+  "quality": "medium",
+  "fps": 60.09137862516984,
+  "rafFps": 60.09137862516984,
+  "renderMs": 3.8,
+  "mode": "walk",
+  "want": "walk"
+ },
+ {
+  "site": "shackleton_centre",
+  "quality": "medium",
+  "fps": 60.25296285176905,
+  "rafFps": 60.25296285176905,
+  "renderMs": 2.7633333335320156,
+  "mode": "rover",
+  "want": "rover"
+ }
+]

@@ -1,0 +1,840 @@
+[
+ {
+  "viewport": "laptop",
+  "site": "im1",
+  "quality": "low",
+  "firstFrameMs": 610,
+  "refinedMs": 1128,
+  "fps": 60,
+  "renderMs": 1.2,
+  "vertices": 5929,
+  "extVertices": 40401,
+  "firstFramePollMs": 600,
+  "tileFinalMs": 600,
+  "fullTerrainMs": 652,
+  "layerSteps": [
+   {
+    "ms": 155,
+    "layers": ""
+   },
+   {
+    "ms": 652,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 10,
+  "gpuTextures": 2,
+  "drawCalls": 10,
+  "triangles": 89992,
+  "layers": [
+   "tile-skirt:610",
+   "ringA:40401"
+  ],
+  "shadowMap": 1024,
+  "shadowTexel_m": 7.4
+ },
+ {
+  "viewport": "laptop",
+  "site": "im1",
+  "quality": "medium",
+  "firstFrameMs": 1767,
+  "refinedMs": 1771,
+  "fps": 60,
+  "renderMs": 2.3,
+  "vertices": 5929,
+  "extVertices": 160801,
+  "firstFramePollMs": 713,
+  "tileFinalMs": 713,
+  "fullTerrainMs": 713,
+  "layerSteps": [
+   {
+    "ms": 155,
+    "layers": ""
+   },
+   {
+    "ms": 713,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 11,
+  "gpuTextures": 3,
+  "drawCalls": 11,
+  "triangles": 321328,
+  "layers": [
+   "tile-skirt:610",
+   "ringA:160801"
+  ],
+  "shadowMap": 2048,
+  "shadowTexel_m": 19.4
+ },
+ {
+  "viewport": "laptop",
+  "site": "im1",
+  "quality": "high",
+  "firstFrameMs": 184,
+  "refinedMs": 451,
+  "fps": 60,
+  "renderMs": 1.4,
+  "vertices": 5929,
+  "extVertices": 411802,
+  "firstFramePollMs": 180,
+  "tileFinalMs": 180,
+  "fullTerrainMs": 368,
+  "layerSteps": [
+   {
+    "ms": 150,
+    "layers": ""
+   },
+   {
+    "ms": 368,
+    "layers": "tile-skirt,ringA,ringA-skirt,ringB"
+   }
+  ],
+  "gpuGeometries": 13,
+  "gpuTextures": 4,
+  "drawCalls": 13,
+  "triangles": 744528,
+  "layers": [
+   "tile-skirt:610",
+   "ringA:160801",
+   "ringA-skirt:3202",
+   "ringB:251001"
+  ],
+  "shadowMap": 4096,
+  "shadowTexel_m": 9.7
+ },
+ {
+  "viewport": "laptop",
+  "site": "im2",
+  "quality": "low",
+  "firstFrameMs": 285,
+  "refinedMs": 399,
+  "fps": 60,
+  "renderMs": 1.1,
+  "vertices": 22801,
+  "extVertices": 25921,
+  "firstFramePollMs": 253,
+  "tileFinalMs": 253,
+  "fullTerrainMs": 353,
+  "layerSteps": [
+   {
+    "ms": 157,
+    "layers": ""
+   },
+   {
+    "ms": 353,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 10,
+  "gpuTextures": 2,
+  "drawCalls": 10,
+  "triangles": 96320,
+  "layers": [
+   "tile-skirt:1202",
+   "ringA:25921"
+  ],
+  "shadowMap": 1024,
+  "shadowTexel_m": 6.9
+ },
+ {
+  "viewport": "laptop",
+  "site": "im2",
+  "quality": "medium",
+  "firstFrameMs": 499,
+  "refinedMs": 511,
+  "fps": 60,
+  "renderMs": 2.2,
+  "vertices": 90601,
+  "extVertices": 103041,
+  "firstFramePollMs": 410,
+  "tileFinalMs": 410,
+  "fullTerrainMs": 410,
+  "layerSteps": [
+   {
+    "ms": 172,
+    "layers": ""
+   },
+   {
+    "ms": 410,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 11,
+  "gpuTextures": 3,
+  "drawCalls": 11,
+  "triangles": 380720,
+  "layers": [
+   "tile-skirt:2402",
+   "ringA:103041"
+  ],
+  "shadowMap": 2048,
+  "shadowTexel_m": 18.5
+ },
+ {
+  "viewport": "laptop",
+  "site": "im2",
+  "quality": "high",
+  "firstFrameMs": 363,
+  "refinedMs": 658,
+  "fps": 60,
+  "renderMs": 1.6,
+  "vertices": 90601,
+  "extVertices": 263842,
+  "firstFramePollMs": 306,
+  "tileFinalMs": 306,
+  "fullTerrainMs": 597,
+  "layerSteps": [
+   {
+    "ms": 169,
+    "layers": ""
+   },
+   {
+    "ms": 597,
+    "layers": "tile-skirt,ringA,ringA-skirt,ringB"
+   }
+  ],
+  "gpuGeometries": 13,
+  "gpuTextures": 4,
+  "drawCalls": 13,
+  "triangles": 652080,
+  "layers": [
+   "tile-skirt:2402",
+   "ringA:103041",
+   "ringA-skirt:2562",
+   "ringB:160801"
+  ],
+  "shadowMap": 4096,
+  "shadowTexel_m": 9.3
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton",
+  "quality": "low",
+  "firstFrameMs": 251,
+  "refinedMs": 358,
+  "fps": 60,
+  "renderMs": 0.9,
+  "vertices": 22801,
+  "extVertices": 25921,
+  "firstFramePollMs": 222,
+  "tileFinalMs": 251,
+  "fullTerrainMs": 323,
+  "layerSteps": [
+   {
+    "ms": 164,
+    "layers": ""
+   },
+   {
+    "ms": 323,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 10,
+  "gpuTextures": 2,
+  "drawCalls": 10,
+  "triangles": 96320,
+  "layers": [
+   "tile-skirt:1202",
+   "ringA:25921"
+  ],
+  "shadowMap": 1024,
+  "shadowTexel_m": 7.3
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton",
+  "quality": "medium",
+  "firstFrameMs": 301,
+  "refinedMs": 652,
+  "fps": 60,
+  "renderMs": 3,
+  "vertices": 90601,
+  "extVertices": 103041,
+  "firstFramePollMs": 235,
+  "tileFinalMs": 301,
+  "fullTerrainMs": 576,
+  "layerSteps": [
+   {
+    "ms": 175,
+    "layers": ""
+   },
+   {
+    "ms": 576,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 11,
+  "gpuTextures": 3,
+  "drawCalls": 11,
+  "triangles": 380720,
+  "layers": [
+   "tile-skirt:2402",
+   "ringA:103041"
+  ],
+  "shadowMap": 2048,
+  "shadowTexel_m": 19.5
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton",
+  "quality": "high",
+  "firstFrameMs": 315,
+  "refinedMs": 922,
+  "fps": 59,
+  "renderMs": 2,
+  "vertices": 90601,
+  "extVertices": 732483,
+  "firstFramePollMs": 259,
+  "tileFinalMs": 259,
+  "fullTerrainMs": 808,
+  "layerSteps": [
+   {
+    "ms": 159,
+    "layers": ""
+   },
+   {
+    "ms": 808,
+    "layers": "patch5m,patch5m-skirt,tile-skirt,ringA,ringA-skirt,ringB"
+   }
+  ],
+  "gpuGeometries": 15,
+  "gpuTextures": 6,
+  "drawCalls": 15,
+  "triangles": 1550640,
+  "layers": [
+   "patch5m:160801",
+   "patch5m-skirt:3202",
+   "tile-skirt:2402",
+   "ringA:410881",
+   "ringA-skirt:5122",
+   "ringB:160801"
+  ],
+  "shadowMap": 4096,
+  "shadowTexel_m": 9.8
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton_lw",
+  "quality": "low",
+  "firstFrameMs": 279,
+  "refinedMs": 347,
+  "fps": 60,
+  "renderMs": 0.8,
+  "vertices": 22801,
+  "extVertices": 25921,
+  "firstFramePollMs": 237,
+  "tileFinalMs": 237,
+  "fullTerrainMs": 309,
+  "layerSteps": [
+   {
+    "ms": 156,
+    "layers": ""
+   },
+   {
+    "ms": 309,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 10,
+  "gpuTextures": 2,
+  "drawCalls": 10,
+  "triangles": 96320,
+  "layers": [
+   "tile-skirt:1202",
+   "ringA:25921"
+  ],
+  "shadowMap": 1024,
+  "shadowTexel_m": 7.3
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton_lw",
+  "quality": "medium",
+  "firstFrameMs": 281,
+  "refinedMs": 610,
+  "fps": 60,
+  "renderMs": 3.2,
+  "vertices": 90601,
+  "extVertices": 103041,
+  "firstFramePollMs": 209,
+  "tileFinalMs": 281,
+  "fullTerrainMs": 553,
+  "layerSteps": [
+   {
+    "ms": 161,
+    "layers": ""
+   },
+   {
+    "ms": 553,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 11,
+  "gpuTextures": 3,
+  "drawCalls": 11,
+  "triangles": 380720,
+  "layers": [
+   "tile-skirt:2402",
+   "ringA:103041"
+  ],
+  "shadowMap": 2048,
+  "shadowTexel_m": 19.5
+ },
+ {
+  "viewport": "laptop",
+  "site": "peak_shackleton_lw",
+  "quality": "high",
+  "firstFrameMs": 329,
+  "refinedMs": 1022,
+  "fps": 60,
+  "renderMs": 2,
+  "vertices": 90601,
+  "extVertices": 732483,
+  "firstFramePollMs": 270,
+  "tileFinalMs": 329,
+  "fullTerrainMs": 934,
+  "layerSteps": [
+   {
+    "ms": 191,
+    "layers": ""
+   },
+   {
+    "ms": 934,
+    "layers": "patch5m,patch5m-skirt,tile-skirt,ringA,ringA-skirt,ringB"
+   }
+  ],
+  "gpuGeometries": 15,
+  "gpuTextures": 6,
+  "drawCalls": 15,
+  "triangles": 1550640,
+  "layers": [
+   "patch5m:160801",
+   "patch5m-skirt:3202",
+   "tile-skirt:2402",
+   "ringA:410881",
+   "ringA-skirt:5122",
+   "ringB:160801"
+  ],
+  "shadowMap": 4096,
+  "shadowTexel_m": 9.7
+ },
+ {
+  "viewport": "laptop",
+  "site": "nobile_rim2_dm2",
+  "quality": "low",
+  "firstFrameMs": 202,
+  "refinedMs": 265,
+  "fps": 60,
+  "renderMs": 1.2,
+  "vertices": 5929,
+  "extVertices": 40401,
+  "firstFramePollMs": 195,
+  "tileFinalMs": 195,
+  "fullTerrainMs": 237,
+  "layerSteps": [
+   {
+    "ms": 142,
+    "layers": ""
+   },
+   {
+    "ms": 237,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 10,
+  "gpuTextures": 2,
+  "drawCalls": 10,
+  "triangles": 89992,
+  "layers": [
+   "tile-skirt:610",
+   "ringA:40401"
+  ],
+  "shadowMap": 1024,
+  "shadowTexel_m": 8.4
+ },
+ {
+  "viewport": "laptop",
+  "site": "nobile_rim2_dm2",
+  "quality": "medium",
+  "firstFrameMs": 351,
+  "refinedMs": 355,
+  "fps": 60,
+  "renderMs": 1.1,
+  "vertices": 5929,
+  "extVertices": 160801,
+  "firstFramePollMs": 262,
+  "tileFinalMs": 262,
+  "fullTerrainMs": 262,
+  "layerSteps": [
+   {
+    "ms": 102,
+    "layers": ""
+   },
+   {
+    "ms": 262,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 11,
+  "gpuTextures": 3,
+  "drawCalls": 11,
+  "triangles": 321328,
+  "layers": [
+   "tile-skirt:610",
+   "ringA:160801"
+  ],
+  "shadowMap": 2048,
+  "shadowTexel_m": 22.1
+ },
+ {
+  "viewport": "laptop",
+  "site": "nobile_rim2_dm2",
+  "quality": "high",
+  "firstFrameMs": 237,
+  "refinedMs": 620,
+  "fps": 60,
+  "renderMs": 3.2,
+  "vertices": 5929,
+  "extVertices": 321602,
+  "firstFramePollMs": 226,
+  "tileFinalMs": 226,
+  "fullTerrainMs": 492,
+  "layerSteps": [
+   {
+    "ms": 171,
+    "layers": ""
+   },
+   {
+    "ms": 492,
+    "layers": "tile-skirt,ringA,ringA-skirt,ringB"
+   }
+  ],
+  "gpuGeometries": 13,
+  "gpuTextures": 4,
+  "drawCalls": 13,
+  "triangles": 593328,
+  "layers": [
+   "tile-skirt:610",
+   "ringA:160801",
+   "ringA-skirt:3202",
+   "ringB:160801"
+  ],
+  "shadowMap": 4096,
+  "shadowTexel_m": 11.1
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_mouton",
+  "quality": "low",
+  "firstFrameMs": 261,
+  "refinedMs": 387,
+  "fps": 60,
+  "renderMs": 0.9,
+  "vertices": 22801,
+  "extVertices": 25921,
+  "firstFramePollMs": 234,
+  "tileFinalMs": 262,
+  "fullTerrainMs": 337,
+  "layerSteps": [
+   {
+    "ms": 181,
+    "layers": ""
+   },
+   {
+    "ms": 337,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 10,
+  "gpuTextures": 2,
+  "drawCalls": 10,
+  "triangles": 96320,
+  "layers": [
+   "tile-skirt:1202",
+   "ringA:25921"
+  ],
+  "shadowMap": 1024,
+  "shadowTexel_m": 7.1
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_mouton",
+  "quality": "medium",
+  "firstFrameMs": 405,
+  "refinedMs": 415,
+  "fps": 60,
+  "renderMs": 2.6,
+  "vertices": 90601,
+  "extVertices": 103041,
+  "firstFramePollMs": 328,
+  "tileFinalMs": 328,
+  "fullTerrainMs": 328,
+  "layerSteps": [
+   {
+    "ms": 132,
+    "layers": ""
+   },
+   {
+    "ms": 328,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 11,
+  "gpuTextures": 3,
+  "drawCalls": 11,
+  "triangles": 380720,
+  "layers": [
+   "tile-skirt:2402",
+   "ringA:103041"
+  ],
+  "shadowMap": 2048,
+  "shadowTexel_m": 18.9
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_mouton",
+  "quality": "high",
+  "firstFrameMs": 262,
+  "refinedMs": 669,
+  "fps": 60,
+  "renderMs": 3.3,
+  "vertices": 90601,
+  "extVertices": 263842,
+  "firstFramePollMs": 188,
+  "tileFinalMs": 262,
+  "fullTerrainMs": 583,
+  "layerSteps": [
+   {
+    "ms": 150,
+    "layers": ""
+   },
+   {
+    "ms": 583,
+    "layers": "tile-skirt,ringA,ringA-skirt,ringB"
+   }
+  ],
+  "gpuGeometries": 13,
+  "gpuTextures": 4,
+  "drawCalls": 13,
+  "triangles": 652080,
+  "layers": [
+   "tile-skirt:2402",
+   "ringA:103041",
+   "ringA-skirt:2562",
+   "ringB:160801"
+  ],
+  "shadowMap": 4096,
+  "shadowTexel_m": 9.4
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_malapert",
+  "quality": "low",
+  "firstFrameMs": 143,
+  "refinedMs": 194,
+  "fps": 60,
+  "renderMs": 0.9,
+  "vertices": 22801,
+  "extVertices": 25921,
+  "firstFramePollMs": 125,
+  "tileFinalMs": 125,
+  "fullTerrainMs": 175,
+  "layerSteps": [
+   {
+    "ms": 88,
+    "layers": ""
+   },
+   {
+    "ms": 175,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 10,
+  "gpuTextures": 2,
+  "drawCalls": 10,
+  "triangles": 96320,
+  "layers": [
+   "tile-skirt:1202",
+   "ringA:25921"
+  ],
+  "shadowMap": 1024,
+  "shadowTexel_m": 7.5
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_malapert",
+  "quality": "medium",
+  "firstFrameMs": 231,
+  "refinedMs": 471,
+  "fps": 60,
+  "renderMs": 3.2,
+  "vertices": 90601,
+  "extVertices": 103041,
+  "firstFramePollMs": 203,
+  "tileFinalMs": 203,
+  "fullTerrainMs": 393,
+  "layerSteps": [
+   {
+    "ms": 132,
+    "layers": ""
+   },
+   {
+    "ms": 393,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 11,
+  "gpuTextures": 3,
+  "drawCalls": 11,
+  "triangles": 380720,
+  "layers": [
+   "tile-skirt:2402",
+   "ringA:103041"
+  ],
+  "shadowMap": 2048,
+  "shadowTexel_m": 19.9
+ },
+ {
+  "viewport": "laptop",
+  "site": "mons_malapert",
+  "quality": "high",
+  "firstFrameMs": 255,
+  "refinedMs": 737,
+  "fps": 60,
+  "renderMs": 1.9,
+  "vertices": 90601,
+  "extVertices": 571682,
+  "firstFramePollMs": 212,
+  "tileFinalMs": 255,
+  "fullTerrainMs": 654,
+  "layerSteps": [
+   {
+    "ms": 164,
+    "layers": ""
+   },
+   {
+    "ms": 654,
+    "layers": "tile-skirt,ringA,ringA-skirt,ringB"
+   }
+  ],
+  "gpuGeometries": 13,
+  "gpuTextures": 4,
+  "drawCalls": 13,
+  "triangles": 1247440,
+  "layers": [
+   "tile-skirt:2402",
+   "ringA:410881",
+   "ringA-skirt:5122",
+   "ringB:160801"
+  ],
+  "shadowMap": 4096,
+  "shadowTexel_m": 10
+ },
+ {
+  "viewport": "laptop",
+  "site": "shackleton_centre",
+  "quality": "low",
+  "firstFrameMs": 228,
+  "refinedMs": 304,
+  "fps": 60,
+  "renderMs": 0.9,
+  "vertices": 22801,
+  "extVertices": 25921,
+  "firstFramePollMs": 205,
+  "tileFinalMs": 228,
+  "fullTerrainMs": 282,
+  "layerSteps": [
+   {
+    "ms": 166,
+    "layers": ""
+   },
+   {
+    "ms": 282,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 10,
+  "gpuTextures": 2,
+  "drawCalls": 10,
+  "triangles": 96320,
+  "layers": [
+   "tile-skirt:1202",
+   "ringA:25921"
+  ],
+  "shadowMap": 1024,
+  "shadowTexel_m": 7.6
+ },
+ {
+  "viewport": "laptop",
+  "site": "shackleton_centre",
+  "quality": "medium",
+  "firstFrameMs": 294,
+  "refinedMs": 515,
+  "fps": 60,
+  "renderMs": 4.2,
+  "vertices": 90601,
+  "extVertices": 103041,
+  "firstFramePollMs": 271,
+  "tileFinalMs": 271,
+  "fullTerrainMs": 458,
+  "layerSteps": [
+   {
+    "ms": 178,
+    "layers": ""
+   },
+   {
+    "ms": 458,
+    "layers": "tile-skirt,ringA"
+   }
+  ],
+  "gpuGeometries": 11,
+  "gpuTextures": 3,
+  "drawCalls": 11,
+  "triangles": 380720,
+  "layers": [
+   "tile-skirt:2402",
+   "ringA:103041"
+  ],
+  "shadowMap": 2048,
+  "shadowTexel_m": 20.4
+ },
+ {
+  "viewport": "laptop",
+  "site": "shackleton_centre",
+  "quality": "high",
+  "firstFrameMs": 289,
+  "refinedMs": 957,
+  "fps": 60,
+  "renderMs": 2.1,
+  "vertices": 90601,
+  "extVertices": 732483,
+  "firstFramePollMs": 250,
+  "tileFinalMs": 250,
+  "fullTerrainMs": 845,
+  "layerSteps": [
+   {
+    "ms": 164,
+    "layers": ""
+   },
+   {
+    "ms": 845,
+    "layers": "patch5m,patch5m-skirt,tile-skirt,ringA,ringA-skirt,ringB"
+   }
+  ],
+  "gpuGeometries": 15,
+  "gpuTextures": 6,
+  "drawCalls": 15,
+  "triangles": 1550640,
+  "layers": [
+   "patch5m:160801",
+   "patch5m-skirt:3202",
+   "tile-skirt:2402",
+   "ringA:410881",
+   "ringA-skirt:5122",
+   "ringB:160801"
+  ],
+  "shadowMap": 4096,
+  "shadowTexel_m": 10.2
+ }
+]

@@ -995,3 +995,33 @@ Screenshots and result files rewritten by ui_round6e / ui_round6f were restored.
 * Site inventory: report only; no site, point or region added, removed or changed.
 
 **Round 6H hand-over**: `data/version.js` stamped. No merge, no tag, no push; `master` and `v1-stable` unchanged.
+
+## Prompt 7: "About this rover" button, performance check before merging round 6
+
+**Step 0**: a compact "About this rover" button in the 3D view, top-left directly below the "Vertical scale ... (true scale)" badge, shown only in Rover mode. It opens/closes the existing "About this rover" section of the panel (one copy of the text and sources; if the panel is hidden it is shown first; the panel scrolls to the section). The message column (button, Sun-hidden banner, tip) is placed below the badge also when the badge text wraps; the button is an obstacle for the 3D label layout. `tests/ui_round7.js` (1366 × 768, 1440 × 900, phone 390 × 844; Peak near Shackleton and Connecting Ridge): 32 checks per viewport pass, no console errors. Screenshots `docs/ui_round7`. Seen while checking, not changed: on the phone the off-screen "Earth" edge label can sit on the shadow note at the bottom (the note is not a label-layout obstacle; same before this step).
+
+**Performance** (laptop 1440 × 900, `node tests/perf3d.js --quality low,medium,high`, 8 sites, run twice in a row; raw `tests/perf/p7_run1.json`, `p7_run2.json` and `.log`):
+
+| Quality | Run | Orbit FPS (min-max) | Render ms (avg) | Deploy → first frame ms (avg; range) | → full terrain ms (avg) |
+|---|---|---|---|---|---|
+| Low | round 6 final | 60 | 0.9 | 237 (179-371) | 278 |
+| Low | round 6E final | 60 | 1.4 | 321 (220-689) | 378 |
+| Low | round 6F | 60 | 0.9 | 263 (155-659) | 323 |
+| Low | prompt 7 run 1 (cold) | 60 | 1.0 | 282 (143-610) | 334 |
+| Low | prompt 7 run 2 | 59-60 | 1.1 | 275 (155-590) | 324 |
+| Medium | round 6 final | 60 | 3.5 | 334 (243-484) | 433 |
+| Medium | round 6E final | 60 | 1.8 | 510 (310-815) | 653 |
+| Medium | round 6F | 51-60 | 1.6 | 382 (207-678) | 466 |
+| Medium | prompt 7 run 1 (cold) | 60 | 2.7 | 516 (231-1,767) | 462 |
+| Medium | prompt 7 run 2 | 60 | 2.1 | 407 (216-743) | 519 |
+| High | round 6 final | 59-60 | 2.9 | 243 (174-317) | 561 |
+| High | round 6E final | 59-60 | 2.1 | 353 (223-524) | 998 |
+| High | round 6F | 59-60 | 1.6 | 261 (185-331) | 620 |
+| High | prompt 7 run 1 (cold) | 59-60 | 2.2 | 279 (184-363) | 660 |
+| High | prompt 7 run 2 | 59-60 | 2.1 | 247 (172-300) | 632 |
+
+The 1,767 ms in run 1 is im1 Medium, the first shader compile of a fresh browser (known to vary on this machine: round 6F 0.6-1.8 s); below the 2.5 s acceptance. In run 2 every Medium first frame is below 1.5 s (max 743 ms, im1) and orbiting is 59-60 frames/s at every site and level.
+
+**Walk and Rover at Medium** (`node tests/perf_modes.js`, new; frames rendered by the 3D view while driving forward for 2 s, plus the GPU-synced render time; raw `tests/perf/p7_modes_medium.json` / `.log`): 60.0-60.8 frames/s in Walk and 60.2-60.5 in Rover at all 8 sites; 1.5-3.9 ms per render in Walk, 2.8-7.1 ms in Rover. One earlier attempt of this script timed out waiting for the first 3D view to open (im1, 90 s); the immediate re-run passed and is the one reported.
+
+Gate met: merged into master.
