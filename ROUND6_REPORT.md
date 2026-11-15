@@ -1109,3 +1109,75 @@ The UI suites other than ui_round5 and ui_round7 ran while the optional 3D-label
 Limits: Edge headless on Windows, phones emulated; not checked with a real touchpad, a real phone, Firefox or Safari.
 
 Merged into master (fast-forward) and tagged `v2-candidate-b`; `v1-stable` and `v2-candidate` unchanged; nothing pushed.
+
+## Prompt 7D: dark "crack" seams between terrain layers in Walk/Rover (display fix) + map popup contrast
+
+Branch `seamfix` from `master` (v2-candidate-b, 41426c8). Not changed: `js/engine.js`, DEMs, terrain files, stored heights, top-surface vertex heights, slopes, inspection readouts, rover pose, pick rays, status tiles, horizons, Sun/Earth directions, the AI disclosure, the Prompt 7C scroll/wheel behaviour. Shortened at the end because of the deadline (see "Tests run").
+
+### Cause (reproduced at the owner's point: Walk at -88.8095, 125.7699 E, High, facing the 5 m patch's east edge at e = +1000 m)
+1. **Real gaps at the T-junctions.** Each coarser layer takes its hole-edge heights from the finer layer, but only at its own nodes. Between two coarse edge nodes the coarse edge is straight, while the finer edge follows its own grid (3 extra vertices per 20 m on the 5 m patch). That leaves a thin vertical slit. Measured on the pixels of the dark line: luminance **0**, and a raycast through them hits **no mesh**.
+2. **The skirts did not hide the slits.** They were single-sided (from one side you saw the black sky through them). They hung *below* the ground, so with shadows on they always fell in the terrain's own shadow, and their normal-map coordinates were all (0, 0). Seen from the right angle they showed as a black line with a bright notch at the skyline.
+3. **Border smoothing (secondary).** The smoothed DEM normal (±4 cells) of a layer's outermost vertices used heights linearly extrapolated beyond the grid. The outer bands of the 5 m patch and the tile blend fully to that normal at the edge.
+
+Height step along each edge (true heights; "slit" = finer edge vertex minus the straight coarse edge; "product" = finer height minus the coarser product's own DEM height):
+
+| Edge | Grids | slit sd / p95 / max (m) | product rms / max (m) |
+|---|---|---|---|
+| 5 m patch / tile (High) | 5 m / 20 m | 0.34-0.46 / 0.63-0.95 / 3.2-3.8 | 0.58-0.74 / 3.8-7.1 |
+| tile / ring A (High) | 20 m / 50-100 m | 0.60-0.95 / 1.3-1.9 / 3.2-6.0 | 0.25-1.2 / 1.9-4.6 |
+| tile / ring A (Low) | 40 m / 200 m | 1.9-2.2 / 3.7-4.5 / 6.8-10.6 | 1.2-1.9 / 4.6-9.1 |
+| ring A / ring B (High) | 50-100 m / 200 m | 2.0-2.4 / 3.9-4.8 / 13-35 | 0.07-1.6 / 0.1-12 |
+
+### Fix (display only)
+* **Zipper strips** (`M.buildZipper`, layers `patch5m-seam`, `tile-seam`, `ringA-seam`). For each coarse edge segment, a fan of triangles over the finer edge vertices between its two ends fills exactly the slit. All vertices are copies of the two meshes' own edge vertices, so no height is new or moved. The strip lies in the vertical plane of the edge (zero area seen from above). It uses the finer layer's own material instance (so the finer layer wins), with its normals, normal-map coordinates and heights, drawn in both windings. It receives shadows like the finer ground and casts none, so the shadow-casting terrain is unchanged.
+* **Skirts** are built from the layer's own mesh: the same top vertices, normals, smoothed normals, normal-map/AO coordinates, heights and slopes. Each uses a skirt variant of its layer's material: the same program and textures, with `uSkirt = 1`. The Sun's shadow is looked up at the skirt's top edge (`aTop`), and the skirt receives shadows exactly when its layer does. Skirts are drawn in both windings and get a small log-depth bias (+2e-6, about 3 cm at 1 km) so they never z-fight with the zipper or the ground.
+* **Border smoothed normal:** the ±4-cell samples are clamped to the layer's own grid (one-sided at the border), with no extrapolation. Vertex normals and slopes are unchanged.
+
+### Measurements (`tests/ui_seams.js`; Walk along / across each edge, Rover, a low Orbit view; shadows off and on; 5 sites x Low/Medium/High)
+The band is the 3 pixels on the projected edge, compared with the ground 5-12 px to either side. Points are skipped where:
+* the edge is hidden behind nearer ground (an edge point behind a gap is kept: that is a crack);
+* the sides are not even ground at about the edge point's distance;
+* the edge point's own ground faces away from the Sun (cos i < 0.05).
+
+| | Build before the fix (41426c8) | Fixed build |
+|---|---|---|
+| tile / ring A (26 site/quality/shadow groups) | p05 0.39-0.76, black 0.2-13.6 %, single dark pixels 6.5-42 % | p05 0.89-0.97, black 0 %, dark pixels 0 % |
+| 5 m patch / tile (High, 3 sites) | p05 0.59-0.68, black 0.4-4.4 %, dark pixels 7.9-13.5 % | p05 0.94-0.95, black 0 %, dark pixels 0 % |
+| ring A / ring B (low Orbit) | p05 0.69-0.92, dark pixels 5-24 % | p05 0.98-1.05, dark pixels 0 % |
+| owner's view (High) | p05 0.66, dark pixels 12.5 % | p05 0.85, dark pixels 0 % |
+
+Ordinary ground scored the same way on parallel control lines gives p05 0.71-0.99. The fixed-build figures come from the full 5-site run before the final cos i filter and border-normal fix, and from the final run at the owner's site.
+
+Pass rule (from these measurements):
+* median band within 15 % of the darker side and of the brighter side;
+* p05 >= 0.80;
+* black (band < half the darker side) <= 0.5 %;
+* single dark pixels <= 2 %.
+
+Every edge combination of the build before the fix fails this rule; every one of the fixed build passes.
+
+* **Unchanged** against `docs/ground_detail/seams/invariants_before.json` (recorded on 41426c8), 18 site/quality cases, 0 differences in the full run:
+  * vertex position and height hashes of every top surface;
+  * 459 inspection readouts, plus the owner's inspected point (-88.8164, 126.0967 E: 1535.26 m, 7.08 deg, 5 m patch);
+  * rover pose and readout, status tiles, Sun/Earth directions.
+* **Orbit** (60 / 9 / 3 km, 2 sites x 3 qualities): changed pixels (|dL| > 6) all lie within 4 px of a layer edge.
+* **Performance** (Medium): warm first frame 72-136 ms; orbit / Walk / Rover 60 fps.
+* Screenshots: `docs/ground_detail/seams/` (before_* = 41426c8, after_*, including the owner's view and close-ups).
+
+### Map popup "N sites close together"
+The site buttons had no text colour, so the page's `color-scheme: dark` gave them the browser's light button text on the light popup. They now have dark text: #10203a on #f2f5fa (measured 14.9:1); hover/focus #0a1628 on #d9e6f7 (measured 14.3:1), with a focus outline. New check in `tests/ui_round6h.js` (l1366, l1440, phone).
+
+### Tests run (deadline: only the essential suites, one after another, no parallel GPU runs)
+| Suite | Result |
+|---|---|
+| `ui_seams --sites peak_shackleton --quality medium,high --before <41426c8>` (owner's view, phone, Orbit diff, performance) | 23 pass, 0 fail: all judged seams pass; 0 differences in top-surface vertex/height hashes (78), 90 readouts + the owner's inspected point, rover, status, Sun/Earth; Orbit changes only along edges; warm Medium first frame 72 ms, orbit/Walk/Rover 60 fps; phone pass; no console errors |
+| `ui_round6h` | 105 pass, 0 fail (incl. the new popup contrast check) |
+| `ui_check` | UI CHECK PASS, 187 checks, no console errors or warnings |
+| `ui_scroll` | 265 pass, 0 fail |
+| `ui_round6e` (without `--base`) | 129 pass, 0 fail |
+| `shading_consistency --no-write` (shadows on) | 97.8 / 99.0 / 99.8 %, 0 unexplained (unchanged) |
+| `validate`, `accuracy3d`, `view3d_test` | exit 0 / ALL PASS (result files differed only in timestamps; restored) |
+
+Not re-run for 7D (deadline): ui_round5, ui_round6, 6b, 6c, 6d, 6f, 6g, ui_round7, tile_edge, perf3d, perf_modes, the Python DEM checks and the full 5-site `ui_seams` matrix with the final rules.
+
+Merged into master (fast-forward) and tagged `v2-candidate-c`; `v1-stable`, `v2-candidate`, `v2-candidate-b` unchanged; nothing pushed.

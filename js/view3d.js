@@ -654,8 +654,19 @@ window.AsteriaView3D = (function () {
     opts = opts || {};
     var mat = new THREE.MeshLambertMaterial({ color: 0x9c9a95 });
     var L = { uNMap: { value: opts.nmap || null }, uBand0: { value: opts.band0 || 0.9 }, uBandBias: { value: opts.bandBias || 0 }, uBandMix: { value: opts.bandMix || 0 }, uReliefD: { value: opts.reliefD || 20 },
-      uAOMap: { value: opts.ao || null }, uAOBand0: { value: opts.aoBand0 || 0.9 } };
-    mat.userData.uniforms = U; mat.userData.local = L; mat.userData.aoGrid = opts.aoGrid || null;
+      uAOMap: { value: opts.ao || null }, uAOBand0: { value: opts.aoBand0 || 0.9 }, uSkirt: { value: 0 } };
+    // Prompt 7D: opts.skirtOf = the layer material whose skirt this is. The skirt shares that material's per-layer
+    // uniforms (the same normal map, openness map and band settings, also when the openness map is replaced later) and
+    // its program (same defines and cache key: no extra shader compile); only uSkirt = 1 differs (Sun shadow looked up
+    // at the skirt's top edge, aTop). Drawn with a polygon offset so the ground and the zipper always win over it.
+    var P0 = opts.skirtOf;
+    if (P0) {
+      L = Object.assign({}, P0.userData.local, { uSkirt: { value: 1 } });
+      opts = P0.userData.opts;
+      mat.polygonOffset = true; mat.polygonOffsetFactor = 1; mat.polygonOffsetUnits = 4;
+      mat.userData.shared = true;
+    }
+    mat.userData.uniforms = U; mat.userData.local = L; mat.userData.aoGrid = P0 ? null : opts.aoGrid || null; mat.userData.opts = opts;
     mat.defines = {};
     if (opts.nmap) mat.defines.AS_NMAP = '';
     if (opts.ao) mat.defines.AS_AO = '';
@@ -663,8 +674,11 @@ window.AsteriaView3D = (function () {
       ['uContour', 'uSlope', 'uRelief', 'uFlat', 'uLambert', 'uReliefK', 'uAO', 'uVNorm', 'uCover', 'uCovOct', 'uCovNear', 'uCovFar', 'uCovDbg', 'uCamW', 'uCov3', 'uCovA', 'uCovB', 'uTrk', 'uTrkN'].forEach(function (k) { sh.uniforms[k] = U[k]; });
       Object.keys(L).forEach(function (k) { sh.uniforms[k] = L[k]; });
       lightsPatch(sh, U);
-      sh.vertexShader = 'attribute float aH;\nattribute float aS;\nattribute vec3 aNs;\nattribute vec2 aG;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\nvarying vec3 vW;\n' +
-        sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvH = aH; vS = aS; vNs = normalMatrix * aNs; vG = aG; vW = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;');
+      sh.vertexShader = 'attribute float aH;\nattribute float aS;\nattribute vec3 aNs;\nattribute vec2 aG;\nattribute vec3 aTop;\nuniform float uSkirt;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\nvarying vec3 vW;\n' +
+        sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvH = aH; vS = aS; vNs = normalMatrix * aNs; vG = aG; vW = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;')
+          // Prompt 7D: a skirt receives the Sun's shadow of the ground at its top edge (points below the ground are inside
+          // the terrain, i.e. always in shadow: that made the skirt a black line)
+          .replace('#include <shadowmap_vertex>', '#ifdef USE_SHADOWMAP\nif ( uSkirt > 0.5 ) worldPosition = modelMatrix * vec4( aTop, 1.0 );\n#endif\n#include <shadowmap_vertex>');
       var chunk = THREE.ShaderChunk.lights_lambert_pars_fragment, from = 'vec3 irradiance = dotNL * directLight.color;';
       if (chunk.indexOf(from) < 0) throw new Error('unexpected three.js Lambert shader');
       // Relief shading (round 5, display option, default on in Walk/Rover). Lommel-Seeliger divides cos i by
@@ -698,7 +712,7 @@ window.AsteriaView3D = (function () {
         '\t\tfloat asY = clamp( 0.8 * asDL / max( dotNL, 0.04 ), -8.0, 8.0 ), asE3 = exp( 2.0 * asY );\n' +
         '\t\tirradiance *= asAlb * ( 1.0 + 0.45 * ( asE3 - 1.0 ) / ( asE3 + 1.0 ) );\n' +
         '\t}');
-      sh.fragmentShader = 'uniform float uContour;\nuniform float uSlope;\nuniform float uRelief;\nuniform float uFlat;\nuniform float uLambert;\nuniform float uReliefK;\nuniform float uReliefD;\nuniform float uAO;\nuniform float uVNorm;\nuniform sampler2D uAOMap;\nuniform float uAOBand0;\nfloat asRelW = 1.0;\nuniform float uCover;\nuniform float uCovOct;\nuniform float uCovNear;\nuniform float uCovFar;\nuniform float uCovDbg;\nuniform vec3 uCamW;\nuniform float uCov3;\nuniform vec4 uCovA[ ' + COVER_CLASSES.length + ' ];\nuniform vec2 uCovB[ ' + COVER_CLASSES.length + ' ];\nuniform vec2 uTrk[ 64 ];\nuniform float uTrkN;\nvarying vec3 vW;\nfloat asCov = 0.0;\nfloat asAlb = 1.0;\nvec3 asDN = vec3( 0.0, 0.0, 1.0 );\n' + COVER_GLSL + 'uniform sampler2D uNMap;\nuniform float uBand0;\nuniform float uBandBias;\nuniform float uBandMix;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\n' +
+      sh.fragmentShader = 'uniform float uSkirt;\nuniform float uContour;\nuniform float uSlope;\nuniform float uRelief;\nuniform float uFlat;\nuniform float uLambert;\nuniform float uReliefK;\nuniform float uReliefD;\nuniform float uAO;\nuniform float uVNorm;\nuniform sampler2D uAOMap;\nuniform float uAOBand0;\nfloat asRelW = 1.0;\nuniform float uCover;\nuniform float uCovOct;\nuniform float uCovNear;\nuniform float uCovFar;\nuniform float uCovDbg;\nuniform vec3 uCamW;\nuniform float uCov3;\nuniform vec4 uCovA[ ' + COVER_CLASSES.length + ' ];\nuniform vec2 uCovB[ ' + COVER_CLASSES.length + ' ];\nuniform vec2 uTrk[ 64 ];\nuniform float uTrkN;\nvarying vec3 vW;\nfloat asCov = 0.0;\nfloat asAlb = 1.0;\nvec3 asDN = vec3( 0.0, 0.0, 1.0 );\n' + COVER_GLSL + 'uniform sampler2D uNMap;\nuniform float uBand0;\nuniform float uBandBias;\nuniform float uBandMix;\nvarying float vH;\nvarying float vS;\nvarying vec3 vNs;\nvarying vec2 vG;\n' +
         sh.fragmentShader
           .replace('#include <lights_lambert_pars_fragment>', chunk)
           .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' +
@@ -726,6 +740,10 @@ window.AsteriaView3D = (function () {
           // round 6C: openness shading (Walk/Rover, display only): the light reflected by the ground is scaled by
           // 1 - AO_GAIN x (1 - SVF), SVF = sky-view factor from the LOLA heights (texture value v: SVF = 0.5 + 0.5 v); faded
           // out over the layer's outer band (uAOBand0) so the 6 km tile does not end in a step
+          // Prompt 7D: skirts lose against any surface at (nearly) the same depth - the zipper in the slit and the ground at
+          // the edge - so they never z-fight (with the logarithmic depth buffer the fragment depth is written here, so the
+          // material's polygon offset would not apply): +2e-6 in log depth = 0.003 % of the distance (3 cm at 1 km)
+          .replace('#include <logdepthbuf_fragment>', '#include <logdepthbuf_fragment>\n#if defined( USE_LOGDEPTHBUF ) && defined( USE_LOGDEPTHBUF_EXT )\nif ( uSkirt > 0.5 ) gl_FragDepthEXT = min( gl_FragDepthEXT + 2e-6, 1.0 );\n#endif\n')
           .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n' +
             '#ifdef AS_AO\n' +
             'if ( uAO > 0.0 ) {\n' +
@@ -798,6 +816,7 @@ window.AsteriaView3D = (function () {
     if (P.H) { g.setAttribute('aH', new THREE.BufferAttribute(P.H, 1)); g.setAttribute('aS', new THREE.BufferAttribute(P.slope, 1)); }
     if (P.normalSmooth) g.setAttribute('aNs', new THREE.BufferAttribute(P.normalSmooth, 3));
     if (P.uv) g.setAttribute('aG', new THREE.BufferAttribute(P.uv, 2));
+    if (P.top) g.setAttribute('aTop', new THREE.BufferAttribute(P.top, 3));
     g.computeBoundingBox(); g.computeBoundingSphere();
     return g;
   }
@@ -811,13 +830,19 @@ window.AsteriaView3D = (function () {
     var THREE = s.THREE, Q = s.Q, e = s.ext;
     s.layers.forEach(function (L) {
       s.terrainGroup.remove(L.mesh); L.mesh.geometry.dispose();
-      if (L.mesh.material !== s.terrainMat) disposeTerrainMat(L.mesh.material);
+      if (L.mesh.material !== s.terrainMat && !L.mesh.userData.seam) disposeTerrainMat(L.mesh.material);
     });
     s.layers = []; s.areas = [];
     var add = function (name, P, cast, recv, mat) {
       var mesh = new THREE.Mesh(geomFrom(THREE, P), mat || s.terrainMat); mesh.castShadow = cast; mesh.receiveShadow = recv; mesh.name = name;
       s.terrainGroup.add(mesh); s.layers.push({ name: name, mesh: mesh, vertices: P.pos.length / 3, nmap: mat && mat.userData.local && mat.userData.local.uNMap.value ? mat.userData.local.uNMap.value.image.width : 0 });
       return mesh;
+    };
+    // Prompt 7D: a zipper uses its finer layer's own material instance (no new material or program)
+    var addSeam = function (name, P, recv, mat) {
+      if (!P) return;
+      var mesh = add(name, P, false, recv, mat);
+      mesh.userData.seam = true;
     };
     var nm = function (G) { return s.nmapOK ? normalTexture(s, G) : null; };
     // round 6C: per-pixel normals for the tile and the 5 m patch (normal maps of their own LOLA grids) wherever WebGL2 is
@@ -838,8 +863,8 @@ window.AsteriaView3D = (function () {
       // 5 m patch: full resolution; its outer 150 m blend toward the smoothed (+-4 cell = +-20 m) normal, nearer the 20 m tile
       var pOpt = s.nmapOK ? { band0: 1 - 150 / patch.half, bandMix: 1, reliefD: patch.d } : { reliefD: patch.d };
       pOpt.nmap = nearNm(patch); pOpt.ao = nearAO(patch); pOpt.aoGrid = patch; pOpt.aoBand0 = 1 - 150 / patch.half;
-      add('patch5m', M.buildGridMesh(patch, 1, 0, null, patch), true, true, regolithMaterial(THREE, s.U, pOpt));
-      add('patch5m-skirt', M.buildSkirt(patch, 1, 30), false, true);
+      var PP = M.buildGridMesh(patch, 1, 0, null, patch), mP = add('patch5m', PP, true, true, regolithMaterial(THREE, s.U, pOpt)).material;
+      add('patch5m-skirt', M.buildSkirt(patch, 1, 30, PP), false, true, regolithMaterial(THREE, s.U, { skirtOf: mP }));
       s.areas.push({ name: '5 m patch (2 km)', geom: patch.d, light: patch.d, product: patch.meta.demProduct });
     }
     s.terrainGroup.remove(s.terrain); s.geo.dispose();
@@ -858,26 +883,33 @@ window.AsteriaView3D = (function () {
     s.terrainMat.userData.local.uReliefD.value = TM.d;   // tile (and skirts) relief at the drawn tile spacing
     s.tileVertices = tileP.pos.length / 3;
     s.areas.push({ name: '6 km tile', geom: TM.d, light: s.T.d, product: s.T.meta.demProduct });
+    // Prompt 7D: zipper between the 5 m patch and the tile (closes the T-junction slits; finer layer's material and
+    // shadow reception; casts no shadow, so the validated shadow-casting terrain is unchanged)
+    if (patch) addSeam('patch5m-seam', M.buildZipper(patch, 1, PP, TM, 1, tileP, patch.half), true, mP);
     var extCast = Q.extShadow;
     if (A) {
-      add('tile-skirt', M.buildSkirt(TM, 1, 40, function (x, y) { return M.nodeOrMesh(TM, x, y); }), false, true);
+      // skirts: shaded and shadowed like the ground at their top edge, with the material of the layer they hang from
+      add('tile-skirt', M.buildSkirt(TM, 1, 40, tileP), false, s.terrain.receiveShadow, regolithMaterial(THREE, s.U, { skirtOf: s.terrain.material }));
       s.ringA = decimate(A, strideA);
       s.ringA.k = TM.k;
       // ring A's outer 3 km: normal-map detail fades (mip bias) to ring B's lighting resolution when ring B is drawn
       var mA = nm(NA) ? regolithMaterial(THREE, s.U, { nmap: s.lastTex, band0: 1 - 3000 / NA.half, bandBias: texB ? Math.max(0, Math.log2(texB / NA.d)) : 0, reliefD: NA.d }) : null;
       var PA = M.buildGridMesh(s.ringA, 1, TM.half, TM, A);
       if (NA !== A) PA.uv = M.gridUV(s.ringA, 1, NA);      // texture coordinates in the normal map's grid
-      add('ringA', PA, extCast, extCast, mA || regolithMaterial(THREE, s.U, { reliefD: A.d * strideA }));
+      var mAd = add('ringA', PA, extCast, extCast, mA || regolithMaterial(THREE, s.U, { reliefD: A.d * strideA })).material;
+      addSeam('tile-seam', M.buildZipper(TM, 1, tileP, s.ringA, 1, PA, TM.half), s.terrain.receiveShadow, s.terrain.material);
       s.areas.push({ name: 'Ring A (to 16 km)', geom: A.d * strideA, light: mA ? NA.d : A.d * strideA, product: (mA && NA !== A ? NA.meta.demProduct + ' (lighting), ' : '') + A.meta.demProduct + (mA && NA !== A ? ' (geometry)' : '') });
     } else s.ringA = null;
     if (B && s.ringA) {
       s.ringBG = decimate(B, strideB); s.ringBG.k = TM.k;
-      add('ringA-skirt', M.buildSkirt(s.ringA, 1, 80), false, false);
+      add('ringA-skirt', M.buildSkirt(s.ringA, 1, 80, PA), false, extCast, regolithMaterial(THREE, s.U, { skirtOf: mAd }));
       var mB = nm(B) ? regolithMaterial(THREE, s.U, { nmap: s.lastTex, reliefD: B.d }) : null;
-      add('ringB', M.buildGridMesh(s.ringBG, 1, s.ringA.half, s.ringA, B), extCast, false, mB || regolithMaterial(THREE, s.U, { reliefD: B.d * strideB }));
+      var PB = M.buildGridMesh(s.ringBG, 1, s.ringA.half, s.ringA, B);
+      add('ringB', PB, extCast, false, mB || regolithMaterial(THREE, s.U, { reliefD: B.d * strideB }));
+      addSeam('ringA-seam', M.buildZipper(s.ringA, 1, PA, s.ringBG, 1, PB, s.ringA.half), extCast, mAd);
       s.areas.push({ name: 'Ring B (to 40 km)', geom: B.d * strideB, light: mB ? B.d : B.d * strideB, product: B.meta.demProduct });
     } else s.ringBG = null;
-    s.extVertices = s.layers.reduce(function (n, L) { return n + (/skirt/.test(L.name) ? 0 : L.vertices); }, 0);
+    s.extVertices = s.layers.reduce(function (n, L) { return n + (/skirt|seam/.test(L.name) ? 0 : L.vertices); }, 0);
     // round 6B: highest drawn terrain point (Three.js y) and outermost drawn extent, for the inspection ray march
     s.terrainTop = s.geo.boundingBox.max.y; s.terrainExt = s.TM.half;
     s.layers.forEach(function (L) { s.terrainTop = Math.max(s.terrainTop, L.mesh.geometry.boundingBox.max.y); });
@@ -902,6 +934,7 @@ window.AsteriaView3D = (function () {
     return tex;
   }
   function disposeTerrainMat(m) {
+    if (m.userData.shared) { m.dispose(); return; }   // a skirt's material: its textures belong to the layer's material
     var lu = m.userData.local;
     if (lu) ['uNMap', 'uAOMap'].forEach(function (k) { if (lu[k] && lu[k].value) lu[k].value.dispose(); });
     m.dispose();
@@ -935,8 +968,10 @@ window.AsteriaView3D = (function () {
       if (j < G.n) { setTimeout(step, 0); return; }
       AO_CACHE[aoKey(s, G)] = out;
       v.aoMs = (v.aoMs || 0) + Math.round(performance.now() - t0);
+      var seen = [];   // Prompt 7D: a zipper shares its layer's material - replace each texture once
       [s.terrain].concat(s.layers.map(function (L) { return L.mesh; })).forEach(function (mesh) {
         var m = mesh.material, lu = m.userData.local;
+        if (seen.indexOf(m) >= 0) return; seen.push(m);
         if (m.userData.aoGrid === G && lu && lu.uAOMap.value) { lu.uAOMap.value.dispose(); lu.uAOMap.value = aoTexture(s, G); }
       });
       v.aoBusy = false; v.dirty = true;
@@ -1050,7 +1085,7 @@ window.AsteriaView3D = (function () {
     };
     var rlo = [Infinity, Infinity, Infinity], rhi = [-Infinity, -Infinity, -Infinity], clo = rlo.slice(), chi = rhi.slice();
     var recv = [v.geo];
-    if (!v.diagTileShadow) (v.layers || []).forEach(function (L) { if (L.mesh.receiveShadow && !/skirt/.test(L.name)) recv.push(L.mesh.geometry); });
+    if (!v.diagTileShadow) (v.layers || []).forEach(function (L) { if (L.mesh.receiveShadow && !/skirt|seam/.test(L.name)) recv.push(L.mesh.geometry); });
     var cast = [v.geo];
     (v.layers || []).forEach(function (L) { if (L.mesh.castShadow) cast.push(L.mesh.geometry); });
     if (nearBox) {

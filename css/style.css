@@ -149,8 +149,11 @@ main:focus { outline: none; }   /* Prompt 7C: focus parked on the main content a
 .mklabel::before { display: none; }
 .mkmore { color: var(--muted); font-weight: 400; }
 .grouppop .gp-h { font-size: .8rem; color: #555; margin-bottom: 4px; }
-.gp-i { display: block; width: 100%; text-align: left; background: #f2f5fa; border: 1px solid #ccd5e3; border-radius: 6px; padding: 5px 8px; margin: 3px 0; cursor: pointer; font: inherit; font-size: .85rem; }
-.gp-i:hover { background: #dfe8f5; }
+/* Prompt 7D: explicit dark text (the page's color-scheme: dark gave the buttons the browser's light button text on this
+   light popup: unreadable). #10203a on #f2f5fa = 15.3:1, on the hover/focus #d9e6f7 = 13.3:1 (WCAG AA >= 4.5:1). */
+.gp-i { display: block; width: 100%; text-align: left; background: #f2f5fa; color: #10203a; border: 1px solid #b9c6da; border-radius: 6px; padding: 5px 8px; margin: 3px 0; cursor: pointer; font: inherit; font-size: .85rem; font-weight: 600; }
+.gp-i:hover, .gp-i:focus { background: #d9e6f7; border-color: #1f6fb8; color: #0a1628; }
+.gp-i:focus-visible { outline: 2px solid #1f6fb8; outline-offset: 1px; }
 
 /* ---------------------------------------------------------------- site card */
 .sitecard { display: flex; flex-direction: column; gap: 8px; position: relative; }

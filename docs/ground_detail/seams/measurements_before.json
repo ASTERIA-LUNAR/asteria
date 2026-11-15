@@ -1,0 +1,7223 @@
+{
+ "steps": {
+  "peak_shackleton/low": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 40,
+    "coarse_m": 200,
+    "slit": {
+     "n": 480,
+     "mean": 0.078,
+     "sd": 1.909,
+     "rms": 1.911,
+     "p95abs": 3.7,
+     "maxAbs": 7.92
+    },
+    "product": {
+     "n": 600,
+     "mean": 0.071,
+     "sd": 1.51,
+     "rms": 1.512,
+     "p95abs": 2.86,
+     "maxAbs": 9.06
+    }
+   }
+  ],
+  "peak_shackleton/medium": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 20,
+    "coarse_m": 100,
+    "slit": {
+     "n": 960,
+     "mean": 0.043,
+     "sd": 1.19,
+     "rms": 1.191,
+     "p95abs": 2.38,
+     "maxAbs": 7.18
+    },
+    "product": {
+     "n": 1200,
+     "mean": 0.06,
+     "sd": 1.476,
+     "rms": 1.477,
+     "p95abs": 2.8,
+     "maxAbs": 9.84
+    }
+   }
+  ],
+  "peak_shackleton/high": [
+   {
+    "edge": "patch/tile",
+    "fine_m": 5,
+    "coarse_m": 20,
+    "slit": {
+     "n": 1200,
+     "mean": 0.007,
+     "sd": 0.378,
+     "rms": 0.378,
+     "p95abs": 0.8,
+     "maxAbs": 3.25
+    },
+    "product": {
+     "n": 1600,
+     "mean": 0.066,
+     "sd": 0.575,
+     "rms": 0.578,
+     "p95abs": 1.2,
+     "maxAbs": 3.75
+    }
+   },
+   {
+    "edge": "tile/ringA",
+    "fine_m": 20,
+    "coarse_m": 50,
+    "slit": {
+     "n": 960,
+     "mean": 0.01,
+     "sd": 0.681,
+     "rms": 0.682,
+     "p95abs": 1.42,
+     "maxAbs": 5
+    },
+    "product": {
+     "n": 1200,
+     "mean": 0.006,
+     "sd": 0.268,
+     "rms": 0.268,
+     "p95abs": 0.56,
+     "maxAbs": 2
+    }
+   },
+   {
+    "edge": "ringA/ringB",
+    "fine_m": 50,
+    "coarse_m": 200,
+    "slit": {
+     "n": 1920,
+     "mean": -0.057,
+     "sd": 2.162,
+     "rms": 2.163,
+     "p95abs": 4.3,
+     "maxAbs": 17.15
+    },
+    "product": {
+     "n": 2560,
+     "mean": -0.001,
+     "sd": 0.961,
+     "rms": 0.961,
+     "p95abs": 2.05,
+     "maxAbs": 10.15
+    }
+   }
+  ],
+  "peak_shackleton_lw/low": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 40,
+    "coarse_m": 200,
+    "slit": {
+     "n": 480,
+     "mean": 0.054,
+     "sd": 2.034,
+     "rms": 2.035,
+     "p95abs": 4.16,
+     "maxAbs": 6.8
+    },
+    "product": {
+     "n": 600,
+     "mean": 0.16,
+     "sd": 1.51,
+     "rms": 1.519,
+     "p95abs": 2.82,
+     "maxAbs": 5.98
+    }
+   }
+  ],
+  "peak_shackleton_lw/medium": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 20,
+    "coarse_m": 100,
+    "slit": {
+     "n": 960,
+     "mean": -0.004,
+     "sd": 1.255,
+     "rms": 1.255,
+     "p95abs": 2.46,
+     "maxAbs": 7.38
+    },
+    "product": {
+     "n": 1200,
+     "mean": 0.153,
+     "sd": 1.517,
+     "rms": 1.525,
+     "p95abs": 2.9,
+     "maxAbs": 5.98
+    }
+   }
+  ],
+  "peak_shackleton_lw/high": [
+   {
+    "edge": "patch/tile",
+    "fine_m": 5,
+    "coarse_m": 20,
+    "slit": {
+     "n": 1200,
+     "mean": 0.014,
+     "sd": 0.457,
+     "rms": 0.457,
+     "p95abs": 0.95,
+     "maxAbs": 3.2
+    },
+    "product": {
+     "n": 1600,
+     "mean": 0.094,
+     "sd": 0.734,
+     "rms": 0.74,
+     "p95abs": 1.55,
+     "maxAbs": 5.35
+    }
+   },
+   {
+    "edge": "tile/ringA",
+    "fine_m": 20,
+    "coarse_m": 50,
+    "slit": {
+     "n": 960,
+     "mean": -0.001,
+     "sd": 0.604,
+     "rms": 0.604,
+     "p95abs": 1.26,
+     "maxAbs": 3.16
+    },
+    "product": {
+     "n": 1200,
+     "mean": 0.003,
+     "sd": 0.247,
+     "rms": 0.247,
+     "p95abs": 0.48,
+     "maxAbs": 1.9
+    }
+   },
+   {
+    "edge": "ringA/ringB",
+    "fine_m": 50,
+    "coarse_m": 200,
+    "slit": {
+     "n": 1920,
+     "mean": -0.054,
+     "sd": 2.262,
+     "rms": 2.263,
+     "p95abs": 4.775,
+     "maxAbs": 15.8
+    },
+    "product": {
+     "n": 2560,
+     "mean": -0.004,
+     "sd": 0.983,
+     "rms": 0.983,
+     "p95abs": 2.25,
+     "maxAbs": 8.6
+    }
+   }
+  ],
+  "shackleton_centre/low": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 40,
+    "coarse_m": 200,
+    "slit": {
+     "n": 480,
+     "mean": -0.126,
+     "sd": 2.238,
+     "rms": 2.241,
+     "p95abs": 4.48,
+     "maxAbs": 7.38
+    },
+    "product": {
+     "n": 600,
+     "mean": -0.348,
+     "sd": 1.832,
+     "rms": 1.865,
+     "p95abs": 3.8,
+     "maxAbs": 6.1
+    }
+   }
+  ],
+  "shackleton_centre/medium": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 20,
+    "coarse_m": 100,
+    "slit": {
+     "n": 960,
+     "mean": -0.01,
+     "sd": 1.548,
+     "rms": 1.548,
+     "p95abs": 3.28,
+     "maxAbs": 7.18
+    },
+    "product": {
+     "n": 1200,
+     "mean": -0.334,
+     "sd": 1.844,
+     "rms": 1.874,
+     "p95abs": 3.8,
+     "maxAbs": 6.4
+    }
+   }
+  ],
+  "shackleton_centre/high": [
+   {
+    "edge": "patch/tile",
+    "fine_m": 5,
+    "coarse_m": 20,
+    "slit": {
+     "n": 1200,
+     "mean": -0.019,
+     "sd": 0.34,
+     "rms": 0.34,
+     "p95abs": 0.625,
+     "maxAbs": 3.8
+    },
+    "product": {
+     "n": 1600,
+     "mean": 0.025,
+     "sd": 0.63,
+     "rms": 0.631,
+     "p95abs": 1.075,
+     "maxAbs": 7.125
+    }
+   },
+   {
+    "edge": "tile/ringA",
+    "fine_m": 20,
+    "coarse_m": 50,
+    "slit": {
+     "n": 960,
+     "mean": 0.004,
+     "sd": 0.867,
+     "rms": 0.867,
+     "p95abs": 1.9,
+     "maxAbs": 3.78
+    },
+    "product": {
+     "n": 1200,
+     "mean": 0,
+     "sd": 0.383,
+     "rms": 0.383,
+     "p95abs": 0.84,
+     "maxAbs": 2.56
+    }
+   },
+   {
+    "edge": "ringA/ringB",
+    "fine_m": 50,
+    "coarse_m": 200,
+    "slit": {
+     "n": 1920,
+     "mean": -0.022,
+     "sd": 2.058,
+     "rms": 2.058,
+     "p95abs": 4,
+     "maxAbs": 12.875
+    },
+    "product": {
+     "n": 2560,
+     "mean": 0.025,
+     "sd": 0.923,
+     "rms": 0.923,
+     "p95abs": 2.05,
+     "maxAbs": 7.6
+    }
+   }
+  ],
+  "mons_malapert/low": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 40,
+    "coarse_m": 200,
+    "slit": {
+     "n": 480,
+     "mean": 0.013,
+     "sd": 2.012,
+     "rms": 2.012,
+     "p95abs": 4,
+     "maxAbs": 10.58
+    },
+    "product": {
+     "n": 600,
+     "mean": -0.019,
+     "sd": 1.496,
+     "rms": 1.496,
+     "p95abs": 2.76,
+     "maxAbs": 5.86
+    }
+   }
+  ],
+  "mons_malapert/medium": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 20,
+    "coarse_m": 100,
+    "slit": {
+     "n": 960,
+     "mean": 0.015,
+     "sd": 1.276,
+     "rms": 1.276,
+     "p95abs": 2.62,
+     "maxAbs": 5.04
+    },
+    "product": {
+     "n": 1200,
+     "mean": -0.007,
+     "sd": 1.486,
+     "rms": 1.487,
+     "p95abs": 2.84,
+     "maxAbs": 6.44
+    }
+   }
+  ],
+  "mons_malapert/high": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 20,
+    "coarse_m": 50,
+    "slit": {
+     "n": 960,
+     "mean": 0.012,
+     "sd": 0.683,
+     "rms": 0.683,
+     "p95abs": 1.3,
+     "maxAbs": 3.5
+    },
+    "product": {
+     "n": 1200,
+     "mean": 0.001,
+     "sd": 0.294,
+     "rms": 0.294,
+     "p95abs": 0.64,
+     "maxAbs": 2.48
+    }
+   },
+   {
+    "edge": "ringA/ringB",
+    "fine_m": 50,
+    "coarse_m": 200,
+    "slit": {
+     "n": 1920,
+     "mean": 0.144,
+     "sd": 2.425,
+     "rms": 2.429,
+     "p95abs": 4.4,
+     "maxAbs": 35.05
+    },
+    "product": {
+     "n": 2560,
+     "mean": 0.01,
+     "sd": 1.605,
+     "rms": 1.605,
+     "p95abs": 3.2,
+     "maxAbs": 12
+    }
+   }
+  ],
+  "mons_mouton/low": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 40,
+    "coarse_m": 200,
+    "slit": {
+     "n": 480,
+     "mean": -0.014,
+     "sd": 1.979,
+     "rms": 1.98,
+     "p95abs": 4.34,
+     "maxAbs": 7.78
+    },
+    "product": {
+     "n": 600,
+     "mean": -0.032,
+     "sd": 1.205,
+     "rms": 1.205,
+     "p95abs": 2.54,
+     "maxAbs": 4.6
+    }
+   }
+  ],
+  "mons_mouton/medium": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 20,
+    "coarse_m": 100,
+    "slit": {
+     "n": 960,
+     "mean": 0.054,
+     "sd": 0.948,
+     "rms": 0.95,
+     "p95abs": 1.96,
+     "maxAbs": 5.98
+    },
+    "product": {
+     "n": 1200,
+     "mean": -0.029,
+     "sd": 1.205,
+     "rms": 1.205,
+     "p95abs": 2.54,
+     "maxAbs": 4.62
+    }
+   }
+  ],
+  "mons_mouton/high": [
+   {
+    "edge": "tile/ringA",
+    "fine_m": 20,
+    "coarse_m": 100,
+    "slit": {
+     "n": 960,
+     "mean": 0.054,
+     "sd": 0.948,
+     "rms": 0.95,
+     "p95abs": 1.96,
+     "maxAbs": 5.98
+    },
+    "product": {
+     "n": 1200,
+     "mean": -0.029,
+     "sd": 1.205,
+     "rms": 1.205,
+     "p95abs": 2.54,
+     "maxAbs": 4.62
+    }
+   },
+   {
+    "edge": "ringA/ringB",
+    "fine_m": 100,
+    "coarse_m": 200,
+    "slit": {
+     "n": 640,
+     "mean": 0.06,
+     "sd": 2.036,
+     "rms": 2.037,
+     "p95abs": 3.85,
+     "maxAbs": 15.9
+    },
+    "product": {
+     "n": 1280,
+     "mean": -0.003,
+     "sd": 0.071,
+     "rms": 0.071,
+     "p95abs": 0.1,
+     "maxAbs": 0.1
+    }
+   }
+  ]
+ },
+ "summary": {
+  "peak_shackleton|low|patch/tile|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton|low|patch/tile control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton|low|tile/ringA|noshadows": {
+   "n": 472,
+   "r": 1.025,
+   "rHi": 0.959,
+   "black": 0.0021,
+   "darkPx": 0.0847,
+   "bright": 0.0127,
+   "p05": 0.758
+  },
+  "peak_shackleton|low|tile/ringA control|noshadows": {
+   "n": 374,
+   "r": 1.105,
+   "rHi": 0.985,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0508,
+   "p05": 0.873
+  },
+  "peak_shackleton|low|patch/tile|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton|low|patch/tile control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton|low|tile/ringA|shadows": {
+   "n": 472,
+   "r": 1.025,
+   "rHi": 0.959,
+   "black": 0.0021,
+   "darkPx": 0.0847,
+   "bright": 0.0127,
+   "p05": 0.758
+  },
+  "peak_shackleton|low|tile/ringA control|shadows": {
+   "n": 374,
+   "r": 1.105,
+   "rHi": 0.985,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0508,
+   "p05": 0.873
+  },
+  "peak_shackleton|medium|patch/tile|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton|medium|patch/tile control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton|medium|tile/ringA|noshadows": {
+   "n": 551,
+   "r": 1.034,
+   "rHi": 0.934,
+   "black": 0.0018,
+   "darkPx": 0.1343,
+   "bright": 0.0054,
+   "p05": 0.638
+  },
+  "peak_shackleton|medium|tile/ringA control|noshadows": {
+   "n": 367,
+   "r": 1.066,
+   "rHi": 0.947,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0354,
+   "p05": 0.797
+  },
+  "peak_shackleton|medium|patch/tile|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton|medium|patch/tile control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton|medium|tile/ringA|shadows": {
+   "n": 551,
+   "r": 1.034,
+   "rHi": 0.934,
+   "black": 0.0018,
+   "darkPx": 0.1343,
+   "bright": 0.0054,
+   "p05": 0.638
+  },
+  "peak_shackleton|medium|tile/ringA control|shadows": {
+   "n": 367,
+   "r": 1.066,
+   "rHi": 0.947,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0354,
+   "p05": 0.797
+  },
+  "peak_shackleton|high|patch/tile|noshadows": {
+   "n": 342,
+   "r": 1.035,
+   "rHi": 0.953,
+   "black": 0.0439,
+   "darkPx": 0.0789,
+   "bright": 0,
+   "p05": 0.587
+  },
+  "peak_shackleton|high|patch/tile control|noshadows": {
+   "n": 311,
+   "r": 1.042,
+   "rHi": 0.961,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0193,
+   "p05": 0.878
+  },
+  "peak_shackleton|high|tile/ringA|noshadows": {
+   "n": 607,
+   "r": 1.016,
+   "rHi": 0.943,
+   "black": 0.0313,
+   "darkPx": 0.1829,
+   "bright": 0.0082,
+   "p05": 0.556
+  },
+  "peak_shackleton|high|tile/ringA control|noshadows": {
+   "n": 421,
+   "r": 1.089,
+   "rHi": 0.962,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0048,
+   "p05": 0.819
+  },
+  "peak_shackleton|high|ringA/ringB|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton|high|ringA/ringB control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton|high|patch/tile|shadows": {
+   "n": 342,
+   "r": 1.035,
+   "rHi": 0.953,
+   "black": 0.0439,
+   "darkPx": 0.0789,
+   "bright": 0,
+   "p05": 0.587
+  },
+  "peak_shackleton|high|patch/tile control|shadows": {
+   "n": 311,
+   "r": 1.042,
+   "rHi": 0.961,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0193,
+   "p05": 0.878
+  },
+  "peak_shackleton|high|tile/ringA|shadows": {
+   "n": 607,
+   "r": 1.014,
+   "rHi": 0.942,
+   "black": 0.0313,
+   "darkPx": 0.1845,
+   "bright": 0.0082,
+   "p05": 0.556
+  },
+  "peak_shackleton|high|tile/ringA control|shadows": {
+   "n": 421,
+   "r": 1.089,
+   "rHi": 0.962,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0048,
+   "p05": 0.819
+  },
+  "peak_shackleton|high|ringA/ringB|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton|high|ringA/ringB control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|low|patch/tile|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|low|patch/tile control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|low|tile/ringA|noshadows": {
+   "n": 237,
+   "r": 1.026,
+   "rHi": 0.886,
+   "black": 0.0127,
+   "darkPx": 0.2363,
+   "bright": 0,
+   "p05": 0.669
+  },
+  "peak_shackleton_lw|low|tile/ringA control|noshadows": {
+   "n": 234,
+   "r": 1.053,
+   "rHi": 0.91,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0128,
+   "p05": 0.863
+  },
+  "peak_shackleton_lw|low|patch/tile|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|low|patch/tile control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|low|tile/ringA|shadows": {
+   "n": 237,
+   "r": 1.026,
+   "rHi": 0.886,
+   "black": 0.0127,
+   "darkPx": 0.2363,
+   "bright": 0,
+   "p05": 0.669
+  },
+  "peak_shackleton_lw|low|tile/ringA control|shadows": {
+   "n": 234,
+   "r": 1.053,
+   "rHi": 0.91,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0128,
+   "p05": 0.863
+  },
+  "peak_shackleton_lw|medium|patch/tile|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|medium|patch/tile control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|medium|tile/ringA|noshadows": {
+   "n": 301,
+   "r": 0.996,
+   "rHi": 0.878,
+   "black": 0.1362,
+   "darkPx": 0.2591,
+   "bright": 0.0066,
+   "p05": 0.385
+  },
+  "peak_shackleton_lw|medium|tile/ringA control|noshadows": {
+   "n": 241,
+   "r": 1.118,
+   "rHi": 0.935,
+   "black": 0,
+   "darkPx": 0.0083,
+   "bright": 0.0166,
+   "p05": 0.812
+  },
+  "peak_shackleton_lw|medium|patch/tile|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|medium|patch/tile control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|medium|tile/ringA|shadows": {
+   "n": 301,
+   "r": 0.996,
+   "rHi": 0.878,
+   "black": 0.1362,
+   "darkPx": 0.2591,
+   "bright": 0.0066,
+   "p05": 0.385
+  },
+  "peak_shackleton_lw|medium|tile/ringA control|shadows": {
+   "n": 241,
+   "r": 1.118,
+   "rHi": 0.935,
+   "black": 0,
+   "darkPx": 0.0083,
+   "bright": 0.0166,
+   "p05": 0.812
+  },
+  "peak_shackleton_lw|high|patch/tile|noshadows": {
+   "n": 381,
+   "r": 1.033,
+   "rHi": 0.954,
+   "black": 0.021,
+   "darkPx": 0.1102,
+   "bright": 0,
+   "p05": 0.645
+  },
+  "peak_shackleton_lw|high|patch/tile control|noshadows": {
+   "n": 420,
+   "r": 1.062,
+   "rHi": 0.97,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": 0.897
+  },
+  "peak_shackleton_lw|high|tile/ringA|noshadows": {
+   "n": 383,
+   "r": 1.011,
+   "rHi": 0.938,
+   "black": 0.047,
+   "darkPx": 0.1828,
+   "bright": 0.0026,
+   "p05": 0.538
+  },
+  "peak_shackleton_lw|high|tile/ringA control|noshadows": {
+   "n": 311,
+   "r": 1.066,
+   "rHi": 0.961,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0257,
+   "p05": 0.867
+  },
+  "peak_shackleton_lw|high|ringA/ringB|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|high|ringA/ringB control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|high|patch/tile|shadows": {
+   "n": 381,
+   "r": 1.033,
+   "rHi": 0.953,
+   "black": 0.021,
+   "darkPx": 0.1102,
+   "bright": 0,
+   "p05": 0.645
+  },
+  "peak_shackleton_lw|high|patch/tile control|shadows": {
+   "n": 420,
+   "r": 1.062,
+   "rHi": 0.97,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": 0.897
+  },
+  "peak_shackleton_lw|high|tile/ringA|shadows": {
+   "n": 383,
+   "r": 1.011,
+   "rHi": 0.938,
+   "black": 0.047,
+   "darkPx": 0.1828,
+   "bright": 0.0026,
+   "p05": 0.538
+  },
+  "peak_shackleton_lw|high|tile/ringA control|shadows": {
+   "n": 311,
+   "r": 1.066,
+   "rHi": 0.961,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0257,
+   "p05": 0.867
+  },
+  "peak_shackleton_lw|high|ringA/ringB|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "peak_shackleton_lw|high|ringA/ringB control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|low|patch/tile|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|low|patch/tile control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|low|tile/ringA|noshadows": {
+   "n": 230,
+   "r": 1.02,
+   "rHi": 0.91,
+   "black": 0.0609,
+   "darkPx": 0.2478,
+   "bright": 0,
+   "p05": 0.404
+  },
+  "shackleton_centre|low|tile/ringA control|noshadows": {
+   "n": 398,
+   "r": 1.024,
+   "rHi": 0.965,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0327,
+   "p05": 0.773
+  },
+  "shackleton_centre|low|patch/tile|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|low|patch/tile control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|low|tile/ringA|shadows": {
+   "n": 230,
+   "r": 1.02,
+   "rHi": 0.91,
+   "black": 0.0609,
+   "darkPx": 0.2478,
+   "bright": 0,
+   "p05": 0.404
+  },
+  "shackleton_centre|low|tile/ringA control|shadows": {
+   "n": 398,
+   "r": 1.024,
+   "rHi": 0.965,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0327,
+   "p05": 0.773
+  },
+  "shackleton_centre|medium|patch/tile|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|medium|patch/tile control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|medium|tile/ringA|noshadows": {
+   "n": 453,
+   "r": 1.022,
+   "rHi": 0.93,
+   "black": 0.0243,
+   "darkPx": 0.1082,
+   "bright": 0,
+   "p05": 0.683
+  },
+  "shackleton_centre|medium|tile/ringA control|noshadows": {
+   "n": 336,
+   "r": 1.086,
+   "rHi": 0.956,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": 0.884
+  },
+  "shackleton_centre|medium|patch/tile|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|medium|patch/tile control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|medium|tile/ringA|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|medium|tile/ringA control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|high|patch/tile|noshadows": {
+   "n": 289,
+   "r": 1.039,
+   "rHi": 0.915,
+   "black": 0.0035,
+   "darkPx": 0.1349,
+   "bright": 0.0104,
+   "p05": 0.678
+  },
+  "shackleton_centre|high|patch/tile control|noshadows": {
+   "n": 296,
+   "r": 1.048,
+   "rHi": 0.976,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0034,
+   "p05": 0.933
+  },
+  "shackleton_centre|high|tile/ringA|noshadows": {
+   "n": 463,
+   "r": 1.02,
+   "rHi": 0.95,
+   "black": 0.0108,
+   "darkPx": 0.0648,
+   "bright": 0.0065,
+   "p05": 0.691
+  },
+  "shackleton_centre|high|tile/ringA control|noshadows": {
+   "n": 303,
+   "r": 1.06,
+   "rHi": 0.978,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": 0.86
+  },
+  "shackleton_centre|high|ringA/ringB|noshadows": {
+   "n": 176,
+   "r": 1.038,
+   "rHi": 0.961,
+   "black": 0,
+   "darkPx": 0.0511,
+   "bright": 0,
+   "p05": 0.916
+  },
+  "shackleton_centre|high|ringA/ringB control|noshadows": {
+   "n": 96,
+   "r": 1.086,
+   "rHi": 0.951,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": 0.922
+  },
+  "shackleton_centre|high|patch/tile|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|high|patch/tile control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|high|tile/ringA|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|high|tile/ringA control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "shackleton_centre|high|ringA/ringB|shadows": {
+   "n": 176,
+   "r": 1.038,
+   "rHi": 0.961,
+   "black": 0,
+   "darkPx": 0.0511,
+   "bright": 0,
+   "p05": 0.916
+  },
+  "shackleton_centre|high|ringA/ringB control|shadows": {
+   "n": 96,
+   "r": 1.086,
+   "rHi": 0.951,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": 0.922
+  },
+  "mons_malapert|low|tile/ringA|noshadows": {
+   "n": 394,
+   "r": 0.993,
+   "rHi": 0.84,
+   "black": 0.0102,
+   "darkPx": 0.4213,
+   "bright": 0,
+   "p05": 0.667
+  },
+  "mons_malapert|low|tile/ringA control|noshadows": {
+   "n": 91,
+   "r": 1.17,
+   "rHi": 1.008,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.033,
+   "p05": 0.811
+  },
+  "mons_malapert|low|tile/ringA|shadows": {
+   "n": 394,
+   "r": 0.993,
+   "rHi": 0.84,
+   "black": 0.0102,
+   "darkPx": 0.4213,
+   "bright": 0,
+   "p05": 0.667
+  },
+  "mons_malapert|low|tile/ringA control|shadows": {
+   "n": 91,
+   "r": 1.17,
+   "rHi": 1.008,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.033,
+   "p05": 0.811
+  },
+  "mons_malapert|medium|tile/ringA|noshadows": {
+   "n": 467,
+   "r": 0.955,
+   "rHi": 0.835,
+   "black": 0.0021,
+   "darkPx": 0.3255,
+   "bright": 0.0193,
+   "p05": 0.601
+  },
+  "mons_malapert|medium|tile/ringA control|noshadows": {
+   "n": 363,
+   "r": 1.029,
+   "rHi": 0.972,
+   "black": 0,
+   "darkPx": 0.0028,
+   "bright": 0.0055,
+   "p05": 0.927
+  },
+  "mons_malapert|medium|tile/ringA|shadows": {
+   "n": 467,
+   "r": 0.955,
+   "rHi": 0.835,
+   "black": 0.0021,
+   "darkPx": 0.3255,
+   "bright": 0.0193,
+   "p05": 0.601
+  },
+  "mons_malapert|medium|tile/ringA control|shadows": {
+   "n": 363,
+   "r": 1.029,
+   "rHi": 0.972,
+   "black": 0,
+   "darkPx": 0.0028,
+   "bright": 0.0055,
+   "p05": 0.927
+  },
+  "mons_malapert|high|tile/ringA|noshadows": {
+   "n": 563,
+   "r": 0.929,
+   "rHi": 0.835,
+   "black": 0.0657,
+   "darkPx": 0.3535,
+   "bright": 0.0018,
+   "p05": 0.458
+  },
+  "mons_malapert|high|tile/ringA control|noshadows": {
+   "n": 434,
+   "r": 1.038,
+   "rHi": 0.97,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0092,
+   "p05": 0.911
+  },
+  "mons_malapert|high|ringA/ringB|noshadows": {
+   "n": 184,
+   "r": 1.007,
+   "rHi": 0.984,
+   "black": 0,
+   "darkPx": 0.1467,
+   "bright": 0,
+   "p05": 0.738
+  },
+  "mons_malapert|high|ringA/ringB control|noshadows": {
+   "n": 92,
+   "r": 1.01,
+   "rHi": 0.986,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": 0.975
+  },
+  "mons_malapert|high|tile/ringA|shadows": {
+   "n": 563,
+   "r": 0.929,
+   "rHi": 0.835,
+   "black": 0.0657,
+   "darkPx": 0.3535,
+   "bright": 0.0018,
+   "p05": 0.458
+  },
+  "mons_malapert|high|tile/ringA control|shadows": {
+   "n": 434,
+   "r": 1.038,
+   "rHi": 0.97,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0.0092,
+   "p05": 0.911
+  },
+  "mons_malapert|high|ringA/ringB|shadows": {
+   "n": 184,
+   "r": 1.007,
+   "rHi": 0.984,
+   "black": 0,
+   "darkPx": 0.1467,
+   "bright": 0,
+   "p05": 0.738
+  },
+  "mons_malapert|high|ringA/ringB control|shadows": {
+   "n": 92,
+   "r": 1.01,
+   "rHi": 0.986,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": 0.975
+  },
+  "mons_mouton|low|tile/ringA|noshadows": {
+   "n": 140,
+   "r": 0.995,
+   "rHi": 0.828,
+   "black": 0.0214,
+   "darkPx": 0.4214,
+   "bright": 0,
+   "p05": 0.659
+  },
+  "mons_mouton|low|tile/ringA control|noshadows": {
+   "n": 81,
+   "r": 1.342,
+   "rHi": 0.804,
+   "black": 0.0123,
+   "darkPx": 0.0123,
+   "bright": 0.1975,
+   "p05": 0.822
+  },
+  "mons_mouton|low|tile/ringA|shadows": {
+   "n": 140,
+   "r": 1.004,
+   "rHi": 0.828,
+   "black": 0.0214,
+   "darkPx": 0.4143,
+   "bright": 0,
+   "p05": 0.659
+  },
+  "mons_mouton|low|tile/ringA control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "mons_mouton|medium|tile/ringA|noshadows": {
+   "n": 255,
+   "r": 0.957,
+   "rHi": 0.82,
+   "black": 0.0392,
+   "darkPx": 0.3529,
+   "bright": 0,
+   "p05": 0.546
+  },
+  "mons_mouton|medium|tile/ringA control|noshadows": {
+   "n": 356,
+   "r": 1.047,
+   "rHi": 0.951,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": 0.954
+  },
+  "mons_mouton|medium|tile/ringA|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "mons_mouton|medium|tile/ringA control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "mons_mouton|high|tile/ringA|noshadows": {
+   "n": 255,
+   "r": 0.969,
+   "rHi": 0.838,
+   "black": 0.0392,
+   "darkPx": 0.2941,
+   "bright": 0,
+   "p05": 0.546
+  },
+  "mons_mouton|high|tile/ringA control|noshadows": {
+   "n": 356,
+   "r": 1.047,
+   "rHi": 0.951,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": 0.954
+  },
+  "mons_mouton|high|ringA/ringB|noshadows": {
+   "n": 68,
+   "r": 1.064,
+   "rHi": 0.925,
+   "black": 0,
+   "darkPx": 0.0882,
+   "bright": 0,
+   "p05": 0.757
+  },
+  "mons_mouton|high|ringA/ringB control|noshadows": {
+   "n": 21,
+   "r": 1.215,
+   "rHi": 0.818,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": 1.028
+  },
+  "mons_mouton|high|tile/ringA|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "mons_mouton|high|tile/ringA control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "mons_mouton|high|ringA/ringB|shadows": {
+   "n": 25,
+   "r": 0.983,
+   "rHi": 0.884,
+   "black": 0,
+   "darkPx": 0.24,
+   "bright": 0,
+   "p05": 0.689
+  },
+  "mons_mouton|high|ringA/ringB control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|low|patch/tile|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|low|patch/tile control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|low|tile/ringA|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|low|tile/ringA control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|low|patch/tile|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|low|patch/tile control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|low|tile/ringA|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|low|tile/ringA control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|medium|patch/tile|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|medium|patch/tile control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|medium|tile/ringA|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|medium|tile/ringA control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|medium|patch/tile|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|medium|patch/tile control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|medium|tile/ringA|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|medium|tile/ringA control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|high|patch/tile|noshadows": {
+   "n": 56,
+   "r": 1.113,
+   "rHi": 0.803,
+   "black": 0,
+   "darkPx": 0.125,
+   "bright": 0,
+   "p05": 0.662
+  },
+  "owner|high|patch/tile control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|high|tile/ringA|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|high|tile/ringA control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|high|ringA/ringB|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|high|ringA/ringB control|noshadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|high|patch/tile|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|high|patch/tile control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|high|tile/ringA|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|high|tile/ringA control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|high|ringA/ringB|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  },
+  "owner|high|ringA/ringB control|shadows": {
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "darkPx": 0,
+   "bright": 0,
+   "p05": null
+  }
+ },
+ "views": [
+  {
+   "site": "peak_shackleton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 164,
+   "r": 1.018,
+   "rHi": 0.966,
+   "black": 0.0061,
+   "blackPts": [
+    [
+     0.4081,
+     0.0869,
+     0.3937,
+     770,
+     515,
+     372,
+     210,
+     217,
+     86
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 26,
+   "r": 1,
+   "rHi": 0.965,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 233,
+   "r": 1.03,
+   "rHi": 0.959,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 49,
+   "r": 1.033,
+   "rHi": 0.937,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 164,
+   "r": 1.018,
+   "rHi": 0.966,
+   "black": 0.0061,
+   "blackPts": [
+    [
+     0.4081,
+     0.0869,
+     0.3937,
+     770,
+     515,
+     372,
+     210,
+     217,
+     86
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 26,
+   "r": 1,
+   "rHi": 0.965,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 233,
+   "r": 1.03,
+   "rHi": 0.959,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 49,
+   "r": 1.033,
+   "rHi": 0.937,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 100,
+   "r": 1.018,
+   "rHi": 0.927,
+   "black": 0.01,
+   "blackPts": [
+    [
+     0.498,
+     0.1258,
+     0.4975,
+     118,
+     372,
+     254,
+     145,
+     145,
+     72
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 6,
+   "r": 1.046,
+   "rHi": 0.969,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 6,
+   "r": 1.024,
+   "rHi": 0.965,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 372,
+   "r": 1.036,
+   "rHi": 0.932,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 67,
+   "r": 1.009,
+   "rHi": 0.919,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 100,
+   "r": 1.018,
+   "rHi": 0.927,
+   "black": 0.01,
+   "blackPts": [
+    [
+     0.498,
+     0.1258,
+     0.4975,
+     118,
+     372,
+     254,
+     145,
+     145,
+     72
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 6,
+   "r": 1.046,
+   "rHi": 0.969,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 6,
+   "r": 1.024,
+   "rHi": 0.965,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 372,
+   "r": 1.036,
+   "rHi": 0.932,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 67,
+   "r": 1.009,
+   "rHi": 0.919,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along1",
+   "shadows": false,
+   "n": 22,
+   "r": 1.055,
+   "rHi": 0.918,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along2",
+   "shadows": false,
+   "n": 51,
+   "r": 0.934,
+   "rHi": 0.882,
+   "black": 0.2941,
+   "blackPts": [
+    [
+     0.3328,
+     0,
+     0.3132,
+     54,
+     491,
+     623,
+     221,
+     235,
+     74
+    ],
+    [
+     0.4107,
+     0,
+     0.3905,
+     53,
+     490,
+     622,
+     223,
+     235,
+     92
+    ],
+    [
+     0.3265,
+     0,
+     0.3112,
+     53,
+     490,
+     621,
+     224,
+     235,
+     73
+    ],
+    [
+     0.4157,
+     0,
+     0.39,
+     52,
+     489,
+     620,
+     221,
+     236,
+     92
+    ],
+    [
+     0.4958,
+     0,
+     0.4665,
+     51,
+     488,
+     619,
+     223,
+     237,
+     110
+    ],
+    [
+     0.3289,
+     0,
+     0.3105,
+     51,
+     488,
+     618,
+     223,
+     236,
+     73
+    ],
+    [
+     0.4125,
+     0,
+     0.3906,
+     50,
+     487,
+     617,
+     223,
+     236,
+     92
+    ],
+    [
+     0.4104,
+     0,
+     0.3898,
+     50,
+     487,
+     617,
+     223,
+     234,
+     91
+    ],
+    [
+     0.4876,
+     0,
+     0.463,
+     49,
+     486,
+     616,
+     221,
+     233,
+     108
+    ],
+    [
+     0.3325,
+     0,
+     0.3129,
+     49,
+     486,
+     615,
+     218,
+     231,
+     72
+    ],
+    [
+     0.4169,
+     0,
+     0.3977,
+     47,
+     484,
+     612,
+     221,
+     232,
+     92
+    ],
+    [
+     0.4878,
+     0,
+     0.469,
+     47,
+     483,
+     611,
+     222,
+     231,
+     108
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossC",
+   "shadows": false,
+   "n": 2,
+   "r": 1.064,
+   "rHi": 0.912,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "rover",
+   "shadows": false,
+   "n": 136,
+   "r": 1.027,
+   "rHi": 0.945,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 131,
+   "r": 1.092,
+   "rHi": 1,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 102,
+   "r": 1.028,
+   "rHi": 0.953,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 47,
+   "r": 0.769,
+   "rHi": 0.763,
+   "black": 0.383,
+   "blackPts": [
+    [
+     0.4832,
+     0.0819,
+     0.4719,
+     32,
+     433,
+     232,
+     222,
+     228,
+     107
+    ],
+    [
+     0.3251,
+     0.0817,
+     0.3177,
+     32,
+     447,
+     228,
+     223,
+     228,
+     72
+    ],
+    [
+     0.3229,
+     0.0807,
+     0.3188,
+     32,
+     461,
+     224,
+     226,
+     228,
+     73
+    ],
+    [
+     0.157,
+     0.0796,
+     0.1566,
+     32,
+     475,
+     220,
+     229,
+     229,
+     36
+    ],
+    [
+     0.4746,
+     0.0791,
+     0.4723,
+     32,
+     489,
+     215,
+     230,
+     231,
+     109
+    ],
+    [
+     0.3183,
+     0.0792,
+     0.318,
+     32,
+     503,
+     211,
+     230,
+     230,
+     73
+    ],
+    [
+     0.3228,
+     0.0799,
+     0.3184,
+     32,
+     517,
+     207,
+     228,
+     231,
+     74
+    ],
+    [
+     0.4823,
+     0.0797,
+     0.4758,
+     32,
+     532,
+     202,
+     228,
+     231,
+     110
+    ],
+    [
+     0.4058,
+     0.0796,
+     0.4004,
+     32,
+     546,
+     198,
+     229,
+     232,
+     93
+    ],
+    [
+     0.486,
+     0.0789,
+     0.4826,
+     32,
+     560,
+     194,
+     231,
+     233,
+     112
+    ],
+    [
+     0.4852,
+     0.0783,
+     0.4809,
+     32,
+     574,
+     190,
+     232,
+     235,
+     113
+    ],
+    [
+     0.2466,
+     0.0782,
+     0.2422,
+     32,
+     588,
+     186,
+     233,
+     237,
+     57
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 387,
+   "r": 1.023,
+   "rHi": 0.943,
+   "black": 0.0026,
+   "blackPts": [
+    [
+     0.4796,
+     0.0983,
+     0.4523,
+     19,
+     70,
+     203,
+     185,
+     196,
+     89
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 71,
+   "r": 1.028,
+   "rHi": 0.946,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "ringA/ringB",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along1",
+   "shadows": true,
+   "n": 22,
+   "r": 1.055,
+   "rHi": 0.918,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along2",
+   "shadows": true,
+   "n": 51,
+   "r": 0.934,
+   "rHi": 0.882,
+   "black": 0.2941,
+   "blackPts": [
+    [
+     0.3328,
+     0,
+     0.3132,
+     54,
+     491,
+     623,
+     221,
+     235,
+     74
+    ],
+    [
+     0.4107,
+     0,
+     0.3905,
+     53,
+     490,
+     622,
+     223,
+     235,
+     92
+    ],
+    [
+     0.3265,
+     0,
+     0.3112,
+     53,
+     490,
+     621,
+     224,
+     235,
+     73
+    ],
+    [
+     0.4157,
+     0,
+     0.39,
+     52,
+     489,
+     620,
+     221,
+     236,
+     92
+    ],
+    [
+     0.4958,
+     0,
+     0.4665,
+     51,
+     488,
+     619,
+     223,
+     237,
+     110
+    ],
+    [
+     0.3289,
+     0,
+     0.3105,
+     51,
+     488,
+     618,
+     223,
+     236,
+     73
+    ],
+    [
+     0.4125,
+     0,
+     0.3906,
+     50,
+     487,
+     617,
+     223,
+     236,
+     92
+    ],
+    [
+     0.4104,
+     0,
+     0.3898,
+     50,
+     487,
+     617,
+     223,
+     234,
+     91
+    ],
+    [
+     0.4876,
+     0,
+     0.463,
+     49,
+     486,
+     616,
+     221,
+     233,
+     108
+    ],
+    [
+     0.3325,
+     0,
+     0.3129,
+     49,
+     486,
+     615,
+     218,
+     231,
+     72
+    ],
+    [
+     0.4169,
+     0,
+     0.3977,
+     47,
+     484,
+     612,
+     221,
+     232,
+     92
+    ],
+    [
+     0.4878,
+     0,
+     0.469,
+     47,
+     483,
+     611,
+     222,
+     231,
+     108
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossC",
+   "shadows": true,
+   "n": 2,
+   "r": 1.064,
+   "rHi": 0.912,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "rover",
+   "shadows": true,
+   "n": 136,
+   "r": 1.027,
+   "rHi": 0.945,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 131,
+   "r": 1.092,
+   "rHi": 1,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 102,
+   "r": 1.028,
+   "rHi": 0.953,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 47,
+   "r": 0.769,
+   "rHi": 0.763,
+   "black": 0.383,
+   "blackPts": [
+    [
+     0.4832,
+     0.0819,
+     0.4719,
+     32,
+     433,
+     232,
+     222,
+     228,
+     107
+    ],
+    [
+     0.3251,
+     0.0817,
+     0.3177,
+     32,
+     447,
+     228,
+     223,
+     228,
+     72
+    ],
+    [
+     0.3229,
+     0.0807,
+     0.3188,
+     32,
+     461,
+     224,
+     226,
+     228,
+     73
+    ],
+    [
+     0.157,
+     0.0796,
+     0.1566,
+     32,
+     475,
+     220,
+     229,
+     229,
+     36
+    ],
+    [
+     0.4746,
+     0.0791,
+     0.4723,
+     32,
+     489,
+     215,
+     230,
+     231,
+     109
+    ],
+    [
+     0.3183,
+     0.0792,
+     0.318,
+     32,
+     503,
+     211,
+     230,
+     230,
+     73
+    ],
+    [
+     0.3228,
+     0.0799,
+     0.3184,
+     32,
+     517,
+     207,
+     228,
+     231,
+     74
+    ],
+    [
+     0.4823,
+     0.0797,
+     0.4758,
+     32,
+     532,
+     202,
+     228,
+     231,
+     110
+    ],
+    [
+     0.4058,
+     0.0796,
+     0.4004,
+     32,
+     546,
+     198,
+     229,
+     232,
+     93
+    ],
+    [
+     0.486,
+     0.0789,
+     0.4826,
+     32,
+     560,
+     194,
+     231,
+     233,
+     112
+    ],
+    [
+     0.4852,
+     0.0783,
+     0.4809,
+     32,
+     574,
+     190,
+     232,
+     235,
+     113
+    ],
+    [
+     0.2466,
+     0.0782,
+     0.2422,
+     32,
+     588,
+     186,
+     233,
+     237,
+     57
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 387,
+   "r": 1.02,
+   "rHi": 0.942,
+   "black": 0.0026,
+   "blackPts": [
+    [
+     0.4796,
+     0.0983,
+     0.4523,
+     19,
+     70,
+     203,
+     185,
+     196,
+     89
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 71,
+   "r": 1.026,
+   "rHi": 0.946,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton",
+   "q": "high",
+   "edge": "ringA/ringB",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 62,
+   "r": 1.042,
+   "rHi": 0.946,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 9,
+   "r": 0.978,
+   "rHi": 0.947,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 160,
+   "r": 1.032,
+   "rHi": 0.86,
+   "black": 0.0187,
+   "blackPts": [
+    [
+     0.4209,
+     0.0832,
+     0.3844,
+     86,
+     137,
+     425,
+     219,
+     240,
+     92
+    ],
+    [
+     0.4056,
+     0.0761,
+     0.4,
+     93,
+     138,
+     431,
+     239,
+     242,
+     97
+    ],
+    [
+     0.3976,
+     0.0745,
+     0.397,
+     97,
+     139,
+     434,
+     244,
+     245,
+     97
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 6,
+   "r": 0.805,
+   "rHi": 0.639,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 62,
+   "r": 1.042,
+   "rHi": 0.946,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 9,
+   "r": 0.978,
+   "rHi": 0.947,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 160,
+   "r": 1.032,
+   "rHi": 0.86,
+   "black": 0.0187,
+   "blackPts": [
+    [
+     0.4209,
+     0.0832,
+     0.3844,
+     86,
+     137,
+     425,
+     219,
+     240,
+     92
+    ],
+    [
+     0.4056,
+     0.0761,
+     0.4,
+     93,
+     138,
+     431,
+     239,
+     242,
+     97
+    ],
+    [
+     0.3976,
+     0.0745,
+     0.397,
+     97,
+     139,
+     434,
+     244,
+     245,
+     97
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 6,
+   "r": 0.805,
+   "rHi": 0.639,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 71,
+   "r": 1.013,
+   "rHi": 0.89,
+   "black": 0.0423,
+   "blackPts": [
+    [
+     0.389,
+     0.0783,
+     0.3835,
+     63,
+     203,
+     173,
+     233,
+     236,
+     90
+    ],
+    [
+     0.3839,
+     0.0775,
+     0.3645,
+     65,
+     213,
+     178,
+     235,
+     247,
+     90
+    ],
+    [
+     0.3845,
+     0.0776,
+     0.3617,
+     66,
+     219,
+     181,
+     235,
+     249,
+     90
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 10,
+   "r": 0.931,
+   "rHi": 0.897,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 37,
+   "r": 0.392,
+   "rHi": 0.368,
+   "black": 1,
+   "blackPts": [
+    [
+     0.1555,
+     0.0781,
+     0.1434,
+     35,
+     24,
+     359,
+     233,
+     253,
+     36
+    ],
+    [
+     0.1567,
+     0.0788,
+     0.1446,
+     35,
+     38,
+     355,
+     231,
+     250,
+     36
+    ],
+    [
+     0.4693,
+     0.0794,
+     0.4306,
+     35,
+     53,
+     350,
+     229,
+     250,
+     108
+    ],
+    [
+     0.4679,
+     0.0798,
+     0.4285,
+     35,
+     67,
+     346,
+     228,
+     249,
+     107
+    ],
+    [
+     0.3915,
+     0.08,
+     0.3576,
+     35,
+     82,
+     342,
+     228,
+     249,
+     89
+    ],
+    [
+     0.3922,
+     0.0798,
+     0.3588,
+     34,
+     96,
+     338,
+     228,
+     249,
+     89
+    ],
+    [
+     0.3908,
+     0.0795,
+     0.3556,
+     34,
+     110,
+     334,
+     229,
+     252,
+     89
+    ],
+    [
+     0.3868,
+     0.079,
+     0.3545,
+     34,
+     125,
+     330,
+     231,
+     252,
+     89
+    ],
+    [
+     0.3081,
+     0.0785,
+     0.2856,
+     34,
+     139,
+     326,
+     232,
+     250,
+     71
+    ],
+    [
+     0.3093,
+     0.0784,
+     0.2871,
+     34,
+     153,
+     322,
+     232,
+     250,
+     72
+    ],
+    [
+     0.3092,
+     0.0783,
+     0.2877,
+     33,
+     168,
+     318,
+     232,
+     250,
+     72
+    ],
+    [
+     0.3092,
+     0.078,
+     0.2882,
+     33,
+     182,
+     314,
+     233,
+     250,
+     72
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 176,
+   "r": 1.034,
+   "rHi": 0.904,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 7,
+   "r": 0.855,
+   "rHi": 0.817,
+   "black": 0.1429,
+   "blackPts": [
+    [
+     0.4808,
+     0.0971,
+     0.4233,
+     1451,
+     298,
+     393,
+     187,
+     213,
+     90
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 71,
+   "r": 1.013,
+   "rHi": 0.89,
+   "black": 0.0423,
+   "blackPts": [
+    [
+     0.389,
+     0.0783,
+     0.3835,
+     63,
+     203,
+     173,
+     233,
+     236,
+     90
+    ],
+    [
+     0.3839,
+     0.0775,
+     0.3645,
+     65,
+     213,
+     178,
+     235,
+     247,
+     90
+    ],
+    [
+     0.3845,
+     0.0776,
+     0.3617,
+     66,
+     219,
+     181,
+     235,
+     249,
+     90
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 10,
+   "r": 0.931,
+   "rHi": 0.897,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 37,
+   "r": 0.392,
+   "rHi": 0.368,
+   "black": 1,
+   "blackPts": [
+    [
+     0.1555,
+     0.0781,
+     0.1434,
+     35,
+     24,
+     359,
+     233,
+     253,
+     36
+    ],
+    [
+     0.1567,
+     0.0788,
+     0.1446,
+     35,
+     38,
+     355,
+     231,
+     250,
+     36
+    ],
+    [
+     0.4693,
+     0.0794,
+     0.4306,
+     35,
+     53,
+     350,
+     229,
+     250,
+     108
+    ],
+    [
+     0.4679,
+     0.0798,
+     0.4285,
+     35,
+     67,
+     346,
+     228,
+     249,
+     107
+    ],
+    [
+     0.3915,
+     0.08,
+     0.3576,
+     35,
+     82,
+     342,
+     228,
+     249,
+     89
+    ],
+    [
+     0.3922,
+     0.0798,
+     0.3588,
+     34,
+     96,
+     338,
+     228,
+     249,
+     89
+    ],
+    [
+     0.3908,
+     0.0795,
+     0.3556,
+     34,
+     110,
+     334,
+     229,
+     252,
+     89
+    ],
+    [
+     0.3868,
+     0.079,
+     0.3545,
+     34,
+     125,
+     330,
+     231,
+     252,
+     89
+    ],
+    [
+     0.3081,
+     0.0785,
+     0.2856,
+     34,
+     139,
+     326,
+     232,
+     250,
+     71
+    ],
+    [
+     0.3093,
+     0.0784,
+     0.2871,
+     34,
+     153,
+     322,
+     232,
+     250,
+     72
+    ],
+    [
+     0.3092,
+     0.0783,
+     0.2877,
+     33,
+     168,
+     318,
+     232,
+     250,
+     72
+    ],
+    [
+     0.3092,
+     0.078,
+     0.2882,
+     33,
+     182,
+     314,
+     233,
+     250,
+     72
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 176,
+   "r": 1.034,
+   "rHi": 0.904,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 7,
+   "r": 0.855,
+   "rHi": 0.817,
+   "black": 0.1429,
+   "blackPts": [
+    [
+     0.4808,
+     0.0971,
+     0.4233,
+     1451,
+     298,
+     393,
+     187,
+     213,
+     90
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along1",
+   "shadows": false,
+   "n": 33,
+   "r": 0.988,
+   "rHi": 0.931,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along2",
+   "shadows": false,
+   "n": 21,
+   "r": 0.582,
+   "rHi": 0.582,
+   "black": 0.2857,
+   "blackPts": [
+    [
+     0.3436,
+     0,
+     0.3327,
+     70,
+     502,
+     690,
+     247,
+     255,
+     85
+    ],
+    [
+     0.4165,
+     0,
+     0.416,
+     69,
+     501,
+     689,
+     255,
+     255,
+     106
+    ],
+    [
+     0.4157,
+     0,
+     0.4149,
+     68,
+     501,
+     689,
+     255,
+     255,
+     106
+    ],
+    [
+     0.4077,
+     0,
+     0.4053,
+     67,
+     500,
+     687,
+     254,
+     255,
+     103
+    ],
+    [
+     0.4825,
+     0,
+     0.4745,
+     66,
+     499,
+     686,
+     251,
+     255,
+     121
+    ],
+    [
+     0.4958,
+     0,
+     0.4785,
+     65,
+     499,
+     685,
+     246,
+     255,
+     122
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossC",
+   "shadows": false,
+   "n": 22,
+   "r": 0.742,
+   "rHi": 0.692,
+   "black": 0.0909,
+   "blackPts": [
+    [
+     0.4512,
+     0,
+     0.4495,
+     31,
+     452,
+     656,
+     205,
+     206,
+     93
+    ],
+    [
+     0.4928,
+     0,
+     0.4809,
+     31,
+     350,
+     649,
+     207,
+     212,
+     102
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "rover",
+   "shadows": false,
+   "n": 148,
+   "r": 1.02,
+   "rHi": 0.943,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 157,
+   "r": 1.101,
+   "rHi": 1.008,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 74,
+   "r": 1.014,
+   "rHi": 0.89,
+   "black": 0.0405,
+   "blackPts": [
+    [
+     0.3835,
+     0.0772,
+     0.3816,
+     63,
+     203,
+     173,
+     236,
+     237,
+     90
+    ],
+    [
+     0.3839,
+     0.0775,
+     0.3773,
+     65,
+     213,
+     178,
+     235,
+     239,
+     90
+    ],
+    [
+     0.3845,
+     0.0776,
+     0.3735,
+     66,
+     219,
+     181,
+     235,
+     241,
+     90
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 3,
+   "r": 0.975,
+   "rHi": 0.946,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 74,
+   "r": 1.003,
+   "rHi": 0.979,
+   "black": 0.1622,
+   "blackPts": [
+    [
+     0.4644,
+     0.3114,
+     0.4631,
+     35,
+     873,
+     114,
+     239,
+     239,
+     111
+    ],
+    [
+     0.4748,
+     0.0773,
+     0.4706,
+     36,
+     915,
+     102,
+     235,
+     238,
+     112
+    ],
+    [
+     0.3956,
+     0.0779,
+     0.3873,
+     36,
+     929,
+     98,
+     234,
+     239,
+     92
+    ],
+    [
+     0.3961,
+     0.0782,
+     0.3845,
+     36,
+     943,
+     94,
+     233,
+     240,
+     92
+    ],
+    [
+     0.397,
+     0.0781,
+     0.386,
+     37,
+     957,
+     90,
+     233,
+     240,
+     93
+    ],
+    [
+     0.3999,
+     0.0782,
+     0.3894,
+     37,
+     970,
+     86,
+     233,
+     239,
+     93
+    ],
+    [
+     0.3217,
+     0.0786,
+     0.3121,
+     37,
+     984,
+     82,
+     232,
+     239,
+     75
+    ],
+    [
+     0.322,
+     0.0787,
+     0.3126,
+     38,
+     998,
+     78,
+     231,
+     238,
+     75
+    ],
+    [
+     0.3988,
+     0.078,
+     0.3898,
+     38,
+     1012,
+     74,
+     234,
+     239,
+     93
+    ],
+    [
+     0.3127,
+     0.077,
+     0.308,
+     38,
+     1026,
+     70,
+     236,
+     240,
+     74
+    ],
+    [
+     0.3107,
+     0.0766,
+     0.306,
+     38,
+     1039,
+     66,
+     238,
+     241,
+     74
+    ],
+    [
+     0.3134,
+     0.0772,
+     0.3047,
+     39,
+     1053,
+     62,
+     236,
+     243,
+     74
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 232,
+   "r": 1.016,
+   "rHi": 0.927,
+   "black": 0.0129,
+   "blackPts": [
+    [
+     0.4825,
+     0.0865,
+     0.4724,
+     32,
+     108,
+     323,
+     211,
+     215,
+     102
+    ],
+    [
+     0.4819,
+     0.0842,
+     0.4753,
+     36,
+     114,
+     339,
+     216,
+     219,
+     104
+    ],
+    [
+     0.4772,
+     0.0832,
+     0.4558,
+     41,
+     120,
+     352,
+     219,
+     229,
+     104
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "ringA/ringB",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along1",
+   "shadows": true,
+   "n": 33,
+   "r": 0.988,
+   "rHi": 0.931,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along2",
+   "shadows": true,
+   "n": 21,
+   "r": 0.582,
+   "rHi": 0.582,
+   "black": 0.2857,
+   "blackPts": [
+    [
+     0.3436,
+     0,
+     0.3327,
+     70,
+     502,
+     690,
+     247,
+     255,
+     85
+    ],
+    [
+     0.4165,
+     0,
+     0.416,
+     69,
+     501,
+     689,
+     255,
+     255,
+     106
+    ],
+    [
+     0.4157,
+     0,
+     0.4149,
+     68,
+     501,
+     689,
+     255,
+     255,
+     106
+    ],
+    [
+     0.4077,
+     0,
+     0.4053,
+     67,
+     500,
+     687,
+     254,
+     255,
+     103
+    ],
+    [
+     0.4825,
+     0,
+     0.4745,
+     66,
+     499,
+     686,
+     251,
+     255,
+     121
+    ],
+    [
+     0.4958,
+     0,
+     0.4785,
+     65,
+     499,
+     685,
+     246,
+     255,
+     122
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossC",
+   "shadows": true,
+   "n": 22,
+   "r": 0.742,
+   "rHi": 0.692,
+   "black": 0.0909,
+   "blackPts": [
+    [
+     0.4512,
+     0,
+     0.4495,
+     31,
+     452,
+     656,
+     205,
+     206,
+     93
+    ],
+    [
+     0.4928,
+     0,
+     0.4809,
+     31,
+     350,
+     649,
+     207,
+     212,
+     102
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "rover",
+   "shadows": true,
+   "n": 148,
+   "r": 1.019,
+   "rHi": 0.943,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 157,
+   "r": 1.101,
+   "rHi": 1.008,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 74,
+   "r": 1.014,
+   "rHi": 0.89,
+   "black": 0.0405,
+   "blackPts": [
+    [
+     0.3835,
+     0.0772,
+     0.3816,
+     63,
+     203,
+     173,
+     236,
+     237,
+     90
+    ],
+    [
+     0.3839,
+     0.0775,
+     0.3773,
+     65,
+     213,
+     178,
+     235,
+     239,
+     90
+    ],
+    [
+     0.3845,
+     0.0776,
+     0.3735,
+     66,
+     219,
+     181,
+     235,
+     241,
+     90
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 3,
+   "r": 0.975,
+   "rHi": 0.946,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 74,
+   "r": 1.003,
+   "rHi": 0.979,
+   "black": 0.1622,
+   "blackPts": [
+    [
+     0.4644,
+     0.3114,
+     0.4631,
+     35,
+     873,
+     114,
+     239,
+     239,
+     111
+    ],
+    [
+     0.4748,
+     0.0773,
+     0.4706,
+     36,
+     915,
+     102,
+     235,
+     238,
+     112
+    ],
+    [
+     0.3956,
+     0.0779,
+     0.3873,
+     36,
+     929,
+     98,
+     234,
+     239,
+     92
+    ],
+    [
+     0.3961,
+     0.0782,
+     0.3845,
+     36,
+     943,
+     94,
+     233,
+     240,
+     92
+    ],
+    [
+     0.397,
+     0.0781,
+     0.386,
+     37,
+     957,
+     90,
+     233,
+     240,
+     93
+    ],
+    [
+     0.3999,
+     0.0782,
+     0.3894,
+     37,
+     970,
+     86,
+     233,
+     239,
+     93
+    ],
+    [
+     0.3217,
+     0.0786,
+     0.3121,
+     37,
+     984,
+     82,
+     232,
+     239,
+     75
+    ],
+    [
+     0.322,
+     0.0787,
+     0.3126,
+     38,
+     998,
+     78,
+     231,
+     238,
+     75
+    ],
+    [
+     0.3988,
+     0.078,
+     0.3898,
+     38,
+     1012,
+     74,
+     234,
+     239,
+     93
+    ],
+    [
+     0.3127,
+     0.077,
+     0.308,
+     38,
+     1026,
+     70,
+     236,
+     240,
+     74
+    ],
+    [
+     0.3107,
+     0.0766,
+     0.306,
+     38,
+     1039,
+     66,
+     238,
+     241,
+     74
+    ],
+    [
+     0.3134,
+     0.0772,
+     0.3047,
+     39,
+     1053,
+     62,
+     236,
+     243,
+     74
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 232,
+   "r": 1.016,
+   "rHi": 0.927,
+   "black": 0.0129,
+   "blackPts": [
+    [
+     0.4825,
+     0.0865,
+     0.4724,
+     32,
+     108,
+     323,
+     211,
+     215,
+     102
+    ],
+    [
+     0.4819,
+     0.0842,
+     0.4753,
+     36,
+     114,
+     339,
+     216,
+     219,
+     104
+    ],
+    [
+     0.4772,
+     0.0832,
+     0.4558,
+     41,
+     120,
+     352,
+     219,
+     229,
+     104
+    ]
+   ]
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "peak_shackleton_lw",
+   "q": "high",
+   "edge": "ringA/ringB",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 86,
+   "r": 1.031,
+   "rHi": 0.915,
+   "black": 0.0349,
+   "blackPts": [
+    [
+     0.3557,
+     0.0721,
+     0.3541,
+     804,
+     516,
+     329,
+     253,
+     254,
+     90
+    ],
+    [
+     0.4082,
+     0.094,
+     0.3128,
+     875,
+     518,
+     331,
+     194,
+     253,
+     79
+    ],
+    [
+     0.3509,
+     0.0907,
+     0.2882,
+     1490,
+     527,
+     370,
+     201,
+     245,
+     70
+    ]
+   ]
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 24,
+   "r": 0.503,
+   "rHi": 0.425,
+   "black": 0.4583,
+   "blackPts": [
+    [
+     0.3114,
+     0.0816,
+     0.3092,
+     972,
+     45,
+     697,
+     223,
+     225,
+     69
+    ],
+    [
+     0.3454,
+     0.0829,
+     0.3308,
+     927,
+     169,
+     731,
+     220,
+     229,
+     76
+    ],
+    [
+     0.3437,
+     0.079,
+     0.3412,
+     924,
+     177,
+     733,
+     230,
+     232,
+     79
+    ],
+    [
+     0.3805,
+     0.0786,
+     0.375,
+     920,
+     193,
+     738,
+     232,
+     235,
+     88
+    ],
+    [
+     0.3798,
+     0.0781,
+     0.3739,
+     917,
+     201,
+     741,
+     233,
+     237,
+     89
+    ],
+    [
+     0.3771,
+     0.0773,
+     0.3726,
+     913,
+     217,
+     746,
+     236,
+     238,
+     89
+    ],
+    [
+     0.3819,
+     0.0768,
+     0.3728,
+     911,
+     225,
+     748,
+     237,
+     243,
+     90
+    ],
+    [
+     0.3825,
+     0.0764,
+     0.3717,
+     909,
+     233,
+     751,
+     238,
+     245,
+     91
+    ],
+    [
+     0.4041,
+     0.0759,
+     0.4025,
+     904,
+     257,
+     759,
+     240,
+     241,
+     97
+    ],
+    [
+     0.3897,
+     0.0762,
+     0.3858,
+     902,
+     265,
+     762,
+     239,
+     241,
+     93
+    ],
+    [
+     0.4066,
+     0.0762,
+     0.381,
+     846,
+     566,
+     867,
+     239,
+     255,
+     97
+    ]
+   ]
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 106,
+   "r": 1.056,
+   "rHi": 0.937,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 14,
+   "r": 0.782,
+   "rHi": 0.675,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 86,
+   "r": 1.031,
+   "rHi": 0.915,
+   "black": 0.0349,
+   "blackPts": [
+    [
+     0.3557,
+     0.0721,
+     0.3541,
+     804,
+     516,
+     329,
+     253,
+     254,
+     90
+    ],
+    [
+     0.4082,
+     0.094,
+     0.3128,
+     875,
+     518,
+     331,
+     194,
+     253,
+     79
+    ],
+    [
+     0.3509,
+     0.0907,
+     0.2882,
+     1490,
+     527,
+     370,
+     201,
+     245,
+     70
+    ]
+   ]
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 24,
+   "r": 0.503,
+   "rHi": 0.425,
+   "black": 0.4583,
+   "blackPts": [
+    [
+     0.3114,
+     0.0816,
+     0.3092,
+     972,
+     45,
+     697,
+     223,
+     225,
+     69
+    ],
+    [
+     0.3454,
+     0.0829,
+     0.3308,
+     927,
+     169,
+     731,
+     220,
+     229,
+     76
+    ],
+    [
+     0.3437,
+     0.079,
+     0.3412,
+     924,
+     177,
+     733,
+     230,
+     232,
+     79
+    ],
+    [
+     0.3805,
+     0.0786,
+     0.375,
+     920,
+     193,
+     738,
+     232,
+     235,
+     88
+    ],
+    [
+     0.3798,
+     0.0781,
+     0.3739,
+     917,
+     201,
+     741,
+     233,
+     237,
+     89
+    ],
+    [
+     0.3771,
+     0.0773,
+     0.3726,
+     913,
+     217,
+     746,
+     236,
+     238,
+     89
+    ],
+    [
+     0.3819,
+     0.0768,
+     0.3728,
+     911,
+     225,
+     748,
+     237,
+     243,
+     90
+    ],
+    [
+     0.3825,
+     0.0764,
+     0.3717,
+     909,
+     233,
+     751,
+     238,
+     245,
+     91
+    ],
+    [
+     0.4041,
+     0.0759,
+     0.4025,
+     904,
+     257,
+     759,
+     240,
+     241,
+     97
+    ],
+    [
+     0.3897,
+     0.0762,
+     0.3858,
+     902,
+     265,
+     762,
+     239,
+     241,
+     93
+    ],
+    [
+     0.4066,
+     0.0762,
+     0.381,
+     846,
+     566,
+     867,
+     239,
+     255,
+     97
+    ]
+   ]
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 106,
+   "r": 1.056,
+   "rHi": 0.937,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 14,
+   "r": 0.782,
+   "rHi": 0.675,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 122,
+   "r": 1.037,
+   "rHi": 0.921,
+   "black": 0.0164,
+   "blackPts": [
+    [
+     0.3809,
+     0.0935,
+     0.3544,
+     208,
+     447,
+     308,
+     195,
+     209,
+     74
+    ],
+    [
+     0.4108,
+     0.0934,
+     0.3418,
+     215,
+     450,
+     311,
+     195,
+     234,
+     80
+    ]
+   ]
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 65,
+   "r": 1.013,
+   "rHi": 0.981,
+   "black": 0.1231,
+   "blackPts": [
+    [
+     0.4226,
+     0.0853,
+     0.394,
+     1081,
+     109,
+     708,
+     213,
+     229,
+     90
+    ],
+    [
+     0.4836,
+     0.0906,
+     0.3962,
+     1078,
+     118,
+     709,
+     201,
+     245,
+     97
+    ],
+    [
+     0.2491,
+     0.0934,
+     0.1961,
+     1074,
+     126,
+     711,
+     195,
+     248,
+     49
+    ],
+    [
+     0.4822,
+     0.0808,
+     0.4261,
+     667,
+     572,
+     843,
+     225,
+     255,
+     109
+    ],
+    [
+     0.385,
+     0.0817,
+     0.3373,
+     661,
+     572,
+     841,
+     223,
+     255,
+     86
+    ],
+    [
+     0.4621,
+     0.0737,
+     0.4481,
+     99,
+     759,
+     861,
+     247,
+     255,
+     114
+    ],
+    [
+     0.3883,
+     0.0742,
+     0.3738,
+     98,
+     761,
+     860,
+     245,
+     255,
+     95
+    ],
+    [
+     0.3114,
+     0.0748,
+     0.2977,
+     97,
+     763,
+     860,
+     244,
+     255,
+     76
+    ]
+   ]
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 245,
+   "r": 1.019,
+   "rHi": 0.917,
+   "black": 0.0041,
+   "blackPts": [
+    [
+     0.4311,
+     0.0717,
+     0.4294,
+     181,
+     145,
+     600,
+     254,
+     255,
+     109
+    ]
+   ]
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 21,
+   "r": 0.993,
+   "rHi": 0.834,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along1",
+   "shadows": false,
+   "n": 85,
+   "r": 1.135,
+   "rHi": 0.866,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along2",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossC",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "rover",
+   "shadows": false,
+   "n": 159,
+   "r": 1.021,
+   "rHi": 0.935,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 45,
+   "r": 1.075,
+   "rHi": 0.97,
+   "black": 0.0222,
+   "blackPts": [
+    [
+     0.2011,
+     0.0972,
+     0.1632,
+     486,
+     787,
+     435,
+     82,
+     101,
+     16
+    ]
+   ]
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 151,
+   "r": 1.03,
+   "rHi": 0.929,
+   "black": 0.0331,
+   "blackPts": [
+    [
+     0.3034,
+     0.078,
+     0.2932,
+     43,
+     17,
+     397,
+     234,
+     242,
+     71
+    ],
+    [
+     0.4556,
+     0.0783,
+     0.4373,
+     43,
+     24,
+     395,
+     232,
+     242,
+     106
+    ],
+    [
+     0.3811,
+     0.0784,
+     0.3623,
+     43,
+     32,
+     394,
+     232,
+     244,
+     88
+    ],
+    [
+     0.3063,
+     0.0788,
+     0.2892,
+     44,
+     38,
+     393,
+     231,
+     245,
+     71
+    ],
+    [
+     0.4562,
+     0.079,
+     0.4276,
+     44,
+     45,
+     391,
+     230,
+     246,
+     105
+    ]
+   ]
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 58,
+   "r": 1.01,
+   "rHi": 0.978,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 240,
+   "r": 1.019,
+   "rHi": 0.953,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 14,
+   "r": 1.064,
+   "rHi": 0.902,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "ringA/ringB",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 176,
+   "r": 1.038,
+   "rHi": 0.961,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along1",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "along2",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "acrossC",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "rover",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "patch/tile",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "shackleton_centre",
+   "q": "high",
+   "edge": "ringA/ringB",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 176,
+   "r": 1.038,
+   "rHi": 0.961,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 14,
+   "r": 1.046,
+   "rHi": 0.856,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 5,
+   "r": 0.983,
+   "rHi": 0.905,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 191,
+   "r": 0.775,
+   "rHi": 0.707,
+   "black": 0.0209,
+   "blackPts": [
+    [
+     0.4259,
+     0.1248,
+     0.367,
+     46,
+     102,
+     500,
+     146,
+     169,
+     62
+    ],
+    [
+     0.4171,
+     0.1053,
+     0.3748,
+     63,
+     107,
+     555,
+     173,
+     192,
+     72
+    ],
+    [
+     0.4188,
+     0.0925,
+     0.3953,
+     76,
+     110,
+     574,
+     197,
+     209,
+     82
+    ],
+    [
+     0.4378,
+     0.0947,
+     0.4048,
+     76,
+     110,
+     574,
+     192,
+     208,
+     84
+    ]
+   ]
+  },
+  {
+   "site": "mons_malapert",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 184,
+   "r": 1.02,
+   "rHi": 0.938,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 14,
+   "r": 1.046,
+   "rHi": 0.856,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 5,
+   "r": 0.983,
+   "rHi": 0.905,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 191,
+   "r": 0.775,
+   "rHi": 0.707,
+   "black": 0.0209,
+   "blackPts": [
+    [
+     0.4259,
+     0.1248,
+     0.367,
+     46,
+     102,
+     500,
+     146,
+     169,
+     62
+    ],
+    [
+     0.4171,
+     0.1053,
+     0.3748,
+     63,
+     107,
+     555,
+     173,
+     192,
+     72
+    ],
+    [
+     0.4188,
+     0.0925,
+     0.3953,
+     76,
+     110,
+     574,
+     197,
+     209,
+     82
+    ],
+    [
+     0.4378,
+     0.0947,
+     0.4048,
+     76,
+     110,
+     574,
+     192,
+     208,
+     84
+    ]
+   ]
+  },
+  {
+   "site": "mons_malapert",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 184,
+   "r": 1.02,
+   "rHi": 0.938,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 17,
+   "r": 1.063,
+   "rHi": 0.972,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 8,
+   "r": 0.943,
+   "rHi": 0.904,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 253,
+   "r": 0.893,
+   "rHi": 0.768,
+   "black": 0.004,
+   "blackPts": [
+    [
+     0.4631,
+     0.0836,
+     0.4618,
+     89,
+     113,
+     584,
+     218,
+     219,
+     101
+    ]
+   ]
+  },
+  {
+   "site": "mons_malapert",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 189,
+   "r": 1.011,
+   "rHi": 0.921,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 17,
+   "r": 1.063,
+   "rHi": 0.972,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 8,
+   "r": 0.943,
+   "rHi": 0.904,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 253,
+   "r": 0.893,
+   "rHi": 0.768,
+   "black": 0.004,
+   "blackPts": [
+    [
+     0.4631,
+     0.0836,
+     0.4618,
+     89,
+     113,
+     584,
+     218,
+     219,
+     101
+    ]
+   ]
+  },
+  {
+   "site": "mons_malapert",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 189,
+   "r": 1.011,
+   "rHi": 0.921,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 96,
+   "r": 0.876,
+   "rHi": 0.754,
+   "black": 0.125,
+   "blackPts": [
+    [
+     0.4754,
+     0.0946,
+     0.4728,
+     55,
+     154,
+     243,
+     193,
+     194,
+     92
+    ],
+    [
+     0.4023,
+     0.095,
+     0.3963,
+     56,
+     158,
+     246,
+     192,
+     195,
+     77
+    ],
+    [
+     0.404,
+     0.0961,
+     0.3923,
+     57,
+     165,
+     251,
+     189,
+     195,
+     77
+    ],
+    [
+     0.4131,
+     0.097,
+     0.3997,
+     57,
+     169,
+     254,
+     188,
+     194,
+     78
+    ],
+    [
+     0.4023,
+     0.0971,
+     0.3914,
+     58,
+     176,
+     259,
+     188,
+     193,
+     75
+    ],
+    [
+     0.4445,
+     0.1013,
+     0.4119,
+     59,
+     183,
+     264,
+     180,
+     194,
+     80
+    ],
+    [
+     0.4629,
+     0.1009,
+     0.4288,
+     59,
+     186,
+     266,
+     180,
+     195,
+     84
+    ],
+    [
+     0.4222,
+     0.1009,
+     0.3903,
+     60,
+     193,
+     271,
+     181,
+     195,
+     76
+    ],
+    [
+     0.4107,
+     0.0994,
+     0.3792,
+     62,
+     208,
+     282,
+     183,
+     198,
+     75
+    ],
+    [
+     0.406,
+     0.0992,
+     0.3807,
+     63,
+     211,
+     284,
+     184,
+     196,
+     75
+    ],
+    [
+     0.4405,
+     0.1072,
+     0.3685,
+     91,
+     322,
+     360,
+     170,
+     203,
+     75
+    ],
+    [
+     0.4498,
+     0.112,
+     0.3681,
+     95,
+     333,
+     368,
+     163,
+     199,
+     73
+    ]
+   ]
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 39,
+   "r": 0.46,
+   "rHi": 0.419,
+   "black": 0.641,
+   "blackPts": [
+    [
+     0.3971,
+     0.0799,
+     0.3549,
+     34,
+     326,
+     101,
+     228,
+     255,
+     90
+    ],
+    [
+     0.4677,
+     0.0787,
+     0.4241,
+     34,
+     340,
+     99,
+     231,
+     255,
+     108
+    ],
+    [
+     0.474,
+     0.0808,
+     0.4189,
+     34,
+     354,
+     97,
+     225,
+     255,
+     107
+    ],
+    [
+     0.4795,
+     0.0818,
+     0.4188,
+     34,
+     368,
+     95,
+     223,
+     255,
+     107
+    ],
+    [
+     0.4713,
+     0.0794,
+     0.4241,
+     34,
+     382,
+     93,
+     229,
+     255,
+     108
+    ],
+    [
+     0.462,
+     0.0787,
+     0.4189,
+     34,
+     396,
+     91,
+     231,
+     255,
+     107
+    ],
+    [
+     0.4584,
+     0.0779,
+     0.4201,
+     34,
+     410,
+     89,
+     234,
+     255,
+     107
+    ],
+    [
+     0.4597,
+     0.0774,
+     0.4242,
+     34,
+     424,
+     87,
+     235,
+     255,
+     108
+    ],
+    [
+     0.1472,
+     0.0777,
+     0.1354,
+     34,
+     438,
+     86,
+     234,
+     255,
+     35
+    ],
+    [
+     0.2136,
+     0.077,
+     0.198,
+     34,
+     452,
+     84,
+     236,
+     255,
+     50
+    ],
+    [
+     0.2225,
+     0.0767,
+     0.2071,
+     34,
+     466,
+     82,
+     237,
+     255,
+     53
+    ],
+    [
+     0.2322,
+     0.0766,
+     0.2166,
+     34,
+     480,
+     80,
+     238,
+     255,
+     55
+    ]
+   ]
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 237,
+   "r": 0.856,
+   "rHi": 0.775,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 191,
+   "r": 1.023,
+   "rHi": 0.921,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "ringA/ringB",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 184,
+   "r": 1.007,
+   "rHi": 0.984,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 96,
+   "r": 0.876,
+   "rHi": 0.754,
+   "black": 0.125,
+   "blackPts": [
+    [
+     0.4754,
+     0.0946,
+     0.4728,
+     55,
+     154,
+     243,
+     193,
+     194,
+     92
+    ],
+    [
+     0.4023,
+     0.095,
+     0.3963,
+     56,
+     158,
+     246,
+     192,
+     195,
+     77
+    ],
+    [
+     0.404,
+     0.0961,
+     0.3923,
+     57,
+     165,
+     251,
+     189,
+     195,
+     77
+    ],
+    [
+     0.4131,
+     0.097,
+     0.3997,
+     57,
+     169,
+     254,
+     188,
+     194,
+     78
+    ],
+    [
+     0.4023,
+     0.0971,
+     0.3914,
+     58,
+     176,
+     259,
+     188,
+     193,
+     75
+    ],
+    [
+     0.4445,
+     0.1013,
+     0.4119,
+     59,
+     183,
+     264,
+     180,
+     194,
+     80
+    ],
+    [
+     0.4629,
+     0.1009,
+     0.4288,
+     59,
+     186,
+     266,
+     180,
+     195,
+     84
+    ],
+    [
+     0.4222,
+     0.1009,
+     0.3903,
+     60,
+     193,
+     271,
+     181,
+     195,
+     76
+    ],
+    [
+     0.4107,
+     0.0994,
+     0.3792,
+     62,
+     208,
+     282,
+     183,
+     198,
+     75
+    ],
+    [
+     0.406,
+     0.0992,
+     0.3807,
+     63,
+     211,
+     284,
+     184,
+     196,
+     75
+    ],
+    [
+     0.4405,
+     0.1072,
+     0.3685,
+     91,
+     322,
+     360,
+     170,
+     203,
+     75
+    ],
+    [
+     0.4498,
+     0.112,
+     0.3681,
+     95,
+     333,
+     368,
+     163,
+     199,
+     73
+    ]
+   ]
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 39,
+   "r": 0.46,
+   "rHi": 0.419,
+   "black": 0.641,
+   "blackPts": [
+    [
+     0.3971,
+     0.0799,
+     0.3549,
+     34,
+     326,
+     101,
+     228,
+     255,
+     90
+    ],
+    [
+     0.4677,
+     0.0787,
+     0.4241,
+     34,
+     340,
+     99,
+     231,
+     255,
+     108
+    ],
+    [
+     0.474,
+     0.0808,
+     0.4189,
+     34,
+     354,
+     97,
+     225,
+     255,
+     107
+    ],
+    [
+     0.4795,
+     0.0818,
+     0.4188,
+     34,
+     368,
+     95,
+     223,
+     255,
+     107
+    ],
+    [
+     0.4713,
+     0.0794,
+     0.4241,
+     34,
+     382,
+     93,
+     229,
+     255,
+     108
+    ],
+    [
+     0.462,
+     0.0787,
+     0.4189,
+     34,
+     396,
+     91,
+     231,
+     255,
+     107
+    ],
+    [
+     0.4584,
+     0.0779,
+     0.4201,
+     34,
+     410,
+     89,
+     234,
+     255,
+     107
+    ],
+    [
+     0.4597,
+     0.0774,
+     0.4242,
+     34,
+     424,
+     87,
+     235,
+     255,
+     108
+    ],
+    [
+     0.1472,
+     0.0777,
+     0.1354,
+     34,
+     438,
+     86,
+     234,
+     255,
+     35
+    ],
+    [
+     0.2136,
+     0.077,
+     0.198,
+     34,
+     452,
+     84,
+     236,
+     255,
+     50
+    ],
+    [
+     0.2225,
+     0.0767,
+     0.2071,
+     34,
+     466,
+     82,
+     237,
+     255,
+     53
+    ],
+    [
+     0.2322,
+     0.0766,
+     0.2166,
+     34,
+     480,
+     80,
+     238,
+     255,
+     55
+    ]
+   ]
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 237,
+   "r": 0.856,
+   "rHi": 0.775,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 191,
+   "r": 1.023,
+   "rHi": 0.921,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_malapert",
+   "q": "high",
+   "edge": "ringA/ringB",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 184,
+   "r": 1.007,
+   "rHi": 0.984,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 16,
+   "r": 1.004,
+   "rHi": 0.727,
+   "black": 0.1875,
+   "blackPts": [
+    [
+     0.3571,
+     0.0388,
+     0.3071,
+     347,
+     484,
+     598,
+     204,
+     238,
+     73
+    ],
+    [
+     0.3536,
+     0.0388,
+     0.3041,
+     350,
+     484,
+     598,
+     205,
+     238,
+     72
+    ],
+    [
+     0.3504,
+     0.0389,
+     0.2975,
+     356,
+     485,
+     600,
+     204,
+     240,
+     71
+    ]
+   ]
+  },
+  {
+   "site": "mons_mouton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 68,
+   "r": 1.032,
+   "rHi": 0.859,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 56,
+   "r": 0.889,
+   "rHi": 0.796,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 16,
+   "r": 1.004,
+   "rHi": 0.727,
+   "black": 0.1875,
+   "blackPts": [
+    [
+     0.3571,
+     0.0388,
+     0.3071,
+     347,
+     484,
+     598,
+     204,
+     238,
+     73
+    ],
+    [
+     0.3536,
+     0.0388,
+     0.3041,
+     350,
+     484,
+     598,
+     205,
+     238,
+     72
+    ],
+    [
+     0.3504,
+     0.0389,
+     0.2975,
+     356,
+     485,
+     600,
+     204,
+     240,
+     71
+    ]
+   ]
+  },
+  {
+   "site": "mons_mouton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 68,
+   "r": 1.032,
+   "rHi": 0.859,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "low",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 56,
+   "r": 0.899,
+   "rHi": 0.796,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 22,
+   "r": 1.048,
+   "rHi": 0.9,
+   "black": 0.1364,
+   "blackPts": [
+    [
+     0.4212,
+     0,
+     0.3694,
+     67,
+     236,
+     592,
+     224,
+     255,
+     94
+    ],
+    [
+     0.3712,
+     0.0815,
+     0.3253,
+     68,
+     241,
+     591,
+     223,
+     255,
+     83
+    ],
+    [
+     0.3188,
+     0.0816,
+     0.279,
+     69,
+     244,
+     590,
+     223,
+     255,
+     71
+    ]
+   ]
+  },
+  {
+   "site": "mons_mouton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 157,
+   "r": 0.911,
+   "rHi": 0.791,
+   "black": 0.0446,
+   "blackPts": [
+    [
+     0.3846,
+     0.0829,
+     0.3553,
+     75,
+     89,
+     701,
+     220,
+     238,
+     84
+    ],
+    [
+     0.3787,
+     0.0832,
+     0.3476,
+     77,
+     90,
+     702,
+     219,
+     238,
+     83
+    ],
+    [
+     0.3774,
+     0.0836,
+     0.3435,
+     80,
+     91,
+     703,
+     218,
+     239,
+     82
+    ],
+    [
+     0.3774,
+     0.0836,
+     0.3427,
+     81,
+     91,
+     703,
+     218,
+     240,
+     82
+    ],
+    [
+     0.4601,
+     0.0839,
+     0.4148,
+     83,
+     92,
+     704,
+     217,
+     241,
+     100
+    ],
+    [
+     0.4631,
+     0.0845,
+     0.4263,
+     84,
+     92,
+     704,
+     216,
+     234,
+     100
+    ],
+    [
+     0.4628,
+     0.085,
+     0.4108,
+     86,
+     93,
+     705,
+     214,
+     241,
+     99
+    ]
+   ]
+  },
+  {
+   "site": "mons_mouton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 76,
+   "r": 1.053,
+   "rHi": 0.837,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "medium",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": false,
+   "n": 22,
+   "r": 1.048,
+   "rHi": 0.9,
+   "black": 0.1364,
+   "blackPts": [
+    [
+     0.4212,
+     0,
+     0.3694,
+     67,
+     236,
+     592,
+     224,
+     255,
+     94
+    ],
+    [
+     0.3712,
+     0.0815,
+     0.3253,
+     68,
+     241,
+     591,
+     223,
+     255,
+     83
+    ],
+    [
+     0.3188,
+     0.0816,
+     0.279,
+     69,
+     244,
+     590,
+     223,
+     255,
+     71
+    ]
+   ]
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": false,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": false,
+   "n": 157,
+   "r": 0.942,
+   "rHi": 0.825,
+   "black": 0.0446,
+   "blackPts": [
+    [
+     0.3846,
+     0.0829,
+     0.3553,
+     75,
+     89,
+     701,
+     220,
+     238,
+     84
+    ],
+    [
+     0.3787,
+     0.0832,
+     0.3476,
+     77,
+     90,
+     702,
+     219,
+     238,
+     83
+    ],
+    [
+     0.3774,
+     0.0836,
+     0.3435,
+     80,
+     91,
+     703,
+     218,
+     239,
+     82
+    ],
+    [
+     0.3774,
+     0.0836,
+     0.3427,
+     81,
+     91,
+     703,
+     218,
+     240,
+     82
+    ],
+    [
+     0.4601,
+     0.0839,
+     0.4148,
+     83,
+     92,
+     704,
+     217,
+     241,
+     100
+    ],
+    [
+     0.4631,
+     0.0845,
+     0.4263,
+     84,
+     92,
+     704,
+     216,
+     234,
+     100
+    ],
+    [
+     0.4628,
+     0.085,
+     0.4108,
+     86,
+     93,
+     705,
+     214,
+     241,
+     99
+    ]
+   ]
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 76,
+   "r": 1.059,
+   "rHi": 0.841,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "ringA/ringB",
+   "kind": "orbit",
+   "shadows": false,
+   "n": 68,
+   "r": 1.064,
+   "rHi": 0.925,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along1",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "along2",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "acrossF",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "rover",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "tile/ringA",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 0,
+   "r": null,
+   "rHi": null,
+   "black": 0,
+   "blackPts": []
+  },
+  {
+   "site": "mons_mouton",
+   "q": "high",
+   "edge": "ringA/ringB",
+   "kind": "orbit",
+   "shadows": true,
+   "n": 25,
+   "r": 0.983,
+   "rHi": 0.884,
+   "black": 0,
+   "blackPts": []
+  }
+ ]
+}

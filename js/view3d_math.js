@@ -174,7 +174,14 @@
       var nt = toThree([cx / cl, cy / cl, cz / cl]);
       nor[k] = nt[0]; nor[k + 1] = nt[1]; nor[k + 2] = nt[2];
       // smoothed normal (central differences over +-4 cells), used only by the relief-shading display option
-      var sa1 = enu(G, e + RS, n, heightAt(S, e + RS, n)), sa0 = enu(G, e - RS, n, heightAt(S, e - RS, n)), sb1 = enu(G, e, n + RS, heightAt(S, e, n + RS)), sb0 = enu(G, e, n - RS, heightAt(S, e, n - RS));
+      // Prompt 7D: the samples stay on S (clamped to its edge: one-sided near the border). Before, heightAt extrapolated
+      // S's last cells linearly up to 4 cells beyond the grid, which tilted the smoothed normal of the outermost
+      // vertices; the outer bands (5 m patch, tile) blend fully to this normal at the edge, so a dark or bright strip
+      // ran along the layer edge. Display only (relief shading and band blending); heights, vertex normals and slopes
+      // are unchanged.
+      var cS = function (x) { return Math.max(-S.half, Math.min(S.half, x)); };
+      var eP = cS(e + RS), eM = cS(e - RS), nP = cS(n + RS), nM = cS(n - RS);
+      var sa1 = enu(G, eP, n, heightAt(S, eP, n)), sa0 = enu(G, eM, n, heightAt(S, eM, n)), sb1 = enu(G, e, nP, heightAt(S, e, nP)), sb0 = enu(G, e, nM, heightAt(S, e, nM));
       var stx = sa1[0] - sa0[0], sty = sa1[1] - sa0[1], stz = sa1[2] - sa0[2], sux = sb1[0] - sb0[0], suy = sb1[1] - sb0[1], suz = sb1[2] - sb0[2];
       var scx = sty * suz - stz * suy, scy = stz * sux - stx * suz, scz = stx * suy - sty * sux, scl = Math.sqrt(scx * scx + scy * scy + scz * scz) || 1;
       var st = toThree([scx / scl, scy / scl, scz / scl]);
@@ -294,31 +301,111 @@
   }
   // Skirt: a vertical strip hanging 'drop' metres below the outer edge of grid G (every 'stride'-th node), so the
   // T-junctions where a finer mesh meets a coarser one show terrain-coloured skirt instead of gaps.
-  function buildSkirt(G, stride, drop, heightFn) {
+  // Prompt 7D: the skirt takes everything but its bottom edge from the layer's own mesh P (buildGridMesh of G with the
+  // same stride): top vertices = the layer's edge vertices (same positions), and both rows carry the top vertex's DEM
+  // normal, smoothed normal, normal-map coordinates, height and slope, so the skirt is shaded exactly like the ground at
+  // the edge. aTop = the top vertex position for both rows (the shader looks up the Sun's shadow there, not below the
+  // ground). Both windings (visible from either side; before, one side was culled and showed the black sky).
+  function buildSkirt(G, stride, drop, P) {
     stride = stride || 1;
     var m = Math.floor((G.n - 1) / stride) + 1, ring = [];
+    if (!P || P.m !== m) throw new Error('buildSkirt: mesh of the layer required');
     for (var a = 0; a < m - 1; a++) ring.push([a, 0]);
     for (var b = 0; b < m - 1; b++) ring.push([m - 1, b]);
     for (var c2 = m - 1; c2 > 0; c2--) ring.push([c2, m - 1]);
     for (var d2 = m - 1; d2 > 0; d2--) ring.push([0, d2]);
     ring.push(ring[0]);
-    var pos = new Float32Array(ring.length * 6), nor = new Float32Array(ring.length * 6), H = new Float32Array(ring.length * 2), sl = new Float32Array(ring.length * 2), idx = [];
-    var dd = G.d;
-    for (var q = 0; q < ring.length; q++) {
-      var i = ring[q][0] * stride, j = ring[q][1] * stride, e = (i - G.c) * G.d, n = (G.c - j) * G.d;
-      var h = heightFn ? heightFn(e, n) : node(G, i, j);
-      var t = toThree(enu(G, e, n, h)), bt = toThree(enu(G, e, n, h - drop / (G.k || 1)));
-      pos.set(t, q * 6); pos.set(bt, q * 6 + 3);
-      // the skirt is shaded like the terrain at its top edge (terrain normal), so it does not light up as a wall
-      var a1 = enu(G, e + dd, n, heightAt(G, e + dd, n)), a0 = enu(G, e - dd, n, heightAt(G, e - dd, n)), b1 = enu(G, e, n + dd, heightAt(G, e, n + dd)), b0 = enu(G, e, n - dd, heightAt(G, e, n - dd));
-      var tx = a1[0] - a0[0], ty = a1[1] - a0[1], tz = a1[2] - a0[2], ux = b1[0] - b0[0], uy = b1[1] - b0[1], uz = b1[2] - b0[2];
-      var cx = ty * uz - tz * uy, cy = tz * ux - tx * uz, cz = tx * uy - ty * ux, cl = Math.sqrt(cx * cx + cy * cy + cz * cz) || 1;
-      var nt = toThree([cx / cl, cy / cl, cz / cl]);
-      nor.set(nt, q * 6); nor.set(nt, q * 6 + 3);
+    var L = ring.length, pos = new Float32Array(L * 6), top = new Float32Array(L * 6), nor = new Float32Array(L * 6), nsm = new Float32Array(L * 6);
+    var H = new Float32Array(L * 2), sl = new Float32Array(L * 2), uv = new Float32Array(L * 4), idx = [];
+    for (var q = 0; q < L; q++) {
+      var ii = ring[q][0], jj = ring[q][1], k = jj * m + ii, i = ii * stride, j = jj * stride, e = (i - G.c) * G.d, n = (G.c - j) * G.d;
+      var h = P.H[k], t = P.pos.subarray(3 * k, 3 * k + 3), bt = toThree(enu(G, e, n, h - drop / (G.k || 1)));
+      pos.set(t, q * 6); pos.set(bt, q * 6 + 3); top.set(t, q * 6); top.set(t, q * 6 + 3);
+      nor.set(P.normal.subarray(3 * k, 3 * k + 3), q * 6); nor.set(P.normal.subarray(3 * k, 3 * k + 3), q * 6 + 3);
+      nsm.set(P.normalSmooth.subarray(3 * k, 3 * k + 3), q * 6); nsm.set(P.normalSmooth.subarray(3 * k, 3 * k + 3), q * 6 + 3);
+      uv.set(P.uv.subarray(2 * k, 2 * k + 2), q * 4); uv.set(P.uv.subarray(2 * k, 2 * k + 2), q * 4 + 2);
       H[2 * q] = h; H[2 * q + 1] = h;   // contour lines would not run down the skirt
-      if (q < ring.length - 1) { var t0 = 2 * q, b0i = t0 + 1, t1 = t0 + 2, b1i = t0 + 3; idx.push(t0, b0i, t1, t1, b0i, b1i); }
+      sl[2 * q] = P.slope[k]; sl[2 * q + 1] = P.slope[k];
+      if (q < L - 1) { var t0 = 2 * q, b0i = t0 + 1, t1 = t0 + 2, b1i = t0 + 3; idx.push(t0, b0i, t1, t1, b0i, b1i, t0, t1, b0i, t1, b1i, b0i); }
     }
-    return { pos: pos, normal: nor, normalSmooth: nor, H: H, slope: sl, uv: new Float32Array(ring.length * 4), index: new Uint32Array(idx) };
+    return { pos: pos, top: top, normal: nor, normalSmooth: nsm, H: H, slope: sl, uv: uv, index: new Uint32Array(idx) };
+  }
+  // Prompt 7D. Position of the point (e, n) along the perimeter of the square of half-size h (0 at the north-west corner,
+  // clockwise seen from above: north side west->east, east side north->south, south side east->west, west side
+  // south->north; total 8h).
+  function squareT(h, e, n) {
+    var eps = 1e-6 * Math.max(1, h);
+    if (Math.abs(n - h) <= eps) return e + h;
+    if (Math.abs(e - h) <= eps) return 2 * h + (h - n);
+    if (Math.abs(n + h) <= eps) return 4 * h + (h - e);
+    return 6 * h + (n + h);
+  }
+  // Prompt 7D. "Zipper" between a finer layer F (mesh PF, outer edge = the square of half-size h) and the coarser layer C
+  // around it (mesh PC with a hole of half-size h). Both meshes already share the vertices where a coarse edge node falls
+  // on the fine edge, but between two coarse edge nodes the fine edge has extra vertices (T-junctions): the coarse edge
+  // runs straight, the fine edge follows its own grid, and the thin vertical slit between them (the real small difference
+  // between the two height products along the edge) let the background show through as a black crack. The zipper fills
+  // exactly that slit: for every coarse edge segment (a, b) a fan of triangles a-f1-f2, ..., a-fk-b over the fine edge
+  // vertices f1..fk strictly between them. Its vertices are copies of the two meshes' own edge vertices (no new heights,
+  // nothing moved); it lies in the vertical plane of the edge (zero area seen from above) and is drawn with the finer
+  // layer's material, normals, normal-map coordinates and heights (interpolated along the fine edge at coarse nodes), so
+  // it is shaded like the finer ground at the edge. Both windings.
+  function buildZipper(F, fs, PF, C, cs, PC, h) {
+    var eps = 1e-6 * Math.max(1, h), per = 8 * h;
+    var edgeList = function (G, s, P) {
+      var out = [];
+      for (var jj = 0; jj < P.m; jj++) for (var ii = 0; ii < P.m; ii++) {
+        var e = (ii * s - G.c) * G.d, n = (G.c - jj * s) * G.d;
+        if (Math.abs(Math.max(Math.abs(e), Math.abs(n)) - h) > eps) continue;
+        out.push({ k: jj * P.m + ii, t: squareT(h, e, n) });
+      }
+      return out.sort(function (x, y) { return x.t - y.t; });
+    };
+    var fl = edgeList(F, fs, PF), cl = edgeList(C, cs, PC), nf = fl.length;
+    if (nf < 2 || cl.length < 2) return null;
+    var V = [];   // vertices: { P, k } (copy) or { t } (fine attributes interpolated at perimeter position t, coarse position)
+    var pos = [], nor = [], nsm = [], uv = [], H = [], sl = [], idx = [];
+    var fineAt = function (t) {   // fine edge interpolation weights at perimeter position t (wraps)
+      t = ((t % per) + per) % per;
+      var lo = 0, hi = nf - 1;
+      if (t <= fl[0].t || t >= fl[nf - 1].t) {   // between the last and the first fine vertex (across t = 0)
+        var span = fl[0].t + per - fl[nf - 1].t, x = t >= fl[nf - 1].t ? t - fl[nf - 1].t : t + per - fl[nf - 1].t;
+        return [fl[nf - 1].k, fl[0].k, span > 0 ? x / span : 0];
+      }
+      while (hi - lo > 1) { var mid = (lo + hi) >> 1; if (fl[mid].t <= t) lo = mid; else hi = mid; }
+      return [fl[lo].k, fl[hi].k, (t - fl[lo].t) / ((fl[hi].t - fl[lo].t) || 1)];
+    };
+    var push = function (pk, t) {   // coarse vertex pk at perimeter position t, or fine vertex (pk < 0: -1 - k)
+      var w = pk < 0 ? [-1 - pk, -1 - pk, 0] : fineAt(t), a = w[0], b = w[1], x = w[2];
+      var src = pk < 0 ? PF.pos.subarray(3 * a, 3 * a + 3) : PC.pos.subarray(3 * pk, 3 * pk + 3);
+      pos.push(src[0], src[1], src[2]);
+      var lerpN = function (A, out) {
+        var vx = A[3 * a] * (1 - x) + A[3 * b] * x, vy = A[3 * a + 1] * (1 - x) + A[3 * b + 1] * x, vz = A[3 * a + 2] * (1 - x) + A[3 * b + 2] * x, l = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1;
+        out.push(vx / l, vy / l, vz / l);
+      };
+      lerpN(PF.normal, nor); lerpN(PF.normalSmooth, nsm);
+      uv.push(PF.uv[2 * a] * (1 - x) + PF.uv[2 * b] * x, PF.uv[2 * a + 1] * (1 - x) + PF.uv[2 * b + 1] * x);
+      H.push(pk < 0 ? PF.H[a] : PC.H[pk]); sl.push(PF.slope[a] * (1 - x) + PF.slope[b] * x);
+      return pos.length / 3 - 1;
+    };
+    for (var q = 0; q < cl.length; q++) {
+      var A = cl[q], B = cl[(q + 1) % cl.length], ta = A.t, tb = q + 1 < cl.length ? B.t : B.t + per;
+      var fan = [];
+      for (var r = 0; r < nf; r++) {
+        var tf = fl[r].t; if (tf < ta + eps) tf += per;
+        if (tf > ta + eps && tf < tb - eps) fan.push({ k: fl[r].k, t: tf });
+      }
+      if (!fan.length) continue;
+      fan.sort(function (x, y) { return x.t - y.t; });
+      var ia = push(A.k, ta), prev = push(-1 - fan[0].k, fan[0].t);
+      for (var u = 1; u <= fan.length; u++) {
+        var cur = u < fan.length ? push(-1 - fan[u].k, fan[u].t) : push(B.k, tb);
+        idx.push(ia, prev, cur, ia, cur, prev);
+        prev = cur;
+      }
+    }
+    if (!idx.length) return null;
+    return { pos: new Float32Array(pos), normal: new Float32Array(nor), normalSmooth: new Float32Array(nsm), uv: new Float32Array(uv), H: new Float32Array(H), slope: new Float32Array(sl), index: new Uint32Array(idx), triangles: idx.length / 6 };
   }
 
   // ------------------------------------------------------------ stars (round 4)
@@ -415,7 +502,7 @@
   }
 
   return {
-    latLonAt: latLonAt, starDirs: starDirs, earthAxes: earthAxes, subObserver: subObserver, nodeOrMesh: nodeOrMesh, buildGridMesh: buildGridMesh, buildSkirt: buildSkirt,
+    latLonAt: latLonAt, starDirs: starDirs, earthAxes: earthAxes, subObserver: subObserver, nodeOrMesh: nodeOrMesh, buildGridMesh: buildGridMesh, buildSkirt: buildSkirt, buildZipper: buildZipper, squareT: squareT,
     decodeTile: decodeTile, enu: enu, toThree: toThree, fromThree: fromThree, dirFromAzEl: dirFromAzEl, azElFromDir: azElFromDir,
     heightAt: heightAt, meshHeightAt: meshHeightAt, slopeAt: slopeAt, gridFromWorld: gridFromWorld, groundWorld: groundWorld,
     inside: inside, buildIndex: buildIndex, buildPositions: buildPositions, earthPhase: earthPhase, nearFieldSunUp: nearFieldSunUp,

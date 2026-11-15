@@ -136,6 +136,27 @@ async function markerChecks(page, vp, tag) {
     expect(`${tag} outlines: clicking a marker on top of an outline selects the site / opens its group list (not a custom point)`, !!s2.id && (s2.popup || s2.name === cov.hit.title), JSON.stringify(s2));
     await page.evaluate(() => AsteriaMap.leaflet().closePopup());
   } else expect(`${tag} outlines: found an outline crossing a marker box to test`, false, JSON.stringify(cov));
+  // Prompt 7D: the "N sites close together" popup buttons are readable: text / background contrast >= 4.5:1 (WCAG AA),
+  // at rest and in the hover/focus style (keyboard focus on each button)
+  const gp = await page.evaluate(async () => {
+    const m = AsteriaMap.leaflet(); let mk = null;
+    m.eachLayer(l => { if (!mk && l.getPopup && l.getPopup() && /grouppop/.test(String(l.getPopup().getContent()))) mk = l; });
+    if (!mk) return { found: false };
+    mk.openPopup(); await new Promise(r => setTimeout(r, 300));
+    const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+    const lum = s => { const v = s.match(/[\d.]+/g).map(Number); return 0.2126 * lin(v[0]) + 0.7152 * lin(v[1]) + 0.0722 * lin(v[2]); };
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const out = [];
+    for (const b of document.querySelectorAll('.leaflet-popup .gp-i')) {
+      const cs = getComputedStyle(b), rest = ratio(cs.color, cs.backgroundColor), border0 = cs.borderColor, bg0 = cs.backgroundColor;   // (live object: copy the values)
+      b.focus(); await new Promise(r => setTimeout(r, 50)); const cf = getComputedStyle(b);
+      out.push({ name: b.textContent, rest: +rest.toFixed(2), focus: +ratio(cf.color, cf.backgroundColor).toFixed(2), outline: cf.outlineStyle !== 'none' || cf.borderColor !== border0 || cf.backgroundColor !== bg0 });
+      b.blur();
+    }
+    m.closePopup();
+    return { found: true, buttons: out };
+  });
+  expect(`${tag} map: "sites close together" popup buttons have text contrast >= 4.5:1 at rest and on hover/focus, with a visible focus state`, gp.found && gp.buttons.length >= 2 && gp.buttons.every(b => b.rest >= 4.5 && b.focus >= 4.5 && b.outline), JSON.stringify(gp));
   // labels do not overlap (whole pole and zoomed)
   for (const view of ['home', 'z3']) {
     if (view === 'home') await page.evaluate(() => AsteriaMap.home(false)); else await page.evaluate(() => AsteriaMap.leaflet().setView([-87, 30], 3, { animate: false }));
