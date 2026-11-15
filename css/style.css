@@ -564,3 +564,5 @@ body.cf-open { overflow: hidden; }
 .seg.seg-mode button:disabled { opacity: .45; cursor: not-allowed; }
 .seg.seg-mode button:focus-visible { outline: 2px solid #9fe0ff; outline-offset: -4px; }
 .v3d-modes .fineprint { margin-top: 8px; }
+/* round 6H: "Show all" map control (whole data extent) under the zoom buttons */
+.mapshowall a { font-size: 18px; line-height: 30px; font-weight: 700; text-decoration: none; }

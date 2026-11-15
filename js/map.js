@@ -108,6 +108,13 @@ window.AsteriaMap = (function () {
       attributionControl: true, zoomAnimation: !reduce, fadeAnimation: !reduce, markerZoomAnimation: !reduce,
       inertia: !reduce, maxBounds: dataBounds, maxBoundsViscosity: 1.0
     });
+    // Round 6H: Leaflet snaps every zoom to zoomSnap before clamping, so a pan at the fractional minimum zoom (or at the
+    // fractional cover zoom) rounded it up (e.g. 0.41 -> 0.5 on a phone, and the full extent was lost). A zoom equal to
+    // the minimum or to the current zoom is kept as it is; everything else snaps as before.
+    map._limitZoom = function (z) {
+      if (Math.abs(z - this.getMinZoom()) < 1e-6 || (this._zoom !== undefined && Math.abs(z - this._zoom) < 1e-6)) return Math.max(this.getMinZoom(), Math.min(this.getMaxZoom(), z));
+      return L.Map.prototype._limitZoom.call(this, z);
+    };
     var ZMAX = 9;
     layers.hill = L.tileLayer(LY.hill.path, { tileSize: 256, minZoom: 0, maxZoom: ZMAX, maxNativeZoom: LY.hill.full[1], noWrap: true,
       attribution: 'LOLA DEMs: NASA LRO/LOLA, PDS Geosciences Node' }).addTo(map);
@@ -152,6 +159,15 @@ window.AsteriaMap = (function () {
       var d = L.DomUtil.create('div', 'mapscale'); d.innerHTML = '<div class="bar"></div><div class="txt"></div>'; scaleEl = d; return d; } });
     map.addControl(new Sc());
     map.on('zoom move zoomend moveend resize', updateScale);
+    // Round 6H: "Show all" (home) button under the zoom buttons: fits the whole map data extent.
+    var Home = L.Control.extend({ options: { position: 'topleft' }, onAdd: function () {
+      var d = L.DomUtil.create('div', 'leaflet-bar mapshowall'), a = L.DomUtil.create('a', '', d);
+      a.href = '#'; a.id = 'mapShowAll'; a.setAttribute('role', 'button'); a.title = 'Show all: the whole map data extent'; a.setAttribute('aria-label', 'Show all: the whole map data extent');
+      a.innerHTML = '<span aria-hidden="true">&#8962;</span>';
+      L.DomEvent.disableClickPropagation(d);
+      L.DomEvent.on(a, 'click', function (e) { L.DomEvent.preventDefault(e); showAll(true); });
+      return d; } });
+    map.addControl(new Home());
     updateScale();
     fitMinZoom();
     map.on('resize', fitMinZoom);
@@ -162,24 +178,41 @@ window.AsteriaMap = (function () {
   }
   // Zoom at which the data square exactly covers the map box: its side equals the longer side of the box,
   // so no area outside the data shows (on a non-square box a strip of the square along the longer axis is
-  // off-screen and reachable by panning). This is also the smallest zoom (no zooming out into emptiness).
+  // off-screen and reachable by panning). Used for the first view and "Whole pole".
   // Fractional: Leaflet clamps to minZoom after snapping, so this exact value is kept.
   function coverZoom() {
     var size = map.getSize(), s = Math.max(size.x, size.y) || 400;
     return Math.max(0, Math.log((s + 1) / 256) / Math.LN2);
   }
-  function fitMinZoom() { map.setMinZoom(coverZoom()); }
+  // Round 6H: zoom at which the WHOLE data square fits inside the map box (its side equals the shorter side of the
+  // box). This is the smallest zoom, so zooming out always reaches the full map extent. On a non-square box the strip
+  // beside the square is the hatched "no data" area; panning stays limited to the data (maxBounds, viscosity 1), so at
+  // this zoom the square is held centred, and the area outside it is never reachable by panning at any larger zoom.
+  function containZoom() {
+    var size = map.getSize(), s = Math.min(size.x, size.y) || 400;
+    return Math.max(0, Math.log((s - 1) / 256) / Math.LN2);
+  }
+  function fitMinZoom() { map.setMinZoom(containZoom()); }
   // Is (lat, lon) inside the map data (the tile square)?
   function inData(lat, lon) { var p = project(lat, lon), H = TM ? TM.halfExtent_m : 0; return lat < 0 && Math.abs(p.x) <= H && Math.abs(p.y) <= H; }
   function fmtLL(lat, lon) { return lat.toFixed(4) + '°, ' + (((lon + 540) % 360) - 180).toFixed(4) + '°E'; }
   // "Whole pole": centre on the pole at the zoom where the data square fills the map box.
+  function setZ(z, animate) {
+    // Leaflet rounds to zoomSnap before clamping to minZoom, which could round past the wanted zoom.
+    var snap = map.options.zoomSnap; map.options.zoomSnap = 0;
+    map.setView([-90, 0], z, { animate: !!animate && !reduce });
+    map.options.zoomSnap = snap;
+  }
   function home(animate) {
     if (!map) return;
     fitMinZoom();
-    // Leaflet rounds to zoomSnap before clamping to minZoom, which could round up past the cover zoom.
-    var snap = map.options.zoomSnap; map.options.zoomSnap = 0;
-    map.setView([-90, 0], coverZoom(), { animate: !!animate && !reduce });
-    map.options.zoomSnap = snap;
+    setZ(coverZoom(), animate);
+  }
+  // Round 6H "Show all": the whole map data extent (the minimum zoom).
+  function showAll(animate) {
+    if (!map) return;
+    fitMinZoom();
+    setZ(containZoom(), animate);
   }
   // How much of the map box shows area outside the data (px), for the UI test.
   function margins() {
@@ -250,7 +283,7 @@ window.AsteriaMap = (function () {
   }
   return {
     init: init, setSites: setSites, setCoverage: setCoverage, coverageCount: function () { return covLayer ? covLayer.getLayers().length : 0; }, select: select, setOverlay: setOverlay, setMarkersVisible: setMarkersVisible,
-    invalidate: invalidate, home: home, showPoint: showPoint, scaleInfo: scaleInfo, scaleState: function () { return scaleState; }, margins: margins, project: project, unproject: unproject, inData: inData,
+    invalidate: invalidate, home: home, showAll: showAll, zooms: function () { return map ? { cover: coverZoom(), contain: containZoom(), min: map.getMinZoom(), zoom: map.getZoom() } : null; }, showPoint: showPoint, scaleInfo: scaleInfo, scaleState: function () { return scaleState; }, margins: margins, project: project, unproject: unproject, inData: inData,
     leaflet: function () { return map; }
   };
 })();
