@@ -238,6 +238,45 @@
     return levels;
   }
 
+  // Round 6C. Sky-view factor (Zaksek, Ostir & Kokalj 2011, "Sky-View Factor as a Relief Visualization Technique",
+  // Remote Sensing 3(2), 398-415, doi:10.3390/rs3020398): SVF = 1 - (1/N) sum_i sin(gamma_i), gamma_i = elevation angle
+  // (>= 0) of the terrain horizon in azimuth i within radius R, seen from the ground at the node. Heights are the true
+  // LOLA heights (bilinear, from the finest grid in srcs that contains each sample, finest first: e.g. [5 m patch, 20 m
+  // tile]); lunar curvature is included (drop d^2 / 2R_moon); samples outside every grid are skipped (the horizon is then
+  // taken from the terrain inside). 1 = open flat ground; lower = more enclosed (crater floors, foot of slopes).
+  // Computed for rows j0..j1-1 of grid G (every node) into out (n x n, row 0 = north, as bakeNormalXZ). Display only.
+  function skyViewRows(G, srcs, j0, j1, out, opts) {
+    opts = opts || {};
+    var NA = opts.azimuths || 16, Rmax = opts.radius || 1000, ratio = opts.ratio || 1.25, R = G.R || 1737400;
+    var dist = []; for (var t = G.d; t <= Rmax; t *= ratio) dist.push(t);
+    var ca = [], sa = []; for (var a = 0; a < NA; a++) { ca.push(Math.cos(2 * Math.PI * a / NA)); sa.push(Math.sin(2 * Math.PI * a / NA)); }
+    var sample = function (e, n) {   // bilinear height, finest grid first; NaN outside every grid
+      for (var q = 0; q < srcs.length; q++) {
+        var S = srcs[q]; if (Math.abs(e) > S.half || Math.abs(n) > S.half) continue;
+        var fi = e / S.d + S.c, fj = S.c - n / S.d, i = Math.floor(fi), j = Math.floor(fj);
+        if (i > S.n - 2) i = S.n - 2; if (j > S.n - 2) j = S.n - 2; if (i < 0) i = 0; if (j < 0) j = 0;
+        var x = fi - i, y = fj - j, H = S.H, k = j * S.n + i;
+        return H[k] * (1 - x) * (1 - y) + H[k + 1] * x * (1 - y) + H[k + S.n] * (1 - x) * y + H[k + S.n + 1] * x * y;
+      }
+      return NaN;
+    };
+    for (var jj = j0; jj < j1; jj++) for (var ii = 0; ii < G.n; ii++) {
+      var e0 = (ii - G.c) * G.d, n0 = (G.c - jj) * G.d, h0 = G.H[jj * G.n + ii], s = 0;
+      for (var a2 = 0; a2 < NA; a2++) {
+        var best = 0;   // tangent of the horizon elevation (>= 0)
+        for (var k2 = 0; k2 < dist.length; k2++) {
+          var d = dist[k2], h = sample(e0 + sa[a2] * d, n0 + ca[a2] * d);
+          if (h !== h) break;
+          var tn = (h - h0 - d * d / (2 * R)) / d; if (tn > best) best = tn;
+        }
+        s += best / Math.sqrt(1 + best * best);   // sin(atan(best))
+      }
+      out[jj * G.n + ii] = 1 - s / NA;
+    }
+    return out;
+  }
+  function skyViewFactor(G, srcs, opts) { return skyViewRows(G, srcs, 0, G.n, new Float32Array(G.n * G.n), opts); }
+
   // ------------------------------------------------------------ Earthshine (round 6)
   // Irradiance on the Moon from sunlight reflected by Earth, as a fraction of the direct sunlight, treating Earth as a
   // sphere with geometric albedo p and the Lambert phase law (an approximation; see the notes):
@@ -380,6 +419,6 @@
     decodeTile: decodeTile, enu: enu, toThree: toThree, fromThree: fromThree, dirFromAzEl: dirFromAzEl, azElFromDir: azElFromDir,
     heightAt: heightAt, meshHeightAt: meshHeightAt, slopeAt: slopeAt, gridFromWorld: gridFromWorld, groundWorld: groundWorld,
     inside: inside, buildIndex: buildIndex, buildPositions: buildPositions, earthPhase: earthPhase, nearFieldSunUp: nearFieldSunUp,
-    gridUV: gridUV, bakeNormalXZ: bakeNormalXZ, mipChainXZ: mipChainXZ, earthshineRatio: earthshineRatio, EARTH_GEOM_ALBEDO: EARTH_GEOM_ALBEDO, EARTH_BOND_ALBEDO: EARTH_BOND_ALBEDO
+    gridUV: gridUV, bakeNormalXZ: bakeNormalXZ, mipChainXZ: mipChainXZ, skyViewRows: skyViewRows, skyViewFactor: skyViewFactor, earthshineRatio: earthshineRatio, EARTH_GEOM_ALBEDO: EARTH_GEOM_ALBEDO, EARTH_BOND_ALBEDO: EARTH_BOND_ALBEDO
   };
 }));

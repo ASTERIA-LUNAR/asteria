@@ -1,0 +1,98 @@
+[
+ {
+  "site": "peak_shackleton",
+  "view": "orbit60",
+  "before": {
+   "black": 43.7,
+   "white": 0
+  },
+  "after": {
+   "black": 43.7,
+   "white": 0
+  }
+ },
+ {
+  "site": "peak_shackleton",
+  "view": "orbit3",
+  "before": {
+   "black": 0,
+   "white": 0
+  },
+  "after": {
+   "black": 0,
+   "white": 0
+  }
+ },
+ {
+  "site": "peak_shackleton",
+  "view": "walk",
+  "before": {
+   "black": 0,
+   "white": 14
+  },
+  "after": {
+   "black": 0,
+   "white": 0.5
+  }
+ },
+ {
+  "site": "peak_shackleton",
+  "view": "rover",
+  "before": {
+   "black": 0,
+   "white": 0
+  },
+  "after": {
+   "black": 0,
+   "white": 0
+  }
+ },
+ {
+  "site": "mons_malapert",
+  "view": "orbit60",
+  "before": {
+   "black": 41.7,
+   "white": 0
+  },
+  "after": {
+   "black": 41.8,
+   "white": 0
+  }
+ },
+ {
+  "site": "mons_malapert",
+  "view": "orbit3",
+  "before": {
+   "black": 0,
+   "white": 0
+  },
+  "after": {
+   "black": 0,
+   "white": 0
+  }
+ },
+ {
+  "site": "mons_malapert",
+  "view": "walk",
+  "before": {
+   "black": 0,
+   "white": 0
+  },
+  "after": {
+   "black": 0,
+   "white": 0
+  }
+ },
+ {
+  "site": "mons_malapert",
+  "view": "rover",
+  "before": {
+   "black": 0.1,
+   "white": 0
+  },
+  "after": {
+   "black": 0.1,
+   "white": 0
+  }
+ }
+]

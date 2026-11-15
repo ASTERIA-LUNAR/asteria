@@ -327,3 +327,17 @@ No AI wording was added to the interface (`tests/ui_check.js`); no traversabilit
 | Explore, Earth link windows and Sunlight windows panels: link "Download CSV" (title "Windows table and time series for this site and window (CSV)") | tests/ui_round6b.js | new |
 | CSV header line "Computed by ASTERIA; validated against NASA/JPL Horizons - see VALIDATION_REPORT.md" | owner's wording; VALIDATION_REPORT.md | new (file text) |
 | Compare: section "Power and terrain (first-order estimate, example values: Power page settings …)", rows "Solar energy in the window (estimate)", "Battery for the longest darkness (estimate)", "DEM slope at the site point"; notes on basis, "-" for custom points, "Real slopes over a few metres can be steeper; slope is not ranked." | Power page model; view3d_math slopeAt; tests/ui_round6b.js | new |
+
+## Round 6C (ground-level shading)
+
+| Text | Basis | Status |
+|---|---|---|
+| 3D panel toggle "Openness shading (Walk and Rover)", off by default | ROUND6_REPORT.md Round 6C Part 2; tests/ui_round6c.js | new |
+| 3D panel note: "Openness shading: display only. Ground that sees less open sky (sky-view factor calculated from the LOLA heights) is drawn darker. It does not change the Sun direction, shadows, status or any value." | Zakšek et al. 2011 (Remote Sensing 3, 398-415); tests/ui_round6c.js | new |
+| 3D notes, Surface shading / Relief shading: "It multiplies the Lommel-Seeliger brightness by a factor between 0.4 and 1.6 that follows the ratio of sunlight on the DEM normal to sunlight on a smoothed DEM normal (over ±4 grid cells) … the factor is bounded, so no slope is pushed to pure black or white." | tests/ground_detail_6c.js (Mons Malapert Rover no longer black) | rewritten (was "It keeps the Lommel-Seeliger brightness at 70 % and adds the difference in sunlight …") |
+| 3D notes, Resolution by area: "The 6 km tile and the 5 m patch are shaded per pixel from normal maps of their own LOLA grids (20 m or 80 m, and 5 m) at every quality level; between grid nodes the normal is interpolated smoothly, which adds no new features." and, at Low, "At this quality only the 6 km tile and the 5 m patch use normal maps; the rings use the normals of their drawn grid." | js/view3d.js buildTerrain; tests/ui_round6c.js | added / rewritten (was "Normal maps are used at Medium and High quality (WebGL2).") |
+| 3D notes, new item "Illustrative - Openness shading (Walk and Rover, off by default; display only): … by 1 − 2.5 × (1 − sky-view factor) … horizon angles in 16 directions within 1 km, lunar curvature included; Zakšek et al. 2011 … not a light source …" | tests/view3d_test.js (sky-view factor checks), tests/ui_round6c.js | new |
+| 3D notes, new item "Illustrative - Why the ground looks smoother in Walk and Rover than in Orbit: the finest data are 5 m … and 20 m … grids; … one grid cell covers tens to thousands of screen pixels … Rocks, small craters and other features smaller than the grid are not in any dataset used and are not invented. Terrain textures use anisotropic filtering at the device maximum (×N)." | tests/ground_detail_6c.js (pixels per DEM cell) | new |
+| About, Design decisions: entry "14. Ground-level shading without invented detail (round 6C)" (same text as DESIGN_DECISIONS.md) | ROUND6_REPORT.md Round 6C | new |
+
+No AI wording was added (tests/ui_round6c.js and tests/ui_check.js: only the unchanged "Graphics:" line and the About credit line).

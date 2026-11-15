@@ -286,5 +286,32 @@ function loadWin(file) {
   expect('normal-map mip chain: ' + L.length + ' levels (9 -> 4 -> 2 -> 1), each texel the average of 2 x 2 texels of the level above', L.map(l => l.width).join(',') === '9,4,2,1' && Math.abs(L[1].data[0] - avg) < 1e-7);
 })();
 
+// ---------------------------------------------------------------- 6. round 6C: sky-view factor (openness shading, display only)
+(function () {
+  // synthetic grids (101 x 101 nodes, 20 m): flat ground; a cone-shaped pit with 45 deg walls; a plane tilted 20 deg
+  const mk = (f) => { const n = 101, d = 20, c = 50, H = new Float32Array(n * n); for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) H[j * n + i] = f((i - c) * d, (c - j) * d); return { id: 'syn', n, d, c, half: c * d, H, R: 1737400, h0: 0, k: 1 }; };
+  const flat = mk(() => 0), pit = mk((e, n) => Math.hypot(e, n)), tilt = mk((e) => e * Math.tan(20 * Math.PI / 180));
+  const sF = M.skyViewFactor(flat, [flat]), sP = M.skyViewFactor(pit, [pit]), sT = M.skyViewFactor(tilt, [tilt]);
+  const at = (s, i, j) => s[j * 101 + i];
+  // flat: the curvature drop puts every horizon below 0 deg -> SVF = 1; pit centre: horizon 45 deg all round (within the
+  // 1 km radius) -> SVF = 1 - sin 45 deg; tilted plane: horizon = 20 deg x cos(azimuth difference) uphill, 0 downhill ->
+  // SVF = 1 - (1/16) sum over the uphill directions of sin(atan(tan 20 deg cos a)) (computed here independently)
+  let up = 0; for (let a = 0; a < 16; a++) { const t = Math.tan(20 * Math.PI / 180) * Math.sin(2 * Math.PI * a / 16); if (t > 0) up += t / Math.sqrt(1 + t * t); }
+  const refT = 1 - up / 16;
+  // pit: independent recomputation through M.heightAt (bilinear DEM height, the readout path) at the same distances
+  // (20 m x 1.25^k up to 1 km); the bilinear surface of a cone lies slightly above the cone between nodes, so the
+  // value is a little below 1 - sin 45 deg
+  let sp = 0; for (let a = 0; a < 16; a++) { let best = 0; for (let d = 20; d <= 1000; d *= 1.25) { const e = Math.sin(2 * Math.PI * a / 16) * d, nn = Math.cos(2 * Math.PI * a / 16) * d; if (Math.abs(e) > pit.half || Math.abs(nn) > pit.half) break; best = Math.max(best, Math.atan((M.heightAt(pit, e, nn) - d * d / (2 * 1737400)) / d)); } sp += Math.sin(best); }
+  const refP = 1 - sp / 16;
+  expect('sky-view factor (Zaksek et al. 2011): flat ground ' + at(sF, 50, 50).toFixed(4) + ' (1), cone pit centre ' + at(sP, 50, 50).toFixed(4) + ' (independent ' + refP.toFixed(4) + '; 1 - sin 45 deg = ' + (1 - Math.SQRT1_2).toFixed(4) + '), 20 deg slope ' + at(sT, 50, 50).toFixed(4) + ' (' + refT.toFixed(4) + ')',
+    at(sF, 50, 50) === 1 && Math.abs(at(sP, 50, 50) - refP) < 1e-5 && Math.abs(at(sP, 50, 50) - (1 - Math.SQRT1_2)) < 0.03 && Math.abs(at(sT, 50, 50) - refT) < 0.002);
+  // it is computed from the heights only and does not change them; a finer grid listed first is used where it exists
+  const before = Float32Array.from(pit.H); M.skyViewFactor(pit, [pit]);
+  const fine = mk(() => 0); fine.half = 200; fine.n = 21; fine.c = 10; fine.H = new Float32Array(21 * 21);   // flat 400 m patch over the pit's centre
+  const sMix = M.skyViewFactor(pit, [fine, pit]);
+  expect('sky-view factor: heights unchanged by the computation; samples come from the finest grid that contains them (flat patch over the pit centre raises SVF there: ' + at(sMix, 50, 50).toFixed(3) + ' > ' + at(sP, 50, 50).toFixed(3) + ')',
+    pit.H.every((h, k) => h === before[k]) && at(sMix, 50, 50) > at(sP, 50, 50));
+})();
+
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASS');
 process.exit(fails ? 1 : 0);
